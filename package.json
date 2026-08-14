@@ -1,0 +1,25 @@
+{
+  "name": "blogging-platform",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @blog/blog dev",
+    "dev:admin": "pnpm --filter @blog/admin dev",
+    "build": "pnpm --filter @blog/blog build",
+    "build:all": "pnpm -r build",
+    "start": "pnpm --filter @blog/blog start",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "seed": "pnpm --filter @blog/wp-import seed",
+    "wp-import": "pnpm --filter @blog/wp-import wp-import"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "5.9.3",
+    "vitest": "^4.1.10"
+  }
+}
