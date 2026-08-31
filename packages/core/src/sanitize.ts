@@ -125,6 +125,60 @@ const OPTIONS: sanitizeHtml.IOptions = {
   },
 };
 
+/**
+ * PAGE sanitisation — a deliberately looser profile than posts.
+ *
+ * Why two profiles. Post content can arrive from an untrusted WordPress export,
+ * so it gets the strict allowlist above. Page content is authored only by site
+ * admins (enforced by RLS) and is often a marketing layout with its own CSS —
+ * pushed through the post profile it loses `<style>` and comes out looking like
+ * a blog post.
+ *
+ * The trust model here is explicitly WordPress's: an admin authoring a page is
+ * equivalent to shipping code. What is still NOT negotiable is script execution
+ * — `<script>`, `on*` handlers and `javascript:` URLs are stripped exactly as
+ * for posts. `<style>` is permitted because CSS cannot execute script in a
+ * modern browser.
+ */
+const PAGE_OPTIONS: sanitizeHtml.IOptions = {
+  ...OPTIONS,
+  allowedTags: [
+    ...(OPTIONS.allowedTags as string[]),
+    // Layout and semantic elements a landing page needs.
+    'style', 'main', 'nav', 'button', 'label', 'svg', 'path', 'g', 'circle',
+    'rect', 'line', 'polyline', 'polygon', 'defs', 'use', 'symbol', 'title',
+    'video', 'audio', 'track', 'details', 'summary', 'hgroup', 'h1',
+  ],
+  allowedAttributes: {
+    ...(OPTIONS.allowedAttributes as Record<string, string[]>),
+    // Inline styles are how an exported layout carries its design.
+    '*': ['class', 'id', 'lang', 'dir', 'style', 'role', 'title', 'aria-label',
+          'aria-hidden', 'aria-labelledby', 'aria-describedby', 'data-*'],
+    svg: ['viewbox', 'viewBox', 'xmlns', 'fill', 'stroke', 'stroke-width',
+          'width', 'height', 'preserveaspectratio'],
+    path: ['d', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin'],
+    circle: ['cx', 'cy', 'r', 'fill', 'stroke', 'stroke-width'],
+    rect: ['x', 'y', 'width', 'height', 'rx', 'ry', 'fill', 'stroke'],
+    line: ['x1', 'y1', 'x2', 'y2', 'stroke', 'stroke-width'],
+    polyline: ['points', 'fill', 'stroke', 'stroke-width'],
+    polygon: ['points', 'fill', 'stroke', 'stroke-width'],
+    video: ['src', 'poster', 'controls', 'autoplay', 'muted', 'loop', 'playsinline', 'width', 'height'],
+    audio: ['src', 'controls', 'loop'],
+    source: ['src', 'srcset', 'sizes', 'type', 'media'],
+    button: ['type', 'disabled'],
+    label: ['for'],
+  },
+  // `style` must be dropped from nonTextTags or its CSS would be discarded as
+  // text rather than kept as a stylesheet.
+  nonTextTags: ['script', 'textarea', 'option', 'noscript'],
+};
+
+/** Sanitise page HTML. See PAGE_OPTIONS for why this differs from posts. */
+export function sanitizePageHtml(dirty: string): string {
+  if (!dirty) return '';
+  return sanitizeHtml(dirty, PAGE_OPTIONS);
+}
+
 /** Sanitise post body HTML. Safe to render with dangerouslySetInnerHTML. */
 export function sanitizePostHtml(dirty: string): string {
   if (!dirty) return '';

@@ -1,5 +1,5 @@
 import type { Client } from './supabase';
-import type { RedirectRow, SiteRow, TermKind, TermRow } from './database.types';
+import type { PageRow, RedirectRow, SiteRow, TermKind, TermRow } from './database.types';
 
 /**
  * Read-side data access for the public blog.
@@ -349,5 +349,85 @@ export async function listRedirects(client: Client, siteId: string): Promise<Red
     .eq('site_id', siteId);
 
   if (error) fail('Failed to list redirects', error);
+  return data ?? [];
+}
+
+// ---------------------------------------------------------------------------
+// Pages
+// ---------------------------------------------------------------------------
+
+/**
+ * A page, looked up by its materialised `path`.
+ *
+ * One indexed query regardless of nesting depth. Walking the parent chain per
+ * request would cost a query per level, which is why `path` is materialised by
+ * trigger rather than derived at read time.
+ */
+export async function getPageByPath(
+  client: Client,
+  siteId: string,
+  path: string,
+): Promise<PageRow | null> {
+  const normalised = path.replace(/^\/+|\/+$/g, '');
+
+  const { data, error } = await client
+    .from('pages')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('path', normalised)
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .maybeSingle();
+
+  if (error) fail(`Failed to load page "${normalised}"`, error);
+  return data ?? null;
+}
+
+export async function getPageById(
+  client: Client,
+  siteId: string,
+  id: string,
+): Promise<PageRow | null> {
+  const { data, error } = await client
+    .from('pages')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) fail('Failed to load page', error);
+  return data ?? null;
+}
+
+/** Every published page path, for generateStaticParams. */
+export async function listPublishedPagePaths(
+  client: Client,
+  siteId: string,
+): Promise<string[]> {
+  const { data, error } = await client
+    .from('pages')
+    .select('path')
+    .eq('site_id', siteId)
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString());
+
+  if (error) fail('Failed to list page paths', error);
+  return (data ?? []).map((row) => row.path);
+}
+
+/** Published pages with their update times, for the sitemap. */
+export async function listPublishedPages(
+  client: Client,
+  siteId: string,
+): Promise<Array<Pick<PageRow, 'path' | 'updated_at' | 'noindex'>>> {
+  const { data, error } = await client
+    .from('pages')
+    .select('path, updated_at, noindex')
+    .eq('site_id', siteId)
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .order('path');
+
+  if (error) fail('Failed to list pages', error);
   return data ?? [];
 }

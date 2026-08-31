@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
-import { categoryPath, listNonEmptyTerms, tagPath } from '@blog/core';
+import { browsePath, categoryPath, listNonEmptyTerms, tagPath } from '@blog/core';
 
 import { getClient, getSite } from '@/lib/site';
 
@@ -10,7 +10,7 @@ export const revalidate = false;
 
 export const metadata: Metadata = {
   title: 'Categories',
-  alternates: { canonical: '/categories' },
+  alternates: { canonical: browsePath() },
 };
 
 export default async function CategoriesPage() {

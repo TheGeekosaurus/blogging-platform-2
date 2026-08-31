@@ -1,7 +1,12 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { POSTS_PER_PAGE, countPublishedPosts, listPublishedPosts } from '@blog/core';
+import {
+  POSTS_PER_PAGE,
+  blogPagePath,
+  countPublishedPosts,
+  listPublishedPosts,
+} from '@blog/core';
 
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
@@ -76,9 +81,9 @@ export default async function ArchivePage({
       </div>
 
       <nav className="mt-12 flex justify-between text-sm">
-        <Link href={pageNumber === 2 ? '/' : `/page/${pageNumber - 1}`}>← Newer posts</Link>
+        <Link href={blogPagePath(pageNumber - 1)}>← Newer posts</Link>
         {pageNumber < pageCount ? (
-          <Link href={`/page/${pageNumber + 1}`}>Older posts →</Link>
+          <Link href={blogPagePath(pageNumber + 1)}>Older posts →</Link>
         ) : (
           <span />
         )}

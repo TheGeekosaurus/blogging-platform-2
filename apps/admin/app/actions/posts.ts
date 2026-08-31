@@ -54,6 +54,18 @@ export async function savePost(
   // Slug is only derived for a NEW post. Editing never silently rewrites an
   // existing slug — that would break inbound links and search rankings.
   const submittedSlug = String(formData.get('slug') ?? '').trim();
+
+  // A path typed here used to be flattened silently: "/blog/test-post" became
+  // "blog-test-post", producing a URL nobody asked for. Posts always live at
+  // /blog/<slug>, so a slash in the slug is always a mistake.
+  if (submittedSlug.includes('/')) {
+    return {
+      error:
+        'A slug is a single URL segment and cannot contain "/". ' +
+        'Posts are always published under /blog/, so just enter the last part.',
+    };
+  }
+
   const slug = submittedSlug ? slugify(submittedSlug) : slugify(title);
 
   const contentHtml = sanitizePostHtml(rawHtml);

@@ -3,7 +3,7 @@ import { createHash, timingSafeEqual } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import { NextResponse, type NextRequest } from 'next/server';
 
-import { postPath } from '@blog/core';
+import { blogIndexPath, browsePath, pagePath, postPath } from '@blog/core';
 
 /**
  * On-demand revalidation, called by the admin after a write.
@@ -29,7 +29,10 @@ function secretMatches(provided: string | null, expected: string): boolean {
   return timingSafeEqual(a, b);
 }
 
-type Target = { type: 'post'; slug?: unknown } | { type: 'site' };
+type Target =
+  | { type: 'post'; slug?: unknown }
+  | { type: 'page'; path?: unknown }
+  | { type: 'site' };
 
 export async function POST(request: NextRequest) {
   const expected = process.env.REVALIDATE_SECRET;
@@ -58,7 +61,11 @@ export async function POST(request: NextRequest) {
 
   if (revalidated === null) {
     return NextResponse.json(
-      { error: 'Unrecognised target. Expected { type: "post", slug } or { type: "site" }.' },
+      {
+        error:
+          'Unrecognised target. Expected { type: "post", slug }, ' +
+          '{ type: "page", path } or { type: "site" }.',
+      },
       { status: 400 },
     );
   }
@@ -78,17 +85,41 @@ function revalidateFor(target: Target): string[] | null {
     const slug = typeof target.slug === 'string' ? target.slug.trim() : '';
     if (!slug) return null;
 
-    // sitemap and feed both list published posts, so any post change dirties them.
-    const paths = [postPath(slug), '/', '/categories', '/sitemap.xml', '/feed.xml'];
+    // '/' is included because the homepage falls back to a post list when no
+    // homepage page is set. sitemap and feed both list posts, so any post change
+    // dirties them too.
+    const paths = [
+      postPath(slug),
+      blogIndexPath(),
+      '/',
+      browsePath(),
+      '/sitemap.xml',
+      '/feed.xml',
+    ];
     for (const path of paths) revalidatePath(path);
 
     // Dynamic-route form invalidates every generated page of that route, which
     // is what a new or reordered post needs — its position in pagination and in
     // any archive it belongs to can both change.
-    const routes = ['/page/[page]', '/category/[slug]', '/tag/[slug]'];
+    const routes = ['/blog/page/[page]', '/blog/category/[slug]', '/blog/tag/[slug]'];
     for (const route of routes) revalidatePath(route, 'page');
 
     return [...paths, ...routes];
+  }
+
+  if (target?.type === 'page') {
+    const raw = typeof target.path === 'string' ? target.path.trim() : '';
+    if (!raw) return null;
+
+    // A page's own URL, plus '/' in case it is the homepage, plus the sitemap.
+    // Re-parenting moves descendants, so the whole catch-all route is dropped
+    // rather than trying to enumerate the subtree from here.
+    const paths = [pagePath(raw), '/', '/sitemap.xml'];
+    for (const path of paths) revalidatePath(path);
+
+    revalidatePath('/[...path]', 'page');
+
+    return [...paths, '/[...path]'];
   }
 
   return null;

@@ -8,7 +8,7 @@ export default function NotFound() {
         That URL doesn&apos;t match anything here.
       </p>
       <p className="mt-6">
-        <Link href="/">Back to the latest posts</Link>
+        <Link href="/">Back to the homepage</Link>
       </p>
     </div>
   );

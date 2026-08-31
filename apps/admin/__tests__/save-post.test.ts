@@ -171,3 +171,35 @@ describe('savePost — derived fields', () => {
     expect(captured.insert).toBeUndefined();
   });
 });
+
+describe('savePost — slug is one segment', () => {
+  it('rejects a slug containing a slash instead of flattening it', async () => {
+    // This silently produced "blog-test-post" from "/blog/test-post" and gave a
+    // URL nobody asked for. Posts always live under /blog/, so a slash is a
+    // mistake worth surfacing rather than absorbing.
+    const result = await savePost({}, form({
+      title: 'Test',
+      slug: '/blog/test-post',
+      content_html: '<p>x</p>',
+    }));
+
+    expect(result.error).toMatch(/single URL segment/i);
+    expect(captured.insert).toBeUndefined();
+  });
+
+  it('rejects a full URL pasted into the slug', async () => {
+    const result = await savePost({}, form({
+      title: 'Test',
+      slug: 'https://example.com/blog/test-post',
+      content_html: '<p>x</p>',
+    }));
+
+    expect(result.error).toBeTruthy();
+    expect(captured.insert).toBeUndefined();
+  });
+
+  it('still accepts an ordinary slug', async () => {
+    await savePost({}, form({ title: 'Test', slug: 'my-post', content_html: '<p>x</p>' }));
+    expect(captured.insert?.slug).toBe('my-post');
+  });
+});

@@ -7,21 +7,48 @@ export const MEDIA_BUCKET = 'media';
 /**
  * URL construction.
  *
- * Permalinks are flat — `/post-name/` — matching the existing WordPress
- * `/%postname%/` setting. Every public path is built through these helpers so
- * that a future change to permalink shape has exactly one place to touch.
+ * The site serves pages at the root (`/about`, `/projects/solar`) and posts
+ * under `/blog/`. Every public path is built through these helpers, which is
+ * what made moving posts under /blog a contained change rather than a hunt
+ * through every template.
  */
 
+/** Blog posts live under /blog/. Pages own the root. */
+export const BLOG_BASE = '/blog';
+
 export function postPath(slug: string): string {
-  return `/${slug}`;
+  return `${BLOG_BASE}/${slug}`;
+}
+
+export function blogIndexPath(): string {
+  return BLOG_BASE;
+}
+
+/**
+ * Public path for a page, from its materialised `path` column.
+ * An empty path is the homepage.
+ */
+export function pagePath(path: string): string {
+  const trimmed = path.replace(/^\/+|\/+$/g, '');
+  return trimmed ? `/${trimmed}` : '/';
+}
+
+/** Numbered blog pagination. Page 1 is the blog index itself. */
+export function blogPagePath(pageNumber: number): string {
+  return pageNumber <= 1 ? BLOG_BASE : `${BLOG_BASE}/page/${pageNumber}`;
+}
+
+/** Index of all categories and tags. */
+export function browsePath(): string {
+  return `${BLOG_BASE}/categories`;
 }
 
 export function categoryPath(slug: string): string {
-  return `/category/${slug}`;
+  return `${BLOG_BASE}/category/${slug}`;
 }
 
 export function tagPath(slug: string): string {
-  return `/tag/${slug}`;
+  return `${BLOG_BASE}/tag/${slug}`;
 }
 
 /** Absolute URL for canonical tags, sitemap entries and RSS links. */
