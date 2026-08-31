@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 
-import type { PostStatus } from '@blog/core';
+import { slugify, type PostStatus } from '@blog/core';
 
 /**
  * WXR (WordPress eXtended RSS) parsing.
@@ -84,17 +84,11 @@ export function parseWpDate(raw: string): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-/** Derive a slug from a title, for posts WordPress never assigned one to. */
-export function slugifyTitle(title: string): string {
-  const base = title
-    .normalize('NFKD')
-    // Strip combining diacritical marks left behind by NFKD (é -> e).
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-  return base || 'untitled';
-}
+/**
+ * Derive a slug from a title, for posts WordPress never assigned one to.
+ * Re-exported from @blog/core so the admin and the importer cannot drift.
+ */
+export const slugifyTitle = slugify;
 
 interface RawCategory {
   '#text'?: string;

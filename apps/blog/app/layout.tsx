@@ -19,6 +19,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description: site.description ?? undefined,
     alternates: {
       canonical: '/',
+      types: {
+        'application/rss+xml': absoluteUrl(site, '/feed.xml'),
+      },
     },
     openGraph: {
       type: 'website',
@@ -60,10 +63,10 @@ export default async function RootLayout({
             >
               {site.name}
             </Link>
-            {/* RSS and sitemap land in phase 6, so they are not linked yet. */}
             <nav className="flex gap-5 text-sm">
               <Link href="/">Latest</Link>
               <Link href="/categories">Categories</Link>
+              <a href="/feed.xml">RSS</a>
             </nav>
           </header>
 

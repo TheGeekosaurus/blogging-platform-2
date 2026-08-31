@@ -15,6 +15,7 @@ import {
   tagPath,
 } from '@blog/core';
 
+import { PostJsonLd } from '@/components/json-ld';
 import { getClient, getSite } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -79,8 +80,12 @@ export default async function PostPage({
   const related = await listRelatedPosts(getClient(), site.id, post.id, 3);
   const image = post.featured_image;
 
+  const description = post.seo_description ?? excerptFor(post, 160);
+
   return (
     <article>
+      <PostJsonLd site={site} post={post} description={description} />
+
       <header className="mb-8">
         <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
           {post.title}

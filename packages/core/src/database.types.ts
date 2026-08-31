@@ -94,6 +94,30 @@ export type PostTermRow = {
   term_id: string;
 }
 
+export type ProfileRow = {
+  id: string;
+  email: string;
+  display_name: string | null;
+  avatar_url: string | null;
+  bio: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type SiteMemberRow = {
+  site_id: string;
+  user_id: string;
+  role: MemberRole;
+  created_at: string;
+}
+
+export type SiteSecretRow = {
+  site_id: string;
+  revalidate_secret: string;
+  created_at: string;
+  updated_at: string;
+}
+
 type Writable<T, Optional extends keyof T> = Omit<T, Optional> &
   Partial<Pick<T, Optional>>;
 
@@ -174,6 +198,47 @@ export type Database = {
             foreignKeyName: 'media_site_id_fkey';
             columns: ['site_id'];
             isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      profiles: {
+        Row: ProfileRow;
+        Insert: Writable<ProfileRow, 'created_at' | 'updated_at' | 'display_name' | 'avatar_url' | 'bio'>;
+        Update: Partial<ProfileRow>;
+        Relationships: [];
+      };
+      site_members: {
+        Row: SiteMemberRow;
+        Insert: Writable<SiteMemberRow, 'created_at' | 'role'>;
+        Update: Partial<SiteMemberRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'site_members_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'site_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      site_secrets: {
+        Row: SiteSecretRow;
+        Insert: Writable<SiteSecretRow, 'created_at' | 'updated_at' | 'revalidate_secret'>;
+        Update: Partial<SiteSecretRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'site_secrets_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: true;
             referencedRelation: 'sites';
             referencedColumns: ['id'];
           },

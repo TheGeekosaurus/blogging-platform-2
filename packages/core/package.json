@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.3",
+    "@supabase/supabase-js": "^2.112.4",
     "sanitize-html": "^2.17.6"
   },
   "devDependencies": {

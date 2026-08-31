@@ -47,3 +47,38 @@ export function mediaPublicUrl(storagePath: string): string {
 export function supabaseHostname(): string {
   return new URL(supabaseUrl()).hostname;
 }
+
+/**
+ * Derive a URL slug from a title.
+ *
+ * Used by the admin when creating a post and by the WordPress importer when an
+ * export has no `wp:post_name`. Never used to *change* an existing slug — that
+ * would break inbound links.
+ */
+export function slugify(title: string): string {
+  const base = title
+    .normalize('NFKD')
+    // Strip combining diacritical marks left behind by NFKD (é -> e).
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return base || 'untitled';
+}
+
+/**
+ * Absolute URL for a PAGE, with the trailing slash the blog serves.
+ *
+ * apps/blog sets `trailingSlash: true` so inbound WordPress links like
+ * `/some-post/` resolve without a redirect hop. Sitemap and feed entries must
+ * match that exactly, or every entry costs a redirect and canonical tags
+ * disagree with the URLs being advertised.
+ *
+ * Paths that name a file (`/feed.xml`) are left alone — those are not pages.
+ */
+export function pageUrl(site: Pick<SiteRow, 'base_url'>, path: string): string {
+  const url = absoluteUrl(site, path);
+  const isFile = /\.[a-z0-9]+$/i.test(new URL(url).pathname);
+  if (isFile || url.endsWith('/')) return url;
+  return `${url}/`;
+}
