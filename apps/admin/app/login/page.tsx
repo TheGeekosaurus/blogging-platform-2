@@ -2,27 +2,23 @@
 
 import { useActionState } from 'react';
 
-import { requestMagicLink, type AuthFormState } from '@/app/actions/auth';
+import { signIn, type AuthFormState } from '@/app/actions/auth';
 
 const INITIAL: AuthFormState = {};
 
 export default function LoginPage() {
-  const [state, formAction, pending] = useActionState(requestMagicLink, INITIAL);
+  const [state, formAction, pending] = useActionState(signIn, INITIAL);
 
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center px-6">
       <h1 className="text-2xl font-semibold tracking-tight">Blog admin</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Sign in with a magic link. Access is invite-only.
+        Sign in to write and publish. Accounts are created by the site owner.
       </p>
 
-      {state.sent ? (
-        <p className="mt-6 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          If that address has access, a sign-in link is on its way. Check your inbox.
-        </p>
-      ) : (
-        <form action={formAction} className="mt-6 flex flex-col gap-3">
-          <label htmlFor="email" className="text-sm font-medium">
+      <form action={formAction} className="mt-6 flex flex-col gap-4">
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium">
             Email
           </label>
           <input
@@ -30,26 +26,45 @@ export default function LoginPage() {
             name="email"
             type="email"
             required
-            autoComplete="email"
+            autoComplete="username"
             autoFocus
-            className="rounded border border-slate-300 px-3 py-2 text-sm"
+            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
           />
+        </div>
 
-          {state.error ? (
-            <p className="text-sm text-red-700" role="alert">
-              {state.error}
-            </p>
-          ) : null}
+        <div>
+          <label htmlFor="password" className="block text-sm font-medium">
+            Password
+          </label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autoComplete="current-password"
+            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
 
-          <button
-            type="submit"
-            disabled={pending}
-            className="mt-1 rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
-          >
-            {pending ? 'Sending…' : 'Send magic link'}
-          </button>
-        </form>
-      )}
+        {state.error ? (
+          <p role="alert" className="text-sm text-red-700">
+            {state.error}
+          </p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+        >
+          {pending ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+
+      <p className="mt-6 text-xs text-slate-500">
+        Forgotten your password? There is no self-service reset — set a new one in
+        the Supabase dashboard under Authentication → Users.
+      </p>
     </main>
   );
 }

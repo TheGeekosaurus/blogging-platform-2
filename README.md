@@ -51,9 +51,11 @@ supabase/migrations/0002_rls.sql       row level security and grants
 supabase/migrations/0003_storage.sql   media bucket
 ```
 
-Then disable signups (Authentication → Sign In / Providers → Email), invite
-yourself, and grant that user access — full steps in
-[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
+provider ON** and switch **Allow new users to sign up OFF** — password sign-in
+lives under that provider, so turning it off locks you out. Create your user
+(Users → Add user → Create new user, with Auto Confirm ticked) and grant it
+access. Full steps in [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 Seed a site with sample posts so there is something to render:
 
@@ -68,9 +70,14 @@ pnpm dev          # blog on http://localhost:3000
 pnpm dev:admin    # admin on http://localhost:3001
 ```
 
-Signing in needs an invited user **and** a `site_members` row — see step 3 of the
-deployment runbook. Without the membership row you will sign in successfully and
-then see nothing, because every RLS policy is keyed off it.
+Signing in needs a confirmed user **and** a `site_members` row — see step 3 of
+the deployment runbook. Without the membership row you will sign in successfully
+and then see nothing, because every RLS policy is keyed off it.
+
+Sign-in is email + password. There is no sign-up page and no self-service
+password reset, deliberately: both would put email delivery on the critical path
+for account access, and Supabase's built-in sender is test-grade. Accounts and
+password changes happen in the Supabase dashboard.
 
 ## Importing from WordPress
 
@@ -132,7 +139,7 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
-| Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_URL` |
+| Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
 URLs, the sitemap, the feed, and cache refreshes are all built from it.

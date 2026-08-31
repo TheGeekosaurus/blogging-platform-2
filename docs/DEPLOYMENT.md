@@ -29,10 +29,18 @@ Supabase (one project)
    supabase/migrations/0003_storage.sql   media bucket
    ```
 
-3. **Disable signups.** Authentication → Sign In / Providers → Email, turn off
-   "Allow new users to sign up". This is what makes the system closed. The app
-   also passes `shouldCreateUser: false`, but the project setting is the one that
-   cannot be bypassed by a code change.
+3. **Close signups — but leave the provider on.** Authentication → Sign In /
+   Providers → Email. There are two separate switches here and they are easy to
+   confuse:
+
+   | Switch | Set to | Why |
+   | --- | --- | --- |
+   | **Enable Email provider** | **ON** | Password sign-in lives under this provider. Turning it off disables login entirely. |
+   | **Allow new users to sign up** | **OFF** | This is what makes the system invite-only. |
+
+   Turning off the provider instead of the signup toggle is the single most
+   likely way to lock yourself out. The app has no sign-up path of its own, so
+   the second switch is belt-and-braces.
 
 4. Collect from Project Settings → Data API:
    - Project URL → `SUPABASE_URL`
@@ -61,13 +69,26 @@ select revalidate_secret from site_secrets
 
 ## 3. Create your user — and grant it access
 
-Two steps, and **skipping the second is the most common way to get stuck**: you
-will sign in successfully and then see an empty dashboard, because every RLS
-policy is keyed off `site_members`.
+Two steps. Do them in order and check each one, because both fail silently.
 
-1. Authentication → Users → **Invite user**, with your email address.
+1. Authentication → Users → **Add user** → **Create new user**:
+   - Email and a password you choose
+   - ✅ **Auto Confirm User** — without this the account cannot sign in
 
-2. Then, in the SQL editor:
+   Use "Create new user", not "Invite user". An invite depends on an email
+   arriving, and Supabase's built-in sender is test-grade.
+
+   **Verify it exists before continuing** — this must return one row with a
+   non-null confirmation time:
+
+   ```sql
+   select email, email_confirmed_at from auth.users;
+   ```
+
+   If it returns nothing, the user was not created and step 2 below will do
+   nothing at all.
+
+2. Grant that user access to the site:
 
    ```sql
    insert into site_members (site_id, user_id, role)
@@ -76,7 +97,24 @@ policy is keyed off `site_members`.
    where s.slug = 'myblog' and u.email = 'you@example.com';
    ```
 
+   **This is a join, so a typo or a missing user inserts zero rows and still
+   reports success.** Always confirm — it must return exactly one row:
+
+   ```sql
+   select s.name, u.email, m.role
+   from site_members m
+   join sites s on s.id = m.site_id
+   join auth.users u on u.id = m.user_id;
+   ```
+
+   Without this row you will sign in successfully and see an empty dashboard,
+   because every RLS policy is keyed off `site_members`.
+
    Repeat the insert for each additional site you create.
+
+**Forgotten password?** There is no self-service reset — a reset flow would put
+email back on the critical path. Set a new password in Supabase → Authentication
+→ Users → edit the user.
 
 ## 4. Local check before deploying
 
@@ -143,18 +181,15 @@ One project, once.
 | --- | --- |
 | `SUPABASE_URL` | from step 1 |
 | `SUPABASE_ANON_KEY` | from step 1 |
-| `ADMIN_URL` | `https://admin.yourdomain.com` |
 
-`ADMIN_URL` is where magic-link emails point. If it is wrong, sign-in links land
-on the wrong host and will not work.
+That is all it needs. Sign-in is email + password, so there is no redirect URL to
+register and no email configuration to get right.
 
-Add the domain, then in Supabase set Authentication → URL Configuration → Site
-URL to the same value, and add `https://admin.yourdomain.com/auth/callback` to
-the redirect allow list.
+Add the domain in Settings → Domains.
 
 ## 8. Confirm the whole loop
 
-1. Sign in to the admin.
+1. Sign in to the admin with the email and password from step 3.
 2. Publish a post.
 3. It should appear on the live blog within seconds, with no redeploy.
 
