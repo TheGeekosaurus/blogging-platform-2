@@ -1,0 +1,21 @@
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# env — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# WordPress exports can be large and contain personal data
+*.wxr
+wordpress-export*.xml
+
+.DS_Store
+*.log
+.vercel
+.turbo
+coverage/
+*.tsbuildinfo

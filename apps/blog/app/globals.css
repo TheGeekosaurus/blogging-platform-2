@@ -1,0 +1,203 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+/*
+ * A deliberately small theme. No web fonts: a system font stack renders on the
+ * first paint with no network request and no layout shift, which matters more
+ * for perceived speed than any particular typeface.
+ */
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-surface: #ffffff;
+  --color-surface-muted: #f6f7f9;
+  --color-ink: #16181d;
+  --color-ink-muted: #5b6472;
+  --color-line: #e4e7ec;
+  --color-accent: #1f5fd0;
+}
+
+/*
+ * Dark mode overrides the generated custom properties directly. `@theme` only
+ * works at the top level — it cannot be nested in a media query — so the dark
+ * palette is plain CSS against the same variable names.
+ */
+:root {
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #101216;
+    --color-surface-muted: #171a20;
+    --color-ink: #e9ecf1;
+    --color-ink-muted: #9aa4b2;
+    --color-line: #262b33;
+    --color-accent: #7ea8ff;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--color-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+/*
+ * Post body styling. The content is a sanitised HTML string, so it cannot carry
+ * React components — everything here is plain CSS against the tags the
+ * sanitiser allows.
+ */
+@layer components {
+  .post-body {
+    font-family: var(--font-serif);
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
+
+  .post-body > * + * {
+    margin-top: 1.25em;
+  }
+
+  .post-body h2,
+  .post-body h3,
+  .post-body h4 {
+    font-family: var(--font-sans);
+    font-weight: 650;
+    line-height: 1.25;
+    margin-top: 2em;
+    margin-bottom: 0.6em;
+    scroll-margin-top: 2rem;
+  }
+
+  .post-body h2 {
+    font-size: 1.6rem;
+  }
+  .post-body h3 {
+    font-size: 1.3rem;
+  }
+  .post-body h4 {
+    font-size: 1.1rem;
+  }
+
+  .post-body ul,
+  .post-body ol {
+    padding-left: 1.5em;
+  }
+
+  .post-body ul {
+    list-style: disc;
+  }
+  .post-body ol {
+    list-style: decimal;
+  }
+
+  .post-body li + li {
+    margin-top: 0.4em;
+  }
+
+  .post-body blockquote {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 1.1em;
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .post-body pre {
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-line);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .post-body :not(pre) > code {
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-line);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.35em;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+  }
+
+  /* Images always reserve their aspect ratio, so imported content that omits
+     width/height still cannot cause layout shift. */
+  .post-body img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+  }
+
+  .post-body figure {
+    margin-block: 1.75em;
+  }
+
+  .post-body figcaption {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--color-ink-muted);
+    text-align: center;
+    margin-top: 0.6em;
+  }
+
+  .post-body table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .post-body th,
+  .post-body td {
+    border: 1px solid var(--color-line);
+    padding: 0.5em 0.75em;
+    text-align: left;
+  }
+
+  .post-body th {
+    background: var(--color-surface-muted);
+    font-weight: 600;
+  }
+
+  .post-body hr {
+    border: 0;
+    border-top: 1px solid var(--color-line);
+    margin-block: 2.5em;
+  }
+
+  .post-body iframe {
+    max-width: 100%;
+    border: 0;
+    border-radius: 0.5rem;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    height: auto;
+  }
+}
