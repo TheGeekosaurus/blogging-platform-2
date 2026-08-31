@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 
 import { postPath, type SiteRow, type TermRow } from '@blog/core';
 
@@ -33,6 +33,7 @@ export function PostForm({
   values: PostFormValues;
 }) {
   const [state, formAction, pending] = useActionState(savePost, INITIAL);
+  const [slug, setSlug] = useState(values.slug);
 
   const categories = terms.filter((term) => term.kind === 'category');
   const tags = terms.filter((term) => term.kind === 'tag');
@@ -79,17 +80,24 @@ export function PostForm({
         <input
           id="slug"
           name="slug"
-          defaultValue={values.slug}
+          value={slug}
+          onChange={(event) => setSlug(event.target.value)}
           placeholder="derived from the title if left blank"
           className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
         />
+        {slug.includes('/') ? (
+          <p className="mt-1 text-xs text-red-700">
+            A slug is one URL segment. Posts already live under <code>/blog/</code> — enter
+            just the last part.
+          </p>
+        ) : null}
         <p className="mt-1 text-xs text-slate-500">
           {values.id ? (
             <>
               Changing this breaks existing links to{' '}
               <code>
                 {site.base_url}
-                {postPath(values.slug)}
+                {postPath(slug)}
               </code>
               . Add a redirect if you do.
             </>
@@ -98,7 +106,7 @@ export function PostForm({
               Becomes{' '}
               <code>
                 {site.base_url}
-                {postPath(values.slug || 'your-post')}
+                {postPath(slug || 'your-post')}
               </code>
             </>
           )}
@@ -208,7 +216,7 @@ export function PostForm({
 
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || slug.includes('/')}
           className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
         >
           {pending ? 'Saving…' : 'Save'}
@@ -216,7 +224,7 @@ export function PostForm({
 
         {values.id && values.status === 'published' ? (
           <a
-            href={`${site.base_url}${postPath(values.slug)}`}
+            href={`${site.base_url}${postPath(slug)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm underline"

@@ -1,4 +1,4 @@
-import type { PostRow, PostStatus, TermRow } from '@blog/core';
+import type { PageRow, PageTemplate, PostRow, PostStatus, TermRow } from '@blog/core';
 
 import { createClient } from './supabase/server';
 
@@ -143,4 +143,73 @@ export async function countPostsPerTerm(siteId: string): Promise<Map<string, num
     counts.set(row.term_id, (counts.get(row.term_id) ?? 0) + 1);
   }
   return counts;
+}
+
+// ---------------------------------------------------------------------------
+// Pages
+// ---------------------------------------------------------------------------
+
+export interface PageListItem {
+  id: string;
+  slug: string;
+  path: string;
+  title: string;
+  parent_id: string | null;
+  template: PageTemplate;
+  status: PostStatus;
+  updated_at: string;
+}
+
+/**
+ * All pages, ordered by path so the list reads as a tree without needing a
+ * recursive query — 'projects' sorts immediately before 'projects/solar'.
+ */
+export async function listPages(siteId: string): Promise<PageListItem[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('pages')
+    .select('id, slug, path, title, parent_id, template, status, updated_at')
+    .eq('site_id', siteId)
+    .order('path');
+
+  if (error) throw new Error(`Failed to list pages: ${error.message}`);
+  return (data ?? []) as PageListItem[];
+}
+
+export async function getPageForEdit(siteId: string, id: string): Promise<PageRow | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('pages')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load page: ${error.message}`);
+  return data ?? null;
+}
+
+/**
+ * Pages selectable as a parent.
+ *
+ * Excludes the page being edited and everything beneath it: choosing one would
+ * create a cycle. The database rejects that anyway, but offering an option that
+ * always errors is a worse experience than not offering it.
+ */
+export async function listParentOptions(
+  siteId: string,
+  excludeId?: string,
+): Promise<PageListItem[]> {
+  const pages = await listPages(siteId);
+  if (!excludeId) return pages;
+
+  const self = pages.find((page) => page.id === excludeId);
+  if (!self) return pages;
+
+  const subtreePrefix = `${self.path}/`;
+  return pages.filter(
+    (page) => page.id !== excludeId && !page.path.startsWith(subtreePrefix),
+  );
 }

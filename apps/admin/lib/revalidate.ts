@@ -14,6 +14,7 @@ import { createClient } from './supabase/server';
 
 export type RevalidateTarget =
   | { type: 'post'; slug: string }
+  | { type: 'page'; path: string }
   | { type: 'site' };
 
 export interface RevalidateResult {

@@ -1,4 +1,11 @@
-import { excerptFor, listPublishedPosts, pageUrl, absoluteUrl } from '@blog/core';
+import {
+  absoluteUrl,
+  blogIndexPath,
+  excerptFor,
+  listPublishedPosts,
+  pageUrl,
+  postPath,
+} from '@blog/core';
 
 import { getClient, getSite } from '@/lib/site';
 
@@ -34,7 +41,7 @@ export async function GET() {
 
   const items = posts
     .map((post) => {
-      const url = pageUrl(site, `/${post.slug}`);
+      const url = pageUrl(site, postPath(post.slug));
       const summary = excerptFor({ excerpt: post.excerpt, content_html: '' }, 400);
 
       return [
@@ -57,7 +64,7 @@ export async function GET() {
     '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">',
     '  <channel>',
     `    <title>${xml(site.name)}</title>`,
-    `    <link>${xml(pageUrl(site, '/'))}</link>`,
+    `    <link>${xml(pageUrl(site, blogIndexPath()))}</link>`,
     `    <description>${xml(site.description ?? site.name)}</description>`,
     `    <language>${xml(site.locale)}</language>`,
     `    <lastBuildDate>${new Date(posts[0]?.published_at ?? Date.now()).toUTCString()}</lastBuildDate>`,

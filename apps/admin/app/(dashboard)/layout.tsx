@@ -26,6 +26,7 @@ export default async function DashboardLayout({
               Blog admin
             </Link>
             <nav className="flex gap-4 text-sm">
+              <Link href="/pages">Pages</Link>
               <Link href="/posts">Posts</Link>
               <Link href="/terms">Categories &amp; tags</Link>
               <Link href="/media">Media</Link>

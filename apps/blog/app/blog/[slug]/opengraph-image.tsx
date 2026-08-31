@@ -8,9 +8,6 @@ export const alt = 'Post preview';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
-// Without these the image route renders on demand (ƒ) even though its page is
-// static — one dynamic function invocation per social crawl, forever.
-export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const site = await getSite();

@@ -1,6 +1,16 @@
 import type { MetadataRoute } from 'next';
 
-import { listNonEmptyTerms, listPublishedPosts, pageUrl } from '@blog/core';
+import {
+  browsePath,
+  categoryPath,
+  listNonEmptyTerms,
+  listPublishedPages,
+  listPublishedPosts,
+  pagePath,
+  pageUrl,
+  postPath,
+  tagPath,
+} from '@blog/core';
 
 import { getClient, getSite } from '@/lib/site';
 
@@ -17,9 +27,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // A sitemap must list everything, not just the first page.
   const posts = await listPublishedPosts(client, site.id, { limit: 50_000 });
-  const [categories, tags] = await Promise.all([
+  const [categories, tags, pages] = await Promise.all([
     listNonEmptyTerms(client, site.id, 'category'),
     listNonEmptyTerms(client, site.id, 'tag'),
+    listPublishedPages(client, site.id),
   ]);
 
   const newest = posts[0]?.published_at;
@@ -32,23 +43,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1,
     },
     {
-      url: pageUrl(site, '/categories'),
+      url: pageUrl(site, '/blog'),
+      lastModified: newest ? new Date(newest) : new Date(),
+      changeFrequency: 'daily',
+      priority: 0.9,
+    },
+    {
+      url: pageUrl(site, browsePath()),
       changeFrequency: 'weekly',
       priority: 0.3,
     },
+    // Pages marked noindex are omitted: advertising a URL in the sitemap while
+    // telling crawlers not to index it sends contradictory signals.
+    ...pages
+      .filter((page) => !page.noindex && page.path !== '')
+      .map((page) => ({
+        url: pageUrl(site, pagePath(page.path)),
+        lastModified: new Date(page.updated_at),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      })),
     ...posts.map((post) => ({
-      url: pageUrl(site, `/${post.slug}`),
+      url: pageUrl(site, postPath(post.slug)),
       lastModified: new Date(post.published_at),
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     })),
     ...categories.map((term) => ({
-      url: pageUrl(site, `/category/${term.slug}`),
+      url: pageUrl(site, categoryPath(term.slug)),
       changeFrequency: 'weekly' as const,
       priority: 0.5,
     })),
     ...tags.map((term) => ({
-      url: pageUrl(site, `/tag/${term.slug}`),
+      url: pageUrl(site, tagPath(term.slug)),
       changeFrequency: 'weekly' as const,
       priority: 0.4,
     })),

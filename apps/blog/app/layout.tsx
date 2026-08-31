@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 
-import { absoluteUrl } from '@blog/core';
+import { absoluteUrl, blogIndexPath, browsePath } from '@blog/core';
 
 import { getSite } from '@/lib/site';
 import './globals.css';
@@ -64,8 +64,8 @@ export default async function RootLayout({
               {site.name}
             </Link>
             <nav className="flex gap-5 text-sm">
-              <Link href="/">Latest</Link>
-              <Link href="/categories">Categories</Link>
+              <Link href={blogIndexPath()}>Blog</Link>
+              <Link href={browsePath()}>Categories</Link>
               <a href="/feed.xml">RSS</a>
             </nav>
           </header>

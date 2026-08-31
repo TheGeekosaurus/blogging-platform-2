@@ -159,6 +159,13 @@ Environment variables:
 | `SUPABASE_ANON_KEY` | from step 1 |
 | `SITE_SLUG` | `myblog` — must match the `sites.slug` row |
 | `REVALIDATE_SECRET` | the `revalidate_secret` from step 2 |
+| `SITE_APEX_URL` | *(optional)* `https://myblog.com` — only if retiring an old `blog.` subdomain |
+
+`SITE_APEX_URL` turns on the subdomain redirect: requests arriving at
+`blog.myblog.com/<slug>` are 301'd to `myblog.com/blog/<slug>`, so inbound links
+and rankings survive the move. Attach that subdomain to this same Vercel project.
+Vercel's own domain redirect cannot do it — it preserves the path, and the path
+needs a `/blog` prefix. Leave the variable unset if you have no old subdomain.
 
 **Do not set `SUPABASE_SERVICE_ROLE_KEY` here.** The blog only reads, and only
 published content; giving it a key that bypasses RLS turns a read-only site into

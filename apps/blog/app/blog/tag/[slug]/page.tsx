@@ -8,7 +8,20 @@ import { getClient, getSite } from '@/lib/site';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
-export const dynamicParams = false;
+// `dynamicParams` is deliberately left at its DEFAULT of true.
+//
+// Setting it to false — as this route originally did — restricts the route to
+// the params generateStaticParams returned at BUILD time. Any post published
+// since the last deploy then 404s permanently, and no amount of cache flushing
+// helps. That silently broke publishing until it surfaced in production.
+//
+// With the default: generateStaticParams still prerenders known content at
+// deploy time, an unknown slug renders once on demand and is then cached, and a
+// slug with no matching row falls through to notFound() below.
+//
+// Verified empirically that `force-static` above is NOT what caused the 404. It
+// is only an assertion that this route renders statically, kept so the page
+// cannot quietly become dynamic.
 
 export async function generateStaticParams() {
   const site = await getSite();

@@ -13,6 +13,7 @@
 export type PostStatus = 'draft' | 'scheduled' | 'published' | 'archived';
 export type MemberRole = 'owner' | 'admin' | 'editor' | 'author';
 export type TermKind = 'category' | 'tag';
+export type PageTemplate = 'prose' | 'full';
 
 export type SiteRow = {
   id: string;
@@ -25,6 +26,8 @@ export type SiteRow = {
   favicon_url: string | null;
   social: Record<string, string>;
   analytics_id: string | null;
+  /** Page served at '/'. Null falls back to the post index. */
+  homepage_page_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -89,6 +92,28 @@ export type RedirectRow = {
   created_at: string;
 }
 
+export type PageRow = {
+  id: string;
+  site_id: string;
+  slug: string;
+  parent_id: string | null;
+  /** Materialised full path, no leading slash: 'projects/solar/phase-two'. */
+  path: string;
+  title: string;
+  content_html: string;
+  original_html: string | null;
+  template: PageTemplate;
+  status: PostStatus;
+  published_at: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  canonical_url: string | null;
+  noindex: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export type PostTermRow = {
   post_id: string;
   term_id: string;
@@ -129,7 +154,7 @@ export type Database = {
     Tables: {
       sites: {
         Row: SiteRow;
-        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id'>;
+        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id' | 'homepage_page_id'>;
         Update: Partial<SiteRow>;
         Relationships: [];
       };
@@ -203,6 +228,27 @@ export type Database = {
           },
         ];
       };
+      pages: {
+        Row: PageRow;
+        Insert: Writable<PageRow, Generated | 'parent_id' | 'path' | 'content_html' | 'original_html' | 'template' | 'status' | 'published_at' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'sort_order'>;
+        Update: Partial<PageRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'pages_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'pages_parent_id_fkey';
+            columns: ['parent_id'];
+            isOneToOne: false;
+            referencedRelation: 'pages';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: ProfileRow;
         Insert: Writable<ProfileRow, 'created_at' | 'updated_at' | 'display_name' | 'avatar_url' | 'bio'>;
@@ -263,6 +309,7 @@ export type Database = {
     Functions: { [_ in never]: never };
     Enums: {
       post_status: PostStatus;
+      page_template: PageTemplate;
       member_role: MemberRole;
       term_kind: TermKind;
     };

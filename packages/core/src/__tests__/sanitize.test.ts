@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { htmlToPlainText, sanitizePostHtml, truncateWords } from '../sanitize';
+import {
+  htmlToPlainText,
+  sanitizePageHtml,
+  sanitizePostHtml,
+  truncateWords,
+} from '../sanitize';
 
 /**
  * These are the tests that matter most in the whole project: `content_html` is
@@ -171,5 +176,78 @@ describe('truncateWords', () => {
     const kept = out.slice(0, -1);
     expect(source.startsWith(kept)).toBe(true);
     expect(source[kept.length]).toBe(' ');
+  });
+});
+
+describe('sanitizePageHtml — the looser page profile', () => {
+  it('keeps a <style> block, which posts strip', () => {
+    const input = '<style>.hero{padding:4rem}</style><div class="hero">Hi</div>';
+    const out = sanitizePageHtml(input);
+
+    expect(out).toContain('<style>');
+    expect(out).toContain('padding:4rem');
+    // The whole reason a second profile exists.
+    expect(sanitizePostHtml(input)).not.toContain('<style>');
+  });
+
+  it('keeps inline style attributes for layout', () => {
+    const out = sanitizePageHtml('<div style="display:grid;gap:2rem">x</div>');
+    expect(out).toContain('style="display:grid;gap:2rem"');
+  });
+
+  it('keeps an h1, since a landing page owns its own heading', () => {
+    expect(sanitizePageHtml('<h1>Nanotom Capital</h1>')).toContain('<h1>');
+    // Posts still drop it — the post template supplies the h1.
+    expect(sanitizePostHtml('<h1>Title</h1>')).not.toContain('<h1');
+  });
+
+  it('keeps inline SVG', () => {
+    const out = sanitizePageHtml(
+      '<svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z" fill="currentColor"/></svg>',
+    );
+    expect(out).toContain('<svg');
+    expect(out).toContain('<path');
+    expect(out).toContain('d="M4 4h16v16H4z"');
+  });
+
+  it('keeps aria and data attributes', () => {
+    const out = sanitizePageHtml('<button aria-label="Close" data-action="dismiss">x</button>');
+    expect(out).toContain('aria-label="Close"');
+    expect(out).toContain('data-action="dismiss"');
+  });
+});
+
+describe('sanitizePageHtml — script execution is still not negotiable', () => {
+  it('removes script tags and their contents', () => {
+    const out = sanitizePageHtml('<div>ok</div><script>alert(1)</script>');
+    expect(out).not.toContain('script');
+    expect(out).not.toContain('alert');
+  });
+
+  it('strips inline event handlers even though style is allowed', () => {
+    const out = sanitizePageHtml('<div onclick="steal()" style="color:red">x</div>');
+    expect(out).not.toContain('onclick');
+    expect(out).toContain('style="color:red"');
+  });
+
+  it('strips onerror from images', () => {
+    const out = sanitizePageHtml('<img src="https://x.test/a.png" onerror="steal()">');
+    expect(out).not.toContain('onerror');
+  });
+
+  it('drops javascript: hrefs', () => {
+    const out = sanitizePageHtml('<a href="javascript:alert(1)">x</a>');
+    expect(out.toLowerCase()).not.toContain('javascript:');
+  });
+
+  it('removes iframes from hosts that are not allowlisted', () => {
+    const out = sanitizePageHtml('<iframe src="https://evil.test/x"></iframe>');
+    expect(out).not.toContain('iframe');
+  });
+
+  it('does not permit form fields that could phish credentials', () => {
+    const out = sanitizePageHtml('<form action="/x"><input name="password"></form>');
+    expect(out).not.toContain('<form');
+    expect(out).not.toContain('<input');
   });
 });

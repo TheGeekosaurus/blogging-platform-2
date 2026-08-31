@@ -76,21 +76,43 @@ describe('POST /api/revalidate — targets', () => {
     await POST(request({ type: 'post', slug: 'hello-world' }, SECRET));
 
     const calls = revalidatePath.mock.calls.map((call) => call[0]);
-    expect(calls).toContain('/hello-world');
+    // Posts live under /blog now; '/' is still purged because the homepage
+    // falls back to a post list when no homepage page is set.
+    expect(calls).toContain('/blog/hello-world');
+    expect(calls).toContain('/blog');
     expect(calls).toContain('/');
-    expect(calls).toContain('/categories');
+    expect(calls).toContain('/blog/categories');
     expect(calls).toContain('/sitemap.xml');
     expect(calls).toContain('/feed.xml');
 
     // Dynamic-route form, so every generated page of those routes is dropped —
     // a new post changes pagination and archive membership.
-    expect(revalidatePath).toHaveBeenCalledWith('/page/[page]', 'page');
-    expect(revalidatePath).toHaveBeenCalledWith('/category/[slug]', 'page');
-    expect(revalidatePath).toHaveBeenCalledWith('/tag/[slug]', 'page');
+    expect(revalidatePath).toHaveBeenCalledWith('/blog/page/[page]', 'page');
+    expect(revalidatePath).toHaveBeenCalledWith('/blog/category/[slug]', 'page');
+    expect(revalidatePath).toHaveBeenCalledWith('/blog/tag/[slug]', 'page');
   });
 
   it('rejects a post target with no slug', async () => {
     const response = await POST(request({ type: 'post' }, SECRET));
+    expect(response.status).toBe(400);
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it('invalidates a page and the catch-all route for a page target', async () => {
+    await POST(request({ type: 'page', path: 'projects/solar' }, SECRET));
+
+    const calls = revalidatePath.mock.calls.map((call) => call[0]);
+    expect(calls).toContain('/projects/solar');
+    expect(calls).toContain('/');
+    expect(calls).toContain('/sitemap.xml');
+
+    // Re-parenting moves a whole subtree, so the catch-all is dropped wholesale
+    // rather than enumerating descendants from the blog app.
+    expect(revalidatePath).toHaveBeenCalledWith('/[...path]', 'page');
+  });
+
+  it('rejects a page target with no path', async () => {
+    const response = await POST(request({ type: 'page' }, SECRET));
     expect(response.status).toBe(400);
     expect(revalidatePath).not.toHaveBeenCalled();
   });

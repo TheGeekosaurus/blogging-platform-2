@@ -1,8 +1,18 @@
 # blogging-platform-2
 
-A fast, statically-rendered replacement for a WordPress blog. Content lives in
-Postgres and is published from a browser; public pages are prerendered and served
-from cache, so a visitor request never touches the database.
+A fast, statically-rendered website with a blog. Content lives in Postgres and is
+published from a browser; pages are prerendered and served from cache, so a
+visitor request never touches the database.
+
+URL structure:
+
+| | |
+| --- | --- |
+| `/` | A page you choose as the homepage, or a post list if none is set |
+| `/about`, `/projects/solar` | Pages, nested to any depth via parent/child |
+| `/blog` | Post index |
+| `/blog/<slug>` | A post |
+| `/blog/category/<slug>`, `/blog/tag/<slug>` | Archives |
 
 Several blogs are run from one codebase and one database, with **one Vercel
 project per blog** plus a single shared admin deployment.
@@ -166,9 +176,19 @@ pnpm wp-import    # WordPress import CLI (--help for options)
 
 ## Notes
 
-- Permalinks are flat (`/post-name/`), matching the source site's `/%postname%/`.
-  Adding dated permalinks later means converting `app/[slug]` to a catch-all —
-  Next.js rejects two differently-named dynamic segments at the same level.
+- Post permalinks are `/blog/<slug>`; pages own the root. Static route segments
+  outrank the pages catch-all in Next's matcher, so a page can never shadow the
+  blog. `apps/blog/__tests__/route-config.test.ts` guards the related trap:
+  `dynamicParams = false` on a `[param]` route makes content published after the
+  last deploy permanently unreachable.
+- Page nesting comes from `parent_id`; the full path is materialised into
+  `pages.path` by trigger, so a lookup is one indexed query at any depth and
+  re-parenting rewrites the whole subtree.
+- Pages use a looser sanitiser than posts (`sanitizePageHtml`): `<style>`,
+  classes and inline styles survive so a marketing layout renders as designed.
+  Scripts and event handlers are still stripped. The trust model is WordPress's —
+  an admin authoring a page is equivalent to shipping code — and it deliberately
+  does not apply to post content, which can arrive from an untrusted import.
 - `packages/core` ships TypeScript source and is consumed via `transpilePackages`,
   so there is no build step between editing shared code and seeing it apply.
 - Redirects are read from the database at build time and emitted into Vercel's
