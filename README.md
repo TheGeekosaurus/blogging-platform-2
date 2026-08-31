@@ -9,19 +9,22 @@ project per blog** plus a single shared admin deployment.
 
 ## Status
 
-Phases 1–3 of 8 are complete: schema, public rendering, and the WordPress
-importer. The admin dashboard (phase 4) is a placeholder — until it lands, content
-is managed with `pnpm wp-import` or direct SQL.
+Feature-complete for a single-author blog. Write and publish from the browser;
+the live site updates within seconds with no redeploy.
 
-Sitemap, RSS and structured data arrive in phase 6. **Do not cut a live site over
-to this before then**, or you will lose sitemap and structured-data coverage.
+Not built, because they were not needed: scheduled publishing, and any UI for
+inviting additional writers. Roles (`owner`/`admin`/`editor`/`author`) and the
+`scheduled` post status already exist in the schema, so either can be added later
+without a migration.
+
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) to set it up.
 
 ## Layout
 
 ```
 apps/blog        Public renderer. One Vercel project per blog, pinned to a
                  single site by SITE_SLUG. No auth, no editor code.
-apps/admin       The one dashboard deployment. Placeholder for now.
+apps/admin       The one dashboard deployment: auth, posts, editor, media.
 packages/core    Shared: DB types, data access, sanitisation, URL helpers.
 tools/wp-import  Local CLI for the WordPress migration, plus a seed script.
 supabase/        SQL migrations.
@@ -43,9 +46,14 @@ Apply the migrations to a fresh Supabase project, in order — paste each into t
 SQL editor, or use `supabase db push`:
 
 ```
-supabase/migrations/0001_init.sql
-supabase/migrations/0002_rls.sql
+supabase/migrations/0001_init.sql      schema
+supabase/migrations/0002_rls.sql       row level security and grants
+supabase/migrations/0003_storage.sql   media bucket
 ```
+
+Then disable signups (Authentication → Sign In / Providers → Email), invite
+yourself, and grant that user access — full steps in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
 
 Seed a site with sample posts so there is something to render:
 
@@ -59,6 +67,10 @@ Then:
 pnpm dev          # blog on http://localhost:3000
 pnpm dev:admin    # admin on http://localhost:3001
 ```
+
+Signing in needs an invited user **and** a `site_members` row — see step 3 of the
+deployment runbook. Without the membership row you will sign in successfully and
+then see nothing, because every RLS policy is keyed off it.
 
 ## Importing from WordPress
 
@@ -76,7 +88,7 @@ Post slugs are preserved verbatim from `wp:post_name`. That is the whole point:
 changing a slug breaks inbound links and search rankings.
 
 Posts only. Comments are skipped, and images stay pointed at the old host until
-you re-upload them (the media library is phase 7).
+you re-upload them through the admin's media library.
 
 ### What the importer does to your content
 
@@ -115,21 +127,29 @@ re-derive from `original_html` after such a change.
 
 ## Deployment
 
-One Vercel project per blog:
+Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 
-- Root Directory: `apps/blog`
-- Env: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`
-- Attach that blog's domain in the project's Domains settings
-
-Plus one project for the admin, Root Directory `apps/admin`.
+| Project | Root Directory | Environment |
+| --- | --- | --- |
+| One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
+| Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `ADMIN_URL` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
-URLs and, later, sitemap and RSS are built from it.
+URLs, the sitemap, the feed, and cache refreshes are all built from it.
+
+## Publishing
+
+Posts are edited in the admin and stored as sanitised HTML. Saving a post writes
+to Postgres, then calls `POST /api/revalidate` on that blog's deployment with a
+shared secret; the blog decides which paths that affects and drops them from its
+cache. The write is never rolled back if that call fails — the admin reports the
+failure instead, and **Flush cache** in site settings retries it.
 
 ## Commands
 
 ```bash
 pnpm dev          # run the blog locally
+pnpm dev:admin    # run the admin locally
 pnpm build        # production build of the blog
 pnpm test         # unit tests
 pnpm typecheck    # all workspace packages
@@ -150,3 +170,7 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   none — bodies are in the prerendered HTML and read fine with JS disabled — but
   that is the Next.js App Router hydration baseline. Worth measuring Total
   Blocking Time on mobile before committing to it long-term.
+- The editor's enabled extensions must stay aligned with the sanitiser allowlist
+  in `packages/core/src/sanitize.ts`. Anything the editor can produce that the
+  sanitiser strips is silently lost on save — which is why headings start at h2
+  in both.

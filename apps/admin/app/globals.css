@@ -1,1 +1,82 @@
 @import 'tailwindcss';
+
+/*
+ * Editor surface styling. The Tiptap content area is plain contenteditable HTML,
+ * so these rules mirror what the public site does with .post-body — close enough
+ * that what an author sees is what readers get.
+ */
+@layer components {
+  .prose-editor > * + * {
+    margin-top: 0.9em;
+  }
+
+  .prose-editor h2 {
+    font-size: 1.5rem;
+    font-weight: 650;
+    line-height: 1.25;
+    margin-top: 1.6em;
+  }
+  .prose-editor h3 {
+    font-size: 1.25rem;
+    font-weight: 650;
+    margin-top: 1.5em;
+  }
+  .prose-editor h4 {
+    font-size: 1.1rem;
+    font-weight: 650;
+    margin-top: 1.4em;
+  }
+
+  .prose-editor ul {
+    list-style: disc;
+    padding-left: 1.5em;
+  }
+  .prose-editor ol {
+    list-style: decimal;
+    padding-left: 1.5em;
+  }
+
+  .prose-editor blockquote {
+    border-left: 3px solid #cbd5e1;
+    padding-left: 1em;
+    color: #475569;
+    font-style: italic;
+  }
+
+  .prose-editor pre {
+    background: #f1f5f9;
+    border-radius: 0.375rem;
+    padding: 0.75rem 1rem;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.875rem;
+  }
+
+  .prose-editor :not(pre) > code {
+    background: #f1f5f9;
+    border-radius: 0.25rem;
+    padding: 0.1em 0.35em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.9em;
+  }
+
+  .prose-editor a {
+    color: #1d4ed8;
+    text-decoration: underline;
+  }
+
+  .prose-editor img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+  }
+
+  /* Placeholder for an empty document. */
+  .prose-editor p.is-editor-empty:first-child::before {
+    content: 'Write your post…';
+    color: #94a3b8;
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}
