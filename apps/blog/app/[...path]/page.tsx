@@ -75,14 +75,16 @@ export default async function Page({
     notFound();
   }
 
-  // A 'full' page owns the whole viewport, so it opts out of the site's
-  // centred column entirely rather than being constrained by it.
+  // A 'full' page owns the whole viewport. It gets no container at all — which
+  // is now literally true, since the root layout stopped supplying one.
   if (page.template === 'full') {
     return <PageBody page={page} />;
   }
 
+  // 'prose' pages supply the reading column themselves. It used to come from the
+  // root layout, which no longer wraps anything.
   return (
-    <article>
+    <article className="mx-auto w-full max-w-3xl px-5 py-10">
       <h1 className="mb-8 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
         {page.title}
       </h1>

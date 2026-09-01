@@ -123,6 +123,33 @@ sees, so several WordPress render-time behaviours are reproduced:
 Raw source HTML is kept in `posts.original_html`, so content can be re-derived if
 these transforms or the sanitiser allowlist change.
 
+## The marketing site
+
+One deployment additionally serves hand-coded marketing pages at the root: a
+replica of the Nanotom Capital site that used to live in HighLevel. These are
+routes in `apps/blog/components/marketing/`, not rows in `pages` — they carry
+third-party embeds and a bespoke layout, which is code, not content.
+
+`apps/blog` is deployed once **per blog** from one codebase, so all of it is
+gated on `SITE_SLUG` via `apps/blog/lib/marketing.ts`. A site whose slug does not
+match keeps the generic chrome and the database-driven homepage. Without that
+gate a second blog would silently serve another company's navigation and footer.
+
+Two things stay in HighLevel deliberately:
+
+- **The qualification form** is embedded as an iframe. It has conditional logic,
+  TCPA consent wording and CRM automations behind it; rebuilding that natively
+  risks dropping leads for no user-visible gain. Set `NEXT_PUBLIC_HL_FORM_ID`.
+- **Images** are hotlinked from HighLevel's CDN. Measured before deciding: they
+  are already WebP, already Cloudflare edge-cached for six months, and 5–36 KB
+  each, so re-hosting would add a build step and save nothing. They use plain
+  `<img>` rather than `next/image` — routing an optimised WebP through the
+  optimiser spends quota to re-encode it into the same thing.
+
+The page ships no JavaScript of its own. The mobile menu is a `<details>`
+element and the nav dropdown is CSS-only, so the whole header stays a server
+component.
+
 ## Security model
 
 Two consumers, two key types:
@@ -149,6 +176,7 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
+| The marketing site | `apps/blog` | the above, plus `NEXT_PUBLIC_HL_FORM_ID` and `NEXT_PUBLIC_GTM_ID` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
@@ -181,6 +209,11 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   blog. `apps/blog/__tests__/route-config.test.ts` guards the related trap:
   `dynamicParams = false` on a `[param]` route makes content published after the
   last deploy permanently unreachable.
+- The site's reading column lives in `apps/blog/app/blog/layout.tsx`, not the
+  root layout, so marketing pages can be full-bleed. Routes outside `/blog` that
+  want it supply it themselves. `apps/blog/__tests__/layout.test.ts` guards this:
+  losing the container does not error, it just renders text edge-to-edge at
+  1440px, which no other test would catch.
 - Page nesting comes from `parent_id`; the full path is materialised into
   `pages.path` by trigger, so a lookup is one indexed query at any depth and
   re-parenting rewrites the whole subtree.
@@ -193,10 +226,11 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   so there is no build step between editing shared code and seeing it apply.
 - Redirects are read from the database at build time and emitted into Vercel's
   routing layer, so they cost no function invocation. Adding one needs a redeploy.
-- A post page currently ships ~177 KB gzipped of JavaScript. Content itself needs
-  none — bodies are in the prerendered HTML and read fine with JS disabled — but
-  that is the Next.js App Router hydration baseline. Worth measuring Total
-  Blocking Time on mobile before committing to it long-term.
+- A post page ships ~177 KB gzipped of JavaScript and the marketing homepage
+  ~173 KB. Neither page contributes any of it: content is in the prerendered HTML
+  and reads fine with JS disabled, and that figure is the Next.js App Router
+  hydration baseline. Worth measuring Total Blocking Time on mobile before
+  committing to it long-term.
 - The editor's enabled extensions must stay aligned with the sanitiser allowlist
   in `packages/core/src/sanitize.ts`. Anything the editor can produce that the
   sanitiser strips is silently lost on save — which is why headings start at h2
