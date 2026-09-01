@@ -10,16 +10,22 @@ import {
   truncateWords,
 } from '@blog/core';
 
+import { NntmHomepage } from '@/components/marketing/nntm/homepage';
 import { PageBody } from '@/components/page-body';
 import { PostCard } from '@/components/post-card';
+import { isMarketingSite } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 
 /*
  * The homepage.
  *
- * Serves the page named by sites.homepage_page_id when one is set. When it is
- * null the site falls back to a short post list, so a freshly-created site is
- * never a blank page — the fallback exists so setup order does not matter.
+ * On the marketing site this is a hand-coded route: the page is a replica of a
+ * HighLevel landing page with third-party embeds, which is code, not content.
+ * `sites.homepage_page_id` is ignored there.
+ *
+ * Every other site keeps the database-driven behaviour — the page named by
+ * homepage_page_id, falling back to a short post list so a freshly-created site
+ * is never a blank page.
  */
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -35,6 +41,16 @@ async function loadHomepage() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (isMarketingSite()) {
+    return {
+      title: 'Business Funding & Working Capital',
+      description:
+        "Whether you're a startup, established business, or real estate investor, access " +
+        'flexible financing solutions to fuel your next big move. Approvals up to $1,500,000.',
+      alternates: { canonical: '/' },
+    };
+  }
+
   const { site, page } = await loadHomepage();
   if (!page) return { alternates: { canonical: '/' } };
 
@@ -50,6 +66,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  if (isMarketingSite()) {
+    return <NntmHomepage />;
+  }
+
   const { site, page } = await loadHomepage();
 
   if (page) {
@@ -57,7 +77,7 @@ export default async function HomePage() {
       return <PageBody page={page} />;
     }
     return (
-      <article>
+      <article className="mx-auto w-full max-w-3xl px-5 py-10">
         <h1 className="mb-8 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
           {page.title}
         </h1>
@@ -69,7 +89,7 @@ export default async function HomePage() {
   const posts = await listPublishedPosts(getClient(), site.id, { limit: POSTS_PER_PAGE });
 
   return (
-    <>
+    <div className="mx-auto w-full max-w-3xl px-5 py-10">
       {site.description ? (
         <p className="mb-10 text-lg text-[var(--color-ink-muted)]">{site.description}</p>
       ) : null}
@@ -91,6 +111,6 @@ export default async function HomePage() {
           </nav>
         </>
       )}
-    </>
+    </div>
   );
 }
