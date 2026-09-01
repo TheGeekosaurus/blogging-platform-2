@@ -65,3 +65,58 @@ describe('brand constants', () => {
     }
   });
 });
+
+describe('the HighLevel survey embed', () => {
+  async function source() {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    return readFileSync(
+      join(__dirname, '..', 'components', 'marketing', 'highlevel-form.tsx'),
+      'utf8',
+    );
+  }
+
+  it('points at the account\'s white-labelled host, not the canonical one', async () => {
+    const { SURVEY } = await import('../components/marketing/brand');
+
+    expect(SURVEY.host).toBe('https://link.mailsengr.com');
+    expect(SURVEY.kind).toBe('survey');
+    expect(SURVEY.id).toBe('iMvBFKUm0M5CxTrlVGOf');
+  });
+
+  it('does not reference the hosts this account is NOT on', async () => {
+    // Both were in the first implementation, written before the embed code was
+    // available. api.leadconnectorhq.com happens to serve this survey too, but
+    // link.msgsndr.com does not serve this account's resizer at all.
+    const code = (await source())
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .replace(/\/\/.*$/gm, '');
+
+    expect(code).not.toContain('api.leadconnectorhq.com');
+    expect(code).not.toContain('link.msgsndr.com');
+  });
+
+  /*
+   * The regression this guards is invisible: form_embed.js resolves the iframe by
+   * getElementById(<id posted back by the survey>). Drop the id attribute and the
+   * survey still renders — it just never resizes, staying clipped at
+   * initialHeight, with no console error and no failing request.
+   */
+  it('gives the iframe the id the resize handler looks up', async () => {
+    expect(await source()).toContain('id={SURVEY.id}');
+  });
+
+  it('loads the resizer after hydration, so the iframe already exists', async () => {
+    const code = await source();
+    expect(code).toContain("strategy=\"afterInteractive\"");
+    // A bare <script src> would be hoisted into <head> and could run too early.
+    expect(code).not.toMatch(/<script\s+src=/);
+  });
+
+  it('reserves a height so the sections below it do not jump', async () => {
+    const { SURVEY } = await import('../components/marketing/brand');
+    expect(SURVEY.initialHeight).toBeGreaterThan(0);
+    expect(await source()).toContain('height: SURVEY.initialHeight');
+  });
+});

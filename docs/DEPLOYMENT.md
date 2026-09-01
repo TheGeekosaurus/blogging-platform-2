@@ -169,26 +169,27 @@ needs a `/blog` prefix. Leave the variable unset if you have no old subdomain.
 
 ### If this is the Nanotom Capital marketing deployment
 
-Set `SITE_SLUG` to `nntm-capital` and add two more variables. They only take
-effect on that slug — every other blog ignores them.
+Set `SITE_SLUG` to `nntm-capital` and add one more variable. It only takes effect
+on that slug — every other blog ignores it.
 
 | Name | Value |
 | --- | --- |
-| `NEXT_PUBLIC_HL_FORM_ID` | the qualification form's id, see below |
-| `NEXT_PUBLIC_HL_FORM_KIND` | *(optional)* `form` (default) or `survey` |
 | `NEXT_PUBLIC_GTM_ID` | `GTM-W5D5NV8X` — the container the HighLevel site used |
 
-To get the form id: HighLevel → Sites → **Forms** (or **Surveys**, depending on
-which one the homepage questionnaire lives under) → open it → **Integrate**. The
-id is the last path segment of the embed URL. Leads submitted through the
-embedded form continue to land in HighLevel exactly as they do now; nothing about
-lead capture changes when DNS moves.
+Leave it unset on preview deployments, or previews will report conversions into
+the live container.
 
-Leave `NEXT_PUBLIC_HL_FORM_ID` unset and the homepage renders a visible
-placeholder where the form belongs, rather than an empty gap.
+The homepage's qualification survey needs no configuration. It is embedded from
+`apps/blog/components/marketing/brand.ts`, because the survey id is public — it
+is in the HTML of the live site — so making it a variable would only add a step
+you could forget. Leads continue to land in HighLevel exactly as they do now;
+nothing about lead capture changes when DNS moves.
 
-Leave `NEXT_PUBLIC_GTM_ID` unset on preview deployments, or previews will report
-conversions into the live container.
+Two things to know if that embed ever needs changing. The host is
+`link.mailsengr.com`, this account's white-labelled HighLevel domain, not
+`api.leadconnectorhq.com`. And the iframe's `id` attribute must equal the survey
+id: HighLevel's resizer script looks the frame up by that id to set its height,
+so without it the survey renders but silently stays clipped.
 
 **Do not set `SUPABASE_SERVICE_ROLE_KEY` here.** The blog only reads, and only
 published content; giving it a key that bypasses RLS turns a read-only site into

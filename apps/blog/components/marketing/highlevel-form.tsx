@@ -1,61 +1,57 @@
+import Script from 'next/script';
+
+import { SURVEY } from './brand';
+
 /**
  * The HighLevel qualification survey, embedded as an iframe.
  *
- * WHY AN IFRAME. This form is the homepage's entire purpose: ten questions with
+ * WHY AN IFRAME. This survey is the homepage's entire purpose: ten questions with
  * conditional logic, two TCPA/SMS consent checkboxes, and CRM automations behind
  * it. Rebuilding it natively means reconstructing that logic and the consent
- * wording, where a mistake silently drops leads. Embedding keeps HighLevel as
- * the system of record, so nothing about lead capture changes when DNS moves.
+ * wording, where a mistake silently drops leads. Embedding keeps HighLevel as the
+ * system of record, so nothing about lead capture changes when DNS moves.
  *
  * Our own `X-Frame-Options: SAMEORIGIN` (next.config.ts) governs who may frame
  * US and has no effect on outbound embeds, so no config change is needed.
- *
- * TO GO LIVE: set NEXT_PUBLIC_HL_FORM_ID to the form/survey id from
- * HighLevel -> Sites -> Forms (or Surveys) -> Integrate. The id is fetched by
- * HighLevel's client JS at runtime, so it cannot be read out of the live page
- * source. Until it is set, a labelled placeholder renders instead of a broken
- * iframe, and the surrounding page is unaffected.
  */
-const FORM_ID = process.env.NEXT_PUBLIC_HL_FORM_ID;
-
-/** 'form' and 'survey' are separate HighLevel widget types with the same embed shape. */
-const FORM_KIND = process.env.NEXT_PUBLIC_HL_FORM_KIND === 'survey' ? 'survey' : 'form';
-
-/** Reserved height. Keeps the iframe from shifting the page as it loads. */
-const HEIGHT = 1100;
-
 export function HighLevelForm() {
-  if (!FORM_ID) {
-    return (
-      <div
-        className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-black/15 bg-black/[0.02] px-6 text-center"
-        style={{ minHeight: 320 }}
-      >
-        <p className="font-semibold">Qualification form not yet connected</p>
-        <p className="max-w-md text-sm text-black/60">
-          Set <code className="rounded bg-black/5 px-1">NEXT_PUBLIC_HL_FORM_ID</code> on this
-          Vercel project to the id from HighLevel → Sites → Forms → Integrate, then redeploy.
-        </p>
-      </div>
-    );
-  }
-
   return (
     <>
       <iframe
-        src={`https://api.leadconnectorhq.com/widget/${FORM_KIND}/${FORM_ID}`}
-        title="Funding qualification form"
+        src={`${SURVEY.host}/widget/${SURVEY.kind}/${SURVEY.id}`}
+        /*
+         * NOT redundant, and not decorative. form_embed.js handles the survey's
+         * resize message by looking its target up with
+         * `getElementById(<iframeId from the message>)`, and the survey posts back
+         * its own id. If this attribute is missing or differs, the lookup fails:
+         * the survey still renders, but never resizes, so it stays clipped at
+         * initialHeight with nothing logged anywhere.
+         */
+        id={SURVEY.id}
+        title="Funding qualification survey"
+        /* Read off the element's dataset by form_embed.js; carried over verbatim
+           from the embed code HighLevel generated. */
+        data-cookie-consent="true"
+        data-cookie-consent-provider="auto"
+        /* The resizer sizes the frame to its content, so an inner scrollbar would
+           only ever appear mid-resize. */
+        scrolling="no"
+        /* Sixth section of ten, well below the fold, and the survey document is
+           ~176 KB — worth deferring. The resizer attaches on load, so lazy costs
+           nothing beyond holding initialHeight until it scrolls into view. */
         loading="lazy"
-        className="w-full rounded-lg border-0"
-        style={{ height: HEIGHT }}
+        style={{ border: 'none', width: '100%', height: SURVEY.initialHeight }}
       />
+
       {/*
-        HighLevel's resizer posts the real content height back to the parent, so
-        the iframe can shrink to fit instead of always reserving HEIGHT. Plain
-        <script src> rather than next/script: it must run inside the same
-        document as the iframe and has no ordering requirements.
+        next/script at afterInteractive rather than a bare <script src>: React 19
+        hoists a plain script tag into <head>, where it can execute before this
+        iframe exists. form_embed.js collects its targets with
+        querySelectorAll('iframe') at init, so running early means never
+        attaching and never resizing. afterInteractive runs post-hydration, when
+        the iframe is guaranteed to be in the DOM.
       */}
-      <script src="https://link.msgsndr.com/js/form_embed.js" async />
+      <Script src={`${SURVEY.host}/js/form_embed.js`} strategy="afterInteractive" />
     </>
   );
 }

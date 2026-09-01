@@ -137,9 +137,15 @@ gate a second blog would silently serve another company's navigation and footer.
 
 Two things stay in HighLevel deliberately:
 
-- **The qualification form** is embedded as an iframe. It has conditional logic,
-  TCPA consent wording and CRM automations behind it; rebuilding that natively
-  risks dropping leads for no user-visible gain. Set `NEXT_PUBLIC_HL_FORM_ID`.
+- **The qualification survey** is embedded as an iframe. It has conditional
+  logic, TCPA consent wording and CRM automations behind it; rebuilding that
+  natively risks dropping leads for no user-visible gain. It needs no
+  configuration — the id is public, so it is committed in
+  `components/marketing/brand.ts`. Two non-obvious details live there: the host
+  is `link.mailsengr.com`, this account's white-labelled HighLevel domain, and
+  the iframe's `id` must equal the survey id, because HighLevel's resizer looks
+  the frame up by it. Without the id the survey renders and silently stays
+  clipped, so a test pins it.
 - **Images** are hotlinked from HighLevel's CDN. Measured before deciding: they
   are already WebP, already Cloudflare edge-cached for six months, and 5–36 KB
   each, so re-hosting would add a build step and save nothing. They use plain
@@ -176,7 +182,7 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
-| The marketing site | `apps/blog` | the above, plus `NEXT_PUBLIC_HL_FORM_ID` and `NEXT_PUBLIC_GTM_ID` |
+| The marketing site | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical

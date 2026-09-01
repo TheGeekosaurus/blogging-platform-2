@@ -92,3 +92,27 @@ export const POLICY_LINKS = [
 ] as const;
 
 export const CTA_HREF = '/get-funded';
+
+/**
+ * The HighLevel qualification survey embedded on the homepage.
+ *
+ * Note the host: this account is on a WHITE-LABELLED HighLevel domain, so the
+ * embed lives at link.mailsengr.com, not api.leadconnectorhq.com. Both happen to
+ * serve this survey, but the white-label host is the one HighLevel generated for
+ * the account and the one its cookie-consent config is keyed to.
+ *
+ * Committed rather than read from an environment variable on purpose: the id is
+ * public — it is in the HTML of the live site — so treating it as configuration
+ * bought nothing and added a Vercel step that could be forgotten, plus a
+ * placeholder state that reads as a bug rather than as missing config.
+ */
+export const SURVEY = {
+  host: 'https://link.mailsengr.com',
+  kind: 'survey',
+  id: 'iMvBFKUm0M5CxTrlVGOf',
+  /**
+   * Height reserved before the survey reports its real size, so the sections
+   * below it do not jump. form_embed.js overwrites it via inline style.
+   */
+  initialHeight: 1100,
+} as const;
