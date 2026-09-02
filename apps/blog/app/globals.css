@@ -21,16 +21,18 @@
   --color-accent: #1f5fd0;
 
   /*
-   * Brand palette, read out of the live HighLevel stylesheet rather than
-   * eyeballed from a screenshot: --headlinefont was 'Lato', --contentfont was
-   * 'Poppins', and every call-to-action was #c79640 on white at weight 700.
-   * These are fixed brand values, so they are deliberately NOT part of the
-   * light/dark theme below.
+   * Brand palette for the 2026 visual refresh: near-black ink + metallic gold,
+   * replacing the dark-green read off the original HighLevel stylesheet. Values
+   * match the Claude Design kit (gold #E0A840, ink #0B0B0C / #141416). These are
+   * fixed brand values, so they are deliberately NOT part of the light/dark
+   * theme below. --headlinefont ('Lato') and --contentfont ('Poppins') are
+   * unchanged — the redesign only replaces colour, not typeface.
    */
-  --color-brand: #113d34;
-  --color-brand-dark: #0c2a24;
-  --color-gold: #c79640;
-  --color-gold-hover: #b1842f;
+  --color-brand: #0b0b0c;
+  --color-brand-raised: #1f1f22;
+  --color-brand-dark: #141416;
+  --color-gold: #e0a840;
+  --color-gold-hover: #c68c2e;
 
   /* Bound to next/font in app/layout.tsx, so the faces are self-hosted. */
   --font-headline: var(--font-lato), Georgia, 'Times New Roman', serif;
@@ -104,6 +106,20 @@
  * sanitiser allows.
  */
 @layer components {
+  /*
+   * The homepage's "Featured On" press-logo marquee. Eight duplicated copies of
+   * the six logos give a >2640px track, comfortably wider than any desktop
+   * viewport, so translating by exactly -50% always loops seamlessly.
+   */
+  @keyframes nt-marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   .post-body {
     font-family: var(--font-serif);
     font-size: 1.125rem;

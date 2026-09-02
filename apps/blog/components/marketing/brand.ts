@@ -22,8 +22,14 @@ const CDN_GCS = 'https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_h
 /** Preconnected in the root layout so the CDN handshake overlaps HTML parsing. */
 export const IMAGE_ORIGIN = 'https://images.leadconnectorhq.com';
 
+/**
+ * The 2026 hero background: a muted looping video, replacing the static
+ * `heroBackground` image. Hotlinked for the same reason as everything else in
+ * this file — it is the account's own CDN, not ours to re-host.
+ */
+export const HERO_VIDEO = `${CDN}/68e0948db0f3d84b871b7f7d.mp4`;
+
 export const IMAGES = {
-  logo: `${CDN}/6a0d11e0e29a8860a545eff5.png`,
   heroBackground: `${CDN}/689eaeb0c6ba4e046393cc98.png`,
   featuredOn: [
     `${CDN_GCS}/68cf739b7629a15f8821fd6e.png`,
@@ -33,6 +39,17 @@ export const IMAGES = {
     `${CDN_GCS}/68cf74c1beb02706f1dceea3.png`,
     `${CDN_GCS}/68cf74ca074b8d30f6ac635c.png`,
   ],
+} as const;
+
+/**
+ * Self-hosted, unlike everything above: these have no known URL on the
+ * account's CDN (they reached this codebase as already-exported image files,
+ * with no source to hotlink), so they live in `public/marketing/` instead.
+ */
+export const LOCAL_IMAGES = {
+  logo: '/marketing/nanotom-capital-logo.png',
+  appPhone: '/marketing/photo-app-phone.png',
+  cityTower: '/marketing/photo-city-tower.png',
 } as const;
 
 export const CONTACT = {
