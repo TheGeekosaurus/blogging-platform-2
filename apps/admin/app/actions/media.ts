@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { revalidatePath } from 'next/cache';
 import sharp from 'sharp';
 
-import { MEDIA_BUCKET } from '@blog/core';
+import { MEDIA_BUCKET, mediaPublicUrl } from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { createClient } from '@/lib/supabase/server';
@@ -167,20 +167,24 @@ export async function deleteMedia(formData: FormData) {
   revalidatePath('/media');
 }
 
-export interface FeaturedUploadResult {
+export interface UploadOneResult {
   error?: string;
-  media?: { id: string; storage_path: string };
+  media?: { id: string; alt: string | null; name: string; url: string };
 }
 
 /**
- * Upload one image and return its row, for the post editor's featured image
- * picker.
+ * Upload one image and return it ready to render, for the editor's image picker.
  *
  * Called directly from a client component rather than through a `<form action>`:
  * the picker sits INSIDE the post form, and a nested form is invalid HTML — it
  * would either be dropped by the parser or submit the wrong fields.
+ *
+ * Returns a built `url` rather than a storage path. `mediaPublicUrl` reads
+ * SUPABASE_URL, which is not exposed to the browser, so the client cannot build
+ * it — doing so is what crashed the previous picker the moment an upload
+ * succeeded and it auto-selected the new image.
  */
-export async function uploadFeaturedImage(formData: FormData): Promise<FeaturedUploadResult> {
+export async function uploadImage(formData: FormData): Promise<UploadOneResult> {
   const file = formData.get('file');
   if (!(file instanceof File) || file.size === 0) {
     return { error: 'Choose an image.' };
@@ -191,5 +195,39 @@ export async function uploadFeaturedImage(formData: FormData): Promise<FeaturedU
 
   // The library should show it too, not only this post.
   revalidatePath('/media');
-  return { media: result };
+
+  return {
+    media: {
+      id: result.id,
+      alt: null,
+      name: result.storage_path.split('/').pop() ?? result.storage_path,
+      url: mediaPublicUrl(result.storage_path),
+    },
+  };
+}
+
+/**
+ * Save alt text from the editor's picker.
+ *
+ * Separate from `updateAlt`, which the media library calls as a `<form action>`
+ * and which redirects. This returns a value so the picker can report failure
+ * inline without leaving the post being edited.
+ */
+export async function setMediaAlt(
+  id: string,
+  alt: string,
+): Promise<{ error?: string; saved?: boolean }> {
+  const site = await requireCurrentSite();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from('media')
+    .update({ alt: alt.trim() })
+    .eq('id', id)
+    .eq('site_id', site.id);
+
+  if (error) return { error: `Could not save the alt text: ${error.message}` };
+
+  revalidatePath('/media');
+  return { saved: true };
 }

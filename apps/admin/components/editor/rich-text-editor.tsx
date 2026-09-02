@@ -6,6 +6,9 @@ import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useState } from 'react';
 
+import type { MediaOptions } from '@/lib/queries';
+import { MediaPicker } from './media-picker';
+
 /**
  * The post body editor.
  *
@@ -51,11 +54,14 @@ function ToolbarButton({
 export function RichTextEditor({
   name,
   defaultValue,
+  media,
 }: {
   name: string;
   defaultValue: string;
+  media: MediaOptions;
 }) {
   const [html, setHtml] = useState(defaultValue);
+  const [picking, setPicking] = useState(false);
 
   const editor = useEditor({
     // Required under SSR: rendering immediately causes a hydration mismatch.
@@ -100,11 +106,16 @@ export function RichTextEditor({
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   };
 
-  const addImage = () => {
-    const url = window.prompt('Image URL');
-    if (!url) return;
-    const alt = window.prompt('Alt text (describe the image)') ?? '';
-    editor.chain().focus().setImage({ src: url, alt }).run();
+  /*
+   * Opens the picker instead of prompting for a URL twice.
+   *
+   * `window.prompt` required the image to already be uploaded somewhere and its
+   * URL copied by hand — the same trip through the Media library the featured
+   * image field had, plus a step.
+   */
+  const insertImage = (src: string, alt: string) => {
+    setPicking(false);
+    editor.chain().focus().setImage({ src, alt }).run();
   };
 
   return (
@@ -183,10 +194,35 @@ export function RichTextEditor({
         >
           Link
         </ToolbarButton>
-        <ToolbarButton editor={editor} label="Image" active={false} onClick={addImage}>
+        <ToolbarButton
+          editor={editor}
+          label="Image"
+          active={picking}
+          onClick={() => setPicking((open) => !open)}
+        >
           Image
         </ToolbarButton>
       </div>
+
+      {/*
+        Mounted between the toolbar and the body so choosing an image does not
+        push the caret out of view. Not a modal: this component already sits
+        inside the post form, and a dialog would need focus management to stay
+        keyboard-usable for what is a two-click task.
+      */}
+      {picking ? (
+        <div className="border-b border-slate-200 bg-slate-50 p-3">
+          <MediaPicker
+            media={media}
+            selectedId=""
+            allowNone={false}
+            label="Choose an image to insert, or drop a file here to upload."
+            onSelect={(item) => {
+              if (item) insertImage(item.url, item.alt ?? '');
+            }}
+          />
+        </div>
+      ) : null}
 
       <div className="p-3">
         <EditorContent editor={editor} />
