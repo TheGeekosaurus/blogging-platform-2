@@ -13,8 +13,8 @@ import { categoryPath, formatPostDate, type PostDetail } from '@blog/core';
 function Cell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <dt className="text-sm text-[var(--color-blog-muted)]">{label}</dt>
-      <dd className="text-base font-semibold text-[var(--color-blog-ink)]">{children}</dd>
+      <dt className="text-sm text-[var(--color-ink-muted)]">{label}</dt>
+      <dd className="text-base font-semibold text-[var(--color-ink)]">{children}</dd>
     </div>
   );
 }
@@ -32,7 +32,7 @@ export function PostMeta({ post, locale }: { post: PostDetail; locale: string })
         <Cell label="Category">
           <Link
             href={categoryPath(category.slug)}
-            className="!text-[var(--color-blog-ink)] no-underline hover:!text-[var(--color-gold)]"
+            className="!text-[var(--color-ink)] no-underline hover:!text-[var(--color-accent)]"
           >
             {category.name}
           </Link>

@@ -19,12 +19,12 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
     <nav aria-labelledby="toc-heading">
       <h2
         id="toc-heading"
-        className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-blog-muted)]"
+        className="text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-muted)]"
       >
         Table of Contents
       </h2>
 
-      <ol className="mt-4 flex list-none flex-col gap-3 rounded-xl border border-[var(--color-blog-line)] p-5">
+      <ol className="mt-4 flex list-none flex-col gap-3 rounded-xl border border-[var(--color-line)] p-5">
         {headings.map((heading) => (
           <li
             key={heading.id}
@@ -33,9 +33,9 @@ export function TableOfContents({ headings }: { headings: Heading[] }) {
           >
             <a
               href={`#${heading.id}`}
-              className="flex gap-2.5 text-sm leading-[1.5] !text-[var(--color-blog-ink)] no-underline hover:!text-[var(--color-gold)]"
+              className="flex gap-2.5 text-sm leading-[1.5] !text-[var(--color-ink)] no-underline hover:!text-[var(--color-accent)]"
             >
-              <span aria-hidden="true" className="text-[var(--color-gold)]">
+              <span aria-hidden="true" className="text-[var(--color-accent)]">
                 •
               </span>
               <span>{heading.text}</span>
