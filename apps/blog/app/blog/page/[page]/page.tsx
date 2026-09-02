@@ -10,6 +10,7 @@ import {
 
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
+import { ReadingColumn } from '@/components/reading-column';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -69,7 +70,7 @@ export default async function ArchivePage({
   const pageCount = Math.ceil(total / POSTS_PER_PAGE);
 
   return (
-    <>
+    <ReadingColumn>
       <h1 className="mb-8 text-2xl font-semibold tracking-tight">
         Page {pageNumber} of {pageCount}
       </h1>
@@ -88,6 +89,6 @@ export default async function ArchivePage({
           <span />
         )}
       </nav>
-    </>
+    </ReadingColumn>
   );
 }

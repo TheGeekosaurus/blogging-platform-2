@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { browsePath, categoryPath, listNonEmptyTerms, tagPath } from '@blog/core';
 
 import { getClient, getSite } from '@/lib/site';
+import { ReadingColumn } from '@/components/reading-column';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -23,7 +24,7 @@ export default async function CategoriesPage() {
   ]);
 
   return (
-    <>
+    <ReadingColumn>
       <h1 className="mb-8 text-3xl font-bold tracking-tight">Browse</h1>
 
       <section>
@@ -55,6 +56,6 @@ export default async function CategoriesPage() {
           </p>
         )}
       </section>
-    </>
+    </ReadingColumn>
   );
 }

@@ -217,11 +217,19 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   blog. `apps/blog/__tests__/route-config.test.ts` guards the related trap:
   `dynamicParams = false` on a `[param]` route makes content published after the
   last deploy permanently unreachable.
-- The site's reading column lives in `apps/blog/app/blog/layout.tsx`, not the
-  root layout, so marketing pages can be full-bleed. Routes outside `/blog` that
-  want it supply it themselves. `apps/blog/__tests__/layout.test.ts` guards this:
-  losing the container does not error, it just renders text edge-to-edge at
-  1440px, which no other test would catch.
+- The site's reading column lives in `apps/blog/components/reading-column.tsx`,
+  applied by the routes that want it. It has moved twice, both times for the same
+  reason: a layout wraps every route beneath it, so first the marketing pages and
+  then the full-bleed post page could not opt out of an ancestor's container.
+  `apps/blog/__tests__/layout.test.ts` guards it — losing the container does not
+  error, it just renders text edge-to-edge at 1440px, which no other test catches.
+- Blog post pages are a two-column layout (content, then a sticky sidebar with
+  metadata and a table of contents) ported from a Figma template, on the brand's
+  near-black-and-gold palette. The contents list works by injecting heading ids
+  at render time — `id` is not in the sanitiser's allowlist, so none survives a
+  write, and widening it would mean re-deriving every existing post. The dark
+  styling is scoped to `.blog-surface` because `.post-body` is shared with
+  database-driven prose pages, which render on the light marketing site.
 - Categories nest through `terms.parent_id`, and an archive lists posts from its
   whole subtree — WordPress's behaviour, because editors tag the most specific
   category and a parent would otherwise be an empty page. Category URLs stay

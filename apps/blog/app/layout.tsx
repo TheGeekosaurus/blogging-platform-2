@@ -123,7 +123,7 @@ export default async function RootLayout({
         <div className="flex min-h-screen w-full flex-col">
           {marketing ? <SiteHeader /> : <DefaultHeader name={site.name} />}
 
-          <main id="content" className="flex-1">
+          <main id="content" className="flex flex-1 flex-col">
             {children}
           </main>
 

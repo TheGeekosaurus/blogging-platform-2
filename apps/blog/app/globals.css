@@ -34,6 +34,18 @@
   --color-gold: #e0a840;
   --color-gold-hover: #c68c2e;
 
+  /*
+   * Blog reading surface: the brand near-black, per Denis's choice of the
+   * ink+gold palette over the template's own dark greys. Separate tokens from
+   * --color-surface/--color-ink because those still drive the light marketing
+   * pages, and the blog now diverges from them.
+   */
+  --color-blog-bg: #0b0b0c;
+  --color-blog-raised: #17171a;
+  --color-blog-ink: #f2f2f3;
+  --color-blog-muted: #9a9a9e;
+  --color-blog-line: #27272b;
+
   /* Bound to next/font in app/layout.tsx, so the faces are self-hosted. */
   --font-headline: var(--font-lato), Georgia, 'Times New Roman', serif;
   --font-body: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
@@ -97,6 +109,43 @@
 
   .marketing-root a {
     color: inherit;
+  }
+
+  /*
+   * The blog's dark reading surface.
+   *
+   * `min-height: 100%` rather than a viewport calc: the root layout gives
+   * <main> its height via flex-1, so a percentage resolves against that and the
+   * dark ground reaches the footer even on a very short post. A viewport-based
+   * value would have to guess the header height.
+   */
+  .blog-surface {
+    color-scheme: dark;
+    background-color: var(--color-blog-bg);
+    color: var(--color-blog-ink);
+
+    /*
+     * Re-point the generic tokens rather than editing every component that
+     * reads them. PostCard, the archive headers, the pagination nav and the 404
+     * all reference --color-ink / --color-ink-muted / --color-line, which are
+     * the LIGHT palette — on a dark ground the post titles rendered
+     * near-invisible. Custom properties cascade, so redefining them here fixes
+     * the whole subtree at once and anything added later inherits correctly.
+     */
+    --color-ink: var(--color-blog-ink);
+    --color-ink-muted: var(--color-blog-muted);
+    --color-line: var(--color-blog-line);
+    --color-surface: var(--color-blog-bg);
+    --color-surface-muted: var(--color-blog-raised);
+    --color-accent: var(--color-gold);
+
+    /*
+     * Fills the space <main> leaves, so the white body ground cannot show below
+     * a short post. `min-height: 100%` was not enough: main is not a flex
+     * container, so the percentage had nothing definite to resolve against.
+     * The root layout now makes main a flex column and this stretches into it.
+     */
+    flex: 1 1 auto;
   }
 }
 
@@ -269,5 +318,57 @@
     aspect-ratio: 16 / 9;
     width: 100%;
     height: auto;
+  }
+}
+
+/*
+ * Post body type scale inside the blog.
+ *
+ * Only what the token remap above cannot express: the families and the scale.
+ * Colours, borders and code backgrounds all come from the redefined tokens, so
+ * they are deliberately absent here.
+ *
+ * NOT applied to `.post-body` globally: that class is also used by
+ * components/page-body.tsx for 'prose'-template database pages, which render on
+ * the LIGHT marketing site.
+ *
+ * The scale is the Figma template's, translated — 28px / 20px / 18px at a 1.5
+ * line-height with -3% tracking. Families stay Lato and Poppins per Denis; only
+ * the scale and rhythm come from the design.
+ */
+@layer components {
+  .blog-surface .post-body {
+    font-family: var(--font-body);
+    font-size: 1.125rem;
+    line-height: 1.5;
+    letter-spacing: -0.03em;
+  }
+
+  .blog-surface .post-body > * + * {
+    margin-top: 1.5em;
+  }
+
+  .blog-surface .post-body h2,
+  .blog-surface .post-body h3,
+  .blog-surface .post-body h4 {
+    font-family: var(--font-headline);
+    line-height: 1.3;
+    letter-spacing: -0.03em;
+    /*
+     * Clears the sticky site header when an anchor is followed. On the heading
+     * rather than the contents link, so it also applies to a visitor arriving
+     * on a #fragment URL directly.
+     */
+    scroll-margin-top: 6rem;
+  }
+
+  .blog-surface .post-body h2 {
+    font-size: 1.75rem;
+  }
+  .blog-surface .post-body h3 {
+    font-size: 1.25rem;
+  }
+  .blog-surface .post-body h4 {
+    font-size: 1.125rem;
   }
 }

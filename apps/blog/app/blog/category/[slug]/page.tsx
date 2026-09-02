@@ -15,6 +15,7 @@ import {
 
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
+import { ReadingColumn } from '@/components/reading-column';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -90,7 +91,7 @@ export default async function CategoryPage({
   const children = childTerms(allCategories, category.id);
 
   return (
-    <>
+    <ReadingColumn>
       <header className="mb-10">
         <p className="text-sm uppercase tracking-wide text-[var(--color-ink-muted)]">
           Category
@@ -137,6 +138,6 @@ export default async function CategoryPage({
           ))}
         </div>
       )}
-    </>
+    </ReadingColumn>
   );
 }
