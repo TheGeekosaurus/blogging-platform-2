@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  categoryPath,
   excerptFor,
   extractHeadings,
   getPostBySlug,
@@ -105,6 +106,8 @@ export default async function PostPage({
   const headings = extractHeadings(post.content_html);
   const bodyHtml = injectHeadingIds(post.content_html);
 
+  const primaryCategory = post.categories[0];
+
   const primaryCategoryFor = new Map(
     related.flatMap((item) => {
       const term = post.categories[0];
@@ -144,6 +147,23 @@ export default async function PostPage({
             <h1 className="mx-auto max-w-4xl text-balance text-center font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-white sm:text-4xl lg:text-5xl">
               {post.title}
             </h1>
+
+            {/*
+              Category moved here from the sidebar grid. It is the post page's
+              only link to the category archive, so it had to keep a home when
+              the sidebar's second row became Author + theme control — and it is
+              more visible here than it was buried in the metadata.
+            */}
+            {primaryCategory ? (
+              <p className="mt-5 text-center">
+                <Link
+                  href={categoryPath(primaryCategory.slug)}
+                  className="text-sm font-semibold uppercase tracking-[0.16em] !text-white/80 no-underline hover:!text-white"
+                >
+                  {primaryCategory.name}
+                </Link>
+              </p>
+            ) : null}
           </div>
         </header>
       ) : (
@@ -154,6 +174,17 @@ export default async function PostPage({
             <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-ink)] sm:text-4xl lg:text-5xl">
               {post.title}
             </h1>
+
+            {primaryCategory ? (
+              <p className="mt-5">
+                <Link
+                  href={categoryPath(primaryCategory.slug)}
+                  className="text-sm font-semibold uppercase tracking-[0.16em] !text-[var(--color-accent)] no-underline"
+                >
+                  {primaryCategory.name}
+                </Link>
+              </p>
+            ) : null}
           </div>
         </header>
       )}
@@ -197,9 +228,12 @@ export default async function PostPage({
             flex row.
           */}
           <aside className="flex flex-col gap-10 lg:w-[31%] lg:self-start lg:sticky lg:top-24">
-            <PostMeta post={post} locale={site.locale} />
+            <PostMeta
+              post={post}
+              locale={site.locale}
+              themeControl={<ThemeToggle />}
+            />
             <TableOfContents headings={headings} />
-            <ThemeToggle />
           </aside>
         </div>
       </div>

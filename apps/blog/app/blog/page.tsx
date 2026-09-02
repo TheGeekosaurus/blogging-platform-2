@@ -10,6 +10,7 @@ import {
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
 import { ReadingColumn } from '@/components/reading-column';
+import { ThemeToggle } from '@/components/blog/theme-toggle';
 
 // Fully static, and never expires on a timer. Pages change only when a publish
 // triggers on-demand revalidation (phase 5).
@@ -28,10 +29,25 @@ export default async function HomePage() {
   const hasMore = total > POSTS_PER_PAGE;
 
   return (
-    <ReadingColumn>
-      {site.description ? (
-        <p className="mb-10 text-lg text-[var(--color-ink-muted)]">{site.description}</p>
-      ) : null}
+    <ReadingColumn themeToggle={false}>
+      {/*
+        The index had no <h1> at all, only the tagline paragraph — so this is an
+        SEO fix as much as a layout one. The wording carries the topic rather
+        than describing the page's mechanics ("Latest Posts"), which is what the
+        index can actually rank for.
+      */}
+      <header className="mb-10 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-[family-name:var(--font-headline)] text-3xl leading-tight sm:text-4xl">
+            Business Funding Insights
+          </h1>
+          {site.description ? (
+            <p className="mt-3 text-lg text-[var(--color-ink-muted)]">{site.description}</p>
+          ) : null}
+        </div>
+
+        <ThemeToggle className="shrink-0" />
+      </header>
 
       {posts.length === 0 ? (
         <p className="text-[var(--color-ink-muted)]">
