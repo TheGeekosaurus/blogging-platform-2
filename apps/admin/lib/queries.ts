@@ -1,4 +1,5 @@
 import type { PageRow, PageTemplate, PostRow, PostStatus, TermRow } from '@blog/core';
+import { mediaPublicUrl } from '@blog/core';
 
 import { createClient } from './supabase/server';
 
@@ -113,20 +114,58 @@ export async function getPostForEdit(
   return { ...post, termIds: (joins ?? []).map((row) => row.term_id) };
 }
 
-/** Media for the post editor's featured image picker, newest first. */
-export async function listMediaOptions(
-  siteId: string,
-): Promise<Array<{ id: string; storage_path: string; alt: string | null }>> {
+export interface MediaOption {
+  id: string;
+  alt: string | null;
+  /** File name, for the picker's filter box. */
+  name: string;
+  /**
+   * Fully-built public URL.
+   *
+   * Computed HERE, on the server, and not in the picker. `mediaPublicUrl` reads
+   * SUPABASE_URL, which has no NEXT_PUBLIC_ prefix and so is never inlined into
+   * the browser bundle — calling it from a client component throws at runtime in
+   * the user's browser. See apps/admin/__tests__/client-env.test.ts.
+   */
+  url: string;
+}
+
+export interface MediaOptions {
+  items: MediaOption[];
+  /** Total rows for the site, so the picker can say when it is showing a subset. */
+  total: number;
+}
+
+/**
+ * Media for the editor's image picker, newest first.
+ *
+ * Bounded: a library of thousands after the WordPress import would otherwise
+ * ship all its metadata into every post form. The picker says so when the list
+ * is truncated rather than silently hiding older images.
+ */
+const PICKER_LIMIT = 120;
+
+export async function listMediaOptions(siteId: string): Promise<MediaOptions> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  const { data, error, count } = await supabase
     .from('media')
-    .select('id, storage_path, alt')
+    .select('id, storage_path, alt', { count: 'exact' })
     .eq('site_id', siteId)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(PICKER_LIMIT);
 
   if (error) throw new Error(`Failed to list media: ${error.message}`);
-  return data ?? [];
+
+  return {
+    items: (data ?? []).map((row) => ({
+      id: row.id,
+      alt: row.alt,
+      name: row.storage_path.split('/').pop() ?? row.storage_path,
+      url: mediaPublicUrl(row.storage_path),
+    })),
+    total: count ?? (data ?? []).length,
+  };
 }
 
 export async function listAllTerms(siteId: string): Promise<TermRow[]> {

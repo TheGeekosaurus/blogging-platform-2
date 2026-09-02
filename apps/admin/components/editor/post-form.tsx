@@ -4,8 +4,10 @@ import { useActionState, useState } from 'react';
 
 import { flattenTermTree, postPath, type SiteRow, type TermRow } from '@blog/core';
 
+import type { MediaOptions } from '@/lib/queries';
+
 import { savePost, type SavePostState } from '@/app/actions/posts';
-import { FeaturedImagePicker, type MediaOption } from './featured-image-picker';
+import { FeaturedImagePicker } from './featured-image-picker';
 import { RichTextEditor } from './rich-text-editor';
 
 const INITIAL: SavePostState = {};
@@ -33,7 +35,7 @@ export function PostForm({
 }: {
   site: SiteRow;
   terms: TermRow[];
-  media: MediaOption[];
+  media: MediaOptions;
   values: PostFormValues;
 }) {
   const [state, formAction, pending] = useActionState(savePost, INITIAL);
@@ -121,7 +123,11 @@ export function PostForm({
       <div>
         <span className="block text-sm font-medium">Body</span>
         <div className="mt-1">
-          <RichTextEditor name="content_html" defaultValue={values.content_html} />
+          <RichTextEditor
+            name="content_html"
+            defaultValue={values.content_html}
+            media={media}
+          />
         </div>
       </div>
 
