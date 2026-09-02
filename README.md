@@ -223,9 +223,20 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   then the full-bleed post page could not opt out of an ancestor's container.
   `apps/blog/__tests__/layout.test.ts` guards it — losing the container does not
   error, it just renders text edge-to-edge at 1440px, which no other test catches.
+- The blog has a **Reading theme** control — System / Light / Dark, defaulting to
+  the reader's OS. An inline script in `<head>` resolves it to a concrete
+  `data-theme` before the first paint; deferring it would flash the wrong theme
+  on every load, so `apps/blog/__tests__/theme.test.ts` asserts the tag stays
+  inline. Light mode cannot use brand gold for text — it measures 2.13:1 on
+  white, below even the 3:1 large-text floor — so it has its own bronze link
+  colour, and `__tests__/contrast.test.ts` holds both palettes to WCAG AA.
+  Components in the blog must read only the semantic tokens (`--color-ink`,
+  `--color-accent`, …), never `--color-blog-*` or `--color-gold`, which are fixed
+  palette values; the same test enforces that, because reading them directly
+  renders correctly in dark and near-invisibly in light.
 - Blog post pages are a two-column layout (content, then a sticky sidebar with
-  metadata and a table of contents) ported from a Figma template, on the brand's
-  near-black-and-gold palette. The contents list works by injecting heading ids
+  metadata, a table of contents and the theme control) ported from a Figma
+  template. The contents list works by injecting heading ids
   at render time — `id` is not in the sanitiser's allowlist, so none survives a
   write, and widening it would mean re-deriving every existing post. The dark
   styling is scoped to `.blog-surface` because `.post-body` is shared with

@@ -1,3 +1,5 @@
+import { ThemeToggle } from '@/components/blog/theme-toggle';
+
 /**
  * The centred reading column for blog index and archive pages.
  *
@@ -14,7 +16,19 @@
 export function ReadingColumn({ children }: { children: React.ReactNode }) {
   return (
     <div className="blog-surface">
-      <div className="mx-auto w-full max-w-3xl px-5 py-10">{children}</div>
+      <div className="mx-auto w-full max-w-3xl px-5 py-10">
+        {children}
+
+        {/*
+          The control belongs on these pages too, not only on posts. The stored
+          preference applies to every /blog page — it has to, or the index would
+          contradict the post you just came from — so without it here a reader
+          could not switch back without navigating into a post first.
+        */}
+        <div className="mt-14 border-t border-[var(--color-line)] pt-8">
+          <ThemeToggle />
+        </div>
+      </div>
     </div>
   );
 }

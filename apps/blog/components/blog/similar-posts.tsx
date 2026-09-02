@@ -33,19 +33,19 @@ export function SimilarPosts({
   return (
     <section
       aria-labelledby="similar-heading"
-      className="border-t border-[var(--color-blog-line)]"
+      className="border-t border-[var(--color-line)]"
     >
       <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <h2
             id="similar-heading"
-            className="font-[family-name:var(--font-headline)] text-2xl text-[var(--color-blog-ink)] sm:text-3xl"
+            className="font-[family-name:var(--font-headline)] text-2xl text-[var(--color-ink)] sm:text-3xl"
           >
             Similar News
           </h2>
           <Link
             href={blogIndexPath()}
-            className="inline-flex items-center gap-2 rounded-full border border-[var(--color-blog-line)] px-6 py-3 text-sm font-semibold !text-[var(--color-blog-ink)] no-underline transition-colors hover:border-[var(--color-gold)] hover:!text-[var(--color-gold)]"
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--color-line)] px-6 py-3 text-sm font-semibold !text-[var(--color-ink)] no-underline transition-colors hover:border-[var(--color-accent)] hover:!text-[var(--color-accent)]"
           >
             View All News
             <span aria-hidden="true">↗</span>
@@ -79,7 +79,7 @@ export function SimilarPosts({
                   ) : (
                     // Keeps the row's cards the same height when a post has no
                     // image, rather than letting one card ride up.
-                    <div className="aspect-[16/10] w-full bg-[var(--color-blog-raised)]" />
+                    <div className="aspect-[16/10] w-full bg-[var(--color-surface-muted)]" />
                   )}
                 </Link>
 
@@ -87,19 +87,19 @@ export function SimilarPosts({
                   <h3 className="font-[family-name:var(--font-headline)] text-lg leading-snug">
                     <Link
                       href={postPath(post.slug)}
-                      className="!text-[var(--color-blog-ink)] no-underline hover:!text-[var(--color-gold)]"
+                      className="!text-[var(--color-ink)] no-underline hover:!text-[var(--color-accent)]"
                     >
                       {post.title}
                     </Link>
                   </h3>
                   {category ? (
-                    <p className="text-sm text-[var(--color-blog-muted)]">{category.name}</p>
+                    <p className="text-sm text-[var(--color-ink-muted)]">{category.name}</p>
                   ) : null}
                 </div>
 
                 <Link
                   href={postPath(post.slug)}
-                  className="mt-auto inline-flex w-fit items-center gap-2 rounded-full border border-[var(--color-blog-line)] px-5 py-2.5 text-sm font-semibold !text-[var(--color-blog-ink)] no-underline transition-colors hover:border-[var(--color-gold)] hover:!text-[var(--color-gold)]"
+                  className="mt-auto inline-flex w-fit items-center gap-2 rounded-full border border-[var(--color-line)] px-5 py-2.5 text-sm font-semibold !text-[var(--color-ink)] no-underline transition-colors hover:border-[var(--color-accent)] hover:!text-[var(--color-accent)]"
                 >
                   Read More
                   <span aria-hidden="true">↗</span>

@@ -9,6 +9,7 @@ import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { getSite } from '@/lib/site';
+import { THEME_SCRIPT } from '@/lib/theme';
 import { isMarketingSite } from '@/lib/marketing';
 import './globals.css';
 
@@ -109,6 +110,18 @@ export default async function RootLayout({
           hero. Preconnecting overlaps it with HTML parsing instead.
         */}
         {marketing ? <link rel="preconnect" href={IMAGE_ORIGIN} crossOrigin="" /> : null}
+
+        {/*
+          Resolves the reader's blog theme before the first paint, so there is no
+          flash of the wrong one. Inline and synchronous on purpose — see
+          lib/theme.ts.
+
+          Rendered on every route, including marketing pages. Harmless: it only
+          sets an attribute, and only `.blog-surface` responds to it. Making it
+          conditional would mean the layout knowing which route it is wrapping,
+          which it deliberately does not.
+        */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className={marketing ? 'marketing-root' : undefined}>
         {marketing ? <Analytics /> : null}

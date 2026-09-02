@@ -19,6 +19,7 @@ import { PostJsonLd } from '@/components/json-ld';
 import { PostMeta } from '@/components/blog/post-meta';
 import { SimilarPosts } from '@/components/blog/similar-posts';
 import { TableOfContents } from '@/components/blog/table-of-contents';
+import { ThemeToggle } from '@/components/blog/theme-toggle';
 import { getClient, getSite } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -148,9 +149,9 @@ export default async function PostPage({
       ) : (
         // No featured image: the title still needs a band of its own rather than
         // sitting flush against the site header.
-        <header className="border-b border-[var(--color-blog-line)]">
+        <header className="border-b border-[var(--color-line)]">
           <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8">
-            <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-blog-ink)] sm:text-4xl lg:text-5xl">
+            <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-ink)] sm:text-4xl lg:text-5xl">
               {post.title}
             </h1>
           </div>
@@ -172,14 +173,14 @@ export default async function PostPage({
             />
 
             {post.tags.length > 0 ? (
-              <footer className="mt-12 border-t border-[var(--color-blog-line)] pt-6">
+              <footer className="mt-12 border-t border-[var(--color-line)] pt-6">
                 <h2 className="sr-only">Tags</h2>
                 <p className="flex flex-wrap gap-2">
                   {post.tags.map((tag) => (
                     <Link
                       key={tag.id}
                       href={tagPath(tag.slug)}
-                      className="rounded-full border border-[var(--color-blog-line)] px-4 py-1.5 text-sm !text-[var(--color-blog-muted)] no-underline transition-colors hover:border-[var(--color-gold)] hover:!text-[var(--color-gold)]"
+                      className="rounded-full border border-[var(--color-line)] px-4 py-1.5 text-sm !text-[var(--color-ink-muted)] no-underline transition-colors hover:border-[var(--color-accent)] hover:!text-[var(--color-accent)]"
                     >
                       #{tag.name}
                     </Link>
@@ -198,6 +199,7 @@ export default async function PostPage({
           <aside className="flex flex-col gap-10 lg:w-[31%] lg:self-start lg:sticky lg:top-24">
             <PostMeta post={post} locale={site.locale} />
             <TableOfContents headings={headings} />
+            <ThemeToggle />
           </aside>
         </div>
       </div>
