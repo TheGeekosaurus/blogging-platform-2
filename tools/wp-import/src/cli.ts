@@ -43,6 +43,7 @@ function printReport(report: ImportReport): void {
     `  Created:         ${report.created.length}`,
     `  Updated:         ${report.updated.length}`,
     `  Terms:           ${report.termsUpserted}`,
+    `  Nested cats:     ${report.categoriesNested}`,
     '',
     '  Skipped (not posts, or trashed):',
     formatCounts(report.skippedByType),

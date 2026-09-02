@@ -113,6 +113,22 @@ export async function getPostForEdit(
   return { ...post, termIds: (joins ?? []).map((row) => row.term_id) };
 }
 
+/** Media for the post editor's featured image picker, newest first. */
+export async function listMediaOptions(
+  siteId: string,
+): Promise<Array<{ id: string; storage_path: string; alt: string | null }>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('media')
+    .select('id, storage_path, alt')
+    .eq('site_id', siteId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw new Error(`Failed to list media: ${error.message}`);
+  return data ?? [];
+}
+
 export async function listAllTerms(siteId: string): Promise<TermRow[]> {
   const supabase = await createClient();
 

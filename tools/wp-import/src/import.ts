@@ -10,7 +10,7 @@ import {
 } from '@blog/core';
 
 import { transformWordPressContent } from './transform';
-import { parseWxr, type WxrPost, type WxrTerm } from './wxr';
+import { parseWxr, type WxrCategory, type WxrPost, type WxrTerm } from './wxr';
 
 export interface ImportOptions {
   siteSlug: string;
@@ -37,6 +37,8 @@ export interface ImportReport {
   skippedByType: Record<string, number>;
   droppedShortcodes: Record<string, number>;
   termsUpserted: number;
+  /** Categories nested under a parent, from the export's own hierarchy. */
+  categoriesNested: number;
 }
 
 interface PreparedPost {
@@ -81,6 +83,7 @@ async function upsertTerms(
   client: Client,
   siteId: string,
   posts: WxrPost[],
+  categories: WxrCategory[],
   dryRun: boolean,
 ): Promise<{ ids: Map<string, string>; count: number }> {
   const unique = new Map<string, WxrTerm>();
@@ -88,6 +91,17 @@ async function upsertTerms(
     for (const term of post.terms) {
       unique.set(termKey(term), term);
     }
+  }
+
+  /*
+   * Also create every category the channel declares, not just the ones posts
+   * are tagged with. An intermediate category with no posts of its own still
+   * has to exist, or its children have nothing to hang off and the tree breaks
+   * apart at that level.
+   */
+  for (const category of categories) {
+    const term: WxrTerm = { kind: 'category', slug: category.slug, name: category.name };
+    if (!unique.has(termKey(term))) unique.set(termKey(term), term);
   }
 
   const ids = new Map<string, string>();
@@ -123,6 +137,51 @@ async function upsertTerms(
   }
 
   return { ids, count: unique.size };
+}
+
+/**
+ * Apply the category hierarchy, once every category row exists.
+ *
+ * A second pass rather than part of the upsert: a parent has to be present
+ * before a child can point at it, and WXR lists categories in no particular
+ * order — a child can appear before its parent.
+ *
+ * Cycles are not a concern to guard against here; the database rejects them
+ * (`terms_check_parent`, migration 0005), and a WordPress export cannot contain
+ * one anyway.
+ */
+async function linkCategoryParents(
+  client: Client,
+  categories: WxrCategory[],
+  ids: Map<string, string>,
+  dryRun: boolean,
+): Promise<number> {
+  const nested = categories.filter((category) => category.parentSlug !== null);
+  if (nested.length === 0 || dryRun) return nested.length;
+
+  let linked = 0;
+
+  for (const category of nested) {
+    const childId = ids.get(`category:${category.slug}`);
+    const parentId = ids.get(`category:${category.parentSlug}`);
+
+    // A parent that is not in the map was dropped (Uncategorized) or missing
+    // from the export. Leaving the child at the top level is the safe outcome.
+    if (!childId || !parentId || childId === parentId) continue;
+
+    const { error } = await client
+      .from('terms')
+      .update({ parent_id: parentId })
+      .eq('id', childId);
+
+    if (error) {
+      throw new Error(`Failed to nest category "${category.slug}": ${error.message}`);
+    }
+
+    linked += 1;
+  }
+
+  return linked;
 }
 
 /** Replace the taxonomy links for the given posts. */
@@ -161,6 +220,7 @@ export async function importWxr(xml: string, options: ImportOptions): Promise<Im
     skippedByType: parsed.skipped,
     droppedShortcodes: {},
     termsUpserted: 0,
+    categoriesNested: 0,
   };
 
   // Existing posts, so re-running the import updates rather than duplicates.
@@ -187,9 +247,17 @@ export async function importWxr(xml: string, options: ImportOptions): Promise<Im
     client,
     site.id,
     parsed.posts,
+    parsed.categories,
     options.dryRun,
   );
   report.termsUpserted = termsUpserted;
+
+  report.categoriesNested = await linkCategoryParents(
+    client,
+    parsed.categories,
+    termIds,
+    options.dryRun,
+  );
 
   const prepared: PreparedPost[] = [];
   const seenSlugs = new Set<string>();

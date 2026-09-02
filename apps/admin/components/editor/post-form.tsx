@@ -2,9 +2,10 @@
 
 import { useActionState, useState } from 'react';
 
-import { postPath, type SiteRow, type TermRow } from '@blog/core';
+import { flattenTermTree, postPath, type SiteRow, type TermRow } from '@blog/core';
 
 import { savePost, type SavePostState } from '@/app/actions/posts';
+import { FeaturedImagePicker, type MediaOption } from './featured-image-picker';
 import { RichTextEditor } from './rich-text-editor';
 
 const INITIAL: SavePostState = {};
@@ -21,21 +22,25 @@ export interface PostFormValues {
   seo_description: string;
   noindex: boolean;
   termIds: string[];
+  featuredImageId: string | null;
 }
 
 export function PostForm({
   site,
   terms,
+  media,
   values,
 }: {
   site: SiteRow;
   terms: TermRow[];
+  media: MediaOption[];
   values: PostFormValues;
 }) {
   const [state, formAction, pending] = useActionState(savePost, INITIAL);
   const [slug, setSlug] = useState(values.slug);
 
-  const categories = terms.filter((term) => term.kind === 'category');
+  // Categories nest, so they render indented in tree order. Tags never do.
+  const categories = flattenTermTree(terms.filter((term) => term.kind === 'category'));
   const tags = terms.filter((term) => term.kind === 'tag');
 
   return (
@@ -134,11 +139,45 @@ export function PostForm({
         />
       </div>
 
-      {categories.length > 0 || tags.length > 0 ? (
+      <FeaturedImagePicker media={media} defaultValue={values.featuredImageId} />
+
+      {categories.length > 0 ? (
         <fieldset>
-          <legend className="text-sm font-medium">Categories &amp; tags</legend>
+          <legend className="text-sm font-medium">Categories</legend>
+          <p className="mt-1 text-sm text-slate-600">
+            Tick the most specific one. A parent category&apos;s archive also lists posts
+            from its subcategories.
+          </p>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {categories.map(({ term, depth }) => (
+              <label
+                key={term.id}
+                className="flex items-center gap-1.5 text-sm"
+                style={{ paddingLeft: `${depth * 1.25}rem` }}
+              >
+                <input
+                  type="checkbox"
+                  name="term_ids"
+                  value={term.id}
+                  defaultChecked={values.termIds.includes(term.id)}
+                />
+                {depth > 0 ? (
+                  <span aria-hidden="true" className="text-slate-400">
+                    └
+                  </span>
+                ) : null}
+                {term.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
+
+      {tags.length > 0 ? (
+        <fieldset>
+          <legend className="text-sm font-medium">Tags</legend>
           <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-            {[...categories, ...tags].map((term) => (
+            {tags.map((term) => (
               <label key={term.id} className="flex items-center gap-1.5 text-sm">
                 <input
                   type="checkbox"
@@ -146,7 +185,7 @@ export function PostForm({
                   value={term.id}
                   defaultChecked={values.termIds.includes(term.id)}
                 />
-                {term.kind === 'tag' ? `#${term.name}` : term.name}
+                #{term.name}
               </label>
             ))}
           </div>

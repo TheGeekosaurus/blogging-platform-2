@@ -56,9 +56,11 @@ Apply the migrations to a fresh Supabase project, in order — paste each into t
 SQL editor, or use `supabase db push`:
 
 ```
-supabase/migrations/0001_init.sql      schema
-supabase/migrations/0002_rls.sql       row level security and grants
-supabase/migrations/0003_storage.sql   media bucket
+supabase/migrations/0001_init.sql            schema
+supabase/migrations/0002_rls.sql             row level security and grants
+supabase/migrations/0003_storage.sql         media bucket
+supabase/migrations/0004_pages.sql           pages, nested to any depth
+supabase/migrations/0005_term_hierarchy.sql  category nesting checks
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -220,6 +222,14 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   want it supply it themselves. `apps/blog/__tests__/layout.test.ts` guards this:
   losing the container does not error, it just renders text edge-to-edge at
   1440px, which no other test would catch.
+- Categories nest through `terms.parent_id`, and an archive lists posts from its
+  whole subtree — WordPress's behaviour, because editors tag the most specific
+  category and a parent would otherwise be an empty page. Category URLs stay
+  flat (`/blog/category/<slug>`) at any depth, so re-parenting never breaks a
+  link. `0001_init.sql` only rejected a direct self-parent; `0005` adds the
+  cycle, dangling-parent and cross-site checks, and every tree walk in
+  `packages/core/src/terms.ts` is guarded anyway, since rows written before that
+  migration were never checked.
 - Page nesting comes from `parent_id`; the full path is materialised into
   `pages.path` by trigger, so a lookup is one indexed query at any depth and
   re-parenting rewrites the whole subtree.

@@ -1,5 +1,6 @@
 import type { Client } from './supabase';
 import type { PageRow, RedirectRow, SiteRow, TermKind, TermRow } from './database.types';
+import { termsWithPosts } from './terms';
 
 /**
  * Read-side data access for the public blog.
@@ -282,20 +283,34 @@ export async function getTermBySlug(
  * rows nested, and the two-step version keeps the ordering and pagination
  * predictable — these result sets are small.
  */
-export async function listPostsByTerm(
+/**
+ * Posts carrying ANY of the given terms.
+ *
+ * Takes a set rather than one id so a category archive can pass the category
+ * plus its descendants — WordPress's behaviour, and the reason it matters is
+ * that editors tag the most specific category only, leaving a parent archive
+ * empty otherwise.
+ *
+ * A post in both a parent and a child appears once: the join produces duplicate
+ * post ids, but they are then used as an `in` filter on `posts`, which matches
+ * each row once regardless.
+ */
+export async function listPostsByTerms(
   client: Client,
   siteId: string,
-  termId: string,
+  termIds: readonly string[],
   { limit = POSTS_PER_PAGE, offset = 0 }: { limit?: number; offset?: number } = {},
 ): Promise<PostSummary[]> {
+  if (termIds.length === 0) return [];
+
   const { data: joins, error: joinError } = await client
     .from('post_terms')
     .select('post_id')
-    .eq('term_id', termId);
+    .in('term_id', termIds as string[]);
 
   if (joinError) fail('Failed to resolve posts for term', joinError);
 
-  const postIds = (joins ?? []).map((row) => row.post_id);
+  const postIds = [...new Set((joins ?? []).map((row) => row.post_id))];
   if (postIds.length === 0) return [];
 
   const { data, error } = await client
@@ -310,6 +325,16 @@ export async function listPostsByTerm(
 
   if (error) fail('Failed to list posts for term', error);
   return ((data ?? []) as unknown as RawSummary[]).map(toSummary);
+}
+
+/** Posts carrying exactly one term. Tag archives, which never nest. */
+export async function listPostsByTerm(
+  client: Client,
+  siteId: string,
+  termId: string,
+  options: { limit?: number; offset?: number } = {},
+): Promise<PostSummary[]> {
+  return listPostsByTerms(client, siteId, [termId], options);
 }
 
 /** Terms that actually have at least one published post, for archive indexes. */
@@ -335,7 +360,15 @@ export async function listNonEmptyTerms(
   if (error) fail('Failed to check term usage', error);
 
   const used = new Set((data ?? []).map((row) => row.term_id));
-  return terms.filter((term) => used.has(term.id));
+
+  /*
+   * Categories propagate usage upwards; tags cannot nest, so for them this is
+   * the same set. A parent tagged on nothing directly still has an archive with
+   * content, because archives include descendants — calling it empty would hide
+   * it from navigation and from the sitemap while the page itself renders fine.
+   */
+  const withPosts = kind === 'category' ? termsWithPosts(terms, used) : used;
+  return terms.filter((term) => withPosts.has(term.id));
 }
 
 // ---------------------------------------------------------------------------

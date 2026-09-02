@@ -1,12 +1,15 @@
 import { PostForm } from '@/components/editor/post-form';
 import { requireCurrentSite } from '@/lib/current-site';
-import { listAllTerms } from '@/lib/queries';
+import { listAllTerms, listMediaOptions } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewPostPage() {
   const site = await requireCurrentSite();
-  const terms = await listAllTerms(site.id);
+  const [terms, media] = await Promise.all([
+    listAllTerms(site.id),
+    listMediaOptions(site.id),
+  ]);
 
   return (
     <>
@@ -14,6 +17,7 @@ export default async function NewPostPage() {
       <PostForm
         site={site}
         terms={terms}
+        media={media}
         values={{
           title: '',
           slug: '',
@@ -25,6 +29,7 @@ export default async function NewPostPage() {
           seo_description: '',
           noindex: false,
           termIds: [],
+          featuredImageId: null,
         }}
       />
     </>

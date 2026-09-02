@@ -274,3 +274,116 @@ describe('parseWxr — taxonomy', () => {
     });
   });
 });
+
+/*
+ * Category hierarchy.
+ *
+ * The `<category>` elements on each `<item>` say only which terms a post
+ * carries — they have no parent information. The tree is declared once at the
+ * channel level, referenced by NICENAME rather than id. Reading only the item
+ * elements, as the importer originally did, flattens the whole tree silently.
+ */
+describe('parseWxr — category hierarchy', () => {
+  const XML = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2"
+     xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <wp:base_blog_url>https://old.test</wp:base_blog_url>
+
+    <wp:category>
+      <wp:category_nicename>panels</wp:category_nicename>
+      <wp:cat_name>Panels</wp:cat_name>
+      <wp:category_parent>solar</wp:category_parent>
+    </wp:category>
+    <wp:category>
+      <wp:category_nicename>energy</wp:category_nicename>
+      <wp:cat_name>Energy</wp:cat_name>
+      <wp:category_parent></wp:category_parent>
+    </wp:category>
+    <wp:category>
+      <wp:category_nicename>solar</wp:category_nicename>
+      <wp:cat_name>Solar</wp:cat_name>
+      <wp:category_parent>energy</wp:category_parent>
+    </wp:category>
+    <wp:category>
+      <wp:category_nicename>uncategorized</wp:category_nicename>
+      <wp:cat_name>Uncategorized</wp:cat_name>
+      <wp:category_parent></wp:category_parent>
+    </wp:category>
+    <wp:category>
+      <wp:category_nicename>orphan</wp:category_nicename>
+      <wp:cat_name>Orphan</wp:cat_name>
+      <wp:category_parent>uncategorized</wp:category_parent>
+    </wp:category>
+
+    <item>
+      <title>A post</title>
+      <wp:post_id>1</wp:post_id>
+      <wp:post_type>post</wp:post_type>
+      <wp:status>publish</wp:status>
+      <wp:post_name>a-post</wp:post_name>
+      <wp:post_date_gmt>2026-01-01 10:00:00</wp:post_date_gmt>
+      <content:encoded>Body</content:encoded>
+      <category domain="category" nicename="panels">Panels</category>
+    </item>
+  </channel>
+</rss>`;
+
+  it('reads the channel-level declarations with their parents', () => {
+    const { categories } = parseWxr(XML);
+    const bySlug = new Map(categories.map((c) => [c.slug, c]));
+
+    expect(bySlug.get('energy')?.parentSlug).toBeNull();
+    expect(bySlug.get('solar')?.parentSlug).toBe('energy');
+    expect(bySlug.get('panels')?.parentSlug).toBe('solar');
+  });
+
+  it('keeps a category declared before its parent appears', () => {
+    // "panels" is listed first in the XML, above "solar" and "energy". WXR
+    // guarantees no ordering, which is why the importer links parents in a
+    // second pass rather than during the upsert.
+    const { categories } = parseWxr(XML);
+    expect(categories[0]?.slug).toBe('panels');
+    expect(categories[0]?.parentSlug).toBe('solar');
+  });
+
+  it('drops Uncategorized, as the per-post term parsing already does', () => {
+    const { categories } = parseWxr(XML);
+    expect(categories.map((c) => c.slug)).not.toContain('uncategorized');
+  });
+
+  it('treats a child of Uncategorized as top level, not a dangling parent', () => {
+    // Uncategorized is dropped, so pointing at it would leave a reference to a
+    // category with no row — which the database now rejects outright.
+    const { categories } = parseWxr(XML);
+    expect(categories.find((c) => c.slug === 'orphan')?.parentSlug).toBeNull();
+  });
+
+  it('carries the display name, not just the slug', () => {
+    const { categories } = parseWxr(XML);
+    expect(categories.find((c) => c.slug === 'solar')?.name).toBe('Solar');
+  });
+
+  it('returns an empty list when the export declares no categories', () => {
+    const bare = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2">
+  <channel><wp:base_blog_url>https://old.test</wp:base_blog_url></channel>
+</rss>`;
+    expect(parseWxr(bare).categories).toEqual([]);
+  });
+
+  it('handles a single declaration, which fast-xml-parser would not array', () => {
+    const one = `<?xml version="1.0"?>
+<rss version="2.0" xmlns:wp="http://wordpress.org/export/1.2">
+  <channel>
+    <wp:category>
+      <wp:category_nicename>solo</wp:category_nicename>
+      <wp:cat_name>Solo</wp:cat_name>
+    </wp:category>
+  </channel>
+</rss>`;
+    expect(parseWxr(one).categories).toEqual([
+      { slug: 'solo', name: 'Solo', parentSlug: null },
+    ]);
+  });
+});

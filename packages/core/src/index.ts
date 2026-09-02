@@ -6,3 +6,4 @@ export * from './sanitize';
 export * from './content';
 export * from './urls';
 export * from './coded-routes';
+export * from './terms';
