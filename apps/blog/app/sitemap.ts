@@ -3,6 +3,7 @@ import type { MetadataRoute } from 'next';
 import {
   browsePath,
   categoryPath,
+  codedRoutesFor,
   listNonEmptyTerms,
   listPublishedPages,
   listPublishedPosts,
@@ -53,6 +54,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.3,
     },
+    /*
+     * Coded pages: React routes in the repo rather than rows in `pages`, so no
+     * query can discover them. Without this they would be absent from the
+     * sitemap entirely — an incomplete sitemap on an SEO migration, with nothing
+     * to signal the omission. Source of truth is CODED_ROUTES in @blog/core.
+     *
+     * `path !== ''` skips the homepage, which the '/' entry above already
+     * covers; the database pages below are filtered the same way.
+     */
+    ...codedRoutesFor(site.slug)
+      .filter((route) => route.index && route.path !== '')
+      .map((route) => ({
+        url: pageUrl(site, pagePath(route.path)),
+        lastModified: new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      })),
     // Pages marked noindex are omitted: advertising a URL in the sitemap while
     // telling crawlers not to index it sends contradictory signals.
     ...pages

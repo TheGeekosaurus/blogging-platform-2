@@ -5,3 +5,4 @@ export * from './queries';
 export * from './sanitize';
 export * from './content';
 export * from './urls';
+export * from './coded-routes';
