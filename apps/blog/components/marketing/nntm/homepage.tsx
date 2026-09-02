@@ -1,17 +1,33 @@
+import Image from 'next/image';
+
 import { CtaButton } from '../cta-button';
+import { HERO_VIDEO, IMAGES, LOCAL_IMAGES } from '../brand';
 import { HighLevelForm } from '../highlevel-form';
-import { IMAGES } from '../brand';
 import { TestimonialWall } from '../testimonial-wall';
 
 /*
- * The Nanotom Capital homepage.
+ * The Nanotom Capital homepage — 2026 visual refresh.
  *
- * A port of the live HighLevel page, section for section, in the same order. All
- * copy is transcribed verbatim from the rendered page — this is a hosting
- * migration, not a rewrite, so wording is not "improved" in passing.
+ * Replaces the original section-for-section HighLevel port with the redesign
+ * from the Claude Design kit: a full-bleed video hero, press logos as a
+ * scrolling marquee, proof figures in cards, a two-column "how it works" with
+ * the phone mockup, and a two-column advantage block with the use-of-funds
+ * checklist. Copy is unchanged from the live site — this is a visual
+ * redesign, not a rewrite.
  *
- * Every section is a server component. The page ships no JavaScript of its own;
- * the only scripts are the two third-party embeds and GTM.
+ * The two BANKROLL program cards are dropped, as the kit's final screen omits
+ * them — they get their own /programs page, via the "See Our Programs" CTA.
+ *
+ * The qualification survey is KEPT, against the kit, which routes the funnel to
+ * a dedicated /get-funded page. That page does not exist in this repo yet — it
+ * is one of eight still on HighLevel — so following the kit exactly would leave
+ * the homepage with no lead capture and six CTAs pointing at a 404. It stays
+ * until those pages are ported, and arguably after: the homepage carrying its
+ * own funnel does not depend on a visitor clicking through.
+ *
+ * Every section here is still a server component; the only scripts are the
+ * two third-party embeds (GTM, the testimonial wall) and the video autoplays
+ * natively with no JS.
  */
 
 const STEPS = [
@@ -29,52 +45,6 @@ const STEPS = [
   },
 ] as const;
 
-const PRODUCTS = [
-  {
-    title: 'The Ultimate Revolving Line of Credit',
-    blurb:
-      "Get the financial flexibility your business demands with BANKROLL's industry-leading revolving credit line. Access up to $1,500,000 in capital with the freedom to draw funds when you need them and pay down principal when cash flow allows.",
-    note: 'Great for keeping funds on hand',
-    bullets: [
-      ['Massive Credit Limits', 'Approvals up to $1,500,000'],
-      [
-        'True Flexibility',
-        'Unlimited draws and paydowns of $5,000+ during your 1-year revolving period',
-      ],
-      ['Predictable Payments', 'Fixed weekly payments over terms up to 36 months'],
-      ['Complete Control', 'You decide when to borrow, how much to pay, and when to pay off'],
-      ['No Penalties', 'Early payoff available anytime without fees'],
-      [
-        'Smart Financing',
-        'Pay interest only on what you use, with no minimum finance charges',
-      ],
-    ],
-  },
-  {
-    title: 'Pay Only The Interest For Up To A Year',
-    blurb:
-      'Access up to $750,000 with the ultimate cash flow solution. Pay only interest for up to one full year while enjoying unlimited access to additional funds through your built-in line of credit.',
-    note: null,
-    bullets: [
-      ['Lower Entry Point', 'Start with just $50,000 (reduced from $150,000)'],
-      ['Interest-Only Freedom', 'Pay only interest for up to 52 weeks'],
-      [
-        'Built-In Line of Credit',
-        'Unlimited draws of $25,000+ during your interest-only period',
-      ],
-      [
-        'Maximum Flexibility',
-        'Take your initial loan in multiple draws across consecutive business days',
-      ],
-      ['Safety Net Included', 'Built-in rollover amortization option up to 2 years'],
-      [
-        'Smart Structure',
-        'Your credit line equals the difference between your approval and initial draw',
-      ],
-    ],
-  },
-] as const;
-
 const USE_CASES = [
   'Purchase inventory',
   'Cover payroll',
@@ -86,286 +56,354 @@ const USE_CASES = [
   'Consolidate business debt',
 ] as const;
 
-function SectionHeading({
-  eyebrow,
-  children,
-  tone = 'dark',
-}: {
-  eyebrow?: string;
-  children: React.ReactNode;
-  tone?: 'dark' | 'light';
-}) {
+const REQUIREMENTS = [
+  ['As little as', '30 Days', 'in business'],
+  ['Be on the approved', 'Industries', 'list'],
+  ['Minimum', '551', 'personal FICO® score'],
+] as const;
+
+function CircleCheckIcon() {
   return (
-    <div className="mx-auto max-w-3xl text-center">
-      {eyebrow ? (
-        <p
-          className={`text-sm font-semibold uppercase tracking-[0.2em] ${
-            tone === 'light' ? 'text-[var(--color-gold)]' : 'text-[var(--color-gold)]'
-          }`}
-        >
-          {eyebrow}
+    <svg
+      className="h-[17px] w-[17px] shrink-0 text-[var(--color-gold-hover)]"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" />
+      <path
+        d="M8.2 12.3l2.4 2.4 5.2-5.2"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold-hover)]">
+      {children}
+    </p>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative isolate flex min-h-[min(760px,92vh)] items-center overflow-hidden bg-[var(--color-brand)]">
+      {/*
+        The still frame is its own layer rather than only the video's `poster`,
+        so it is what shows through whenever the video is absent: while the video
+        loads, if it fails or is blocked, and under `prefers-reduced-motion`,
+        where globals.css hides the video outright. Doing it in CSS keeps the
+        hero a server component — pausing playback from JS would mean shipping a
+        client component for the sake of one preference.
+      */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={IMAGES.heroBackground}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {/*
+        `preload="metadata"` rather than the default: the browser fetches the
+        header and lets the still frame paint, instead of committing to the whole
+        3 MB before anything is on screen.
+      */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        poster={IMAGES.heroBackground}
+        src={HERO_VIDEO}
+        aria-hidden="true"
+        className="nt-hero-video absolute inset-0 h-full w-full object-cover"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,10,10,.90)_0%,rgba(10,10,10,.78)_46%,rgba(10,10,10,.35)_100%)]"
+      />
+      <div className="relative mx-auto w-full max-w-7xl px-5 py-20 lg:px-8">
+        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
+          Entrepreneurs &amp; Business Owners
         </p>
-      ) : null}
-      <h2
-        className={`mt-3 font-[family-name:var(--font-headline)] text-3xl leading-[1.3] sm:text-4xl ${
-          tone === 'light' ? 'text-white' : 'text-[var(--color-brand)]'
-        }`}
+        <h1 className="mt-6 max-w-3xl font-[family-name:var(--font-headline)] text-4xl leading-[1.1] text-white sm:text-5xl lg:text-6xl">
+          Get The Capital Your Business Needs To Grow
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-[1.7] text-white/80">
+          Whether you&apos;re a startup, established business, or real estate investor,
+          access flexible financing solutions to fuel your next big move.
+        </p>
+        <CtaButton className="mt-10 shadow-[0_8px_24px_rgba(224,168,64,.28)]" />
+      </div>
+    </section>
+  );
+}
+
+function TrackRecord() {
+  const stats = [
+    ['2,300+', 'businesses funded since 2012'],
+    ['$36+ M', 'provided in financing'],
+    ['4.7 Stars', 'from happy customers'],
+  ] as const;
+
+  return (
+    <section className="py-16">
+      <div className="mx-auto max-w-7xl px-5 text-center lg:px-8">
+        <h2 className="mx-auto max-w-2xl font-[family-name:var(--font-headline)] text-2xl leading-[1.3] text-[var(--color-brand)] sm:text-3xl">
+          We&apos;re a Funding Partner with a Proven Track Record
+        </h2>
+        <div className="mt-10 grid gap-6 sm:grid-cols-3">
+          {stats.map(([value, label]) => (
+            <div
+              key={label}
+              className="flex flex-col items-center gap-3 rounded-xl border border-black/5 bg-white px-6 py-9 shadow-[0_1px_2px_rgba(11,11,12,.05),0_8px_20px_rgba(11,11,12,.06)]"
+            >
+              <span className="whitespace-nowrap font-mono text-4xl font-medium tracking-tight text-[var(--color-gold-hover)]">
+                {value}
+              </span>
+              <span className="text-sm text-black/60">{label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeaturedOn() {
+  const track = Array.from({ length: 8 }, (_, dup) => dup);
+
+  return (
+    <section className="border-y border-black/5 bg-[#f7f7f7] py-12">
+      <div className="mx-auto max-w-7xl px-5 text-center lg:px-8">
+        <Eyebrow>Featured On</Eyebrow>
+      </div>
+      <div
+        className="relative mt-8 overflow-hidden
+          [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]
+          [-webkit-mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
       >
-        {children}
-      </h2>
-    </div>
+        <div className="flex w-max animate-[nt-marquee_100s_linear_infinite]">
+          {track.map((dup) => (
+            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-12 pr-12">
+              {IMAGES.featuredOn.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={src}
+                  alt={dup === 0 ? 'Press logo' : ''}
+                  className="h-9 w-auto shrink-0 object-contain opacity-70 grayscale"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Steps() {
+  return (
+    <section className="bg-[var(--color-brand)] py-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[1.05fr_.95fr] lg:items-center lg:px-8">
+        <div>
+          <h2 className="max-w-md font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-white sm:text-4xl">
+            Funding that moves at your speed.
+          </h2>
+          <div className="mt-10 flex flex-col gap-8">
+            {STEPS.map((step, i) => (
+              <div key={step.title} className="grid grid-cols-[auto_1fr] items-start gap-5">
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-gold)] font-[family-name:var(--font-headline)] text-xl font-extrabold text-[var(--color-brand)]">
+                  {i + 1}
+                </span>
+                <div className="flex flex-col gap-2 pt-1.5">
+                  <h3 className="font-[family-name:var(--font-headline)] text-xl text-white">
+                    {step.title}
+                  </h3>
+                  <p className="max-w-md text-base leading-[1.7] text-white/70">{step.body}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <CtaButton className="mt-10" />
+        </div>
+
+        <div className="relative flex justify-center">
+          <div
+            aria-hidden="true"
+            className="absolute left-[2%] top-[4%] h-[190px] w-[190px] rounded-full bg-[var(--color-gold)] opacity-90"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute bottom-[2%] right-[-4%] h-[230px] w-[230px] rounded-full bg-[var(--color-gold)] opacity-90"
+          />
+          <Image
+            src={LOCAL_IMAGES.appPhone}
+            alt="Nanotom Capital funding application on mobile"
+            width={540}
+            height={960}
+            className="relative w-full max-w-[340px]"
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Advantage() {
+  return (
+    <section className="border-y border-black/5 bg-[#f7f7f7] py-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[.95fr_1.05fr] lg:items-center lg:px-8">
+        <div>
+          <Eyebrow>The Nanotom Capital Advantage</Eyebrow>
+          <h2 className="mt-4 font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-[var(--color-brand)] sm:text-4xl">
+            Funding Options Built to Work for You.
+          </h2>
+          <p className="mt-5 max-w-md text-base leading-[1.7] text-black/65">
+            No matter your goal, our in-house loan advisors can help you choose a financing
+            solution — no middleman or delays.
+          </p>
+          <CtaButton href="/programs" className="mt-9">
+            See Our Programs
+          </CtaButton>
+        </div>
+
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {USE_CASES.map((use) => (
+            <span
+              key={use}
+              className="inline-flex items-center gap-3 text-sm font-semibold text-[var(--color-brand)]"
+            >
+              <CircleCheckIcon />
+              {use}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Requirements() {
+  return (
+    <section className="py-20">
+      <div className="mx-auto grid max-w-7xl gap-12 px-5 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:px-8">
+        <div>
+          <h2 className="font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-[var(--color-brand)] sm:text-4xl">
+            Are we a match? Check our minimum requirements.
+          </h2>
+          <div className="mt-10 flex flex-col gap-6">
+            {REQUIREMENTS.map(([pre, big, post]) => (
+              <div
+                key={big}
+                className="flex flex-wrap items-baseline gap-3 border-b border-black/10 pb-5"
+              >
+                <span className="text-base text-black/55">{pre}</span>
+                <span className="font-mono text-3xl font-medium tracking-tight text-[var(--color-gold-hover)]">
+                  {big}
+                </span>
+                <span className="text-base text-black/55">{post}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-8 max-w-md font-[family-name:var(--font-headline)] text-xl font-bold leading-[1.3] tracking-tight text-[var(--color-brand)]">
+            We look beyond your credit score to say &lsquo;Yes&rsquo; when others won&apos;t.
+          </p>
+          <CtaButton className="mt-8" />
+        </div>
+
+        <Image
+          src={LOCAL_IMAGES.cityTower}
+          alt="Business owner reviewing plans"
+          width={540}
+          height={960}
+          className="w-full max-w-[420px] justify-self-center"
+        />
+      </div>
+    </section>
+  );
+}
+
+/*
+ * On the dark band rather than the light one the other sections alternate
+ * through. Two reasons: `Advantage` above it is already #f7f7f7, so a second
+ * grey section would merge into one slab with a hairline in the middle; and the
+ * survey renders on a white card, which against near-black reads as the page's
+ * conversion point rather than as one more content block.
+ */
+function Qualify() {
+  return (
+    <section id="get-started" className="bg-[var(--color-brand)] py-20">
+      <div className="mx-auto max-w-4xl px-5 text-center lg:px-8">
+        <Eyebrow>Get Started</Eyebrow>
+        <h2 className="mt-3 font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-white sm:text-4xl">
+          Not Sure What is Best for You?
+        </h2>
+        <ol className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 text-base text-white/70 sm:flex-row sm:justify-center sm:gap-10">
+          <li>Answer a few simple questions</li>
+          <li>We will look at your particular situation</li>
+          <li>We&apos;ll send you some recommendations</li>
+        </ol>
+        <div className="mt-10 overflow-hidden rounded-xl text-left">
+          <HighLevelForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section className="border-t border-black/5 bg-[#f7f7f7] py-20">
+      <div className="mx-auto max-w-4xl px-5 text-center lg:px-8">
+        <Eyebrow>Testimonials</Eyebrow>
+        <h2 className="mt-3 font-[family-name:var(--font-headline)] text-2xl leading-[1.3] text-[var(--color-brand)] sm:text-3xl">
+          What others are saying
+        </h2>
+        <div className="mt-10">
+          <TestimonialWall />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FinalCta() {
+  return (
+    <section className="py-20 text-center">
+      <div className="mx-auto max-w-2xl px-5 lg:px-8">
+        <h2 className="font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-[var(--color-brand)] sm:text-4xl">
+          Get Funded Today
+        </h2>
+        <p className="mt-5 text-base leading-[1.7] text-black/65">
+          Get started with your application and join Nanotom Capital&apos;s family of
+          forward-thinking businesses.
+        </p>
+        <CtaButton className="mt-8" />
+      </div>
+    </section>
   );
 }
 
 export function NntmHomepage() {
   return (
     <>
-      {/* 1 — Hero */}
-      <section className="relative isolate overflow-hidden bg-[var(--color-brand)]">
-        <img
-          src={IMAGES.heroBackground}
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-25"
-          fetchPriority="high"
-        />
-        <div className="mx-auto max-w-7xl px-5 py-24 text-center lg:px-8 lg:py-32">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
-            Entrepreneurs &amp; Business Owners
-          </p>
-          <h1 className="mx-auto mt-5 max-w-4xl font-[family-name:var(--font-headline)] text-4xl leading-[1.15] text-white sm:text-5xl lg:text-6xl">
-            Get The Capital Your Business Needs To Grow
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg leading-[1.8] text-white/80">
-            Whether you&apos;re a startup, established business, or real estate investor,
-            access flexible financing solutions to fuel your next big move.
-          </p>
-          <CtaButton className="mt-10" />
-        </div>
-      </section>
-
-      {/* 2 — Track record. The live page renders both the real figures and '0+'
-          placeholders for a count-up animation; only the real values ship here. */}
-      <section className="bg-white py-16">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <h2 className="text-center font-[family-name:var(--font-headline)] text-2xl leading-[1.3] text-[var(--color-brand)] sm:text-3xl">
-            We&apos;re a Funding Partner with a Proven Track Record
-          </h2>
-          <dl className="mt-12 grid gap-10 text-center sm:grid-cols-3">
-            {[
-              ['2,300+', 'businesses funded since 2012'],
-              ['$36+ M', 'provided in financing'],
-              ['4.7 Stars', 'from happy customers'],
-            ].map(([value, label]) => (
-              <div key={label}>
-                <dt className="font-[family-name:var(--font-headline)] text-4xl text-[var(--color-gold)] sm:text-5xl">
-                  {value}
-                </dt>
-                <dd className="mt-2 text-sm text-black/60">{label}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* 3 — Featured on */}
-      <section className="border-y border-black/5 bg-[#f7f7f7] py-12">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <p className="text-center text-sm font-semibold uppercase tracking-[0.2em] text-black/45">
-            Featured On
-          </p>
-          <ul className="mt-8 flex flex-wrap items-center justify-center gap-x-12 gap-y-8">
-            {IMAGES.featuredOn.map((src) => (
-              <li key={src}>
-                {/* Decorative press logos: the section heading already names them. */}
-                <img
-                  src={src}
-                  alt=""
-                  aria-hidden="true"
-                  className="h-9 w-auto opacity-70 grayscale"
-                  loading="lazy"
-                />
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* 4 — Three steps */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading>Funding that moves at your speed.</SectionHeading>
-          <ol className="mt-14 grid gap-10 sm:grid-cols-3">
-            {STEPS.map((step, i) => (
-              <li key={step.title} className="text-center">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-brand)] font-[family-name:var(--font-headline)] text-xl text-white">
-                  {i + 1}
-                </span>
-                <h3 className="mt-5 font-[family-name:var(--font-headline)] text-xl text-[var(--color-brand)]">
-                  {step.title}
-                </h3>
-                <p className="mt-3 text-sm leading-[1.8] text-black/65">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-          <div className="mt-14 text-center">
-            <CtaButton />
-          </div>
-        </div>
-      </section>
-
-      {/* 5 — Products */}
-      <section className="bg-[var(--color-brand)] py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading eyebrow="The Nanotom Capital Advantage" tone="light">
-            Funding Options Built to Work for You.
-          </SectionHeading>
-
-          <div className="mt-14 grid gap-8 lg:grid-cols-2">
-            {PRODUCTS.map((product) => (
-              <article
-                key={product.title}
-                className="flex flex-col rounded-xl bg-white p-8 sm:p-10"
-              >
-                <h3 className="font-[family-name:var(--font-headline)] text-2xl leading-[1.3] text-[var(--color-brand)]">
-                  {product.title}
-                </h3>
-                <p className="mt-4 text-sm leading-[1.8] text-black/65">{product.blurb}</p>
-
-                <ul className="mt-6 flex flex-1 flex-col gap-3">
-                  {product.bullets.map(([label, detail]) => (
-                    <li key={label} className="flex gap-3 text-sm leading-[1.7]">
-                      <svg
-                        className="mt-1 h-4 w-4 shrink-0 text-[var(--color-gold)]"
-                        viewBox="0 0 16 16"
-                        aria-hidden="true"
-                      >
-                        <path
-                          d="M2 8.5l4 4 8-9"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <span>
-                        <strong className="text-[var(--color-brand)]">{label}</strong> —{' '}
-                        <span className="text-black/65">{detail}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-
-                {product.note ? (
-                  <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-[var(--color-gold)]">
-                    {product.note}
-                  </p>
-                ) : null}
-
-                <CtaButton href="/programs" className="mt-6 self-start !px-8 !py-3 !text-sm">
-                  Learn More
-                </CtaButton>
-              </article>
-            ))}
-          </div>
-
-          <div className="mt-14 text-center">
-            <CtaButton />
-          </div>
-        </div>
-      </section>
-
-      {/* 6 — Qualification form */}
-      <section id="get-started" className="bg-white py-20">
-        <div className="mx-auto max-w-4xl px-5 lg:px-8">
-          <SectionHeading eyebrow="Get Started">Not Sure What is Best for You?</SectionHeading>
-          <ol className="mx-auto mt-10 flex max-w-3xl flex-col gap-3 text-center text-sm text-black/65 sm:flex-row sm:justify-center sm:gap-8">
-            <li>Answer a few simple questions</li>
-            <li>We will look at your particular situation</li>
-            <li>We&apos;ll send you some recommendations</li>
-          </ol>
-          <div className="mt-10">
-            <HighLevelForm />
-          </div>
-        </div>
-      </section>
-
-      {/* 7 — Use cases */}
-      <section className="bg-[#f7f7f7] py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading>
-            What can you do with funding from Nanotom Capital?
-          </SectionHeading>
-          <p className="mx-auto mt-5 max-w-3xl text-center text-base leading-[1.8] text-black/65">
-            No matter your goal, our in-house loan advisors can help you choose a financing
-            solution — no middleman or delays.
-          </p>
-          <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {USE_CASES.map((use) => (
-              <li
-                key={use}
-                className="rounded-lg border border-black/5 bg-white px-6 py-5 text-center text-sm font-semibold text-[var(--color-brand)]"
-              >
-                {use}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* 8 — Minimum requirements */}
-      <section className="bg-white py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading>Are we a match? Check our minimum requirements.</SectionHeading>
-          <dl className="mt-14 grid gap-10 text-center sm:grid-cols-3">
-            {[
-              ['As little as', '30 Days', 'in business'],
-              ['Be on the approved', 'Industries', 'list'],
-              ['Minimum', '551', 'personal FICO® score'],
-            ].map(([pre, value, post]) => (
-              <div key={value}>
-                <dt className="text-sm text-black/55">{pre}</dt>
-                <dd>
-                  <span className="block font-[family-name:var(--font-headline)] text-4xl text-[var(--color-brand)] sm:text-5xl">
-                    {value}
-                  </span>
-                  <span className="mt-1 block text-sm text-black/55">{post}</span>
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mx-auto mt-10 max-w-2xl text-center text-base leading-[1.8] text-black/65">
-            We look beyond your credit score to say &lsquo;Yes&rsquo; when others won&apos;t.
-          </p>
-          <div className="mt-10 text-center">
-            <CtaButton />
-          </div>
-        </div>
-      </section>
-
-      {/* 9 — Testimonials */}
-      <section className="border-t border-black/5 bg-[#f7f7f7] py-20">
-        <div className="mx-auto max-w-7xl px-5 lg:px-8">
-          <SectionHeading eyebrow="Testimonials">What others are saying</SectionHeading>
-          <div className="mt-12">
-            <TestimonialWall />
-          </div>
-        </div>
-      </section>
-
-      {/* 10 — Final CTA */}
-      <section className="bg-[var(--color-brand-dark)] py-20">
-        <div className="mx-auto max-w-3xl px-5 text-center lg:px-8">
-          <h2 className="font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-white sm:text-4xl">
-            Get Funded Today
-          </h2>
-          <p className="mt-5 text-base leading-[1.8] text-white/75">
-            Get started with your application and join Nanotom Capital&apos;s family of
-            forward-thinking businesses.
-          </p>
-          <CtaButton className="mt-10" />
-        </div>
-      </section>
+      <Hero />
+      <TrackRecord />
+      <FeaturedOn />
+      <Steps />
+      <Advantage />
+      <Qualify />
+      <Requirements />
+      <Testimonials />
+      <FinalCta />
     </>
   );
 }

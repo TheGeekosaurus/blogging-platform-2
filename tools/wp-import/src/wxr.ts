@@ -16,6 +16,29 @@ export interface WxrTerm {
   name: string;
 }
 
+/**
+ * A channel-level `<wp:category>` declaration.
+ *
+ * Distinct from the `<category>` elements on each `<item>`, which say only which
+ * terms a post carries. The hierarchy is declared once per export, at the
+ * channel level, and referenced BY NICENAME rather than by id:
+ *
+ *   <wp:category>
+ *     <wp:category_nicename>solar</wp:category_nicename>
+ *     <wp:cat_name>Solar</wp:cat_name>
+ *     <wp:category_parent>energy</wp:category_parent>
+ *   </wp:category>
+ *
+ * Without reading these, an import flattens the whole category tree — every
+ * category lands at the top level and the structure is silently lost.
+ */
+export interface WxrCategory {
+  slug: string;
+  name: string;
+  /** Parent's nicename, or null at the top level. */
+  parentSlug: string | null;
+}
+
 export interface WxrPost {
   wpPostId: number | null;
   title: string;
@@ -34,6 +57,8 @@ export interface WxrPost {
 
 export interface WxrParseResult {
   posts: WxrPost[];
+  /** Channel-level category declarations, carrying the hierarchy. */
+  categories: WxrCategory[];
   /** `wp:base_blog_url` — the old site origin, for internal link rewriting. */
   baseBlogUrl: string | null;
   /** Counts of `wp:post_type` values that were skipped. */
@@ -145,7 +170,7 @@ export function parseWxr(xml: string): WxrParseResult {
     removeNSPrefix: false,
     // Force these to arrays even when a single item is present, so the shape
     // does not change with the number of posts in the export.
-    isArray: (name) => name === 'item' || name === 'category',
+    isArray: (name) => name === 'item' || name === 'category' || name === 'wp:category',
   });
 
   const parsed = parser.parse(xml) as Record<string, any>;
@@ -160,6 +185,33 @@ export function parseWxr(xml: string): WxrParseResult {
 
   const baseBlogUrl =
     text(channel['wp:base_blog_url']).trim() || text(channel.link).trim() || null;
+
+  const categories: WxrCategory[] = [];
+  const seenCategory = new Set<string>();
+
+  for (const entry of asArray(channel['wp:category'])) {
+    if (typeof entry !== 'object' || entry === null) continue;
+
+    const raw = entry as Record<string, unknown>;
+    const slugRaw = text(raw['wp:category_nicename']).trim();
+    if (!slugRaw) continue;
+
+    const slug = decodeURIComponent(slugRaw).toLowerCase();
+    // Same drop as parseTerms: "Uncategorized" carries no information.
+    if (slug === 'uncategorized' || seenCategory.has(slug)) continue;
+    seenCategory.add(slug);
+
+    const parentRaw = text(raw['wp:category_parent']).trim();
+    const parentSlug = parentRaw ? decodeURIComponent(parentRaw).toLowerCase() : null;
+
+    categories.push({
+      slug,
+      name: text(raw['wp:cat_name']).trim() || slug,
+      // A parent of "uncategorized" would point at a category we drop, so treat
+      // it as top level rather than leaving a dangling reference.
+      parentSlug: parentSlug && parentSlug !== 'uncategorized' ? parentSlug : null,
+    });
+  }
 
   const posts: WxrPost[] = [];
   const skipped: Record<string, number> = {};
@@ -206,5 +258,5 @@ export function parseWxr(xml: string): WxrParseResult {
     });
   }
 
-  return { posts, baseBlogUrl, skipped };
+  return { posts, categories, baseBlogUrl, skipped };
 }

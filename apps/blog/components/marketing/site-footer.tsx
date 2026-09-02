@@ -1,9 +1,10 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
 import { CtaButton } from './cta-button';
-import { CONTACT, POLICY_LINKS, SOCIAL } from './brand';
+import { CONTACT, LOCAL_IMAGES, POLICY_LINKS, SOCIAL } from './brand';
 
 /**
  * Site footer.
@@ -38,16 +39,16 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
-        <div className="sm:col-span-2">
-          <p className="text-sm uppercase tracking-widest text-white/60">Give Us A Call</p>
-          <a
-            href={CONTACT.phoneHref}
-            className="mt-2 inline-block font-[family-name:var(--font-headline)] text-2xl no-underline hover:text-[var(--color-gold)]"
-          >
-            {CONTACT.phone}
-          </a>
-          <p className="mt-5 max-w-md text-sm leading-[1.8] text-white/70">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-8">
+        <div>
+          <Image
+            src={LOCAL_IMAGES.logo}
+            alt="Nanotom Capital"
+            width={190}
+            height={56}
+            className="h-11 w-auto"
+          />
+          <p className="mt-6 max-w-sm text-sm leading-[1.8] text-white/70">
             At Nanotom Capital, we empower businesses to unlock the funding they need. Our
             streamlined approach delivers fast, hassle-free access to capital, letting you
             focus on building what you love.
@@ -55,7 +56,9 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="font-[family-name:var(--font-headline)] text-lg">Quick Links</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
+            Quick Links
+          </p>
           <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
             <li>
               <Link href={blogIndexPath()} className="no-underline hover:text-white">
@@ -81,7 +84,9 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <h3 className="font-[family-name:var(--font-headline)] text-lg">Follow Us</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
+            Follow Us
+          </p>
           <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
             {SOCIAL.map((s) => (
               <li key={s.label}>
@@ -96,6 +101,19 @@ export function SiteFooter() {
               </li>
             ))}
           </ul>
+        </div>
+
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
+            Give Us A Call
+          </p>
+          <a
+            href={CONTACT.phoneHref}
+            className="mt-3 inline-block font-[family-name:var(--font-headline)] text-xl no-underline hover:text-[var(--color-gold)]"
+          >
+            {CONTACT.phone}
+          </a>
+          <p className="mt-4 text-sm leading-[1.6] text-white/70">{CONTACT.address}</p>
         </div>
       </div>
 
@@ -141,7 +159,7 @@ export function SiteFooter() {
           </p>
 
           <p className="text-center">
-            ©{year} Nanotom Capital. All rights reserved. · {CONTACT.address}
+            ©{year} Nanotom Capital. All rights reserved.
           </p>
         </div>
       </div>

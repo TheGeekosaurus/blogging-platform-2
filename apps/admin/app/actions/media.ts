@@ -41,6 +41,77 @@ async function blurPlaceholder(input: Buffer): Promise<string | null> {
   }
 }
 
+/**
+ * Validate, store and record one image.
+ *
+ * Shared by the media library's multi-file form and the post editor's featured
+ * image picker, so the two cannot drift on what they accept, what dimensions
+ * they record, or how they clean up a half-finished upload.
+ */
+async function storeImage(
+  file: File,
+): Promise<{ id: string; storage_path: string } | { error: string }> {
+  const site = await requireCurrentSite();
+  const supabase = await createClient();
+
+  if (file.size > MAX_BYTES) {
+    return { error: `${file.name} is larger than 10 MB.` };
+  }
+
+  const extension = ALLOWED.get(file.type);
+  if (!extension) {
+    return { error: `${file.name} is a ${file.type || 'unknown'} file. Images only.` };
+  }
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Dimensions come from the bytes, not from anything the client claimed —
+  // storing wrong ones would reintroduce the layout shift they exist to prevent.
+  let width: number | null = null;
+  let height: number | null = null;
+  try {
+    const meta = await sharp(buffer).metadata();
+    width = meta.width ?? null;
+    height = meta.height ?? null;
+  } catch {
+    return { error: `${file.name} could not be read as an image.` };
+  }
+
+  const storagePath = `${site.id}/${randomUUID()}.${extension}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(MEDIA_BUCKET)
+    .upload(storagePath, buffer, { contentType: file.type, upsert: false });
+
+  if (uploadError) {
+    return { error: `Upload failed for ${file.name}: ${uploadError.message}` };
+  }
+
+  const { data, error: rowError } = await supabase
+    .from('media')
+    .insert({
+      site_id: site.id,
+      storage_path: storagePath,
+      alt: '',
+      width,
+      height,
+      blur_data_url: await blurPlaceholder(buffer),
+      mime_type: file.type,
+      bytes: file.size,
+    })
+    .select('id, storage_path')
+    .single();
+
+  if (rowError || !data) {
+    // Roll back the object so the bucket does not accumulate files no row
+    // points at.
+    await supabase.storage.from(MEDIA_BUCKET).remove([storagePath]);
+    return { error: `Could not record ${file.name}: ${rowError?.message ?? 'unknown error'}` };
+  }
+
+  return { id: data.id, storage_path: data.storage_path };
+}
+
 export async function uploadMedia(
   _prev: UploadState,
   formData: FormData,
@@ -54,57 +125,8 @@ export async function uploadMedia(
   let uploaded = 0;
 
   for (const file of files) {
-    if (file.size > MAX_BYTES) {
-      return { error: `${file.name} is larger than 10 MB.` };
-    }
-
-    const extension = ALLOWED.get(file.type);
-    if (!extension) {
-      return { error: `${file.name} is a ${file.type || 'unknown'} file. Images only.` };
-    }
-
-    const buffer = Buffer.from(await file.arrayBuffer());
-
-    // Dimensions come from the bytes, not from anything the client claimed —
-    // storing wrong ones would reintroduce the layout shift they exist to prevent.
-    let width: number | null = null;
-    let height: number | null = null;
-    try {
-      const meta = await sharp(buffer).metadata();
-      width = meta.width ?? null;
-      height = meta.height ?? null;
-    } catch {
-      return { error: `${file.name} could not be read as an image.` };
-    }
-
-    const storagePath = `${site.id}/${randomUUID()}.${extension}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from(MEDIA_BUCKET)
-      .upload(storagePath, buffer, { contentType: file.type, upsert: false });
-
-    if (uploadError) {
-      return { error: `Upload failed for ${file.name}: ${uploadError.message}` };
-    }
-
-    const { error: rowError } = await supabase.from('media').insert({
-      site_id: site.id,
-      storage_path: storagePath,
-      alt: '',
-      width,
-      height,
-      blur_data_url: await blurPlaceholder(buffer),
-      mime_type: file.type,
-      bytes: file.size,
-    });
-
-    if (rowError) {
-      // Roll back the object so the bucket does not accumulate files no row
-      // points at.
-      await supabase.storage.from(MEDIA_BUCKET).remove([storagePath]);
-      return { error: `Could not record ${file.name}: ${rowError.message}` };
-    }
-
+    const result = await storeImage(file);
+    if ('error' in result) return { error: result.error };
     uploaded += 1;
   }
 
@@ -143,4 +165,31 @@ export async function deleteMedia(formData: FormData) {
   }
 
   revalidatePath('/media');
+}
+
+export interface FeaturedUploadResult {
+  error?: string;
+  media?: { id: string; storage_path: string };
+}
+
+/**
+ * Upload one image and return its row, for the post editor's featured image
+ * picker.
+ *
+ * Called directly from a client component rather than through a `<form action>`:
+ * the picker sits INSIDE the post form, and a nested form is invalid HTML — it
+ * would either be dropped by the parser or submit the wrong fields.
+ */
+export async function uploadFeaturedImage(formData: FormData): Promise<FeaturedUploadResult> {
+  const file = formData.get('file');
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: 'Choose an image.' };
+  }
+
+  const result = await storeImage(file);
+  if ('error' in result) return { error: result.error };
+
+  // The library should show it too, not only this post.
+  revalidatePath('/media');
+  return { media: result };
 }

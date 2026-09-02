@@ -1,11 +1,16 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  ancestorTerms,
   categoryPath,
+  childTerms,
+  descendantTermIds,
   getTermBySlug,
   listNonEmptyTerms,
-  listPostsByTerm,
+  listPostsByTerms,
+  listTerms,
 } from '@blog/core';
 
 import { PostCard } from '@/components/post-card';
@@ -65,23 +70,73 @@ export default async function CategoryPage({
     notFound();
   }
 
-  const posts = await listPostsByTerm(client, site.id, category.id, { limit: 50 });
+  /*
+   * Categories nest, so this archive lists posts from the whole subtree, not
+   * just posts tagged with this exact category — WordPress's behaviour. It
+   * matters because editors tag the most specific category only: without it a
+   * parent archive is an empty page, and the parent is usually the one worth
+   * ranking for the broader term.
+   *
+   * `listTerms` rather than `listNonEmptyTerms` here: the tree has to be walked
+   * through categories that hold no posts of their own, and filtering those out
+   * first would cut the subtree short.
+   */
+  const allCategories = await listTerms(client, site.id, 'category');
+  const subtree = descendantTermIds(allCategories, category.id);
+
+  const posts = await listPostsByTerms(client, site.id, subtree, { limit: 50 });
+
+  const parents = ancestorTerms(allCategories, category.id);
+  const children = childTerms(allCategories, category.id);
 
   return (
     <>
       <header className="mb-10">
-        <p className="text-sm uppercase tracking-wide text-[var(--color-ink-muted)]">Category</p>
+        <p className="text-sm uppercase tracking-wide text-[var(--color-ink-muted)]">
+          Category
+        </p>
+
+        {/* Nearest ancestor last, reading left to right like a breadcrumb. */}
+        {parents.length > 0 ? (
+          <p className="mt-1 flex flex-wrap items-center gap-1.5 text-sm">
+            {[...parents].reverse().map((parent) => (
+              <span key={parent.id} className="flex items-center gap-1.5">
+                <Link href={categoryPath(parent.slug)}>{parent.name}</Link>
+                <span aria-hidden="true" className="text-[var(--color-ink-muted)]">
+                  /
+                </span>
+              </span>
+            ))}
+          </p>
+        ) : null}
+
         <h1 className="mt-1 text-3xl font-bold tracking-tight">{category.name}</h1>
         {category.description ? (
           <p className="mt-3 text-[var(--color-ink-muted)]">{category.description}</p>
         ) : null}
+
+        {children.length > 0 ? (
+          <nav className="mt-5" aria-label={`Subcategories of ${category.name}`}>
+            <ul className="flex flex-wrap gap-x-4 gap-y-2 text-sm">
+              {children.map((child) => (
+                <li key={child.id}>
+                  <Link href={categoryPath(child.slug)}>{child.name}</Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ) : null}
       </header>
 
-      <div className="flex flex-col gap-8">
-        {posts.map((post) => (
-          <PostCard key={post.id} post={post} locale={site.locale} />
-        ))}
-      </div>
+      {posts.length === 0 ? (
+        <p className="text-[var(--color-ink-muted)]">Nothing published here yet.</p>
+      ) : (
+        <div className="flex flex-col gap-8">
+          {posts.map((post) => (
+            <PostCard key={post.id} post={post} locale={site.locale} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

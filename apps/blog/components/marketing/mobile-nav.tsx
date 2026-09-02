@@ -16,7 +16,7 @@ export function MobileNav() {
   return (
     <details className="group relative lg:hidden [&_summary::-webkit-details-marker]:hidden">
       <summary
-        className="flex cursor-pointer list-none items-center p-3"
+        className="flex cursor-pointer list-none items-center p-3 text-white"
         aria-label="Toggle menu"
       >
         <svg className="h-6 w-6" viewBox="0 0 24 24" aria-hidden="true">
@@ -41,27 +41,29 @@ export function MobileNav() {
 
       <nav
         aria-label="Mobile"
-        className="absolute right-0 top-full z-40 w-[min(20rem,calc(100vw-2.5rem))] rounded-md border border-black/5 bg-white p-5 shadow-xl"
+        className="absolute right-0 top-full z-40 w-[min(20rem,calc(100vw-2.5rem))] rounded-lg border border-white/10 bg-[var(--color-brand-raised)] p-5 shadow-2xl"
       >
         <ul className="flex flex-col gap-1">
           {NAV.map((item) => (
             <li key={item.label}>
               {item.children ? (
                 <>
-                  <span className="block py-2 text-sm font-semibold">{item.label}</span>
-                  <ul className="mb-2 flex flex-col border-l border-black/10 pl-4">
+                  <span className="block py-2 text-sm font-semibold text-white">
+                    {item.label}
+                  </span>
+                  <ul className="mb-2 flex flex-col border-l border-white/10 pl-4">
                     {item.children.map((child) => (
                       <li key={child.label}>
                         {child.href ? (
                           <Link
                             href={child.href}
-                            className="block py-1.5 text-sm no-underline"
+                            className="block py-1.5 text-sm text-white/70 no-underline hover:text-white"
                           >
                             {child.label}
                           </Link>
                         ) : (
                           <span
-                            className="block py-1.5 text-sm text-black/45"
+                            className="block py-1.5 text-sm text-white/35"
                             title="Coming soon"
                           >
                             {child.label}
@@ -76,14 +78,14 @@ export function MobileNav() {
                   href={item.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block py-2 text-sm font-semibold no-underline"
+                  className="block py-2 text-sm font-semibold text-white no-underline hover:text-[var(--color-gold)]"
                 >
                   {item.label}
                 </a>
               ) : (
                 <Link
                   href={item.href ?? '#'}
-                  className="block py-2 text-sm font-semibold no-underline"
+                  className="block py-2 text-sm font-semibold text-white no-underline hover:text-[var(--color-gold)]"
                 >
                   {item.label}
                 </Link>

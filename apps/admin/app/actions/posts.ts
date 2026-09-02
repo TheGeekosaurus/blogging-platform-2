@@ -80,6 +80,9 @@ export async function savePost(
     reading_minutes: readingMinutes(contentHtml),
     status,
     author_name: String(formData.get('author_name') ?? '').trim() || null,
+    // Empty string means "no image" — the column is a nullable FK, so '' would
+    // be rejected as a malformed uuid rather than read as null.
+    featured_image_id: String(formData.get('featured_image_id') ?? '').trim() || null,
     seo_title: String(formData.get('seo_title') ?? '').trim() || null,
     seo_description: String(formData.get('seo_description') ?? '').trim() || null,
     noindex: formData.get('noindex') === 'on',
