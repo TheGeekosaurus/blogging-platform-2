@@ -49,12 +49,15 @@ describe('the reading column survived leaving the root layout', () => {
     ['tag archives', ['blog', 'tag', '[slug]', 'page.tsx']],
     ['post pagination', ['blog', 'page', '[page]', 'page.tsx']],
   ])('is applied by %s via ReadingColumn', (_label, parts) => {
-    expect(read(...parts)).toContain('<ReadingColumn>');
+    // Matches the opening tag without the closing bracket: the index passes
+    // `themeToggle={false}`, and asserting on the bare tag would call that a
+    // missing container.
+    expect(read(...parts)).toContain('<ReadingColumn');
   });
 
   it('is NOT applied by the post page, which owns the full width', () => {
     const source = read('blog', '[slug]', 'page.tsx');
-    expect(source).not.toContain('<ReadingColumn>');
+    expect(source).not.toContain('<ReadingColumn');
     expect(source).toContain('blog-surface');
   });
 

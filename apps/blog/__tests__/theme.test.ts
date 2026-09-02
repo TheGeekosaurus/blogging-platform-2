@@ -74,4 +74,58 @@ describe('the offered options', () => {
   it('default to system, so a reader who has stated an OS preference is obeyed', () => {
     expect(THEME_OPTIONS[0]?.value).toBe('system');
   });
+
+  /*
+   * The control is icon-only, so these strings are the ONLY accessible name each
+   * option has — they become the aria-label and the hover title. A blank one
+   * ships an unidentifiable square to anyone using a screen reader, and nothing
+   * else in the build would notice.
+   */
+  it.each(['system', 'light', 'dark'])('%s carries a non-empty label', (value) => {
+    const option = THEME_OPTIONS.find((o) => o.value === value);
+    expect(option?.label.trim()).toBeTruthy();
+  });
+
+  it('the control uses those labels for both the aria-label and the title', () => {
+    const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+    const { join: j } = require('node:path') as typeof import('node:path');
+    const source = rf(j(__dirname, '..', 'components', 'blog', 'theme-toggle.tsx'), 'utf8');
+
+    expect(source).toContain('aria-label={option.label}');
+    expect(source).toContain('title={option.label}');
+    // The words are gone from view, so the legend must remain for the group.
+    expect(source).toContain('Reading theme');
+  });
+});
+
+/*
+ * Two controls on one page is not a cosmetic problem: they are two radio groups
+ * writing the same stored preference, so clicking one leaves the other showing
+ * a stale selection. The blog index hit exactly this when it gained a headline
+ * control while ReadingColumn was still appending its own at the foot.
+ */
+describe('exactly one control per page', () => {
+  const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+  const { join: j } = require('node:path') as typeof import('node:path');
+
+  const read = (...parts: string[]) => rf(j(__dirname, '..', 'app', ...parts), 'utf8');
+
+  const PAGES: [string, string[]][] = [
+    ['the blog index', ['blog', 'page.tsx']],
+    ['the categories index', ['blog', 'categories', 'page.tsx']],
+    ['category archives', ['blog', 'category', '[slug]', 'page.tsx']],
+    ['tag archives', ['blog', 'tag', '[slug]', 'page.tsx']],
+    ['post pagination', ['blog', 'page', '[page]', 'page.tsx']],
+  ];
+
+  it.each(PAGES)('%s opts out of the column control when it renders its own', (_l, parts) => {
+    const source = read(...parts);
+    if (!source.includes('<ThemeToggle')) return; // Inherits the column's.
+    expect(source).toContain('themeToggle={false}');
+  });
+
+  it('the column renders its control conditionally, so opting out is possible', () => {
+    const source = rf(j(__dirname, '..', 'components', 'reading-column.tsx'), 'utf8');
+    expect(source).toContain('themeToggle');
+  });
 });
