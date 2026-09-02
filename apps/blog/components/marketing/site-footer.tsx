@@ -159,7 +159,7 @@ export function SiteFooter() {
           </p>
 
           <p className="text-center">
-            ©{year} Nanotom Capital. All rights reserved. · {CONTACT.address}
+            ©{year} Nanotom Capital. All rights reserved.
           </p>
         </div>
       </div>

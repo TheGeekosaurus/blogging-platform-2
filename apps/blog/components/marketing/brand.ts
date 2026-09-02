@@ -1,9 +1,10 @@
 /**
  * Brand constants for the Nanotom Capital marketing site.
  *
- * Everything here was transcribed from the live HighLevel pages so the port is a
- * port, not a redesign. Copy lives next to the markup that uses it; only values
- * shared across several pages (nav, contact details, image URLs) are here.
+ * Copy is still transcribed verbatim from the live HighLevel pages; the LAYOUT is
+ * the 2026 ink+gold refresh, so this is a redesign of the presentation and a
+ * straight port of the words. Copy lives next to the markup that uses it; only
+ * values shared across several pages (nav, contact details, asset paths) are here.
  */
 
 /**
@@ -23,11 +24,29 @@ const CDN_GCS = 'https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_h
 export const IMAGE_ORIGIN = 'https://images.leadconnectorhq.com';
 
 /**
- * The 2026 hero background: a muted looping video, replacing the static
- * `heroBackground` image. Hotlinked for the same reason as everything else in
- * this file — it is the account's own CDN, not ours to re-host.
+ * The 2026 hero background: a muted looping video behind the headline.
+ *
+ * Self-hosted, and NOT hotlinked like the images above — the account's CDN
+ * cannot serve it. Every other asset here goes through
+ * `images.leadconnectorhq.com/image/f_webp/...`, which is an IMAGE pipeline:
+ * handed an `.mp4` it answers `{"errorCode":400,"message":"Invalid file type"}`,
+ * so the original URL silently never loaded and the `poster` showed instead.
+ *
+ * The origin does serve the file directly, but at 1920x1080 / 7832 kb/s it is
+ * 42 MB — around 220 s on a slow 4G connection, against 12 KB of HTML and
+ * 169 KB of JS for everything else on the page. Committed here re-encoded to
+ * 1280x720 at 24 fps (h264, crf 34, faststart, no audio track): 3.0 MB, 92.9%
+ * smaller, and visually indistinguishable under the hero's 90%-to-35% black
+ * gradient. Compared frames before settling on it; 960px was visibly softer for
+ * only 500 KB more saved.
+ *
+ * Re-encode with, from the repo root:
+ *   ffmpeg -i original.mp4 -vf "scale=1280:-2,fps=24" -an \
+ *     -c:v libx264 -preset slow -crf 34 -profile:v main -level 4.0 \
+ *     -pix_fmt yuv420p -movflags +faststart \
+ *     apps/blog/public/marketing/hero-loop.mp4
  */
-export const HERO_VIDEO = `${CDN}/68e0948db0f3d84b871b7f7d.mp4`;
+export const HERO_VIDEO = '/marketing/hero-loop.mp4';
 
 export const IMAGES = {
   heroBackground: `${CDN}/689eaeb0c6ba4e046393cc98.png`,
@@ -42,9 +61,15 @@ export const IMAGES = {
 } as const;
 
 /**
- * Self-hosted, unlike everything above: these have no known URL on the
- * account's CDN (they reached this codebase as already-exported image files,
- * with no source to hotlink), so they live in `public/marketing/` instead.
+ * Self-hosted in `public/marketing/`, unlike the hotlinked images above.
+ *
+ * The two photos reached this codebase as already-exported files with no known
+ * source on the account's CDN. The logo is a different case and worth recording
+ * accurately: it IS on the CDN, at
+ * `.../media/6a0d11e0e29a8860a545eff5.png`, served as a 36 KB WebP, versus the
+ * 193 KB PNG committed here. Self-hosting it is still the better call — it is in
+ * the header of every page, so it should not depend on a third party staying up
+ * — and `next/image` re-encodes it anyway, so nothing near 193 KB is ever sent.
  */
 export const LOCAL_IMAGES = {
   logo: '/marketing/nanotom-capital-logo.png',

@@ -120,6 +120,27 @@
     }
   }
 
+  /*
+   * A 100-second infinite scroll is exactly what a reduced-motion preference is
+   * for — continuous peripheral movement is a common vestibular trigger, and
+   * unlike a one-off transition it never stops. Halted rather than hidden: the
+   * first copy of the logo strip is the one carrying alt text, so the section
+   * still says what it is.
+   *
+   * The hero video goes too. It cannot be paused from CSS, but hiding it reveals
+   * the still frame layered behind it in the markup, which is the same image its
+   * `poster` would show — so the hero keeps its design and loses the motion.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-\[nt-marquee_100s_linear_infinite\] {
+      animation: none !important;
+    }
+
+    .nt-hero-video {
+      display: none;
+    }
+  }
+
   .post-body {
     font-family: var(--font-serif);
     font-size: 1.125rem;

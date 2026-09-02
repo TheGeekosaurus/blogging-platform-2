@@ -2,6 +2,7 @@ import Image from 'next/image';
 
 import { CtaButton } from '../cta-button';
 import { HERO_VIDEO, IMAGES, LOCAL_IMAGES } from '../brand';
+import { HighLevelForm } from '../highlevel-form';
 import { TestimonialWall } from '../testimonial-wall';
 
 /*
@@ -14,11 +15,15 @@ import { TestimonialWall } from '../testimonial-wall';
  * checklist. Copy is unchanged from the live site — this is a visual
  * redesign, not a rewrite.
  *
- * Two sections from the original port are dropped rather than carried over,
- * because the kit's final screen omits them: the two BANKROLL program cards
- * (now their own /programs page — see the "See Our Programs" CTA below) and
- * the embedded qualification quiz mid-page (the funnel now runs through the
- * dedicated /get-funded page only).
+ * The two BANKROLL program cards are dropped, as the kit's final screen omits
+ * them — they get their own /programs page, via the "See Our Programs" CTA.
+ *
+ * The qualification survey is KEPT, against the kit, which routes the funnel to
+ * a dedicated /get-funded page. That page does not exist in this repo yet — it
+ * is one of eight still on HighLevel — so following the kit exactly would leave
+ * the homepage with no lead capture and six CTAs pointing at a 404. It stays
+ * until those pages are ported, and arguably after: the homepage carrying its
+ * own funnel does not depend on a visitor clicking through.
  *
  * Every section here is still a server component; the only scripts are the
  * two third-party embeds (GTM, the testimonial wall) and the video autoplays
@@ -88,15 +93,36 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 function Hero() {
   return (
     <section className="relative isolate flex min-h-[min(760px,92vh)] items-center overflow-hidden bg-[var(--color-brand)]">
+      {/*
+        The still frame is its own layer rather than only the video's `poster`,
+        so it is what shows through whenever the video is absent: while the video
+        loads, if it fails or is blocked, and under `prefers-reduced-motion`,
+        where globals.css hides the video outright. Doing it in CSS keeps the
+        hero a server component — pausing playback from JS would mean shipping a
+        client component for the sake of one preference.
+      */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={IMAGES.heroBackground}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      {/*
+        `preload="metadata"` rather than the default: the browser fetches the
+        header and lets the still frame paint, instead of committing to the whole
+        3 MB before anything is on screen.
+      */}
       <video
         autoPlay
         muted
         loop
         playsInline
+        preload="metadata"
         poster={IMAGES.heroBackground}
         src={HERO_VIDEO}
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="nt-hero-video absolute inset-0 h-full w-full object-cover"
       />
       <div
         aria-hidden="true"
@@ -305,6 +331,34 @@ function Requirements() {
   );
 }
 
+/*
+ * On the dark band rather than the light one the other sections alternate
+ * through. Two reasons: `Advantage` above it is already #f7f7f7, so a second
+ * grey section would merge into one slab with a hairline in the middle; and the
+ * survey renders on a white card, which against near-black reads as the page's
+ * conversion point rather than as one more content block.
+ */
+function Qualify() {
+  return (
+    <section id="get-started" className="bg-[var(--color-brand)] py-20">
+      <div className="mx-auto max-w-4xl px-5 text-center lg:px-8">
+        <Eyebrow>Get Started</Eyebrow>
+        <h2 className="mt-3 font-[family-name:var(--font-headline)] text-3xl leading-[1.3] text-white sm:text-4xl">
+          Not Sure What is Best for You?
+        </h2>
+        <ol className="mx-auto mt-8 flex max-w-3xl flex-col gap-3 text-base text-white/70 sm:flex-row sm:justify-center sm:gap-10">
+          <li>Answer a few simple questions</li>
+          <li>We will look at your particular situation</li>
+          <li>We&apos;ll send you some recommendations</li>
+        </ol>
+        <div className="mt-10 overflow-hidden rounded-xl text-left">
+          <HighLevelForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Testimonials() {
   return (
     <section className="border-t border-black/5 bg-[#f7f7f7] py-20">
@@ -346,6 +400,7 @@ export function NntmHomepage() {
       <FeaturedOn />
       <Steps />
       <Advantage />
+      <Qualify />
       <Requirements />
       <Testimonials />
       <FinalCta />
