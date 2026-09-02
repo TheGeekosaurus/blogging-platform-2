@@ -26,8 +26,36 @@ describe('the reading column survived leaving the root layout', () => {
     expect(layout).not.toMatch(/<main[^>]*max-w-3xl/);
   });
 
-  it('is supplied by app/blog/layout.tsx, so every blog route keeps it', () => {
-    expect(read('blog', 'layout.tsx')).toContain(CONTAINER);
+  /*
+   * It moved again, and for the same reason it left the root layout: the post
+   * page is now a full-bleed two-column design, and a route cannot escape an
+   * ancestor layout's wrapper. So app/blog/layout.tsx is a pass-through and the
+   * column lives in <ReadingColumn>, applied by the routes that want it.
+   */
+  it('is no longer in app/blog/layout.tsx, which would trap the post page', () => {
+    expect(read('blog', 'layout.tsx')).not.toContain(CONTAINER);
+  });
+
+  it('is defined once, in the ReadingColumn component', () => {
+    const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+    const source = rf(join(__dirname, '..', 'components', 'reading-column.tsx'), 'utf8');
+    expect(source).toContain(CONTAINER);
+  });
+
+  it.each([
+    ['the blog index', ['blog', 'page.tsx']],
+    ['the categories index', ['blog', 'categories', 'page.tsx']],
+    ['category archives', ['blog', 'category', '[slug]', 'page.tsx']],
+    ['tag archives', ['blog', 'tag', '[slug]', 'page.tsx']],
+    ['post pagination', ['blog', 'page', '[page]', 'page.tsx']],
+  ])('is applied by %s via ReadingColumn', (_label, parts) => {
+    expect(read(...parts)).toContain('<ReadingColumn>');
+  });
+
+  it('is NOT applied by the post page, which owns the full width', () => {
+    const source = read('blog', '[slug]', 'page.tsx');
+    expect(source).not.toContain('<ReadingColumn>');
+    expect(source).toContain('blog-surface');
   });
 
   it.each([

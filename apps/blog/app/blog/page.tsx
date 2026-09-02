@@ -9,6 +9,7 @@ import {
 
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
+import { ReadingColumn } from '@/components/reading-column';
 
 // Fully static, and never expires on a timer. Pages change only when a publish
 // triggers on-demand revalidation (phase 5).
@@ -27,7 +28,7 @@ export default async function HomePage() {
   const hasMore = total > POSTS_PER_PAGE;
 
   return (
-    <>
+    <ReadingColumn>
       {site.description ? (
         <p className="mb-10 text-lg text-[var(--color-ink-muted)]">{site.description}</p>
       ) : null}
@@ -49,6 +50,6 @@ export default async function HomePage() {
           <Link href={blogPagePath(2)}>Older posts →</Link>
         </nav>
       ) : null}
-    </>
+    </ReadingColumn>
   );
 }

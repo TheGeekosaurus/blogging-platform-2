@@ -5,6 +5,7 @@ import { getTermBySlug, listNonEmptyTerms, listPostsByTerm, tagPath } from '@blo
 
 import { PostCard } from '@/components/post-card';
 import { getClient, getSite } from '@/lib/site';
+import { ReadingColumn } from '@/components/reading-column';
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -63,7 +64,7 @@ export default async function TagPage({
   const posts = await listPostsByTerm(client, site.id, tag.id, { limit: 50 });
 
   return (
-    <>
+    <ReadingColumn>
       <header className="mb-10">
         <p className="text-sm uppercase tracking-wide text-[var(--color-ink-muted)]">Tag</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">#{tag.name}</h1>
@@ -74,6 +75,6 @@ export default async function TagPage({
           <PostCard key={post.id} post={post} locale={site.locale} />
         ))}
       </div>
-    </>
+    </ReadingColumn>
   );
 }

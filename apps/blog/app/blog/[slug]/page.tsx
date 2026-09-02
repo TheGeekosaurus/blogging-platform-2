@@ -4,10 +4,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
-  categoryPath,
   excerptFor,
-  formatPostDate,
+  extractHeadings,
   getPostBySlug,
+  injectHeadingIds,
   listPublishedSlugs,
   listRelatedPosts,
   mediaPublicUrl,
@@ -16,6 +16,9 @@ import {
 } from '@blog/core';
 
 import { PostJsonLd } from '@/components/json-ld';
+import { PostMeta } from '@/components/blog/post-meta';
+import { SimilarPosts } from '@/components/blog/similar-posts';
+import { TableOfContents } from '@/components/blog/table-of-contents';
 import { getClient, getSite } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -90,90 +93,116 @@ export default async function PostPage({
 
   const related = await listRelatedPosts(getClient(), site.id, post.id, 3);
   const image = post.featured_image;
-
   const description = post.seo_description ?? excerptFor(post, 160);
 
+  /*
+   * Anchors are added here, not stored: `id` is not in the sanitiser's
+   * allowedAttributes, so none survives a write. Both calls run the same regex
+   * over the same string, so the generated ids match the contents list — which
+   * is the whole reason the links land. Build/revalidation time only.
+   */
+  const headings = extractHeadings(post.content_html);
+  const bodyHtml = injectHeadingIds(post.content_html);
+
+  const primaryCategoryFor = new Map(
+    related.flatMap((item) => {
+      const term = post.categories[0];
+      return term ? [[item.id, term] as const] : [];
+    }),
+  );
+
   return (
-    <article>
+    <article className="blog-surface">
       <PostJsonLd site={site} post={post} description={description} />
 
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-          {post.title}
-        </h1>
-
-        <p className="mt-3 text-sm text-[var(--color-ink-muted)]">
-          <time dateTime={post.published_at}>
-            {formatPostDate(post.published_at, site.locale)}
-          </time>
-          {post.author_name ? <> · {post.author_name}</> : null}
-          {post.reading_minutes ? <> · {post.reading_minutes} min read</> : null}
-        </p>
-
-        {post.categories.length > 0 ? (
-          <p className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-sm">
-            {post.categories.map((category) => (
-              <Link key={category.id} href={categoryPath(category.slug)}>
-                {category.name}
-              </Link>
-            ))}
-          </p>
-        ) : null}
-      </header>
-
+      {/*
+        Full-bleed hero with the title over it. The gradient is a separate layer
+        rather than baked into the image so the same treatment works for any
+        photo, and the title keeps its contrast whatever the image is.
+      */}
       {image ? (
-        <Image
-          src={mediaPublicUrl(image.storage_path)}
-          alt={image.alt ?? ''}
-          width={image.width ?? 1200}
-          height={image.height ?? 630}
-          // The only above-the-fold image on the page, so it is not lazy-loaded.
-          priority
-          placeholder={image.blur_data_url ? 'blur' : 'empty'}
-          blurDataURL={image.blur_data_url ?? undefined}
-          className="mb-8 h-auto w-full rounded-lg"
-          sizes="(max-width: 768px) 100vw, 768px"
-        />
-      ) : null}
+        <header className="relative isolate flex min-h-[clamp(300px,32vw,560px)] items-end overflow-hidden">
+          <Image
+            src={mediaPublicUrl(image.storage_path)}
+            alt={image.alt ?? ''}
+            width={image.width ?? 1920}
+            height={image.height ?? 800}
+            // Above the fold and the largest paint on the page.
+            priority
+            placeholder={image.blur_data_url ? 'blur' : 'empty'}
+            blurDataURL={image.blur_data_url ?? undefined}
+            className="absolute inset-0 -z-10 h-full w-full object-cover"
+            sizes="100vw"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,11,12,.35)_0%,rgba(11,11,12,.55)_45%,rgba(11,11,12,.92)_100%)]"
+          />
+          <div className="mx-auto w-full max-w-7xl px-5 pb-12 pt-24 lg:px-8 lg:pb-16">
+            {/* Centred, matching the design's hero type style (64px, CENTER). */}
+            <h1 className="mx-auto max-w-4xl text-balance text-center font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-white sm:text-4xl lg:text-5xl">
+              {post.title}
+            </h1>
+          </div>
+        </header>
+      ) : (
+        // No featured image: the title still needs a band of its own rather than
+        // sitting flush against the site header.
+        <header className="border-b border-[var(--color-blog-line)]">
+          <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8">
+            <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-blog-ink)] sm:text-4xl lg:text-5xl">
+              {post.title}
+            </h1>
+          </div>
+        </header>
+      )}
 
       {/*
-        content_html was sanitised on write (see packages/core/src/sanitize.ts),
-        so this is a plain string echo — no client JavaScript, no per-request
-        sanitisation cost.
+        Two columns at the design's proportions (roughly 69/31). The prose itself
+        is capped at 68ch inside its column: the design's measure is ~996px,
+        which at 18px runs past 100 characters a line, well beyond comfortable
+        reading. Flagged as a deliberate departure.
       */}
-      <div
-        className="post-body"
-        dangerouslySetInnerHTML={{ __html: post.content_html }}
-      />
+      <div className="mx-auto w-full max-w-7xl px-5 lg:px-8">
+        <div className="flex flex-col gap-12 py-12 lg:flex-row lg:gap-16 lg:py-16">
+          <div className="min-w-0 lg:w-[69%]">
+            <div
+              className="post-body max-w-[68ch]"
+              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+            />
 
-      {post.tags.length > 0 ? (
-        <footer className="mt-12 border-t border-[var(--color-line)] pt-6">
-          <h2 className="sr-only">Tags</h2>
-          <p className="flex flex-wrap gap-x-3 gap-y-1 text-sm">
-            {post.tags.map((tag) => (
-              <Link key={tag.id} href={tagPath(tag.slug)}>
-                #{tag.name}
-              </Link>
-            ))}
-          </p>
-        </footer>
-      ) : null}
+            {post.tags.length > 0 ? (
+              <footer className="mt-12 border-t border-[var(--color-blog-line)] pt-6">
+                <h2 className="sr-only">Tags</h2>
+                <p className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <Link
+                      key={tag.id}
+                      href={tagPath(tag.slug)}
+                      className="rounded-full border border-[var(--color-blog-line)] px-4 py-1.5 text-sm !text-[var(--color-blog-muted)] no-underline transition-colors hover:border-[var(--color-gold)] hover:!text-[var(--color-gold)]"
+                    >
+                      #{tag.name}
+                    </Link>
+                  ))}
+                </p>
+              </footer>
+            ) : null}
+          </div>
 
-      {related.length > 0 ? (
-        <aside className="mt-14 border-t border-[var(--color-line)] pt-8">
-          <h2 className="mb-4 text-lg font-semibold tracking-tight">Read next</h2>
-          <ul className="flex flex-col gap-3">
-            {related.map((item) => (
-              <li key={item.id}>
-                <Link href={postPath(item.slug)}>{item.title}</Link>
-                <span className="ml-2 text-sm text-[var(--color-ink-muted)]">
-                  {formatPostDate(item.published_at, site.locale)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </aside>
-      ) : null}
+          {/*
+            `lg:sticky` with its own `top`: the contents list is the reason a
+            sidebar earns its space on a long post, and it is useless once it has
+            scrolled away. `self-start` is required for sticky to work inside a
+            flex row.
+          */}
+          <aside className="flex flex-col gap-10 lg:w-[31%] lg:self-start lg:sticky lg:top-24">
+            <PostMeta post={post} locale={site.locale} />
+            <TableOfContents headings={headings} />
+          </aside>
+        </div>
+      </div>
+
+      <SimilarPosts posts={related} categoryFor={primaryCategoryFor} />
     </article>
   );
 }
