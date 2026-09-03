@@ -92,3 +92,41 @@ export function injectHeadingIds(html: string): string {
     return `<${tag}${attrs ?? ''} id="${id}">${inner}</${tag}>`;
   });
 }
+
+export interface HeadingGroup {
+  /** The h2 that opens the section — or an h3 with no h2 before it. */
+  heading: Heading;
+  /** The h3s between this heading and the next h2. Often empty. */
+  children: Heading[];
+}
+
+/**
+ * The flat heading list as h2 sections with their h3s nested underneath.
+ *
+ * Separate from `extractHeadings` rather than replacing its return type. The
+ * flat list is the honest shape of a document — headings are a sequence, not a
+ * tree — and several callers (and a thorough test file) depend on it. Grouping
+ * is a presentation concern, so it lives in its own function.
+ *
+ * Total by construction: an h3 that appears before any h2 becomes a childless
+ * group of its own rather than being dropped. A post whose author started at h3
+ * still gets a complete contents list instead of a mysteriously short one.
+ */
+export function groupHeadings(headings: Heading[]): HeadingGroup[] {
+  const out: HeadingGroup[] = [];
+
+  for (const heading of headings) {
+    const open = out[out.length - 1];
+
+    // An h3 attaches to the open h2. With no h2 yet — or when the open group is
+    // itself an orphaned h3 — it starts a group instead, so nothing is lost.
+    if (heading.level === 3 && open && open.heading.level === 2) {
+      open.children.push(heading);
+      continue;
+    }
+
+    out.push({ heading, children: [] });
+  }
+
+  return out;
+}
