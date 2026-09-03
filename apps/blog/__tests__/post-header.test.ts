@@ -136,3 +136,83 @@ describe('the contents rail scrollbar stays out of the way', () => {
     );
   });
 });
+
+/*
+ * The related-post cards were handed a map built from the CURRENT post's
+ * category for every entry, so all three showed the same one whatever they
+ * were filed under. It was invisible for two reasons worth recording: the
+ * label was small print, and the fixture gave every post the same category, so
+ * a browser check could not tell right from wrong.
+ */
+describe('related-post cards read their own data', () => {
+  const source = stripComments(read('components', 'blog', 'similar-posts.tsx'));
+  const page = stripComments(read('app', 'blog', '[slug]', 'page.tsx'));
+
+  it('takes each card category from the card, not from a passed-in map', () => {
+    expect(source).toContain('post.categories[0]');
+    expect(source).not.toContain('categoryFor');
+  });
+
+  it('no longer builds that map on the page', () => {
+    expect(page).not.toContain('primaryCategoryFor');
+  });
+
+  it('shows the last-edited date, matching the post header', () => {
+    expect(source).toContain('post.updated_at');
+    expect(source).not.toContain('post.published_at');
+  });
+
+  it('resolves the author through the shared resolver', () => {
+    // So a card shows the record where one is attached and the text where not.
+    expect(source).toContain('postAuthorName(post)');
+  });
+});
+
+describe('the author box only appears with an author record', () => {
+  const page = stripComments(read('app', 'blog', '[slug]', 'page.tsx'));
+  const box = stripComments(read('components', 'blog', 'author-box.tsx'));
+
+  it('is gated on the record, not on the byline text', () => {
+    // A box with one name, an empty photo frame and no bio advertises missing
+    // data rather than earning trust — which is what imported posts would get.
+    expect(page).toContain('{post.byline ? <AuthorBox byline={post.byline} /> : null}');
+  });
+
+  it('filters social URLs again at render, not only on save', () => {
+    // Last gate before a stored value becomes an href, and the admin is not
+    // the only way a row can be written.
+    expect(box).toContain('socialLinks(byline.social)');
+  });
+
+  it('opens social links safely', () => {
+    expect(box).toContain('noopener noreferrer');
+  });
+});
+
+describe('the Figma dividers', () => {
+  const css = read('app', 'globals.css');
+  const page = read('app', 'blog', '[slug]', 'page.tsx');
+
+  it('rules the SECOND h2, closing the intro after Key Takeaways', () => {
+    expect(css).toContain('.post-body > h2:nth-of-type(2)');
+  });
+
+  it('scopes that to direct children', () => {
+    // Without `>`, an h2 inside a wrapper div — which WordPress imports
+    // produce — restarts nth-of-type and draws several rules instead of one.
+    expect(css).not.toMatch(/\.post-body h2:nth-of-type/);
+  });
+
+  it('puts the vertical rule on the sidebar', () => {
+    expect(page).toContain('lg:border-l');
+  });
+
+  it('leaves the post-foot rule to SimilarPosts rather than doubling it', () => {
+    // Both columns carry a bottom stroke in the Figma, which is one full-width
+    // line; SimilarPosts already draws it as its top border.
+    expect(read('components', 'blog', 'similar-posts.tsx')).toContain(
+      'border-t border-[var(--color-line)]',
+    );
+    expect(page).not.toContain('border-b border-[var(--color-line)]');
+  });
+});
