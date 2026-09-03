@@ -141,20 +141,8 @@ export default async function PostPage({
         keeps the two-column arrangement with the contents list above the
         article instead.
       */}
-      <div className="mx-auto w-full max-w-8xl px-5 lg:px-8">
+      <div className="mx-auto w-full max-w-7xl px-5 lg:px-8">
         <div className="flex flex-col gap-12 py-12 lg:flex-row lg:gap-12 lg:py-16">
-          {/*
-            The standing contents rail. Hidden — not merely narrowed — below xl,
-            so its `display: none` also takes it out of the accessibility tree
-            and only the disclosure copy below is announced.
-          */}
-          <TableOfContents
-            groups={headingGroups}
-            variant="rail"
-            id="toc-rail"
-            className="hidden xl:block xl:w-[240px] xl:shrink-0 xl:self-start"
-          />
-
           <div className="min-w-0 flex-1">
             {/*
               The post's top matter, in the reading column rather than a
@@ -199,16 +187,16 @@ export default async function PostPage({
             </header>
 
             {/*
-              The same list for anything narrower, between the header and the
-              body rather than after the post. Stacked below it — where the
-              sidebar used to land on a phone — a contents list is something you
-              reach only once you no longer need it.
+              The same list below `lg`, between the header and the body rather
+              than after the post. Stacked below it — where the sidebar used to
+              land on a phone — a contents list is something you reach only once
+              you no longer need it.
             */}
             <TableOfContents
               groups={headingGroups}
               variant="disclosure"
               id="toc-disclosure"
-              className="mb-10 xl:hidden"
+              className="mb-10 lg:hidden"
             />
 
             <div
@@ -243,13 +231,24 @@ export default async function PostPage({
             the column. `self-start` is required for sticky inside a flex row.
           */}
           {/*
-            Date, read time and author all live under the title now, so this rail
-            holds the reading-theme control and the space Denis has plans for.
-            PostMeta went with them: a component named for metadata it no longer
-            renders is worse than no component.
+            One sidebar, holding the contents list and the reading-theme control.
+
+            The aside is the bounded, sticky box and the contents list scrolls
+            INSIDE it — two separate elements, because `overflow` on an ancestor
+            breaks `position: sticky` for its descendants, so one element cannot
+            be both. The theme control sits above the list and outside the scroll
+            area, so it stays put however long the list is.
+
+            `max-h` is sized for the rail's NATURAL top, not the 96px it settles
+            at once stuck. Before it sticks it sits below that — ~137px at 1280
+            and ~153px at 1024, where the site header wraps taller — so a height
+            computed for the stuck position ran past the bottom of the viewport
+            until you scrolled. 11rem clears the tallest of those; the ~32px it
+            gives up once stuck is not worth chasing with a fixed offset that
+            cannot be right at every width.
           */}
-          <aside className="lg:w-[300px] lg:shrink-0 lg:self-start lg:sticky lg:top-24">
-            <div className="flex flex-col gap-1.5">
+          <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:w-[320px] lg:shrink-0 lg:flex-col lg:self-start">
+            <div className="flex shrink-0 flex-col gap-1.5">
               {/*
                 aria-hidden, not decorative: the control carries its own sr-only
                 legend with this wording, so both in the tree announces it twice.
@@ -259,6 +258,13 @@ export default async function PostPage({
               </span>
               <ThemeToggle />
             </div>
+
+            <TableOfContents
+              groups={headingGroups}
+              variant="rail"
+              id="toc-rail"
+              className="mt-8 hidden min-h-0 flex-1 lg:flex"
+            />
           </aside>
         </div>
       </div>
