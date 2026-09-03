@@ -1,6 +1,6 @@
 import Image from 'next/image';
 
-import { LOCAL_IMAGES } from '../brand';
+import { CTA_HREF, HERO_VIDEO, IMAGES, LOCAL_IMAGES } from '../brand';
 import {
   ArrowUpRightIcon,
   CommentIcon,
@@ -292,27 +292,59 @@ function Hero() {
                 className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
               >
                 <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
-                  {/* The '+' carries the accent in the design, the digits do not. */}
-                  {stat.value.replace('+', '')}
-                  <span className="text-[var(--ft-accent)]">+</span>
+                  {/* The trailing unit carries the accent in the design, the digits do not. */}
+                  {stat.value}
+                  <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
                 </dd>
-                <dt className="mt-3 text-sm text-[var(--ft-muted)] lg:text-base">{stat.label}</dt>
+                <dt className="mt-3 max-w-[22ch] text-sm text-[var(--ft-muted)] lg:text-base">
+                  {stat.label}
+                </dt>
               </div>
             ))}
           </dl>
         </div>
 
-        {/* Right: the ray burst, bleeding to the viewport edge. */}
-        <div className="relative isolate min-h-[420px] border-t border-[var(--ft-line)] lg:min-h-0 lg:border-l lg:border-t-0">
-          <RayBurst className="absolute inset-0 h-full w-full" />
+        {/* Right: the hero video, bleeding to the viewport edge. */}
+        <div className="relative isolate min-h-[420px] overflow-hidden border-t border-[var(--ft-line)] lg:min-h-0 lg:border-l lg:border-t-0">
+          {/*
+            The same three layers as the live homepage's hero, for the same
+            reasons (see nntm/homepage.tsx): the still frame is its own layer
+            rather than only the video's `poster`, so it is what shows while the
+            video loads, if it fails or is blocked, and under
+            `prefers-reduced-motion` — where globals.css hides `.nt-hero-video`
+            outright. Keeping that in CSS is what lets this stay a server
+            component.
+          */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={IMAGES.heroBackground}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          {/*
+            `preload="metadata"` rather than the default: the browser fetches the
+            header and lets the still frame paint, instead of committing to the
+            whole 3 MB before anything is on screen.
+          */}
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            poster={IMAGES.heroBackground}
+            src={HERO_VIDEO}
+            aria-hidden="true"
+            className="nt-hero-video absolute inset-0 h-full w-full object-cover"
+          />
 
           {/*
-            The overlay copy sits directly on the burst, and white-on-white is
-            unreadable at any opacity the burst is worth having. This scrim
-            darkens only the lower half it occupies, so the rays keep their
-            brightness where there is no text over them.
+            The overlay copy sits directly on the footage, so it needs a scrim.
+            Heavier than the one the ray burst needed — video is brighter and,
+            unlike the burst, its luminance moves under the text.
           */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(20,20,20,0.96)_18%,rgba(20,20,20,0.75)_42%,transparent_72%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(20,20,20,0.97)_16%,rgba(20,20,20,0.82)_44%,rgba(20,20,20,0.25)_100%)]" />
 
           <div className="relative flex h-full flex-col items-start justify-end gap-5 p-8 lg:p-12">
             <AvatarStack names={['Ada Lin', 'Marco Reyes', 'Priya Nair', 'Tom Beck']} />
@@ -322,7 +354,7 @@ function Hero() {
                 {HERO.card.body}
               </p>
             </div>
-            <GhostButton>{HERO.card.cta}</GhostButton>
+            <GhostButton href={CTA_HREF}>{HERO.card.cta}</GhostButton>
           </div>
         </div>
       </div>
