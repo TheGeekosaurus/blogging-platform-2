@@ -13,6 +13,16 @@
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
+  /*
+   * One step wider than Tailwind's largest container (max-w-7xl, 1280px), for
+   * the post page's three columns. Named here rather than repeated as an
+   * arbitrary value at each of the four containers that have to agree.
+   *
+   * The site header and footer stay at max-w-7xl by decision, so the post page
+   * is knowingly ~80px wider per side than the chrome above it.
+   */
+  --container-8xl: 90rem;
+
   --color-surface: #ffffff;
   --color-surface-muted: #f6f7f9;
   --color-ink: #16181d;

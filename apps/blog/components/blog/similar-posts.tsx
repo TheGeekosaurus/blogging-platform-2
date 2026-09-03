@@ -35,7 +35,7 @@ export function SimilarPosts({
       aria-labelledby="similar-heading"
       className="border-t border-[var(--color-line)]"
     >
-      <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
+      <div className="mx-auto w-full max-w-8xl px-5 py-16 lg:px-8 lg:py-20">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <h2
             id="similar-heading"

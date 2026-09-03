@@ -7,6 +7,7 @@ import {
   categoryPath,
   excerptFor,
   extractHeadings,
+  groupHeadings,
   getPostBySlug,
   injectHeadingIds,
   listPublishedSlugs,
@@ -104,6 +105,7 @@ export default async function PostPage({
    * is the whole reason the links land. Build/revalidation time only.
    */
   const headings = extractHeadings(post.content_html);
+  const headingGroups = groupHeadings(headings);
   const bodyHtml = injectHeadingIds(post.content_html);
 
   const primaryCategory = post.categories[0];
@@ -142,7 +144,7 @@ export default async function PostPage({
             aria-hidden="true"
             className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,11,12,.35)_0%,rgba(11,11,12,.55)_45%,rgba(11,11,12,.92)_100%)]"
           />
-          <div className="mx-auto w-full max-w-7xl px-5 pb-12 pt-24 lg:px-8 lg:pb-16">
+          <div className="mx-auto w-full max-w-8xl px-5 pb-12 pt-24 lg:px-8 lg:pb-16">
             {/* Centred, matching the design's hero type style (64px, CENTER). */}
             <h1 className="mx-auto max-w-4xl text-balance text-center font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-white sm:text-4xl lg:text-5xl">
               {post.title}
@@ -170,7 +172,7 @@ export default async function PostPage({
         // No featured image: the title still needs a band of its own rather than
         // sitting flush against the site header.
         <header className="border-b border-[var(--color-line)]">
-          <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8">
+          <div className="mx-auto w-full max-w-8xl px-5 py-16 lg:px-8">
             <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-ink)] sm:text-4xl lg:text-5xl">
               {post.title}
             </h1>
@@ -190,14 +192,49 @@ export default async function PostPage({
       )}
 
       {/*
-        Two columns at the design's proportions (roughly 69/31). The prose itself
-        is capped at 68ch inside its column: the design's measure is ~996px,
-        which at 18px runs past 100 characters a line, well beyond comfortable
-        reading. Flagged as a deliberate departure.
+        Three columns: contents, article, metadata.
+
+        Fixed side rails with a flexible centre, rather than the percentages this
+        started with. Percentages scale the rails along with the viewport, which
+        at the narrow end squeezes them below the width their content needs; the
+        article is the only column that genuinely wants the slack, so it takes
+        all of it. The prose keeps its own 68ch cap regardless, so a wide window
+        buys margin rather than a 100-character line.
+
+        The breakpoint for three columns is `xl` (1280), not `lg`. At 1024 the
+        two rails and their gutters take 636 of the available 984px, leaving the
+        article about 350px — three columns simply do not fit, so that range
+        keeps the two-column arrangement with the contents list above the
+        article instead.
       */}
-      <div className="mx-auto w-full max-w-7xl px-5 lg:px-8">
-        <div className="flex flex-col gap-12 py-12 lg:flex-row lg:gap-16 lg:py-16">
-          <div className="min-w-0 lg:w-[69%]">
+      <div className="mx-auto w-full max-w-8xl px-5 lg:px-8">
+        <div className="flex flex-col gap-12 py-12 lg:flex-row lg:gap-12 lg:py-16">
+          {/*
+            The standing contents rail. Hidden — not merely narrowed — below xl,
+            so its `display: none` also takes it out of the accessibility tree
+            and only the disclosure copy below is announced.
+          */}
+          <TableOfContents
+            groups={headingGroups}
+            variant="rail"
+            id="toc-rail"
+            className="hidden xl:block xl:w-[240px] xl:shrink-0 xl:self-start"
+          />
+
+          <div className="min-w-0 flex-1">
+            {/*
+              The same list for anything narrower, above the article rather than
+              after it. Stacked below the post — where the sidebar used to land
+              on a phone — a contents list is something you reach only once you
+              no longer need it.
+            */}
+            <TableOfContents
+              groups={headingGroups}
+              variant="disclosure"
+              id="toc-disclosure"
+              className="mb-10 xl:hidden"
+            />
+
             <div
               className="post-body max-w-[68ch]"
               dangerouslySetInnerHTML={{ __html: bodyHtml }}
@@ -222,18 +259,19 @@ export default async function PostPage({
           </div>
 
           {/*
-            `lg:sticky` with its own `top`: the contents list is the reason a
-            sidebar earns its space on a long post, and it is useless once it has
-            scrolled away. `self-start` is required for sticky to work inside a
-            flex row.
+            Metadata only now that the contents list has its own column — Denis
+            has plans for the space this frees.
+
+            Still sticky: it is short enough to sit in the viewport whole, which
+            is precisely what stopped being true once the contents list shared
+            the column. `self-start` is required for sticky inside a flex row.
           */}
-          <aside className="flex flex-col gap-10 lg:w-[31%] lg:self-start lg:sticky lg:top-24">
+          <aside className="lg:w-[300px] lg:shrink-0 lg:self-start lg:sticky lg:top-24">
             <PostMeta
               post={post}
               locale={site.locale}
               themeControl={<ThemeToggle />}
             />
-            <TableOfContents headings={headings} />
           </aside>
         </div>
       </div>

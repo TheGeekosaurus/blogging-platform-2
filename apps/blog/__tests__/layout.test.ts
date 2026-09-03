@@ -81,3 +81,57 @@ describe('a full-bleed page is genuinely full-bleed', () => {
     expect(fullBranch).not.toContain(CONTAINER);
   });
 });
+
+/*
+ * The contents list used to share one sticky column with the metadata. Sticky
+ * positioning clips rather than scrolls, so on any post whose list ran past the
+ * viewport the last entries were simply unreachable — no error, no overflow
+ * indicator, just a list that stopped.
+ *
+ * The fix is the rail owning its own scroll container, and it would regress
+ * silently: the layout looks correct at every width until a post happens to be
+ * long enough, which no screenshot of a short fixture would reveal.
+ */
+describe('the contents rail scrolls inside itself', () => {
+  const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+  const source = rf(
+    join(__dirname, '..', 'components', 'blog', 'table-of-contents.tsx'),
+    'utf8',
+  );
+
+  it('pairs its sticky positioning with a bounded height', () => {
+    expect(source).toContain('xl:sticky');
+    expect(source).toContain('xl:max-h-[calc(100vh-8rem)]');
+  });
+
+  it('can scroll what that height cuts off', () => {
+    expect(source).toContain('xl:overflow-y-auto');
+  });
+
+  it('leaves the metadata column sticky but unbounded, being short by nature', () => {
+    const page = read('blog', '[slug]', 'page.tsx');
+    expect(page).toContain('lg:sticky');
+    expect(page).not.toContain('max-h-[calc');
+  });
+});
+
+/*
+ * Both contents variants render on every post, hidden at each other's
+ * breakpoints. `display: none` keeps only one in the accessibility tree, but
+ * that only holds if each carries its own id — two elements sharing one makes
+ * every `aria-labelledby` pointing at it ambiguous.
+ */
+describe('the two contents variants stay distinguishable', () => {
+  const page = read('blog', '[slug]', 'page.tsx');
+
+  it('gives each variant a distinct id', () => {
+    const ids = [...page.matchAll(/id="(toc-[a-z]+)"/g)].map((m) => m[1]);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
+  });
+
+  it('shows exactly one of them at any width', () => {
+    expect(page).toContain('hidden xl:block');
+    expect(page).toContain('xl:hidden');
+  });
+});
