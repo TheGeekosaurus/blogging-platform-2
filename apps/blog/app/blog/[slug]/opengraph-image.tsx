@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 
-import { getPostBySlug, listPublishedSlugs } from '@blog/core';
+import { getPostBySlug, listPublishedSlugs, postAuthorName } from '@blog/core';
 
 import { getClient, getSite } from '@/lib/site';
 
@@ -31,7 +31,9 @@ export default async function Image({
   const post = await getPostBySlug(getClient(), site.id, decodeURIComponent(slug));
 
   const title = post?.title ?? site.name;
-  const byline = [post?.author_name, site.name].filter(Boolean).join(' · ');
+  const byline = [post ? postAuthorName(post) : null, site.name]
+    .filter(Boolean)
+    .join(' · ');
 
   return new ImageResponse(
     (

@@ -136,3 +136,50 @@ describe('blog components use theme-aware tokens', () => {
     },
   );
 });
+
+/*
+ * Body links need a cue that is not colour.
+ *
+ * On the dark palette gold measures 1.91:1 against the prose — well under the
+ * 3:1 that WCAG 1.4.1 requires before colour may be the only signal a link
+ * exists. The light palette's bronze is 3.40:1 and does pass on its own; it is
+ * underlined anyway, because a link that looks like a link in one theme and not
+ * the other is worse than a consistent one.
+ *
+ * The ratios are computed rather than quoted, so a retuned palette fails here
+ * instead of leaving a stale comment behind. (An earlier version of this test
+ * asserted both were under 3:1 and caught that the light one is not.)
+ *
+ * A hover-only underline is the tempting compromise and does not count: it
+ * leaves touch users, keyboard users, and anyone merely reading with no cue at
+ * all. So the assertion is on the resting state.
+ */
+describe('post-body links are not distinguished by colour alone', () => {
+  const RULE = /\.post-body a\s*\{([^}]*)\}/;
+
+  it('has a rule of its own rather than inheriting the bare `a` colour', () => {
+    expect(CSS).toMatch(RULE);
+  });
+
+  it('underlines at rest, not only on hover', () => {
+    const body = CSS.match(RULE)?.[1] ?? '';
+    expect(body).toContain('text-decoration: underline');
+  });
+
+  it('needs that underline on dark, where the colour difference is under 3:1', () => {
+    // If this ever reaches 3:1 the underline becomes a choice rather than a
+    // requirement, and this test should be revisited rather than deleted.
+    expect(ratio(token('color-gold'), token('color-blog-ink'))).toBeLessThan(3);
+  });
+
+  it('records that light passes on colour alone, and is underlined regardless', () => {
+    expect(
+      ratio(token('color-blog-link-light'), token('color-blog-ink-light')),
+    ).toBeGreaterThan(3);
+  });
+
+  it('accents the list markers, which inherit prose colour otherwise', () => {
+    const marker = CSS.match(/\.post-body li::marker\s*\{([^}]*)\}/)?.[1] ?? '';
+    expect(marker).toContain('var(--color-accent)');
+  });
+});

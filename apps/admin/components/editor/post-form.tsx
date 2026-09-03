@@ -20,6 +20,7 @@ export interface PostFormValues {
   content_html: string;
   status: string;
   author_name: string;
+  bylineId: string | null;
   seo_title: string;
   seo_description: string;
   noindex: boolean;
@@ -31,11 +32,13 @@ export function PostForm({
   site,
   terms,
   media,
+  authors,
   values,
 }: {
   site: SiteRow;
   terms: TermRow[];
   media: MediaOptions;
+  authors: Array<{ id: string; name: string }>;
   values: PostFormValues;
 }) {
   const [state, formAction, pending] = useActionState(savePost, INITIAL);
@@ -147,6 +150,31 @@ export function PostForm({
 
       <FeaturedImagePicker media={media} defaultValue={values.featuredImageId} />
 
+      {authors.length > 0 ? (
+        <div>
+          <label htmlFor="byline_id" className="block text-sm font-medium">
+            Author
+          </label>
+          <select
+            id="byline_id"
+            name="byline_id"
+            defaultValue={values.bylineId ?? ''}
+            className="mt-1 rounded border border-slate-300 px-2 py-2 text-sm"
+          >
+            <option value="">(use the Byline field)</option>
+            {authors.map((author) => (
+              <option key={author.id} value={author.id}>
+                {author.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-slate-500">
+            Shows the author&apos;s photo and name on the post. Manage them under{' '}
+            <a href="/authors">Authors</a>.
+          </p>
+        </div>
+      ) : null}
+
       {categories.length > 0 ? (
         <fieldset>
           <legend className="text-sm font-medium">Categories</legend>
@@ -228,7 +256,7 @@ export function PostForm({
           </div>
           <div>
             <label htmlFor="author_name" className="block text-sm">
-              Byline
+              Byline (fallback)
             </label>
             <input
               id="author_name"
@@ -236,6 +264,10 @@ export function PostForm({
               defaultValue={values.author_name}
               className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
             />
+            <p className="mt-1 text-xs text-slate-500">
+              Used only when no Author is selected above. Imported posts arrive with
+              this filled in and no author record, which is why it stays.
+            </p>
           </div>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" name="noindex" defaultChecked={values.noindex} />

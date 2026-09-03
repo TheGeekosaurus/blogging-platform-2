@@ -5,6 +5,7 @@ import {
   excerptFor,
   formatPostDate,
   mediaPublicUrl,
+  postAuthorName,
   postPath,
   type PostSummary,
 } from '@blog/core';
@@ -16,6 +17,7 @@ import {
 export function PostCard({ post, locale }: { post: PostSummary; locale: string }) {
   const summary = excerptFor({ excerpt: post.excerpt, content_html: '' }, 200);
   const image = post.featured_image;
+  const author = postAuthorName(post);
 
   return (
     <article className="flex gap-5 border-b border-[var(--color-line)] pb-8 last:border-b-0">
@@ -62,7 +64,7 @@ export function PostCard({ post, locale }: { post: PostSummary; locale: string }
           <time dateTime={post.published_at}>
             {formatPostDate(post.published_at, locale)}
           </time>
-          {post.author_name ? <> · {post.author_name}</> : null}
+          {author ? <> · {author}</> : null}
           {post.reading_minutes ? <> · {post.reading_minutes} min read</> : null}
         </p>
 

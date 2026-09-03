@@ -1,5 +1,14 @@
 import type { Client } from './supabase';
-import type { PageRow, RedirectRow, SiteRow, TermKind, TermRow } from './database.types';
+import { SOCIAL_PLATFORMS } from './database.types';
+import type {
+  PageRow,
+  RedirectRow,
+  SiteRow,
+  SocialLinks,
+  SocialPlatform,
+  TermKind,
+  TermRow,
+} from './database.types';
 import { termsWithPosts } from './terms';
 
 /**
@@ -26,13 +35,33 @@ export interface FeaturedImage {
   blur_data_url: string | null;
 }
 
+/**
+ * An author record as a post carries it.
+ *
+ * A projection, like FeaturedImage: the bio and social links are stored but not
+ * selected here, because nothing on a post page renders them yet and a build
+ * should not pay for columns it does not use.
+ */
+export interface Byline {
+  id: string;
+  slug: string;
+  name: string;
+  avatar: { id: string; storage_path: string; alt: string | null } | null;
+}
+
 export interface PostSummary {
   id: string;
   slug: string;
   title: string;
   excerpt: string | null;
   published_at: string;
+  /**
+   * Free-text byline. Read through `postAuthorName`, never directly — an
+   * attached author record wins over it.
+   */
   author_name: string | null;
+  /** The attached author record, when there is one. */
+  byline: Byline | null;
   reading_minutes: number | null;
   featured_image: FeaturedImage | null;
 }
@@ -54,15 +83,32 @@ function one<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
+/*
+ * The byline embed is in BOTH select strings, not only the detail one.
+ *
+ * Five things render an author — the post sidebar, the post card, the
+ * schema.org JSON-LD, the OG image and <dc:creator> in the feed — and three of
+ * those run off a summary. Selecting the record only for the detail page would
+ * mean a post with an author attached and its text field cleared showed a
+ * byline in one place and nothing in the other four.
+ *
+ * Two levels, same shape as post_terms(term:terms(...)): the avatar is embedded
+ * through `authors`, which is also why it is safe. A second posts → media
+ * foreign key would make `featured_image:media(...)` ambiguous.
+ */
+const BYLINE_EMBED = 'byline:authors(id, slug, name, avatar:media(id, storage_path, alt))';
+
 const SUMMARY_COLUMNS = `
   id, slug, title, excerpt, published_at, author_name, reading_minutes,
-  featured_image:media(id, storage_path, alt, width, height, blur_data_url)
+  featured_image:media(id, storage_path, alt, width, height, blur_data_url),
+  ${BYLINE_EMBED}
 `;
 
 const DETAIL_COLUMNS = `
   id, slug, title, excerpt, content_html, published_at, author_name,
   reading_minutes, seo_title, seo_description, canonical_url, noindex, updated_at,
   featured_image:media(id, storage_path, alt, width, height, blur_data_url),
+  ${BYLINE_EMBED},
   post_terms(term:terms(id, site_id, kind, slug, name, description, parent_id, created_at, updated_at))
 `;
 
@@ -79,6 +125,18 @@ interface RawSummary {
   author_name: string | null;
   reading_minutes: number | null;
   featured_image: FeaturedImage | FeaturedImage[] | null;
+  byline: RawByline | RawByline[] | null;
+}
+
+/** As it arrives: both embeds may be typed as arrays. */
+interface RawByline {
+  id: string;
+  slug: string;
+  name: string;
+  avatar:
+    | { id: string; storage_path: string; alt: string | null }
+    | Array<{ id: string; storage_path: string; alt: string | null }>
+    | null;
 }
 
 function toSummary(row: RawSummary): PostSummary {
@@ -89,9 +147,52 @@ function toSummary(row: RawSummary): PostSummary {
     excerpt: row.excerpt,
     published_at: row.published_at,
     author_name: row.author_name,
+    // `one()` twice: the author is a to-one embed, and so is its avatar inside
+    // it. Supabase types both as possibly-array.
+    byline: toByline(one(row.byline)),
     reading_minutes: row.reading_minutes,
     featured_image: one(row.featured_image),
   };
+}
+
+function toByline(row: RawByline | null): Byline | null {
+  if (!row) return null;
+  return { id: row.id, slug: row.slug, name: row.name, avatar: one(row.avatar) };
+}
+
+/**
+ * The name to show for a post's author.
+ *
+ * An attached record wins; the free-text field is the fallback. Every consumer
+ * goes through this rather than reading either field, so assigning a record to
+ * an imported post — or clearing the text on one that has a record — cannot
+ * blank the byline in some places and not others.
+ */
+export function postAuthorName(
+  post: Pick<PostSummary, 'byline' | 'author_name'>,
+): string | null {
+  return post.byline?.name ?? post.author_name ?? null;
+}
+
+/**
+ * Keep only usable social URLs, in a fixed platform order.
+ *
+ * Validated on the way in by the admin, but an imported or hand-edited row can
+ * hold anything, and this is what stands between a stored `javascript:` URL and
+ * an `href`. A blank or non-http entry is dropped rather than rendered as a
+ * dead link.
+ */
+export function socialLinks(social: SocialLinks | null | undefined): Array<{
+  platform: SocialPlatform;
+  url: string;
+}> {
+  if (!social) return [];
+
+  return SOCIAL_PLATFORMS.flatMap((platform) => {
+    const url = social[platform]?.trim();
+    if (!url || !/^https?:\/\//i.test(url)) return [];
+    return [{ platform, url }];
+  });
 }
 
 // ---------------------------------------------------------------------------

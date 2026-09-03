@@ -4,6 +4,7 @@ import {
   excerptFor,
   listPublishedPosts,
   pageUrl,
+  postAuthorName,
   postPath,
 } from '@blog/core';
 
@@ -43,6 +44,7 @@ export async function GET() {
     .map((post) => {
       const url = pageUrl(site, postPath(post.slug));
       const summary = excerptFor({ excerpt: post.excerpt, content_html: '' }, 400);
+      const author = postAuthorName(post);
 
       return [
         '    <item>',
@@ -51,7 +53,7 @@ export async function GET() {
         `      <guid isPermaLink="true">${xml(url)}</guid>`,
         `      <pubDate>${new Date(post.published_at).toUTCString()}</pubDate>`,
         summary ? `      <description>${xml(summary)}</description>` : '',
-        post.author_name ? `      <dc:creator>${xml(post.author_name)}</dc:creator>` : '',
+        author ? `      <dc:creator>${xml(author)}</dc:creator>` : '',
         '    </item>',
       ]
         .filter(Boolean)

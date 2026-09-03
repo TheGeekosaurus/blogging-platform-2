@@ -3,7 +3,12 @@ import { notFound } from 'next/navigation';
 import { deletePost } from '@/app/actions/posts';
 import { PostForm } from '@/components/editor/post-form';
 import { requireCurrentSite } from '@/lib/current-site';
-import { getPostForEdit, listAllTerms, listMediaOptions } from '@/lib/queries';
+import {
+  getPostForEdit,
+  listAllTerms,
+  listAuthorOptions,
+  listMediaOptions,
+} from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +20,11 @@ export default async function EditPostPage({
   const { id } = await params;
   const site = await requireCurrentSite();
 
-  const [post, terms, media] = await Promise.all([
+  const [post, terms, media, authors] = await Promise.all([
     getPostForEdit(site.id, id),
     listAllTerms(site.id),
     listMediaOptions(site.id),
+    listAuthorOptions(site.id),
   ]);
 
   if (!post) notFound();
@@ -31,6 +37,7 @@ export default async function EditPostPage({
         site={site}
         terms={terms}
         media={media}
+        authors={authors}
         values={{
           id: post.id,
           title: post.title,
@@ -39,6 +46,7 @@ export default async function EditPostPage({
           content_html: post.content_html,
           status: post.status,
           author_name: post.author_name ?? '',
+          bylineId: post.byline_id,
           seo_title: post.seo_title ?? '',
           seo_description: post.seo_description ?? '',
           noindex: post.noindex,
