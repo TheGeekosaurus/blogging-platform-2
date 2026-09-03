@@ -1,4 +1,11 @@
-import type { PageRow, PageTemplate, PostRow, PostStatus, TermRow } from '@blog/core';
+import type {
+  AuthorRow,
+  PageRow,
+  PageTemplate,
+  PostRow,
+  PostStatus,
+  TermRow,
+} from '@blog/core';
 import { mediaPublicUrl } from '@blog/core';
 
 import { createClient } from './supabase/server';
@@ -267,4 +274,99 @@ export async function listParentOptions(
   return pages.filter(
     (page) => page.id !== excludeId && !page.path.startsWith(subtreePrefix),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Authors
+// ---------------------------------------------------------------------------
+// Public byline records — distinct from `profiles`, which is auth users, and
+// from `posts.author_id`, which points at those users and gates write
+// permissions. See supabase/migrations/0006_authors.sql.
+
+export interface AuthorListItem extends AuthorRow {
+  /** Pre-built on the server, for the same reason MediaOption.url is. */
+  avatar_url: string | null;
+}
+
+/** Every author for the site, alphabetical — this list stays short by design. */
+export async function listAuthors(siteId: string): Promise<AuthorListItem[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('authors')
+    .select('*, avatar:media(storage_path)')
+    .eq('site_id', siteId)
+    .order('name', { ascending: true });
+
+  if (error) throw new Error(`Failed to list authors: ${error.message}`);
+
+  return (data ?? []).map((row) => {
+    const { avatar, ...author } = row as AuthorRow & {
+      avatar: { storage_path: string } | { storage_path: string }[] | null;
+    };
+    const one = Array.isArray(avatar) ? avatar[0] : avatar;
+
+    return {
+      ...author,
+      avatar_url: one ? mediaPublicUrl(one.storage_path) : null,
+    };
+  });
+}
+
+export async function getAuthorForEdit(
+  siteId: string,
+  id: string,
+): Promise<AuthorRow | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('authors')
+    .select('*')
+    .eq('id', id)
+    .eq('site_id', siteId)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load author: ${error.message}`);
+  return data ?? null;
+}
+
+/** Just enough to fill the post form's Author select. */
+export async function listAuthorOptions(
+  siteId: string,
+): Promise<Array<{ id: string; name: string }>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('authors')
+    .select('id, name')
+    .eq('site_id', siteId)
+    .order('name', { ascending: true });
+
+  if (error) throw new Error(`Failed to list authors: ${error.message}`);
+  return data ?? [];
+}
+
+/**
+ * How many posts each author is attached to.
+ *
+ * Shown beside every author on the list page. There is no delete confirmation
+ * anywhere in this admin; a count you can see beforehand does that job better,
+ * and it is what the taxonomy screen already does.
+ */
+export async function countPostsPerAuthor(siteId: string): Promise<Map<string, number>> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('byline_id')
+    .eq('site_id', siteId)
+    .not('byline_id', 'is', null);
+
+  if (error) throw new Error(`Failed to count author usage: ${error.message}`);
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    if (row.byline_id) counts.set(row.byline_id, (counts.get(row.byline_id) ?? 0) + 1);
+  }
+  return counts;
 }

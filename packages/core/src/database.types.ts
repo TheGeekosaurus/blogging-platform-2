@@ -42,8 +42,15 @@ export type PostRow = {
   original_html: string | null;
   status: PostStatus;
   published_at: string | null;
+  /**
+   * The auth user who wrote it. NOT the byline — this gates write permissions
+   * in RLS. See 0006_authors.sql.
+   */
   author_id: string | null;
+  /** Free-text byline. The fallback when no author record is attached. */
   author_name: string | null;
+  /** The attached author record, which wins over author_name when set. */
+  byline_id: string | null;
   featured_image_id: string | null;
   reading_minutes: number | null;
   seo_title: string | null;
@@ -51,6 +58,39 @@ export type PostRow = {
   canonical_url: string | null;
   noindex: boolean;
   wp_post_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * The social platforms an author record can carry.
+ *
+ * Named here rather than as five columns so a sixth platform is a one-line
+ * change instead of a migration — the admin form, its validation and any future
+ * author box all iterate this list.
+ */
+export const SOCIAL_PLATFORMS = ['facebook', 'instagram', 'x', 'youtube', 'linkedin'] as const;
+export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number];
+
+/** Only the platforms actually filled in are present. */
+export type SocialLinks = Partial<Record<SocialPlatform, string>>;
+
+/**
+ * A public author record — the byline a reader sees.
+ *
+ * Distinct from `profiles`, which is auth users and holds email addresses, and
+ * from `posts.author_id`, which points at those users and gates write
+ * permissions. See supabase/migrations/0006_authors.sql.
+ */
+export type AuthorRow = {
+  id: string;
+  site_id: string;
+  /** No author routes exist yet; the column is here so adding them is cheap. */
+  slug: string;
+  name: string;
+  bio: string | null;
+  avatar_id: string | null;
+  social: SocialLinks;
   created_at: string;
   updated_at: string;
 }
@@ -160,7 +200,7 @@ export type Database = {
       };
       posts: {
         Row: PostRow;
-        Insert: Writable<PostRow, Generated | 'excerpt' | 'content_html' | 'original_html' | 'status' | 'published_at' | 'author_id' | 'author_name' | 'featured_image_id' | 'reading_minutes' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'wp_post_id'>;
+        Insert: Writable<PostRow, Generated | 'excerpt' | 'content_html' | 'original_html' | 'status' | 'published_at' | 'author_id' | 'author_name' | 'byline_id' | 'featured_image_id' | 'reading_minutes' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'wp_post_id'>;
         Update: Partial<PostRow>;
         Relationships: [
           {
@@ -173,6 +213,34 @@ export type Database = {
           {
             foreignKeyName: 'posts_featured_image_id_fkey';
             columns: ['featured_image_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'posts_byline_id_fkey';
+            columns: ['byline_id'];
+            isOneToOne: false;
+            referencedRelation: 'authors';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      authors: {
+        Row: AuthorRow;
+        Insert: Writable<AuthorRow, Generated | 'bio' | 'avatar_id' | 'social'>;
+        Update: Partial<AuthorRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'authors_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'authors_avatar_id_fkey';
+            columns: ['avatar_id'];
             isOneToOne: false;
             referencedRelation: 'media';
             referencedColumns: ['id'];

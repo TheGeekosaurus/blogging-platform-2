@@ -1,4 +1,10 @@
-import { categoryPath, pageUrl, type PostDetail, type SiteRow } from '@blog/core';
+import {
+  categoryPath,
+  pageUrl,
+  postAuthorName,
+  type PostDetail,
+  type SiteRow,
+} from '@blog/core';
 
 /**
  * Structured data for a post.
@@ -22,6 +28,7 @@ export function PostJsonLd({
 }) {
   const url = pageUrl(site, `/${post.slug}`);
   const category = post.categories[0];
+  const author = postAuthorName(post);
 
   const article = {
     '@context': 'https://schema.org',
@@ -33,8 +40,8 @@ export function PostJsonLd({
     mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     url,
     inLanguage: site.locale,
-    ...(post.author_name
-      ? { author: { '@type': 'Person', name: post.author_name } }
+    ...(author
+      ? { author: { '@type': 'Person', name: author } }
       : {}),
     publisher: { '@type': 'Organization', name: site.name, url: pageUrl(site, '/') },
     ...(post.reading_minutes ? { timeRequired: `PT${post.reading_minutes}M` } : {}),

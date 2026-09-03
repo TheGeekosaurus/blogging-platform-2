@@ -61,6 +61,7 @@ supabase/migrations/0002_rls.sql             row level security and grants
 supabase/migrations/0003_storage.sql         media bucket
 supabase/migrations/0004_pages.sql           pages, nested to any depth
 supabase/migrations/0005_term_hierarchy.sql  category nesting checks
+supabase/migrations/0006_authors.sql         author records for post bylines
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email

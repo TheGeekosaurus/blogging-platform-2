@@ -275,9 +275,44 @@
     font-size: 1.1rem;
   }
 
+  /*
+   * Links carry the accent colour AND an underline, in both palettes.
+   *
+   * The colour alone is not enough to identify a link: gold on the dark ground
+   * measures 1.8:1 against the body text, and WCAG 1.4.1 wants 3:1 before
+   * colour may be the only cue. Hover-only underlining fails the same test — it
+   * does nothing for touch, keyboard, or simply reading — so the underline is
+   * permanent and merely quieter at rest.
+   *
+   * Scoped to .post-body deliberately. The contents rail and the site chrome
+   * style their own links and would look wrong underlined.
+   */
+  .post-body a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+    transition: text-decoration-color 120ms;
+  }
+
+  .post-body a:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
   .post-body ul,
   .post-body ol {
     padding-left: 1.5em;
+  }
+
+  /*
+   * Bullets and numbers in the accent colour. ::marker inherits the list item's
+   * text colour otherwise, so they came out the same near-white as the prose.
+   * `color` is one of the few properties ::marker honours — the list-style
+   * declarations below stay where they are.
+   */
+  .post-body li::marker {
+    color: var(--color-accent);
   }
 
   .post-body ul {

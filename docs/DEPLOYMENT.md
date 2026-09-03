@@ -24,10 +24,19 @@ Supabase (one project)
 2. Apply the migrations **in order**, pasting each into the SQL editor:
 
    ```
-   supabase/migrations/0001_init.sql      schema
-   supabase/migrations/0002_rls.sql       row level security and grants
-   supabase/migrations/0003_storage.sql   media bucket
+   supabase/migrations/0001_init.sql            schema
+   supabase/migrations/0002_rls.sql             row level security and grants
+   supabase/migrations/0003_storage.sql         media bucket
+   supabase/migrations/0004_pages.sql           pages, nested to any depth
+   supabase/migrations/0005_term_hierarchy.sql  category nesting checks
+   supabase/migrations/0006_authors.sql         author records for post bylines
    ```
+
+   This list had stopped at 0003 while three more migrations were added, which
+   would have left a new deployment without the `pages`, `terms` hierarchy or
+   `authors` tables — and the failure would have arrived as a query error long
+   after setup looked finished. The list in README.md is the same one; keep them
+   together.
 
 3. **Close signups — but leave the provider on.** Authentication → Sign In /
    Providers → Email. There are two separate switches here and they are easy to
