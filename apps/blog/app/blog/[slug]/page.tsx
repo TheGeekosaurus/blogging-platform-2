@@ -17,6 +17,7 @@ import {
   tagPath,
 } from '@blog/core';
 
+import { AuthorBox } from '@/components/blog/author-box';
 import { Breadcrumbs } from '@/components/blog/breadcrumbs';
 import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
@@ -113,13 +114,6 @@ export default async function PostPage({
 
   // One trail, two renderings: this nav and the BreadcrumbList in PostJsonLd.
   const crumbs = postBreadcrumbs(site, post, primaryCategory);
-
-  const primaryCategoryFor = new Map(
-    related.flatMap((item) => {
-      const term = post.categories[0];
-      return term ? [[item.id, term] as const] : [];
-    }),
-  );
 
   return (
     <article className="blog-surface">
@@ -220,6 +214,14 @@ export default async function PostPage({
                 </p>
               </footer>
             ) : null}
+
+            {/*
+              Only with an author RECORD. A post carrying just a free-text
+              byline gets nothing: a box with one name, an empty photo frame and
+              no bio advertises missing data rather than earning trust.
+            */}
+            {post.byline ? <AuthorBox byline={post.byline} /> : null}
+
           </div>
 
           {/*
@@ -247,7 +249,7 @@ export default async function PostPage({
             gives up once stuck is not worth chasing with a fixed offset that
             cannot be right at every width.
           */}
-          <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:w-[320px] lg:shrink-0 lg:flex-col lg:self-start">
+          <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:w-[352px] lg:shrink-0 lg:flex-col lg:self-start lg:border-l lg:border-[var(--color-line)] lg:pl-8">
             <div className="flex shrink-0 flex-col gap-1.5">
               {/*
                 aria-hidden, not decorative: the control carries its own sr-only
@@ -269,7 +271,7 @@ export default async function PostPage({
         </div>
       </div>
 
-      <SimilarPosts posts={related} categoryFor={primaryCategoryFor} />
+      <SimilarPosts posts={related} locale={site.locale} />
     </article>
   );
 }

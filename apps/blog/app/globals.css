@@ -323,6 +323,24 @@
     margin-top: 1.25em;
   }
 
+  /*
+   * A rule before the SECOND h2, closing off the intro block.
+   *
+   * From the Figma, where the "Introduction" frame carries top and bottom 1px
+   * strokes. Ours is not a separate frame — the body is one HTML string — but
+   * the first h2 is always "Key Takeaways", so everything up to the second h2
+   * is the intro and that is where the line goes.
+   *
+   * Direct child on purpose. Without `>`, an h2 nested inside a wrapper div —
+   * which WordPress imports produce — restarts nth-of-type within that parent
+   * and draws several rules instead of one. With `>` the worst case is none,
+   * which is the better failure.
+   */
+  .post-body > h2:nth-of-type(2) {
+    border-top: 1px solid var(--color-line);
+    padding-top: 2em;
+  }
+
   .post-body h2,
   .post-body h3,
   .post-body h4 {
