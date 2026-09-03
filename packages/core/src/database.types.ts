@@ -88,6 +88,8 @@ export type AuthorRow = {
   /** No author routes exist yet; the column is here so adding them is cheap. */
   slug: string;
   name: string;
+  /** Short role line under the byline. A paragraph belongs in `bio`. */
+  title: string | null;
   bio: string | null;
   avatar_id: string | null;
   social: SocialLinks;
@@ -228,7 +230,7 @@ export type Database = {
       };
       authors: {
         Row: AuthorRow;
-        Insert: Writable<AuthorRow, Generated | 'bio' | 'avatar_id' | 'social'>;
+        Insert: Writable<AuthorRow, Generated | 'title' | 'bio' | 'avatar_id' | 'social'>;
         Update: Partial<AuthorRow>;
         Relationships: [
           {

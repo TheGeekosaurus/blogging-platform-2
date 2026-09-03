@@ -14,6 +14,7 @@ const record = (name: string) => ({
   id: 'a1',
   slug: 'a',
   name,
+  title: null,
   avatar: null,
 });
 

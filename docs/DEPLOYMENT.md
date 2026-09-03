@@ -38,6 +38,19 @@ Supabase (one project)
    after setup looked finished. The list in README.md is the same one; keep them
    together.
 
+   > **Apply a new migration BEFORE deploying the code that needs it.**
+   >
+   > There is no automation here — migrations are pasted by hand — so code and
+   > schema always ship separately, and pushing first means a window where the
+   > two disagree. That window is not a degraded blog, it is no blog: the public
+   > queries embed related tables, and PostgREST answers an unknown relationship
+   > with an error rather than a null, which fails the whole static build.
+   >
+   > This is not hypothetical. 0006 was pushed before it was applied, and every
+   > post, the index, the archives and the feed went down together with
+   > "Could not find a relationship between 'posts' and 'authors' in the schema
+   > cache". Nothing in CI catches it, because CI has no database.
+
 3. **Close signups — but leave the provider on.** Authentication → Sign In /
    Providers → Email. There are two separate switches here and they are easy to
    confuse:

@@ -244,6 +244,55 @@
     }
   }
 
+  /*
+   * The contents rail's own scrollbar.
+   *
+   * Invisible at rest and only there on hover, because on a post long enough to
+   * scroll the rail the bar otherwise sits permanently down the side of the
+   * page competing with the list it belongs to.
+   *
+   * `scrollbar-gutter: stable` reserves the track's width whether or not a
+   * thumb is drawn, so the entries do not shift sideways when it appears —
+   * which is the usual cost of hiding a scrollbar and worse than the scrollbar.
+   *
+   * Two syntaxes on purpose: the standard properties for Firefox, the
+   * ::-webkit- pseudo-elements for Chrome and Safari. Neither covers both.
+   */
+  .toc-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    scrollbar-gutter: stable;
+  }
+
+  .toc-scroll:hover,
+  .toc-scroll:focus-within {
+    scrollbar-color: color-mix(in srgb, var(--color-ink-muted) 45%, transparent) transparent;
+  }
+
+  .toc-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .toc-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .toc-scroll::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+    transition: background 150ms;
+  }
+
+  /*
+   * `focus-within` as well as hover: keyboard-tabbing through the contents
+   * links scrolls the rail, and a bar that only ever appears for a mouse tells
+   * a keyboard user nothing about where they are in it.
+   */
+  .toc-scroll:hover::-webkit-scrollbar-thumb,
+  .toc-scroll:focus-within::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-ink-muted) 45%, transparent);
+  }
+
   .post-body {
     font-family: var(--font-serif);
     font-size: 1.125rem;

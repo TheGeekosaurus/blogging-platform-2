@@ -305,7 +305,7 @@ export function TableOfContents({
        * longer than the viewport was simply cut off at the bottom with no way
        * to reach the rest. Sticky positioning clips, it does not scroll.
        */
-      className={`xl:sticky xl:top-24 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto ${className}`}
+      className={`toc-scroll xl:sticky xl:top-24 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto ${className}`}
     >
       <h2
         id={id}

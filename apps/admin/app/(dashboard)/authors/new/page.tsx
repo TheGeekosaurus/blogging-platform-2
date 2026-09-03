@@ -13,7 +13,7 @@ export default async function NewAuthorPage() {
       <h1 className="mb-6 text-xl font-semibold tracking-tight">New author</h1>
       <AuthorForm
         media={media}
-        values={{ name: '', slug: '', bio: '', avatarId: null, social: {} }}
+        values={{ name: '', title: '', slug: '', bio: '', avatarId: null, social: {} }}
       />
     </>
   );

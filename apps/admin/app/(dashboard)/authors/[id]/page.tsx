@@ -34,6 +34,7 @@ export default async function EditAuthorPage({
         values={{
           id: author.id,
           name: author.name,
+          title: author.title ?? '',
           slug: author.slug,
           bio: author.bio ?? '',
           avatarId: author.avatar_id,

@@ -1,7 +1,7 @@
 import {
-  categoryPath,
   pageUrl,
   postAuthorName,
+  postBreadcrumbs,
   type PostDetail,
   type SiteRow,
 } from '@blog/core';
@@ -47,28 +47,20 @@ export function PostJsonLd({
     ...(post.reading_minutes ? { timeRequired: `PT${post.reading_minutes}M` } : {}),
   };
 
+  /*
+   * Built from `postBreadcrumbs`, the same call the visible trail on the page
+   * makes. Hand-writing this list again is how the markup and the structured
+   * data end up describing different trails.
+   */
   const breadcrumb = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: site.name, item: pageUrl(site, '/') },
-      ...(category
-        ? [
-            {
-              '@type': 'ListItem',
-              position: 2,
-              name: category.name,
-              item: pageUrl(site, categoryPath(category.slug)),
-            },
-          ]
-        : []),
-      {
-        '@type': 'ListItem',
-        position: category ? 3 : 2,
-        name: post.title,
-        item: url,
-      },
-    ],
+    itemListElement: postBreadcrumbs(site, post, category).map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: crumb.name,
+      item: pageUrl(site, crumb.path),
+    })),
   };
 
   return (
