@@ -195,6 +195,84 @@
 }
 
 /*
+ * The /home-v2 design surface.
+ *
+ * A self-contained dark palette, scoped to one class so it cannot leak into the
+ * light marketing pages it is nested inside. `.marketing-root` on <body> forces
+ * `color-scheme: light`, a white ground and dark text; this subtree opts back
+ * out, exactly as `.blog-surface` does for the blog.
+ *
+ * Greys are the Figma template's own (#141414 ground, #1A1A1A bands and cards,
+ * #262626 rules), which sit correctly under the site header's translucent
+ * near-black. THE ACCENT IS NOT: the template's is #FFD11A, a cold lemon
+ * yellow, and the header and footer this page is sandwiched between are brand
+ * gold. Two yellows on one page reads as a mistake, so the accent below is the
+ * brand value. To see the design in its original yellow, change this one line
+ * to #FFD11A — everything, the two-tone icons included, follows the variable.
+ *
+ * The text tones are the design's, lightened where they had to be. Measured
+ * against WCAG AA on the #141414 ground:
+ *   --ft-muted  #98989A  6.33:1
+ *   --ft-subtle #7E7E81  4.56:1
+ *   --ft-faint  #6E6E71  3.61:1 — clears 3:1 for LARGE text only, and is used
+ *                                 only on the 30px hero eyebrow.
+ * The template also puts #666666 (3.21:1) on 18px testimonial locations, which
+ * fails AA for body text. Those use --ft-subtle here instead; the difference is
+ * invisible next to the design and the alternative is shipping unreadable text.
+ */
+@layer components {
+  .ft-surface {
+    color-scheme: dark;
+
+    --ft-bg: #141414;
+    --ft-band: #1a1a1a;
+    --ft-card: #1a1a1a;
+    --ft-card-raised: #262626;
+    --ft-line: #262626;
+
+    --ft-ink: #ffffff;
+    --ft-muted: #98989a;
+    --ft-subtle: #7e7e81;
+    --ft-faint: #6e6e71;
+
+    --ft-accent: #e0a840;
+    --ft-icon-dim: #404040;
+
+    background-color: var(--ft-bg);
+    color: var(--ft-ink);
+    font-family: var(--font-body);
+    /*
+     * The design sets -3% tracking on essentially every string. Inherited here
+     * rather than repeated on each element; the few places that want normal
+     * tracking (the uppercase eyebrow) override it locally.
+     */
+    letter-spacing: -0.03em;
+  }
+
+  .ft-surface a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /*
+   * The hero's ray burst, drawn rather than photographed.
+   *
+   * The template puts a licensed stock image here. Committing one would mean a
+   * new binary asset and a licence to track for a page that is still a draft,
+   * so the burst is generated as inline SVG instead — a few hundred bytes, no
+   * image request, and it scales to any viewport without a second file.
+   */
+  .ft-rays {
+    mask-image: radial-gradient(
+      120% 100% at 0% 50%,
+      #000 0%,
+      #000 45%,
+      transparent 100%
+    );
+  }
+}
+
+/*
  * Post body styling. The content is a sanitised HTML string, so it cannot carry
  * React components — everything here is plain CSS against the tags the
  * sanitiser allows.
