@@ -547,4 +547,95 @@
   .blog-surface .post-body h4 {
     font-size: 1.125rem;
   }
+
+  /*
+   * The reading measure, on the prose's TEXT children rather than on the
+   * container.
+   *
+   * It used to be a `max-w-[68ch]` on the .post-body div, which capped the
+   * headings too — and with them the rule drawn above the second h2, which is
+   * why that line stopped a third of the way across. Capping the children
+   * keeps the line length identical and lets a heading span the column.
+   *
+   * `table` and `pre` are deliberately absent: both already scroll their own
+   * overflow, and a 68ch cap on a wide table just makes it scroll sooner.
+   */
+  .blog-surface .post-body > :is(p, ul, ol, blockquote, figure, h3, h4, dl) {
+    max-width: 68ch;
+  }
+}
+
+/*
+ * The post section's frame.
+ *
+ * The design has no floating dividers: the horizontal rules run from the screen
+ * edge to the vertical one, and the vertical runs the full height of the
+ * section. What follows is the horizontal half — reaching the LEFT screen edge.
+ * The right end and the vertical rule are layout, not paint, and live in
+ * app/blog/[slug]/page.tsx.
+ */
+@layer components {
+  /*
+   * How far the reading column's left edge sits from the viewport's.
+   *
+   * Mirrors `mx-auto w-full max-w-7xl px-5 lg:px-8` on the section container:
+   * the page padding, plus half of whatever the viewport has over 80rem once
+   * `mx-auto` starts centring. `max()` covers both regimes in one expression,
+   * so there is no breakpoint to keep in step.
+   *
+   * NOT the usual `calc(50% - 50vw)` break-out. That trick assumes the element
+   * is centred in the viewport, and these are inside the LEFT column of a
+   * two-column row — it would leave the rule starting somewhere in the middle
+   * of the page. This measures the container instead of the element.
+   *
+   * `100vw` includes the scrollbar gutter where the container's centring does
+   * not, so this overshoots the true edge by the scrollbar's width. That is the
+   * safe direction: overflow past the inline-start edge is not scrollable in
+   * LTR, so it is clipped rather than adding a horizontal scrollbar — and the
+   * alternative, undershooting, is the visible gap being fixed here.
+   */
+  .post-frame {
+    --page-bleed: calc(1.25rem + max(0px, (100vw - 80rem) / 2));
+  }
+
+  @media (min-width: 64rem) {
+    .post-frame {
+      --page-bleed: calc(2rem + max(0px, (100vw - 80rem) / 2));
+    }
+  }
+
+  /*
+   * Grow leftward to the screen edge, then push the content back to where it
+   * was. Applied to the byline row in the markup, and to the intro rule below —
+   * that h2 comes out of a sanitised HTML string and cannot carry a class.
+   */
+  .post-rule,
+  .post-frame .post-body > h2:nth-of-type(2) {
+    margin-left: calc(-1 * var(--page-bleed));
+    padding-left: var(--page-bleed);
+  }
+
+  /*
+   * The accent colour, on the frame stroke only. Scoped to .post-frame rather
+   * than changing the rule that draws it: `.post-body` is also the prose
+   * template for database-backed marketing pages, where --color-accent is the
+   * site blue and a blue line across the page would be nobody's intent.
+   */
+  .post-frame .post-body > h2:nth-of-type(2) {
+    border-top-color: var(--color-accent);
+  }
+
+  /*
+   * Below `lg` the columns stack and there is no vertical rule to stop at, so
+   * the right end goes to the screen edge as well — otherwise a line touches
+   * one edge and stops 20px short of the other, which reads as a mistake
+   * rather than a frame. Symmetrical here, meeting the divider above `lg`.
+   */
+  @media (max-width: 63.999rem) {
+    .post-rule,
+    .post-frame .post-body > h2:nth-of-type(2) {
+      margin-right: calc(-1 * var(--page-bleed));
+      padding-right: var(--page-bleed);
+    }
+  }
 }

@@ -32,10 +32,14 @@ export function SimilarPosts({ posts, locale }: { posts: PostSummary[]; locale: 
   if (posts.length === 0) return null;
 
   return (
-    <section
-      aria-labelledby="similar-heading"
-      className="border-t border-[var(--color-line)]"
-    >
+    /*
+      No top border. The post section above closes itself now — it has to, so
+      the frame still shuts on a post with no related posts, where this
+      component renders nothing at all. Drawing one here as well stacked two
+      1px strokes into a 2px line, which is the same doubled-rule bug as
+      before, just tight enough that only a measurement caught it.
+    */
+    <section aria-labelledby="similar-heading">
       <div className="mx-auto w-full max-w-7xl px-5 py-16 lg:px-8 lg:py-20">
         <div className="flex flex-wrap items-center justify-between gap-6">
           <h2
