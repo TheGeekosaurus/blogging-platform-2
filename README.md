@@ -62,6 +62,7 @@ supabase/migrations/0003_storage.sql         media bucket
 supabase/migrations/0004_pages.sql           pages, nested to any depth
 supabase/migrations/0005_term_hierarchy.sql  category nesting checks
 supabase/migrations/0006_authors.sql         author records for post bylines
+supabase/migrations/0007_author_title.sql    a short role line for a byline
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email

@@ -1,0 +1,23 @@
+-- 0007_author_title.sql — a short role line for author bylines
+--
+-- Shown under the name on a post: "Founder, Nanotom Capital".
+--
+-- Deliberately separate from `authors.bio`. A bio is a paragraph for the author
+-- box; a role is a few words on one line under a byline. Making one field do
+-- both means writing the bio so it also works truncated, and it reads badly
+-- either way.
+--
+-- Why this is its own file rather than a column added to 0006_authors.sql:
+--
+-- It WAS added to 0006, on the reasoning that 0006 had not been applied
+-- anywhere yet. It had. Re-running the edited file then failed on its first
+-- statement — `relation "authors" already exists` — because a migration that
+-- has run is history: the only safe edit to an applied migration is none.
+-- Anything new goes in the next file, as an ALTER against what is already
+-- there.
+--
+-- Nothing else is needed here. The column inherits the table-level grants and
+-- the RLS policies 0006 gave `authors`, and no query filters or sorts on it, so
+-- it wants no index.
+
+alter table public.authors add column title text;

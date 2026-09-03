@@ -44,16 +44,6 @@ create table public.authors (
   -- from a name that may by then have been edited.
   slug       text not null,
   name       text not null,
-
-  /*
-   * Short role line shown under the name on a post: "Founder, Nanotom Capital".
-   *
-   * Deliberately separate from `bio`. A bio is a paragraph for the author box;
-   * a role is a few words that sit on one line under a byline. Making one field
-   * do both means writing the bio to work as a role line, and it reads badly
-   * either way.
-   */
-  title      text,
   bio        text,
 
   /*
