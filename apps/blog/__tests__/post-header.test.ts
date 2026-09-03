@@ -189,6 +189,12 @@ describe('the author box only appears with an author record', () => {
   });
 });
 
+/*
+ * The dividers have to CONNECT — the design frames the section rather than
+ * scattering rules in it. Every one of these guards a way the strokes drift
+ * apart again, and each failure looks like "the lines have gaps", which is
+ * exactly how it was reported the first time.
+ */
 describe('the Figma dividers', () => {
   const css = read('app', 'globals.css');
   const page = read('app', 'blog', '[slug]', 'page.tsx');
@@ -207,12 +213,95 @@ describe('the Figma dividers', () => {
     expect(page).toContain('lg:border-l');
   });
 
-  it('leaves the post-foot rule to SimilarPosts rather than doubling it', () => {
-    // Both columns carry a bottom stroke in the Figma, which is one full-width
-    // line; SimilarPosts already draws it as its top border.
+  it('closes the frame at the bottom on the section itself', () => {
+    // Not left to SimilarPosts: a post with no related posts renders none of
+    // it, and the vertical rule would then end on nothing.
+    expect(page).toContain('post-frame border-b border-[var(--color-accent)]');
+  });
+
+  it('does not let SimilarPosts draw that line a second time', () => {
+    /*
+     * Its own `border-t` used to be the post-foot rule. With the frame closing
+     * itself the two sit 1px apart and read as one 2px stroke — the same
+     * doubled-rule bug as the inset version before it, tight enough that only
+     * a measurement caught it. The cards keep their internal border-t.
+     */
+    const similar = read('components', 'blog', 'similar-posts.tsx');
+    expect(similar).toContain('<section aria-labelledby="similar-heading">');
+    expect(stripComments(similar)).not.toMatch(
+      /aria-labelledby="similar-heading"[\s\S]{0,120}border-t/,
+    );
+  });
+
+  it('draws the four frame strokes in the accent colour', () => {
+    // Denis's ask: gold on the dark ground, copper on the light one. Both come
+    // from --color-accent, which the two palettes already re-point.
+    expect(page).toContain('post-frame border-b border-[var(--color-accent)]');
+    expect(page).toContain('border-y border-[var(--color-accent)]');
+    expect(page).toContain('lg:border-l lg:border-[var(--color-accent)]');
+    expect(css).toMatch(
+      /\.post-frame \.post-body > h2:nth-of-type\(2\) \{\s*border-top-color: var\(--color-accent\)/,
+    );
+  });
+
+  it('leaves the rest of the page on --color-line', () => {
+    // A page where every border is gold reads as a wireframe. Cards, pills,
+    // the author box and the contents rail are deliberately not part of it.
+    expect(read('components', 'blog', 'author-box.tsx')).toContain(
+      'border border-[var(--color-line)]',
+    );
     expect(read('components', 'blog', 'similar-posts.tsx')).toContain(
       'border-t border-[var(--color-line)]',
     );
-    expect(page).not.toContain('border-b border-[var(--color-line)]');
+  });
+
+  it('carries the vertical rule on a stretching wrapper, not the sticky box', () => {
+    /*
+     * The rule used to sit on the <aside>, which is sticky, `self-start` and
+     * `max-h`-bounded — all three of which mean "as tall as my own content".
+     * So it was as long as the contents list and no longer, whatever the
+     * section's height. `self-start` in particular is an explicit opt-out of
+     * stretching, so this cannot be fixed by border placement alone.
+     */
+    expect(page).not.toContain('lg:self-start');
+    expect(page).toMatch(/lg:border-l[\s\S]{0,200}<aside/);
+  });
+
+  it('leaves no gap between the article column and the divider', () => {
+    // A `gap` on the row holds every child of the article column short of the
+    // rule. The gutter is the sidebar wrapper's padding instead.
+    expect(page).not.toContain('lg:gap-12');
+    expect(page).toContain('lg:pl-12');
+  });
+
+  it('pads the columns, not the row, so both span the full section height', () => {
+    // Padding on the row stops the columns short of the header and the bottom
+    // line — which no border placement can recover.
+    expect(page).toContain('min-w-0 flex-1 py-12 lg:py-16');
+  });
+
+  it('runs the horizontal rules out to the left screen edge', () => {
+    expect(page).toContain('post-rule mt-6 border-y');
+    expect(css).toContain('.post-rule,');
+    expect(css).toContain('margin-left: calc(-1 * var(--page-bleed))');
+  });
+
+  it('measures the container for that break-out, not the element', () => {
+    /*
+     * `calc(50% - 50vw)` — the usual full-bleed trick — assumes the element is
+     * centred in the viewport. These rules live in the LEFT column of a
+     * two-column row, so it would start them somewhere mid-page. The offset is
+     * the page padding plus half the viewport's excess over the container.
+     */
+    expect(css).toContain('--page-bleed: calc(2rem + max(0px, (100vw - 80rem) / 2))');
+    expect(css).not.toMatch(/\.post-rule[\s\S]{0,200}50% - 50vw/);
+  });
+
+  it('caps the reading measure on the prose children, not the container', () => {
+    // `max-w-[68ch]` on .post-body capped the h2 too, and with it the rule
+    // drawn above it — which is why that line was short.
+    expect(page).not.toContain('post-body max-w-[68ch]');
+    expect(css).toContain('.blog-surface .post-body > :is(p, ul, ol, blockquote, figure, h3, h4, dl)');
+    expect(css).toContain('max-width: 68ch');
   });
 });
