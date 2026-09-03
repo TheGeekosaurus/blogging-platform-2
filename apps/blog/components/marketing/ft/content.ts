@@ -13,22 +13,35 @@
  * pushes the two-column blocks out of alignment.
  */
 
+/*
+ * The hero is REAL COPY, not placeholder — the first section retrofitted to the
+ * business. Every string below is the live homepage's, verbatim: the eyebrow,
+ * headline and paragraph from its <Hero>, and the three figures from its
+ * <TrackRecord>. Both live in components/marketing/nntm/homepage.tsx. If a
+ * number changes there, change it here too; there is deliberately no shared
+ * constant, because the two pages are a live one and a draft of its
+ * replacement, and coupling them would mean editing the live homepage to
+ * iterate on this one.
+ *
+ * `unit` is split from `value` because the design puts the accent colour on the
+ * trailing symbol alone — "2,300" in white, the "+" in gold.
+ */
 export const HERO = {
-  eyebrow: 'Your Journey to Tomorrow Begins Here',
-  heading: 'Explore the Frontiers of Artificial Intelligence',
+  eyebrow: 'Entrepreneurs & Business Owners',
+  heading: 'Get The Capital Your Business Needs To Grow',
   body:
-    'Welcome to the epicenter of AI innovation. FutureTech AI News is your passport to a ' +
-    'world where machines think, learn, and reshape the future. Join us on this visionary ' +
-    'expedition into the heart of AI.',
+    "Whether you're a startup, established business, or real estate investor, access " +
+    'flexible financing solutions to fuel your next big move.',
   stats: [
-    { value: '300+', label: 'Resources available' },
-    { value: '12k+', label: 'Total Downloads' },
-    { value: '10k+', label: 'Active Users' },
+    { value: '2,300', unit: '+', label: 'businesses funded since 2012' },
+    // The live homepage writes this '$36+ M'. Same figure, conventional order.
+    { value: '$36M', unit: '+', label: 'provided in financing' },
+    { value: '4.7', unit: ' Stars', label: 'from happy customers' },
   ],
   card: {
     title: 'Explore 1000+ resources',
     body: 'Over 1,000 articles on emerging tech trends and breakthroughs.',
-    cta: 'Explore Resources',
+    cta: 'Get Funded',
   },
   /** `icon` keys map to the brand icons in ./icons. */
   tiles: [
