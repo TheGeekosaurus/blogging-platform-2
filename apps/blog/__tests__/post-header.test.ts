@@ -130,7 +130,9 @@ describe('the contents rail scrollbar stays out of the way', () => {
     expect(css).toContain('.toc-scroll::-webkit-scrollbar-thumb');
   });
 
-  it('is applied to the rail', () => {
-    expect(read('components', 'blog', 'table-of-contents.tsx')).toContain('toc-scroll');
+  it('is applied to the list that actually scrolls', () => {
+    expect(read('components', 'blog', 'table-of-contents.tsx')).toContain(
+      'toc-scroll min-h-0 flex-1 overflow-y-auto',
+    );
   });
 });

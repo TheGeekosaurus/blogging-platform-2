@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { Heading, HeadingGroup } from '@blog/core';
 
@@ -70,7 +70,7 @@ function Entry({
       href={`#${heading.id}`}
       onClick={onNavigate}
       aria-current={active ? 'location' : undefined}
-      className={`block text-sm leading-[1.5] no-underline transition-colors ${
+      className={`block text-[13px] leading-[1.5] no-underline transition-colors ${
         active
           ? 'font-semibold !text-[var(--color-accent)]'
           : '!text-[var(--color-ink)] hover:!text-[var(--color-accent)]'
@@ -193,6 +193,46 @@ export function TableOfContents({
   const activeId = useActiveHeading(HEADING_SELECTOR);
   const [open, setOpen] = useState<OpenState>({});
 
+  /*
+   * Which edges of the list have more content beyond them.
+   *
+   * CSS cannot ask "is this element scrollable", and the answer changes as
+   * sections expand, as the window resizes and as the reader scrolls — so it is
+   * measured. Starts at 'none' so the server-rendered markup carries no mask.
+   */
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [fade, setFade] = useState<'none' | 'top' | 'bottom' | 'both'>('none');
+
+  const updateFade = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    // A pixel of slack: sub-pixel layout makes exact comparisons flicker.
+    const atTop = el.scrollTop <= 1;
+    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+
+    setFade(atTop && atBottom ? 'none' : atTop ? 'bottom' : atBottom ? 'top' : 'both');
+  }, []);
+
+  /*
+   * Re-measured whenever the box or its content changes size, which a plain
+   * mount-time check would miss: expanding a section changes the content
+   * height, and resizing the window changes the box.
+   */
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    updateFade();
+
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(updateFade);
+    observer.observe(el);
+    for (const child of Array.from(el.children)) observer.observe(child);
+
+    return () => observer.disconnect();
+  }, [updateFade, open, groups]);
+
   /* Which section this component opened by itself, so it knows what to undo. */
   const autoOpened = useRef<string | null>(null);
 
@@ -297,24 +337,38 @@ export function TableOfContents({
   }
 
   return (
-    <nav
-      aria-labelledby={id}
-      /*
-       * Its own scroll container, and the reason for this whole layout: as one
-       * block with the metadata in a single sticky column, a contents list
-       * longer than the viewport was simply cut off at the bottom with no way
-       * to reach the rest. Sticky positioning clips, it does not scroll.
-       */
-      className={`toc-scroll xl:sticky xl:top-24 xl:max-h-[calc(100vh-8rem)] xl:overflow-y-auto ${className}`}
-    >
+    <nav aria-labelledby={id} className={`flex min-h-0 flex-col ${className}`}>
+      {/*
+        Outside the scroll container on purpose. It used to be inside, so
+        scrolling the list scrolled its own label away and left an unlabelled
+        column of links.
+      */}
       <h2
         id={id}
-        className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-muted)]"
+        className="mb-4 shrink-0 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-muted)]"
       >
         Table of Contents
       </h2>
 
-      {list}
+      {/*
+        Only the list scrolls. `min-h-0` is what makes it shrink below its
+        content height — a flex child refuses to without it, which is how a
+        bounded scroll area silently fails to bound.
+
+        `data-fade` drives a mask on whichever edge has content beyond it. The
+        scrollbar is deliberately near-invisible (see .toc-scroll in
+        globals.css), and a list clipped flat against the viewport edge with no
+        scrollbar looks broken rather than scrollable — which is exactly how
+        this was reported.
+      */}
+      <div
+        ref={scrollRef}
+        data-fade={fade}
+        onScroll={updateFade}
+        className="toc-scroll min-h-0 flex-1 overflow-y-auto"
+      >
+        {list}
+      </div>
     </nav>
   );
 }

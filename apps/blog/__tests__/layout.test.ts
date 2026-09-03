@@ -83,35 +83,59 @@ describe('a full-bleed page is genuinely full-bleed', () => {
 });
 
 /*
- * The contents list used to share one sticky column with the metadata. Sticky
- * positioning clips rather than scrolls, so on any post whose list ran past the
- * viewport the last entries were simply unreachable — no error, no overflow
- * indicator, just a list that stopped.
+ * The contents rail is bounded and scrolls inside itself.
  *
- * The fix is the rail owning its own scroll container, and it would regress
- * silently: the layout looks correct at every width until a post happens to be
- * long enough, which no screenshot of a short fixture would reveal.
+ * This regresses silently: the layout looks right at every width until a post
+ * is long enough, which no screenshot of a short fixture reveals. The first
+ * version of this test was itself the proof — it asserted the CSS properties
+ * and passed while the rail scrolled its own heading away and ran past the
+ * bottom of the viewport, because the fixture had 16 entries and never
+ * overflowed. These assert the structure that makes it work; the behaviour is
+ * checked in a browser against a 31-heading fixture.
  */
-describe('the contents rail scrolls inside itself', () => {
+describe('the contents rail is bounded and scrolls inside itself', () => {
   const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
-  const source = rf(
+  const toc = rf(
     join(__dirname, '..', 'components', 'blog', 'table-of-contents.tsx'),
     'utf8',
   );
+  const page = read('blog', '[slug]', 'page.tsx');
 
-  it('pairs its sticky positioning with a bounded height', () => {
-    expect(source).toContain('xl:sticky');
-    expect(source).toContain('xl:max-h-[calc(100vh-8rem)]');
-  });
-
-  it('can scroll what that height cuts off', () => {
-    expect(source).toContain('xl:overflow-y-auto');
-  });
-
-  it('leaves the metadata column sticky but unbounded, being short by nature', () => {
-    const page = read('blog', '[slug]', 'page.tsx');
+  it('bounds the sticky aside rather than the scrolling child', () => {
+    // `overflow` on an ancestor breaks `position: sticky` for its descendants,
+    // so one element cannot be both. The aside sticks; the list scrolls.
     expect(page).toContain('lg:sticky');
-    expect(page).not.toContain('max-h-[calc');
+    expect(page).toContain('lg:max-h-[calc(100vh-11rem)]');
+  });
+
+  it('sizes that height for the rail before it sticks, not after', () => {
+    // 8rem was computed for the stuck position (96px from the top) while the
+    // rail actually starts ~137px down at 1280 and ~153px at 1024 — so the box
+    // ran past the viewport bottom until you scrolled.
+    expect(page).not.toContain('max-h-[calc(100vh-8rem)]');
+    expect(page).not.toContain('max-h-[calc(100vh-9rem)]');
+  });
+
+  it('lets the list shrink below its content height', () => {
+    // Without `min-h-0` a flex child refuses to, and the bound silently fails.
+    expect(page).toContain('min-h-0');
+    expect(toc).toContain('min-h-0 flex-1 overflow-y-auto');
+  });
+
+  it('keeps the heading outside the scroll container', () => {
+    // It used to be inside, so scrolling the list scrolled its own label away
+    // and left an unlabelled column of links.
+    expect(toc).toContain('shrink-0 text-sm font-semibold uppercase');
+  });
+
+  it('fades whichever edge has more content beyond it', () => {
+    // The scrollbar is near-invisible by design; a list clipped flat against
+    // the container edge then reads as broken rather than scrollable.
+    expect(toc).toContain('data-fade={fade}');
+    const css = read('globals.css');
+    for (const value of ['bottom', 'top', 'both']) {
+      expect(css).toContain(".toc-scroll[data-fade='" + value + "']");
+    }
   });
 });
 
@@ -131,7 +155,7 @@ describe('the two contents variants stay distinguishable', () => {
   });
 
   it('shows exactly one of them at any width', () => {
-    expect(page).toContain('hidden xl:block');
-    expect(page).toContain('xl:hidden');
+    expect(page).toContain('hidden min-h-0 flex-1 lg:flex');
+    expect(page).toContain('lg:hidden');
   });
 });

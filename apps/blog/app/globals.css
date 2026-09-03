@@ -13,15 +13,6 @@
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /*
-   * One step wider than Tailwind's largest container (max-w-7xl, 1280px), for
-   * the post page's three columns. Named here rather than repeated as an
-   * arbitrary value at each of the four containers that have to agree.
-   *
-   * The site header and footer stay at max-w-7xl by decision, so the post page
-   * is knowingly ~80px wider per side than the chrome above it.
-   */
-  --container-8xl: 90rem;
 
   --color-surface: #ffffff;
   --color-surface-muted: #f6f7f9;
@@ -262,6 +253,35 @@
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;
     scrollbar-gutter: stable;
+  }
+
+  /*
+   * A soft edge wherever the list continues out of view.
+   *
+   * The scrollbar here is near-invisible by design, and a list clipped flat
+   * against the container edge with no scrollbar reads as broken rather than
+   * scrollable — which is how it was reported. The fade is the affordance the
+   * hidden scrollbar gave up.
+   *
+   * `data-fade` is set by the component: CSS cannot ask whether an element
+   * scrolls, and the answer changes as sections expand and the window resizes.
+   */
+  .toc-scroll[data-fade='bottom'] {
+    mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+  }
+
+  .toc-scroll[data-fade='top'] {
+    mask-image: linear-gradient(to bottom, transparent, #000 2.5rem);
+  }
+
+  .toc-scroll[data-fade='both'] {
+    mask-image: linear-gradient(
+      to bottom,
+      transparent,
+      #000 2.5rem,
+      #000 calc(100% - 2.5rem),
+      transparent
+    );
   }
 
   .toc-scroll:hover,
