@@ -79,10 +79,16 @@ describe('saveAuthor', () => {
     expect(captured.insert).toBeUndefined();
   });
 
+  it('stores the short role line', async () => {
+    await saveAuthor({}, form({ name: 'Denis', title: 'Founder, Nanotom Capital' }));
+    expect(captured.insert?.title).toBe('Founder, Nanotom Capital');
+  });
+
   it('stores blank optional fields as null, not empty strings', async () => {
     // A nullable FK rejects '' as a malformed uuid, and an empty bio should read
     // as absent rather than as a bio that happens to be empty.
-    await saveAuthor({}, form({ name: 'Denis', bio: '  ', avatar_id: '' }));
+    await saveAuthor({}, form({ name: 'Denis', title: ' ', bio: '  ', avatar_id: '' }));
+    expect(captured.insert?.title).toBeNull();
     expect(captured.insert?.bio).toBeNull();
     expect(captured.insert?.avatar_id).toBeNull();
   });

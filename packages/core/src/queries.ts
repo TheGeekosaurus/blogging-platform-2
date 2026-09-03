@@ -46,6 +46,7 @@ export interface Byline {
   id: string;
   slug: string;
   name: string;
+  title: string | null;
   avatar: { id: string; storage_path: string; alt: string | null } | null;
 }
 
@@ -96,7 +97,8 @@ function one<T>(value: T | T[] | null | undefined): T | null {
  * through `authors`, which is also why it is safe. A second posts → media
  * foreign key would make `featured_image:media(...)` ambiguous.
  */
-const BYLINE_EMBED = 'byline:authors(id, slug, name, avatar:media(id, storage_path, alt))';
+const BYLINE_EMBED =
+  'byline:authors(id, slug, name, title, avatar:media(id, storage_path, alt))';
 
 const SUMMARY_COLUMNS = `
   id, slug, title, excerpt, published_at, author_name, reading_minutes,
@@ -133,6 +135,7 @@ interface RawByline {
   id: string;
   slug: string;
   name: string;
+  title: string | null;
   avatar:
     | { id: string; storage_path: string; alt: string | null }
     | Array<{ id: string; storage_path: string; alt: string | null }>
@@ -157,7 +160,13 @@ function toSummary(row: RawSummary): PostSummary {
 
 function toByline(row: RawByline | null): Byline | null {
   if (!row) return null;
-  return { id: row.id, slug: row.slug, name: row.name, avatar: one(row.avatar) };
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    title: row.title,
+    avatar: one(row.avatar),
+  };
 }
 
 /**

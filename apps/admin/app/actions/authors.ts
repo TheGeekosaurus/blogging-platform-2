@@ -72,6 +72,7 @@ export async function saveAuthor(
     site_id: site.id,
     name,
     slug,
+    title: String(formData.get('title') ?? '').trim() || null,
     bio: String(formData.get('bio') ?? '').trim() || null,
     // Empty string means "no avatar". The column is a nullable FK, so '' would
     // be rejected as a malformed uuid.

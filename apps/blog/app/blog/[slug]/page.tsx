@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
-  categoryPath,
   excerptFor,
   extractHeadings,
   groupHeadings,
@@ -13,12 +12,14 @@ import {
   listPublishedSlugs,
   listRelatedPosts,
   mediaPublicUrl,
+  postBreadcrumbs,
   postPath,
   tagPath,
 } from '@blog/core';
 
+import { Breadcrumbs } from '@/components/blog/breadcrumbs';
+import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
-import { PostMeta } from '@/components/blog/post-meta';
 import { SimilarPosts } from '@/components/blog/similar-posts';
 import { TableOfContents } from '@/components/blog/table-of-contents';
 import { ThemeToggle } from '@/components/blog/theme-toggle';
@@ -110,6 +111,9 @@ export default async function PostPage({
 
   const primaryCategory = post.categories[0];
 
+  // One trail, two renderings: this nav and the BreadcrumbList in PostJsonLd.
+  const crumbs = postBreadcrumbs(site, post, primaryCategory);
+
   const primaryCategoryFor = new Map(
     related.flatMap((item) => {
       const term = post.categories[0];
@@ -120,76 +124,6 @@ export default async function PostPage({
   return (
     <article className="blog-surface">
       <PostJsonLd site={site} post={post} description={description} />
-
-      {/*
-        Full-bleed hero with the title over it. The gradient is a separate layer
-        rather than baked into the image so the same treatment works for any
-        photo, and the title keeps its contrast whatever the image is.
-      */}
-      {image ? (
-        <header className="relative isolate flex min-h-[clamp(300px,32vw,560px)] items-end overflow-hidden">
-          <Image
-            src={mediaPublicUrl(image.storage_path)}
-            alt={image.alt ?? ''}
-            width={image.width ?? 1920}
-            height={image.height ?? 800}
-            // Above the fold and the largest paint on the page.
-            priority
-            placeholder={image.blur_data_url ? 'blur' : 'empty'}
-            blurDataURL={image.blur_data_url ?? undefined}
-            className="absolute inset-0 -z-10 h-full w-full object-cover"
-            sizes="100vw"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(11,11,12,.35)_0%,rgba(11,11,12,.55)_45%,rgba(11,11,12,.92)_100%)]"
-          />
-          <div className="mx-auto w-full max-w-8xl px-5 pb-12 pt-24 lg:px-8 lg:pb-16">
-            {/* Centred, matching the design's hero type style (64px, CENTER). */}
-            <h1 className="mx-auto max-w-4xl text-balance text-center font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-white sm:text-4xl lg:text-5xl">
-              {post.title}
-            </h1>
-
-            {/*
-              Category moved here from the sidebar grid. It is the post page's
-              only link to the category archive, so it had to keep a home when
-              the sidebar's second row became Author + theme control — and it is
-              more visible here than it was buried in the metadata.
-            */}
-            {primaryCategory ? (
-              <p className="mt-5 text-center">
-                <Link
-                  href={categoryPath(primaryCategory.slug)}
-                  className="text-sm font-semibold uppercase tracking-[0.16em] !text-white/80 no-underline hover:!text-white"
-                >
-                  {primaryCategory.name}
-                </Link>
-              </p>
-            ) : null}
-          </div>
-        </header>
-      ) : (
-        // No featured image: the title still needs a band of its own rather than
-        // sitting flush against the site header.
-        <header className="border-b border-[var(--color-line)]">
-          <div className="mx-auto w-full max-w-8xl px-5 py-16 lg:px-8">
-            <h1 className="max-w-4xl text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-ink)] sm:text-4xl lg:text-5xl">
-              {post.title}
-            </h1>
-
-            {primaryCategory ? (
-              <p className="mt-5">
-                <Link
-                  href={categoryPath(primaryCategory.slug)}
-                  className="text-sm font-semibold uppercase tracking-[0.16em] !text-[var(--color-accent)] no-underline"
-                >
-                  {primaryCategory.name}
-                </Link>
-              </p>
-            ) : null}
-          </div>
-        </header>
-      )}
 
       {/*
         Three columns: contents, article, metadata.
@@ -223,10 +157,52 @@ export default async function PostPage({
 
           <div className="min-w-0 flex-1">
             {/*
-              The same list for anything narrower, above the article rather than
-              after it. Stacked below the post — where the sidebar used to land
-              on a phone — a contents list is something you reach only once you
-              no longer need it.
+              The post's top matter, in the reading column rather than a
+              full-bleed band above it. Removing the hero also removed a whole
+              conditional: a post with no featured image used to need its own
+              header variant and now simply has no thumbnail.
+            */}
+            <header className="mb-10">
+              <Breadcrumbs crumbs={crumbs} />
+
+              <h1 className="mt-4 text-balance font-[family-name:var(--font-headline)] text-3xl leading-[1.15] text-[var(--color-ink)] sm:text-4xl">
+                {post.title}
+              </h1>
+
+              <div className="mt-6 border-y border-[var(--color-line)] py-4">
+                <PostByline post={post} locale={site.locale} />
+              </div>
+
+              {image ? (
+                <Image
+                  src={mediaPublicUrl(image.storage_path)}
+                  alt={image.alt ?? ''}
+                  width={image.width ?? 1920}
+                  height={image.height ?? 1080}
+                  /*
+                    Still the largest paint on the page now that the hero is
+                    gone, so it keeps `priority` — it is just inline rather than
+                    full-bleed.
+                  */
+                  priority
+                  placeholder={image.blur_data_url ? 'blur' : 'empty'}
+                  blurDataURL={image.blur_data_url ?? undefined}
+                  /*
+                    Fixed 16:9 box. Posts arrive with whatever crop the author
+                    had; letting each set its own height makes the article body
+                    start at a different place on every post.
+                  */
+                  className="mt-8 aspect-video w-full rounded-xl object-cover"
+                  sizes="(min-width: 1280px) 740px, 100vw"
+                />
+              ) : null}
+            </header>
+
+            {/*
+              The same list for anything narrower, between the header and the
+              body rather than after the post. Stacked below it — where the
+              sidebar used to land on a phone — a contents list is something you
+              reach only once you no longer need it.
             */}
             <TableOfContents
               groups={headingGroups}
@@ -266,12 +242,23 @@ export default async function PostPage({
             is precisely what stopped being true once the contents list shared
             the column. `self-start` is required for sticky inside a flex row.
           */}
+          {/*
+            Date, read time and author all live under the title now, so this rail
+            holds the reading-theme control and the space Denis has plans for.
+            PostMeta went with them: a component named for metadata it no longer
+            renders is worse than no component.
+          */}
           <aside className="lg:w-[300px] lg:shrink-0 lg:self-start lg:sticky lg:top-24">
-            <PostMeta
-              post={post}
-              locale={site.locale}
-              themeControl={<ThemeToggle />}
-            />
+            <div className="flex flex-col gap-1.5">
+              {/*
+                aria-hidden, not decorative: the control carries its own sr-only
+                legend with this wording, so both in the tree announces it twice.
+              */}
+              <span aria-hidden="true" className="text-sm text-[var(--color-ink-muted)]">
+                Reading theme
+              </span>
+              <ThemeToggle />
+            </div>
           </aside>
         </div>
       </div>

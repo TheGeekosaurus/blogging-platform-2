@@ -22,6 +22,7 @@ const SOCIAL_FIELDS: Record<SocialPlatform, { label: string; placeholder: string
 export interface AuthorFormValues {
   id?: string;
   name: string;
+  title: string;
   slug: string;
   bio: string;
   avatarId: string | null;
@@ -71,6 +72,23 @@ export function AuthorForm({
         <p className="mt-1 text-xs text-slate-500">
           The byline readers see. Replaces whatever is typed in a post&apos;s Byline
           field once this author is attached to it.
+        </p>
+      </div>
+
+      <div>
+        <label htmlFor="title" className="block text-sm font-medium">
+          Title
+        </label>
+        <input
+          id="title"
+          name="title"
+          defaultValue={values.title}
+          placeholder="Founder, Nanotom Capital"
+          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+        />
+        <p className="mt-1 text-xs text-slate-500">
+          A short role line, shown under the name on every post. Keep it to one line
+          — the long version belongs in the bio.
         </p>
       </div>
 
