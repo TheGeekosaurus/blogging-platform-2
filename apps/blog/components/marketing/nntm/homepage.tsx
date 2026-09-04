@@ -25,8 +25,11 @@ import { TestimonialWall } from '../testimonial-wall';
  * until those pages are ported, and arguably after: the homepage carrying its
  * own funnel does not depend on a visitor clicking through.
  *
- * Every section here is still a server component; the only scripts are the
- * two third-party embeds (GTM, the testimonial wall) and the video autoplays
+ * Almost every section here is a server component. The exception is the
+ * testimonial wall, which became a client component when it gained the
+ * iframe-resizer — its `iFrameResize()` call has to run after the library loads,
+ * and `onLoad` is client-only. See testimonial-wall.tsx. The scripts on this
+ * page are GTM, the HighLevel survey's resizer and that one; the video autoplays
  * natively with no JS.
  */
 

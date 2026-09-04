@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { absoluteUrl, blogIndexPath, browsePath } from '@blog/core';
 
 import { Analytics } from '@/components/marketing/analytics';
-import { IMAGE_ORIGIN } from '@/components/marketing/brand';
+import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { getSite } from '@/lib/site';
@@ -110,6 +110,13 @@ export default async function RootLayout({
           hero. Preconnecting overlaps it with HTML parsing instead.
         */}
         {marketing ? <link rel="preconnect" href={IMAGE_ORIGIN} crossOrigin="" /> : null}
+
+        {/*
+          The review wall is a third-party iframe plus a resizer script from the
+          same origin, so its handshake is worth overlapping with HTML parsing
+          too. No crossOrigin: unlike the image CDN these are not CORS fetches.
+        */}
+        {marketing ? <link rel="preconnect" href={REVIEWS.origin} /> : null}
 
         {/*
           Resolves the reader's blog theme before the first paint, so there is no

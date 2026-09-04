@@ -148,6 +148,30 @@ export const CTA_HREF = '/get-funded';
  * bought nothing and added a Vercel step that could be forgotten, plus a
  * placeholder state that reads as a bug rather than as missing config.
  */
+/**
+ * The SocialJuice review wall, embedded on the homepage and on /home-v2.
+ *
+ * Identifiers live here rather than inline in the component, for the same reason
+ * SURVEY does: they are account-specific values that two pages now share, and a
+ * wall id buried in JSX is one nobody finds when it changes.
+ *
+ * Public by nature — the wall is a public page and these strings are in the HTML
+ * of the live site — so committed rather than made configuration.
+ */
+export const REVIEWS = {
+  wallUrl: 'https://embed.socialjuice.io/wall/9690?s=nntm-capital',
+  resizerSrc: 'https://embed.socialjuice.io/js/iframeResizer.min.js',
+  /** Preconnected in the root layout, like IMAGE_ORIGIN above. */
+  origin: 'https://embed.socialjuice.io',
+  /**
+   * Reserved until the resizer reports the wall's real height, so the sections
+   * below it do not jump. iframeResizer overwrites it via inline style.
+   */
+  initialHeight: 575,
+  /** Where "View All Testimonials" goes — the public wall, not the embed. */
+  collectUrl: 'https://collect.socialjuice.io/p/nntm-capital/wall',
+} as const;
+
 export const SURVEY = {
   host: 'https://link.mailsengr.com',
   kind: 'survey',
