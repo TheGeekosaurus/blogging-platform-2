@@ -143,11 +143,14 @@ export default async function PostPage({
            Padding on the row would hold both columns short of the header and
            the bottom line, which no amount of border-placement can recover.
 
-        3. There is no `gap`. The whole gutter is the sidebar wrapper's
-           `lg:pl-12`, so the article column's box ends exactly at the divider
-           and a full-width child inside it can reach the divider. A 48px gap
-           made that impossible: everything in the article column stopped 48px
-           short of the rule it was supposed to touch.
+        3. There is no `gap`. Both columns pad themselves by --frame-gutter
+           instead, so each column's BOX ends exactly at the divider while its
+           content sits a gutter clear of it. A `gap` cannot do that: it holds
+           the whole box away, taking the strokes with it — which is how
+           everything here ended up 48px short of the rule it should meet.
+           The rules bleed back out over that padding (see .post-rule in
+           globals.css), so they land on the divider and only the content is
+           inset.
 
         Widths are unchanged by all this. The old arrangement spent 48px of gap
         plus a 352px rail; this one spends 400px on the sidebar wrapper, of
@@ -156,7 +159,7 @@ export default async function PostPage({
       */}
       <div className="post-frame border-b border-[var(--color-accent)]">
         <div className="mx-auto w-full max-w-7xl px-5 lg:flex lg:px-8">
-          <div className="min-w-0 flex-1 py-12 lg:py-16">
+          <div className="min-w-0 flex-1 py-12 lg:py-16 lg:pr-[var(--frame-gutter)]">
             {/*
               The post's top matter, in the reading column rather than a
               full-bleed band above it. Removing the hero also removed a whole
@@ -172,8 +175,9 @@ export default async function PostPage({
 
               {/*
                 `post-rule` runs both strokes out to the screen edge on the
-                left; the right end is already the column boundary, which is
-                now the divider itself.
+                left and over the column's right padding on the right, so they
+                reach the divider while this row's own content — the name, and
+                the date opposite it — stops a gutter short of it.
               */}
               <div className="post-rule mt-6 border-y border-[var(--color-accent)] py-4">
                 <PostByline post={post} locale={site.locale} />
@@ -199,7 +203,7 @@ export default async function PostPage({
                     start at a different place on every post.
                   */
                   className="mt-8 aspect-video w-full rounded-xl object-cover"
-                  sizes="(min-width: 1280px) 740px, 100vw"
+                  sizes="(min-width: 1280px) 768px, 100vw"
                 />
               ) : null}
             </header>
@@ -277,7 +281,7 @@ export default async function PostPage({
             gives up once stuck is not worth chasing with a fixed offset that
             cannot be right at every width.
           */}
-          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-accent)] lg:py-16 lg:pl-12">
+          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-accent)] lg:py-16 lg:pl-[var(--frame-gutter)]">
             <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
               <div className="flex shrink-0 flex-col gap-1.5">
                 {/*

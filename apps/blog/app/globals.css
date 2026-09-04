@@ -674,23 +674,47 @@
    */
   .post-frame {
     --page-bleed: calc(1.25rem + max(0px, (100vw - 80rem) / 2));
+
+    /*
+     * The air on either side of the vertical rule. Read in THREE places — the
+     * article column's right padding, the sidebar's left padding, and the
+     * right-hand bleed below — which is exactly why it is a variable. If the
+     * bleed and the padding ever disagreed the result would be a rule stopping
+     * short of the divider: the precise gap this frame was built to close, and
+     * nothing but a measurement would catch it.
+     */
+    --frame-gutter: 3rem;
+
+    /*
+     * Where a horizontal rule's right end goes. Stacked, there is no divider to
+     * meet, so it runs to the screen edge like the left end.
+     */
+    --rule-bleed-end: var(--page-bleed);
   }
 
   @media (min-width: 64rem) {
     .post-frame {
       --page-bleed: calc(2rem + max(0px, (100vw - 80rem) / 2));
+      /* Two columns: the divider is exactly one gutter past the content edge. */
+      --rule-bleed-end: var(--frame-gutter);
     }
   }
 
   /*
-   * Grow leftward to the screen edge, then push the content back to where it
-   * was. Applied to the byline row in the markup, and to the intro rule below —
-   * that h2 comes out of a sanitised HTML string and cannot carry a class.
+   * Grow past both content edges, then push the content back to where it was.
+   * Applied to the byline row in the markup, and to the intro rule below — that
+   * h2 comes out of a sanitised HTML string and cannot carry a class.
+   *
+   * The right end is what lets the article column hold its content a gutter
+   * clear of the divider while the STROKES still land on it. Padding the column
+   * alone would pull these rules 48px short and unmake the frame.
    */
   .post-rule,
   .post-frame .post-body > h2:nth-of-type(2) {
     margin-left: calc(-1 * var(--page-bleed));
     padding-left: var(--page-bleed);
+    margin-right: calc(-1 * var(--rule-bleed-end));
+    padding-right: var(--rule-bleed-end);
   }
 
   /*
@@ -701,19 +725,5 @@
    */
   .post-frame .post-body > h2:nth-of-type(2) {
     border-top-color: var(--color-accent);
-  }
-
-  /*
-   * Below `lg` the columns stack and there is no vertical rule to stop at, so
-   * the right end goes to the screen edge as well — otherwise a line touches
-   * one edge and stops 20px short of the other, which reads as a mistake
-   * rather than a frame. Symmetrical here, meeting the divider above `lg`.
-   */
-  @media (max-width: 63.999rem) {
-    .post-rule,
-    .post-frame .post-body > h2:nth-of-type(2) {
-      margin-right: calc(-1 * var(--page-bleed));
-      padding-right: var(--page-bleed);
-    }
   }
 }

@@ -267,11 +267,36 @@ describe('the Figma dividers', () => {
     expect(page).toMatch(/lg:border-l[\s\S]{0,200}<aside/);
   });
 
-  it('leaves no gap between the article column and the divider', () => {
-    // A `gap` on the row holds every child of the article column short of the
-    // rule. The gutter is the sidebar wrapper's padding instead.
+  it('insets the content from the divider without moving the rules off it', () => {
+    /*
+     * Two things that pull in opposite directions. The article's content needs
+     * air — flush against the rule, the read time and the thumbnail looked
+     * broken. The STROKES still have to land on it, or there is no frame.
+     *
+     * So both columns pad themselves by --frame-gutter and the rules bleed back
+     * out over that padding. A `gap` on the row cannot do this: it holds the
+     * whole box away, strokes included.
+     */
     expect(page).not.toContain('lg:gap-12');
-    expect(page).toContain('lg:pl-12');
+    expect(page).toContain('lg:pr-[var(--frame-gutter)]');
+    expect(page).toContain('lg:pl-[var(--frame-gutter)]');
+    expect(css).toContain('margin-right: calc(-1 * var(--rule-bleed-end))');
+  });
+
+  it('drives both gutters and the bleed from one value', () => {
+    /*
+     * The padding and the bleed have to agree exactly. If they drift, the rule
+     * stops short of the divider — the precise defect the frame was built to
+     * fix, and invisible to anything but a measurement. One declaration of
+     * --frame-gutter, read in three places, is what makes drift impossible.
+     */
+    expect(css).toContain('--frame-gutter: 3rem');
+    expect(css).toContain('--rule-bleed-end: var(--frame-gutter)');
+    // Stacked, there is no divider to stop at, so the right end goes to the
+    // screen edge like the left one.
+    expect(css).toContain('--rule-bleed-end: var(--page-bleed)');
+    // A literal would be a second source of truth for the same distance.
+    expect(page).not.toContain('lg:pl-12');
   });
 
   it('pads the columns, not the row, so both span the full section height', () => {
