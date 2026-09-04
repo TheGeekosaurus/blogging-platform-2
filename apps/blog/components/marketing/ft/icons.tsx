@@ -178,62 +178,6 @@ export function ArrowUpRightIcon({ className }: IconProps) {
   );
 }
 
-/**
- * `filled` is the engagement state. The design shows one post liked (a solid
- * red heart) and the rest not, so both states are needed.
- */
-export function HeartIcon({ className, filled }: IconProps & { filled?: boolean }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12 20.3 4.7 13a4.6 4.6 0 0 1 6.5-6.5l.8.8.8-.8A4.6 4.6 0 1 1 19.3 13Z" />
-    </svg>
-  );
-}
-
-export function CommentIcon({ className }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.3-4.1A7.5 7.5 0 1 1 20 11.5Z" />
-    </svg>
-  );
-}
-
-export function ShareIcon({ className }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M21 3 10.5 13.5" />
-      <path d="M21 3 14.5 21l-4-8-8-4Z" />
-    </svg>
-  );
-}
-
 export function EyeIcon({ className }: IconProps) {
   return (
     <svg
