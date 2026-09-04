@@ -9,6 +9,7 @@ import type { MediaOptions } from '@/lib/queries';
 import { savePost, type SavePostState } from '@/app/actions/posts';
 import { FeaturedImagePicker } from './featured-image-picker';
 import { RichTextEditor } from './rich-text-editor';
+import { StructuredDataPanel } from './structured-data-panel';
 
 const INITIAL: SavePostState = {};
 
@@ -24,6 +25,8 @@ export interface PostFormValues {
   seo_title: string;
   seo_description: string;
   noindex: boolean;
+  /** One pretty-printed JSON-LD node per snippet, in emission order. */
+  structuredData: string[];
   termIds: string[];
   featuredImageId: string | null;
 }
@@ -275,6 +278,8 @@ export function PostForm({
           </label>
         </div>
       </details>
+
+      <StructuredDataPanel variant="post" defaultSnippets={values.structuredData} />
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
         <label htmlFor="status" className="text-sm font-medium">

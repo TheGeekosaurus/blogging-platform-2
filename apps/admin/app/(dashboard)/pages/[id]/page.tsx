@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { deletePage } from '@/app/actions/pages';
 import { PageForm } from '@/components/page-form';
 import { requireCurrentSite } from '@/lib/current-site';
+import { snippetsToText } from '@/lib/structured-data';
 import { getPageForEdit, listParentOptions } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,7 @@ export default async function EditPagePage({
           seo_title: page.seo_title ?? '',
           seo_description: page.seo_description ?? '',
           noindex: page.noindex,
+          structuredData: snippetsToText(page.structured_data),
           path: page.path,
         }}
       />

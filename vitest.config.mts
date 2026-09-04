@@ -28,6 +28,8 @@ export default defineConfig({
       },
       {
         resolve: { alias: { '@': path.resolve(import.meta.dirname, 'apps/admin') } },
+        // See the blog project below for why this is `oxc` and not `esbuild`.
+        oxc: { jsx: 'automatic' },
         test: {
           name: 'admin',
           include: ['apps/admin/__tests__/**/*.test.ts'],
@@ -36,6 +38,15 @@ export default defineConfig({
       },
       {
         resolve: { alias: { '@': path.resolve(import.meta.dirname, 'apps/blog') } },
+        /*
+         * Needed to import any .tsx component at all, not just to write JSX in
+         * a test: Next sets `jsx: "preserve"` in tsconfig, so without this the
+         * JSON-LD test cannot even load the component it renders.
+         *
+         * `oxc`, not `esbuild` — Vite 8 transforms with oxc, and the esbuild
+         * key is silently ignored here rather than erroring.
+         */
+        oxc: { jsx: 'automatic' },
         test: {
           name: 'blog',
           include: ['apps/blog/__tests__/**/*.test.ts'],

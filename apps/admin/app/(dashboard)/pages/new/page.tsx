@@ -24,6 +24,7 @@ export default async function NewPagePage() {
           seo_title: '',
           seo_description: '',
           noindex: false,
+          structuredData: [],
         }}
       />
     </>

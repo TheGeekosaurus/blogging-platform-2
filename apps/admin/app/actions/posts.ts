@@ -13,6 +13,7 @@ import {
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
+import { readStructuredData } from '@/lib/structured-data';
 import { createClient } from '@/lib/supabase/server';
 
 export interface SavePostState {
@@ -68,6 +69,13 @@ export async function savePost(
 
   const slug = submittedSlug ? slugify(submittedSlug) : slugify(title);
 
+  /*
+   * Validated before anything is written, next to the slug check above, so a
+   * malformed snippet costs a re-edit rather than a half-saved post.
+   */
+  const structured = readStructuredData(formData);
+  if ('error' in structured) return { error: structured.error };
+
   const contentHtml = sanitizePostHtml(rawHtml);
   const submittedExcerpt = String(formData.get('excerpt') ?? '').trim();
 
@@ -89,6 +97,7 @@ export async function savePost(
     seo_title: String(formData.get('seo_title') ?? '').trim() || null,
     seo_description: String(formData.get('seo_description') ?? '').trim() || null,
     noindex: formData.get('noindex') === 'on',
+    structured_data: structured.nodes,
   };
 
   let postId = id;

@@ -9,3 +9,4 @@ export * from './coded-routes';
 export * from './terms';
 export * from './headings';
 export * from './breadcrumbs';
+export * from './structured-data';

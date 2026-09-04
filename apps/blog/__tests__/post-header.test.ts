@@ -25,10 +25,33 @@ describe('the breadcrumb trail has one source', () => {
    * disagreeing with the one it is told about is worse than having neither.
    */
   it('is built by postBreadcrumbs in the JSON-LD, not written out again', () => {
-    const source = read('components', 'json-ld.tsx');
-    expect(source).toContain('postBreadcrumbs(site, post, category)');
+    /*
+     * The builder moved to packages/core/src/structured-data.ts so the admin
+     * could describe what it emits and a test could parse it. The guard
+     * follows the code: what matters is that ONE call feeds the
+     * BreadcrumbList, wherever that call lives.
+     */
+    const source = readFileSync(
+      join(__dirname, '..', '..', '..', 'packages', 'core', 'src', 'structured-data.ts'),
+      'utf8',
+    );
+
+    /*
+     * Scoped to the builder, not the whole file. SCHEMA_TEMPLATES further down
+     * contains a hand-written BreadcrumbList with literal positions on
+     * purpose — it is a starting point an author edits, for a page whose trail
+     * this code cannot know. Only GENERATED output has to come from the shared
+     * call.
+     */
+    const builder = source.slice(
+      source.indexOf('export function buildPostSchemas'),
+      source.indexOf('export const AUTO_POST_SCHEMAS'),
+    );
+    expect(builder.length).toBeGreaterThan(200);
+
+    expect(builder).toContain('postBreadcrumbs(site, post, category)');
     // The old hand-rolled positions must not come back.
-    expect(stripComments(source)).not.toMatch(/position:\s*\d/);
+    expect(stripComments(builder)).not.toMatch(/position:\s*\d/);
   });
 
   it('is built by the same call on the page', () => {
