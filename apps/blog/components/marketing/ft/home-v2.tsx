@@ -13,60 +13,67 @@ import {
   type TermRow,
 } from '@blog/core';
 
-import { CTA_HREF, HERO_VIDEO, IMAGES, LOCAL_IMAGES, REVIEWS } from '../brand';
+import { HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
+import { CtaButton } from '../cta-button';
+import { HighLevelForm } from '../highlevel-form';
 import { TestimonialWall } from '../testimonial-wall';
 import {
   ArrowUpRightIcon,
-  CrescentIcon,
-  CloverIcon,
-  EyeIcon,
-  FacetIcon,
-  LeafIcon,
-  OrbitIcon,
-  PrismIcon,
-  SparkIcon,
+  CalculatorIcon,
+  CashFlowIcon,
+  CoinsIcon,
+  ConsolidateIcon,
+  EquipmentIcon,
+  ExpandIcon,
+  GrowthIcon,
+  HiringIcon,
+  InventoryIcon,
+  MarketingIcon,
+  PayrollIcon,
 } from './icons';
-import { BLOG_SECTION, CLOSING, FEATURES, HERO, RESOURCES, TESTIMONIALS } from './content';
+import {
+  APPLY_LABEL,
+  BLOG_SECTION,
+  FUNDING_OPTIONS,
+  HERO,
+  HOW_IT_WORKS,
+  QUALIFIER,
+  REQUIREMENTS,
+  TESTIMONIALS,
+  USE_CASES,
+} from './content';
 
 /*
- * The /home-v2 design — a rebuild of the "AI Blog Website UI Template" home
- * frame (Figma node 18:400) as a real page.
+ * The Nanotom Capital homepage candidate.
  *
- * WHAT IS FAITHFUL: the section order and composition, the grid-rule structure
- * that divides every band into bordered cells, the greys, the two-tone icons
- * (exported as SVG from the file itself, see ./icons), the pill/button shapes,
- * the corner radii, and the -3% tracking. All copy is the template's own,
- * verbatim, in ./content — see that file's note.
+ * Started as a rebuild of a tech-blog Figma template ("FutureTech") and is now a
+ * funding lead-gen page. What survives from the template is its VISUAL LANGUAGE
+ * — the dark palette, the bordered-cell grid that divides every band, the pill
+ * and chip shapes, the section header bands, the -3% tracking, the container
+ * width and the type scale. None of its content survives; the sections that were
+ * only ever vehicles for it (FutureTech Features, the ebooks/whitepapers
+ * resource blocks, the "Future Tech Revolution" closing band) are gone rather
+ * than re-labelled, because a funding site has nothing to put in them.
  *
- * WHAT IS DELIBERATELY NOT, and why:
+ * The copy is the live GoHighLevel site's, in ./content — see that file's note
+ * on why it is duplicated from nntm/homepage.tsx rather than shared with it.
  *
- *  - The template's own header and footer are dropped. The site header and
- *    footer come from the root layout, per the brief.
- *  - The design lays out on a 1596px content column inside a 1920px frame. This
- *    uses max-w-7xl (1280px) with the header's own gutters, because a page
- *    1596px wide sitting under a 1280px-wide header reads as a broken layout.
- *    Display type is scaled by the same ~0.8 so the proportions survive; body
- *    text is not, since 14px body would be a readability regression, not a
- *    faithful translation.
- *  - Typefaces are Lato and Poppins, already self-hosted for this site, not the
- *    template's Kumbh Sans and Inter — consistent with the existing decision to
- *    take scale and rhythm from the design and keep the brand's faces.
- *  - The accent is brand gold, not the template's #FFD11A. One line in
- *    globals.css switches it; see the note on `.ft-surface` there.
- *  - Photographs are drawn placeholders (`ImageSlot`). The template's are
- *    licensed stock and the two photos this repo owns are 540x960 portraits
- *    that would upscale badly into a 16:9 slot.
- *  - Avatars are initial discs rather than the template's stock headshots, in
- *    the sections still on placeholder copy. The blog band uses real ones.
+ * Ordering follows the funnel: what we do (hero, proof, options), then how it
+ * works, then the qualifier, then the objection handlers (what funding is for,
+ * whether you qualify), then social proof, then the blog. The blog is last on
+ * purpose — it is the least commercial thing on the page.
  *
- * The hero and the blog section are no longer placeholder: the hero carries the
- * live homepage's copy, figures and video, and the blog section is fed the
- * site's real posts and categories. Everything from Features down is still the
- * template's own words.
+ * Deviations from the brief worth knowing:
  *
- * Everything is a server component, including the blog band — its category
- * pills are links to the existing archives rather than in-page filters, which
- * is what keeps client state out of a page that otherwise needs none.
+ *  - The hero's CTA pair sits in the LEFT column under the paragraph, not in the
+ *    video panel. Stripping the panel's placeholder text left the buttons
+ *    floating alone over footage; under the headline is both the stronger
+ *    placement and where the live homepage puts its CTA.
+ *  - "How It Works" is a numbered timeline, not cards, so it cannot be mistaken
+ *    for the three-card CTA row directly above it.
+ *
+ * Everything here is a server component except the review wall, which has to be
+ * one to call the iframe resizer — see testimonial-wall.tsx.
  */
 
 /* ---------------------------------------------------------------------------
@@ -83,25 +90,27 @@ const CONTAINER = 'mx-auto w-full max-w-7xl px-5 lg:px-8';
  */
 const BLEED_INSET = 'pl-[max(1.25rem,calc((100vw-80rem)/2+2rem))]';
 
-const BRAND_ICONS = {
-  spark: SparkIcon,
-  clover: CloverIcon,
-  leaf: LeafIcon,
-  orbit: OrbitIcon,
-  prism: PrismIcon,
-  crescent: CrescentIcon,
-  facet: FacetIcon,
+const TILE_ICONS = {
+  coins: CoinsIcon,
+  calculator: CalculatorIcon,
+  growth: GrowthIcon,
 } as const;
 
-function BrandIcon({ name, className }: { name: keyof typeof BRAND_ICONS; className?: string }) {
-  const Icon = BRAND_ICONS[name];
-  return <Icon className={className} />;
-}
+const USE_CASE_ICONS = {
+  inventory: InventoryIcon,
+  payroll: PayrollIcon,
+  expand: ExpandIcon,
+  marketing: MarketingIcon,
+  cashflow: CashFlowIcon,
+  equipment: EquipmentIcon,
+  hiring: HiringIcon,
+  consolidate: ConsolidateIcon,
+} as const;
 
 /** The grey chip every section label sits in. */
 function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium text-[var(--ft-ink)] sm:text-base">
+    <span className="inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
       {children}
     </span>
   );
@@ -114,25 +123,46 @@ function GhostButton({
   external,
 }: {
   children: React.ReactNode;
-  /** Defaults to '#' — the sections that are still placeholder have nowhere to go. */
   href?: string;
   /** Off-site, so it opens in a new tab — the treatment site-header.tsx uses. */
   external?: boolean;
 }) {
+  const className =
+    'inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]';
+  const label = (
+    <>
+      {children}
+      <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+    </>
+  );
+
+  /*
+   * next/link for internal destinations, a plain anchor for off-site ones.
+   * Not cosmetic: `trailingSlash: true` means /funding-solutions/line-of-credit
+   * costs a 308 to the slashed form when it is a bare <a>, and Link both avoids
+   * that hop and prefetches.
+   */
+  if (href && !external) {
+    return (
+      <Link href={href} className={className}>
+        {label}
+      </Link>
+    );
+  }
+
   return (
     <a
       href={href ?? '#'}
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
-      className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+      className={className}
     >
-      {children}
-      <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+      {label}
     </a>
   );
 }
 
-/** The solid gold disc with a dark arrow, used on the hero tiles and closing cards. */
+/** The solid gold disc with a dark arrow, used on the three CTA tiles. */
 function ArrowDisc() {
   return (
     <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--ft-accent)] text-[var(--ft-bg)] transition-transform group-hover:-translate-y-0.5">
@@ -141,9 +171,18 @@ function ArrowDisc() {
   );
 }
 
+/** Every "Get Funded" on the page, centred under its section. */
+function ApplyRow({ className = '' }: { className?: string }) {
+  return (
+    <div className={`flex justify-center ${className}`}>
+      <CtaButton>{APPLY_LABEL}</CtaButton>
+    </div>
+  );
+}
+
 /**
  * A section's header band: darker ground, label chip, display heading, and an
- * optional action pinned right. Every section but the hero opens with one.
+ * optional action pinned right.
  */
 function SectionHead({
   label,
@@ -184,12 +223,38 @@ function SectionHead({
   );
 }
 
+/** A centred heading for the sections the design gives no label chip. */
+function PlainHead({
+  heading,
+  body,
+  id,
+}: {
+  heading: string;
+  body?: string;
+  id?: string;
+}) {
+  return (
+    <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
+      <h2
+        id={id}
+        className="font-[family-name:var(--font-headline)] text-[clamp(1.75rem,3.6vw,2.5rem)] font-medium leading-[1.15] text-[var(--ft-ink)]"
+      >
+        {heading}
+      </h2>
+      {body ? (
+        <p className="text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">{body}</p>
+      ) : null}
+    </div>
+  );
+}
+
 /**
- * An initial disc standing in for a headshot.
+ * An initial disc standing in for a headshot, on blog posts whose author has no
+ * avatar on record.
  *
- * The hue is derived from the name so a given person is always the same colour
- * across the page, and the arithmetic is pure — no randomness, which would
- * differ between the server and client renders and trip hydration.
+ * The hue is derived from the name so a given person is always the same colour,
+ * and the arithmetic is pure — no randomness, which would differ between the
+ * server and client renders and trip hydration.
  */
 function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string; className?: string }) {
   const initials = name
@@ -203,8 +268,6 @@ function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string; class
     <span
       aria-hidden="true"
       className={`inline-flex shrink-0 items-center justify-center rounded-full font-medium text-[var(--ft-ink)] ring-1 ring-white/15 ${className}`}
-      // 8% saturation, not 18%: at 18% the discs read as a deliberate colour
-      // scheme competing with the accent, rather than as absent photographs.
       style={{ backgroundColor: `hsl(${hue} 8% 30%)` }}
     >
       {initials}
@@ -212,26 +275,11 @@ function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string; class
   );
 }
 
-function AvatarStack({ names }: { names: readonly string[] }) {
-  return (
-    <span className="flex items-center">
-      {names.map((name, i) => (
-        <Avatar
-          key={name}
-          name={name}
-          className={`h-10 w-10 text-xs ring-2 ring-[var(--ft-card)] ${i > 0 ? '-ml-3' : ''}`}
-        />
-      ))}
-    </span>
-  );
-}
-
 /**
- * The ray burst behind the hero, and the fill for every image slot.
+ * The ray burst behind the hero, and the fill for a post with no image.
  *
  * Generated at module scope from a deterministic hash so the server and client
- * draw identical markup. `Math.random()` here would hydrate-mismatch on every
- * load.
+ * draw identical markup. `Math.random()` here would hydrate-mismatch every load.
  */
 const RAYS = Array.from({ length: 130 }, (_, i) => {
   const hash = (n: number) => {
@@ -273,25 +321,14 @@ function RayBurst({ className }: { className?: string }) {
   );
 }
 
-/**
- * Stands in for a photograph.
- *
- * Deliberately not an empty box: it holds the slot's real aspect ratio so the
- * surrounding layout can be judged, and reads as an intentional graphic rather
- * than a broken image. Swap the whole component for next/image once there are
- * real photographs to use.
- */
-function ImageSlot({ icon, className }: { icon: keyof typeof BRAND_ICONS; className?: string }) {
+/** Stands in for a post's featured image when it has none. */
+function ImageSlot({ className }: { className?: string }) {
   return (
     <div
       className={`relative isolate flex items-center justify-center overflow-hidden rounded-xl border border-[var(--ft-line)] bg-[linear-gradient(135deg,#1f1f22,#141414_60%)] ${className ?? ''}`}
     >
-      {/*
-        Much fainter than the hero's burst. At full strength it competes with
-        the cards around it and reads as content rather than as a placeholder.
-      */}
       <RayBurst className="absolute inset-0 h-full w-full opacity-[0.18]" />
-      <BrandIcon name={icon} className="relative h-24 w-auto opacity-25" />
+      <GrowthIcon className="relative h-16 w-16 text-[var(--ft-accent)] opacity-30" />
     </div>
   );
 }
@@ -301,28 +338,27 @@ function ImageSlot({ icon, className }: { icon: keyof typeof BRAND_ICONS; classN
  * ------------------------------------------------------------------------- */
 
 /**
- * The press-logo marquee, ported from the live homepage's `FeaturedOn`.
+ * The press-logo marquee.
  *
- * Structure is deliberately identical to that one (see nntm/homepage.tsx): eight
- * duplicated copies of the six logos give a track comfortably wider than any
- * viewport, so translating by exactly -50% loops seamlessly. Only the first copy
- * carries alt text; the rest are `aria-hidden`, so a screen reader hears the
- * logos once rather than eight times.
+ * FOUR copies of the six logos, not eight. The loop translates by exactly -50%,
+ * so the track must be an even number of identical copies and its first half
+ * must be wider than the viewport — four is the smallest count that satisfies
+ * both on a desktop screen. Eight was simply more repetition than the effect
+ * needs, and at 100s it read as the same six logos cycling past twice over.
  *
- * THE ANIMATION CLASS IS COPIED CHARACTER FOR CHARACTER, and must stay that way.
- * The `prefers-reduced-motion` rule in globals.css targets the literal escaped
- * selector `.animate-\[nt-marquee_100s_linear_infinite\]`, so a different
- * duration here would still animate for readers who asked for no motion —
- * silently, since nothing would look wrong in normal browsing.
+ * `nt-marquee-track` is what the reduced-motion rule in globals.css targets. It
+ * used to target the escaped Tailwind class `.animate-\\[nt-marquee_100s_...\\]`,
+ * which meant changing the duration — exactly what this commit does — silently
+ * dropped the guard for readers who asked for no motion. A plain class cannot
+ * rot that way.
  *
- * The logos are the source art, unfiltered, on Denis's instruction: they are
- * 500x500 with opaque WHITE backgrounds, so on this dark band they read as white
- * tiles rather than as floating marks. That is expected and temporary — the
- * artwork is being replaced. When it is, the fix is transparent logos, not a
- * filter stack here.
+ * The logos are the source art, unfiltered: they are 500x500 with opaque WHITE
+ * backgrounds, so they read as white tiles on this dark band. That is expected
+ * and temporary — these are placeholders, and the fix is transparent artwork,
+ * not a filter stack here.
  */
 function FeaturedOn() {
-  const track = Array.from({ length: 8 }, (_, dup) => dup);
+  const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
     <div className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
@@ -335,9 +371,9 @@ function FeaturedOn() {
           [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]
           [-webkit-mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
       >
-        <div className="flex w-max animate-[nt-marquee_100s_linear_infinite]">
+        <div className="nt-marquee-track flex w-max animate-[nt-marquee_160s_linear_infinite]">
           {track.map((dup) => (
-            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-12 pr-12">
+            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-20 pr-20">
               {IMAGES.featuredOn.map((src, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -359,7 +395,6 @@ function Hero() {
   return (
     <section aria-labelledby="ft-hero" className="border-b border-[var(--ft-line)]">
       <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)]">
-        {/* Left: the headline column, inset to the container's left edge. */}
         <div className={`${BLEED_INSET} flex flex-col justify-center pr-5 lg:pr-16`}>
           <div className="flex flex-col gap-6 py-16 lg:py-24">
             <p className="font-[family-name:var(--font-headline)] text-[clamp(1.125rem,2vw,1.5rem)] text-[var(--ft-accent)]">
@@ -374,6 +409,18 @@ function Hero() {
             <p className="max-w-[62ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-subtle)]">
               {HERO.body}
             </p>
+
+            {/*
+              Both CTAs sit here rather than over the video. Get Funded stays the
+              filled gold button so it keeps the weight; the calculator is the
+              outline variant of the same component the header uses.
+            */}
+            <div className="mt-2 flex flex-wrap items-center gap-4">
+              <CtaButton>{APPLY_LABEL}</CtaButton>
+              <CtaButton variant="outline" href={HERO.secondaryCta.href}>
+                {HERO.secondaryCta.label}
+              </CtaButton>
+            </div>
           </div>
 
           <dl className="grid grid-cols-3 border-t border-[var(--ft-line)]">
@@ -383,7 +430,6 @@ function Hero() {
                 className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
               >
                 <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
-                  {/* The trailing unit carries the accent in the design, the digits do not. */}
                   {stat.value}
                   <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
                 </dd>
@@ -395,16 +441,14 @@ function Hero() {
           </dl>
         </div>
 
-        {/* Right: the hero video, bleeding to the viewport edge. */}
-        <div className="relative isolate min-h-[420px] overflow-hidden border-t border-[var(--ft-line)] lg:min-h-0 lg:border-l lg:border-t-0">
+        {/* The hero video, bleeding to the viewport edge. */}
+        <div className="relative isolate min-h-[320px] overflow-hidden border-t border-[var(--ft-line)] lg:min-h-0 lg:border-l lg:border-t-0">
           {/*
-            The same three layers as the live homepage's hero, for the same
-            reasons (see nntm/homepage.tsx): the still frame is its own layer
+            Three layers, as on the live hero: the still frame is its own element
             rather than only the video's `poster`, so it is what shows while the
-            video loads, if it fails or is blocked, and under
-            `prefers-reduced-motion` — where globals.css hides `.nt-hero-video`
-            outright. Keeping that in CSS is what lets this stay a server
-            component.
+            video loads, if it is blocked, and under `prefers-reduced-motion`,
+            where globals.css hides `.nt-hero-video`. Keeping that in CSS is what
+            lets this stay a server component.
           */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -413,11 +457,6 @@ function Hero() {
             aria-hidden="true"
             className="absolute inset-0 h-full w-full object-cover"
           />
-          {/*
-            `preload="metadata"` rather than the default: the browser fetches the
-            header and lets the still frame paint, instead of committing to the
-            whole 3 MB before anything is on screen.
-          */}
           <video
             autoPlay
             muted
@@ -429,123 +468,311 @@ function Hero() {
             aria-hidden="true"
             className="nt-hero-video absolute inset-0 h-full w-full object-cover"
           />
-
-          {/*
-            The overlay copy sits directly on the footage, so it needs a scrim.
-            Heavier than the one the ray burst needed — video is brighter and,
-            unlike the burst, its luminance moves under the text.
-          */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(20,20,20,0.97)_16%,rgba(20,20,20,0.82)_44%,rgba(20,20,20,0.25)_100%)]" />
-
-          <div className="relative flex h-full flex-col items-start justify-end gap-5 p-8 lg:p-12">
-            <AvatarStack names={['Ada Lin', 'Marco Reyes', 'Priya Nair', 'Tom Beck']} />
-            <div>
-              <p className="text-xl font-medium text-[var(--ft-ink)]">{HERO.card.title}</p>
-              <p className="mt-2 max-w-[44ch] text-[1.0625rem] text-[var(--ft-muted)]">
-                {HERO.card.body}
-              </p>
-            </div>
-            <GhostButton href={CTA_HREF}>{HERO.card.cta}</GhostButton>
-          </div>
+          {/* Ties the footage into the page ground on both meeting edges. */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(20,20,20,0.75),rgba(20,20,20,0.15))]" />
         </div>
       </div>
 
       <FeaturedOn />
 
-      {/* The three proof tiles, one bordered cell each. */}
+      {/* The three CTA tiles, one bordered cell each. */}
       <div className="border-t border-[var(--ft-line)]">
         <div className={`${CONTAINER} grid md:grid-cols-3`}>
-          {HERO.tiles.map((tile, i) => (
-            <a
-              key={tile.title}
-              href="#"
-              className={`group flex flex-col gap-8 border-[var(--ft-line)] py-10 lg:py-14 ${
-                i > 0 ? 'border-t md:border-l md:border-t-0 md:pl-10' : ''
-              } ${i < HERO.tiles.length - 1 ? 'md:pr-10' : ''}`}
-            >
-              <BrandIcon name={tile.icon} className="h-12 w-12" />
+          {HERO.tiles.map((tile, i) => {
+            const Icon = TILE_ICONS[tile.icon];
+            return (
+              <Link
+                key={tile.title}
+                href={tile.href}
+                className={`group flex flex-col gap-8 border-[var(--ft-line)] py-10 lg:py-14 ${
+                  i > 0 ? 'border-t md:border-l md:border-t-0 md:pl-10' : ''
+                } ${i < HERO.tiles.length - 1 ? 'md:pr-10' : ''}`}
+              >
+                <Icon className="h-11 w-11 text-[var(--ft-accent)]" />
 
-              <div className="flex items-start justify-between gap-6">
-                <div>
-                  <p className="text-lg font-medium text-[var(--ft-ink)]">{tile.title}</p>
-                  <p className="mt-1 text-[1.0625rem] text-[var(--ft-subtle)]">{tile.subtitle}</p>
+                <div className="flex items-start justify-between gap-6">
+                  <div>
+                    <p className="text-lg font-medium text-[var(--ft-ink)]">{tile.title}</p>
+                    <p className="mt-1 text-[1.0625rem] text-[var(--ft-subtle)]">{tile.subtitle}</p>
+                  </div>
+                  <ArrowDisc />
                 </div>
-                <ArrowDisc />
-              </div>
 
-              <p className="border-t border-[var(--ft-line)] pt-6 font-[family-name:var(--font-headline)] text-[1.0625rem] text-[var(--ft-muted)]">
-                {tile.note}
-              </p>
-            </a>
-          ))}
+                <p className="border-t border-[var(--ft-line)] pt-6 font-[family-name:var(--font-headline)] text-[1.0625rem] text-[var(--ft-muted)]">
+                  {tile.note}
+                </p>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-function Features() {
+/**
+ * How it works, as a numbered timeline.
+ *
+ * Deliberately not three cards: the CTA tiles directly above are already a
+ * three-column row of bordered cells, and repeating that shape would make two
+ * different things look like one. Steps are not destinations, so there are no
+ * arrow buttons either — the only action is the single button underneath.
+ *
+ * The connecting rule is drawn as a flex-1 hairline after each numeral rather
+ * than as one line behind the row, so it stops at the last step and disappears
+ * cleanly when the grid stacks.
+ */
+function HowItWorks() {
   return (
-    <section aria-labelledby="ft-features">
-      <SectionHead id="ft-features" label={FEATURES.label} heading={FEATURES.heading} />
+    <section aria-labelledby="ft-how" className="border-b border-[var(--ft-line)]">
+      <div className={`${CONTAINER} py-16 lg:py-24`}>
+        <PlainHead id="ft-how" heading={HOW_IT_WORKS.heading} />
 
-      {FEATURES.blocks.map((block, i) => (
-        <div
-          key={block.title}
-          className={i > 0 ? 'border-b border-[var(--ft-line)]' : 'border-b border-[var(--ft-line)]'}
-        >
-          <div className={`${CONTAINER} grid gap-10 py-14 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.4fr)] lg:gap-20 lg:py-20`}>
-            <div className="flex flex-col justify-between gap-10">
-              <BrandIcon name={block.icon} className="h-20 w-auto" />
+        <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
+          {HOW_IT_WORKS.steps.map((step, i) => (
+            <li key={step.title} className="flex flex-col gap-5">
+              <div className="flex items-center gap-5">
+                <span
+                  aria-hidden="true"
+                  className="font-[family-name:var(--font-headline)] text-[2.75rem] font-semibold leading-none text-[var(--ft-accent)] opacity-40"
+                >
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+                {i < HOW_IT_WORKS.steps.length - 1 ? (
+                  <span
+                    aria-hidden="true"
+                    className="hidden h-px flex-1 bg-[var(--ft-line)] md:block"
+                  />
+                ) : null}
+              </div>
+
               <div>
-                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.625rem,3vw,2.25rem)] font-semibold leading-[1.15] text-[var(--ft-ink)]">
-                  {block.title}
-                </h3>
-                <p className="mt-4 max-w-[42ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
-                  {block.body}
+                <h3 className="text-lg font-medium text-[var(--ft-ink)]">{step.title}</h3>
+                <p className="mt-2 max-w-[34ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
+                  {step.body}
                 </p>
               </div>
-            </div>
+            </li>
+          ))}
+        </ol>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              {block.cards.map((card) => (
-                <div
-                  key={card.title}
-                  className="rounded-xl bg-[var(--ft-card)] p-7 transition-colors hover:bg-[var(--ft-card-raised)]"
-                >
-                  <p className="text-[1.375rem] font-medium text-[var(--ft-ink)]">{card.title}</p>
-                  <p className="mt-3 text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
-                    {card.body}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+        <ApplyRow className="mt-14" />
+      </div>
+    </section>
+  );
+}
+
+function FundingOptions() {
+  return (
+    <section aria-labelledby="ft-options">
+      <SectionHead
+        id="ft-options"
+        label={FUNDING_OPTIONS.label}
+        heading={FUNDING_OPTIONS.heading}
+      />
+
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <div className="grid gap-6 lg:grid-cols-2">
+          {FUNDING_OPTIONS.cards.map((card) => (
+            <article
+              key={card.title}
+              className="flex flex-col gap-6 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-8 lg:p-10"
+            >
+              <div>
+                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.375rem,2.4vw,1.75rem)] font-semibold leading-[1.2] text-[var(--ft-ink)]">
+                  {card.title}
+                </h3>
+                <p className="mt-4 text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
+                  {card.body}
+                </p>
+              </div>
+
+              <ul className="flex flex-col gap-3 border-t border-[var(--ft-line)] pt-6">
+                {card.points.map((point) => (
+                  <li key={point.label} className="flex gap-3 text-[1.0625rem] leading-[1.5]">
+                    <span
+                      aria-hidden="true"
+                      className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ft-accent)]"
+                    />
+                    <span className="text-[var(--ft-muted)]">
+                      <strong className="font-medium text-[var(--ft-ink)]">{point.label}</strong>
+                      {' — '}
+                      {point.body}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-auto flex flex-wrap items-center gap-4 pt-2">
+                <GhostButton href={card.cta.href}>{card.cta.label}</GhostButton>
+                {card.tag ? (
+                  <p className="text-[0.9375rem] italic text-[var(--ft-subtle)]">{card.tag}</p>
+                ) : null}
+              </div>
+            </article>
+          ))}
         </div>
-      ))}
+
+        <ApplyRow className="mt-14" />
+      </div>
     </section>
   );
 }
 
 /**
- * The post list, fed by the site's real published posts.
+ * The qualifier, embedded rather than rebuilt.
  *
- * Diverges from the Figma in three ways, all requested:
+ * This is the same GoHighLevel survey the live homepage runs — ten questions
+ * with conditional logic and two consent checkboxes behind CRM automations.
+ * Rebuilding it natively would mean reconstructing that logic and the consent
+ * wording, where a mistake silently drops leads. HighLevel stays the system of
+ * record; see highlevel-form.tsx.
+ */
+function Qualifier() {
+  return (
+    <section aria-labelledby="ft-qualifier">
+      <SectionHead id="ft-qualifier" label={QUALIFIER.label} heading={QUALIFIER.heading} />
+
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <ul className="mx-auto flex max-w-4xl flex-col justify-center gap-4 sm:flex-row sm:gap-10">
+          {QUALIFIER.points.map((point) => (
+            <li
+              key={point}
+              className="flex items-center gap-3 text-[1.0625rem] text-[var(--ft-muted)]"
+            >
+              <span
+                aria-hidden="true"
+                className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--ft-accent)]"
+              />
+              {point}
+            </li>
+          ))}
+        </ul>
+
+        {/*
+          The survey renders its own white surface, so it sits on a light panel
+          rather than straight on the dark ground where its edges would look like
+          a rendering fault.
+        */}
+        <div className="mt-10 overflow-hidden rounded-2xl bg-white">
+          <HighLevelForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function UseCases() {
+  return (
+    <section aria-labelledby="ft-uses" className="border-y border-[var(--ft-line)]">
+      <div className={`${CONTAINER} py-16 lg:py-24`}>
+        <PlainHead id="ft-uses" heading={USE_CASES.heading} body={USE_CASES.body} />
+
+        <ul className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
+          {USE_CASES.items.map((item) => {
+            const Icon = USE_CASE_ICONS[item.icon];
+            return (
+              <li
+                key={item.label}
+                className="flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center"
+              >
+                <Icon className="h-8 w-8 text-[var(--ft-accent)]" />
+                <span className="text-[1.0625rem] leading-[1.4] text-[var(--ft-ink)]">
+                  {item.label}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function Requirements() {
+  return (
+    <section aria-labelledby="ft-requirements">
+      <div className={`${CONTAINER} py-16 lg:py-24`}>
+        <PlainHead id="ft-requirements" heading={REQUIREMENTS.heading} />
+
+        <dl className="mt-12 grid border-t border-[var(--ft-line)] sm:grid-cols-3">
+          {REQUIREMENTS.stats.map((stat, i) => (
+            <div
+              key={stat.value}
+              className={`py-8 lg:py-10 ${i > 0 ? 'border-t border-[var(--ft-line)] sm:border-l sm:border-t-0 sm:pl-8' : ''} ${i < REQUIREMENTS.stats.length - 1 ? 'sm:pr-8' : ''}`}
+            >
+              <dt className="text-sm text-[var(--ft-muted)]">{stat.lead}</dt>
+              <dd className="mt-2 text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-accent)]">
+                {stat.value}
+              </dd>
+              <dd className="mt-2 text-sm text-[var(--ft-muted)]">{stat.trail}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <p className="mt-8 text-center text-[1.0625rem] text-[var(--ft-subtle)]">
+          {REQUIREMENTS.note}
+        </p>
+
+        {/*
+          The second conversion path, and the reason it gets a tinted panel with
+          a gold edge rather than the treatment above: a visitor reads the three
+          numbers, decides they do not qualify, and this is the only thing on the
+          page that catches them. Styled to be impossible to skim past.
+        */}
+        <div className="mt-12 rounded-2xl border border-[var(--ft-accent)]/35 bg-[var(--ft-card)] p-8 lg:p-10">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
+            <div>
+              <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
+                {REQUIREMENTS.callout.heading}
+              </h3>
+              <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
+                {REQUIREMENTS.callout.body}
+              </p>
+            </div>
+            <CtaButton href={REQUIREMENTS.callout.cta.href} className="shrink-0">
+              {REQUIREMENTS.callout.cta.label}
+            </CtaButton>
+          </div>
+        </div>
+
+        <ApplyRow className="mt-14" />
+      </div>
+    </section>
+  );
+}
+
+function Testimonials() {
+  return (
+    <section aria-labelledby="ft-testimonials">
+      <SectionHead
+        id="ft-testimonials"
+        label={TESTIMONIALS.label}
+        heading={TESTIMONIALS.heading}
+        cta={TESTIMONIALS.cta}
+        ctaHref={REVIEWS.collectUrl}
+        ctaExternal
+      />
+
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <TestimonialWall />
+      </div>
+    </section>
+  );
+}
+
+/**
+ * The blog band, fed by the site's real published posts.
  *
- *  - The left cell is the post's featured image, not its author. The author
- *    moves under it as a small byline mirroring components/blog/post-byline.tsx,
- *    so a reader gets the same author treatment here as on the post itself.
- *  - The like / comment / share pills are gone. They were the template's
- *    invention; nothing in this schema counts any of them, so they could only
- *    ever have been decoration that looked like data.
- *  - The category row is real and each entry is a link to that archive.
+ * The left cell is the post's featured image with a small byline under it,
+ * mirroring components/blog/post-byline.tsx so a reader gets the same author
+ * treatment here as on the post itself.
  *
- * A consequence of the first change worth recording: `PostSummary` carries no
- * categories (SUMMARY_COLUMNS does not select post_terms — only DETAIL_COLUMNS
- * does), and the per-post category label lived in the author cell that is now a
- * thumbnail. So nothing needs it, and widening the shared summary query to serve
- * a label this layout no longer has would have put a join on every post listing
- * in the app.
+ * `PostSummary` carries no categories — SUMMARY_COLUMNS does not select
+ * post_terms — and nothing here needs one, since the per-post category label
+ * lived in the author cell that is now a thumbnail. Widening the shared summary
+ * query would have put a join on every post listing in the app for a label this
+ * layout does not have room for.
  */
 function BlogPosts({
   posts,
@@ -556,8 +783,7 @@ function BlogPosts({
   categories: readonly TermRow[];
   locale: string;
 }) {
-  // A band with a heading and no posts under it reads as broken, so a site with
-  // nothing published simply does not get this section.
+  // A band with a heading and no posts under it reads as broken.
   if (posts.length === 0) return null;
 
   return (
@@ -571,10 +797,9 @@ function BlogPosts({
       />
 
       {/*
-       * Links to the archives, not tabs. The design draws them as a tab strip
-       * with "All" selected, and "All" keeps that emphasis because it is where
-       * the whole list lives — but there is deliberately no `aria-current`, since
-       * none of these is the page you are on.
+       * Links to the archives, not tabs. "All" keeps the design's emphasis
+       * because it is where the whole list lives, but there is deliberately no
+       * `aria-current` — none of these is the page you are on.
        */}
       {categories.length > 0 ? (
         <nav aria-label="Post categories" className="border-b border-[var(--ft-line)]">
@@ -614,7 +839,7 @@ function BlogPosts({
               <div>
                 {/*
                  * `aria-hidden` + `tabIndex={-1}`, as post-card.tsx does: the
-                 * title below is already a link to the same place, and a screen
+                 * title below already links to the same place, and a screen
                  * reader should not meet the post twice.
                  */}
                 <Link href={postPath(post.slug)} aria-hidden="true" tabIndex={-1}>
@@ -630,7 +855,7 @@ function BlogPosts({
                       className="aspect-[4/3] w-full rounded-xl object-cover"
                     />
                   ) : (
-                    <ImageSlot icon="orbit" className="aspect-[4/3] w-full" />
+                    <ImageSlot className="aspect-[4/3] w-full" />
                   )}
                 </Link>
 
@@ -676,197 +901,12 @@ function BlogPosts({
               </div>
 
               <div className="lg:pt-10">
-                <GhostButton href={postPath(post.slug)}>View Blog</GhostButton>
+                <GhostButton href={postPath(post.slug)}>Read More</GhostButton>
               </div>
             </div>
           </article>
         );
       })}
-    </section>
-  );
-}
-
-
-function Resources() {
-  return (
-    <section aria-labelledby="ft-resources">
-      <SectionHead
-        id="ft-resources"
-        label={RESOURCES.label}
-        heading={RESOURCES.heading}
-        cta={RESOURCES.cta}
-      />
-
-      {RESOURCES.blocks.map((block) => (
-        <div key={block.title} className="border-b border-[var(--ft-line)]">
-          <div
-            className={`${CONTAINER} grid gap-12 py-14 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)] lg:gap-20 lg:py-20`}
-          >
-            <div className="flex flex-col gap-8">
-              <BrandIcon name={block.icon} className="h-20 w-20" />
-
-              <div>
-                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.625rem,3vw,2.25rem)] font-semibold leading-[1.15] text-[var(--ft-ink)]">
-                  {block.title}
-                </h3>
-                <p className="mt-4 max-w-[42ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
-                  {block.body}
-                </p>
-              </div>
-
-              <GhostButton>{block.cta}</GhostButton>
-
-              <div className="mt-auto flex items-center justify-between gap-6 rounded-xl bg-[var(--ft-card)] p-6">
-                <div>
-                  <p className="text-[1.0625rem] text-[var(--ft-muted)]">
-                    {RESOURCES.downloadedByLabel}
-                  </p>
-                  <p className="mt-1 text-[1.375rem] font-semibold text-[var(--ft-ink)]">
-                    {block.downloadedBy}
-                  </p>
-                </div>
-                <AvatarStack names={['Ada Lin', 'Marco Reyes', 'Priya Nair', 'Tom Beck']} />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-5">
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:gap-10">
-                <p className="shrink-0 text-[1.375rem] font-semibold text-[var(--ft-ink)] md:w-48">
-                  {block.topicsTitle}
-                </p>
-                <p className="text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
-                  {block.topicsBody}
-                </p>
-              </div>
-
-              <ImageSlot icon={block.icon} className="aspect-[16/7] w-full" />
-
-              <div className="grid gap-5 sm:grid-cols-[minmax(0,0.7fr)_minmax(0,1.4fr)]">
-                <div className="rounded-xl bg-[var(--ft-card)] p-6">
-                  <p className="text-[1.0625rem] text-[var(--ft-muted)]">{block.totalLabel}</p>
-                  <p className="mt-1.5 text-lg font-semibold text-[var(--ft-ink)]">
-                    {block.totalValue}
-                  </p>
-                </div>
-
-                <div className="flex items-center justify-between gap-6 rounded-xl bg-[var(--ft-card)] p-6">
-                  <div>
-                    <p className="text-[1.0625rem] text-[var(--ft-muted)]">
-                      {RESOURCES.formatsLabel}
-                    </p>
-                    <p className="mt-1.5 text-lg font-semibold text-[var(--ft-ink)]">
-                      {RESOURCES.formatsValue}
-                    </p>
-                  </div>
-                  <a
-                    href="#"
-                    className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[var(--ft-line)] px-5 py-3 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
-                  >
-                    {RESOURCES.previewLabel}
-                    <EyeIcon className="h-[18px] w-[18px] text-[var(--ft-accent)]" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-[var(--ft-card)] p-6">
-                <p className="text-[1.0625rem] text-[var(--ft-muted)]">
-                  {RESOURCES.expertiseLabel}
-                </p>
-                <p className="mt-1.5 text-lg font-medium leading-[1.45] text-[var(--ft-ink)]">
-                  {block.expertise}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-    </section>
-  );
-}
-
-/**
- * Real reviews, from the same SocialJuice wall the live homepage embeds.
- *
- * The design's six cards are gone — they were the template's invented copy about
- * a fictional company, and there is no version of that worth keeping next to
- * genuine reviews. What survives is the section's header band, so the page keeps
- * its rhythm, with the wall in place of the grid.
- *
- * The wall is an iframe, so this page's dark palette cannot reach inside it. Its
- * theme is set in the SocialJuice dashboard, not here.
- */
-function Testimonials() {
-  return (
-    <section aria-labelledby="ft-testimonials">
-      <SectionHead
-        id="ft-testimonials"
-        label={TESTIMONIALS.label}
-        heading={TESTIMONIALS.heading}
-        cta={TESTIMONIALS.cta}
-        ctaHref={REVIEWS.collectUrl}
-        ctaExternal
-      />
-
-      <div className={`${CONTAINER} py-14 lg:py-20`}>
-        <TestimonialWall />
-      </div>
-    </section>
-  );
-}
-
-function Closing() {
-  return (
-    <section
-      aria-labelledby="ft-closing"
-      className="border-t border-[var(--ft-line)] bg-[var(--ft-band)]"
-    >
-      <div className={`${CONTAINER} flex flex-col gap-16 py-16 lg:py-24`}>
-        <div className="flex flex-col gap-8 md:flex-row md:items-start md:gap-14">
-          {/*
-            The template puts its own logotype here. Ours goes in its place —
-            shipping another company's mark on our page would be the one thing
-            in this design worth not copying.
-          */}
-          <Image
-            src={LOCAL_IMAGES.logo}
-            alt=""
-            width={190}
-            height={56}
-            className="h-14 w-auto shrink-0"
-          />
-
-          <div className="flex flex-col items-start gap-4">
-            <Chip>{CLOSING.label}</Chip>
-            <h2
-              id="ft-closing"
-              className="max-w-[22ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,4vw,2.875rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
-            >
-              {CLOSING.heading}
-            </h2>
-            <p className="max-w-[80ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-subtle)]">
-              {CLOSING.body}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-5 rounded-2xl bg-[var(--ft-bg)] p-5 lg:grid-cols-3">
-          {CLOSING.cards.map((card) => (
-            <a
-              key={card.title}
-              href="#"
-              className="group rounded-xl border border-[var(--ft-line)] p-8 transition-colors hover:border-[var(--ft-accent)]"
-            >
-              <div className="flex items-center justify-between gap-6">
-                <p className="text-[1.3125rem] font-semibold text-[var(--ft-ink)]">{card.title}</p>
-                <ArrowDisc />
-              </div>
-              <p className="mt-5 text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
-                {card.body}
-              </p>
-            </a>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
@@ -885,11 +925,13 @@ export function HomeV2({
   return (
     <div className="ft-surface">
       <Hero />
-      <Features />
-      <BlogPosts posts={posts} categories={categories} locale={locale} />
-      <Resources />
+      <HowItWorks />
+      <FundingOptions />
+      <Qualifier />
+      <UseCases />
+      <Requirements />
       <Testimonials />
-      <Closing />
+      <BlogPosts posts={posts} categories={categories} locale={locale} />
     </div>
   );
 }

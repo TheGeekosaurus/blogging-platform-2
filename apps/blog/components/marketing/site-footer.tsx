@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { blogIndexPath } from '@blog/core';
 
 import { CtaButton } from './cta-button';
-import { CONTACT, LOCAL_IMAGES, POLICY_LINKS, SOCIAL } from './brand';
+import { CONTACT, LOCAL_IMAGES, POLICY_LINKS } from './brand';
 
 /**
  * Site footer.
@@ -39,7 +39,7 @@ export function SiteFooter() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1.2fr] lg:px-8">
         <div>
           <Image
             src={LOCAL_IMAGES.logo}
@@ -83,25 +83,13 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
-            Follow Us
-          </p>
-          <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
-            {SOCIAL.map((s) => (
-              <li key={s.label}>
-                <a
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="no-underline hover:text-white"
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/*
+          The "Follow Us" column is gone, not fixed. Its four links pointed at
+          instagram.com, facebook.com, linkedin.com and youtube.com — the
+          networks' own home pages rather than this company's profiles. See the
+          note where SOCIAL used to live in brand.ts; restore this block when
+          there are real URLs to put in it.
+        */}
 
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">

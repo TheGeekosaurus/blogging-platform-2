@@ -54,15 +54,51 @@ describe('brand constants', () => {
     expect(code).toContain('blogIndexPath()');
   });
 
-  it('ships no dead hrefs for the nav items HighLevel never built', async () => {
-    const { NAV } = await import('../components/marketing/brand');
-    const unbuilt = NAV.flatMap((item) => item.children ?? []);
+  /*
+   * This guard used to assert the opposite — that the dropdown items had NO
+   * href, because HighLevel never built their pages and the header greyed them
+   * out. They have destinations now, and every one resolves: either a coded
+   * route, the calculator rewrite, or a STUB_PAGES entry the pages catch-all
+   * answers with a heading. The invariant worth pinning is no longer "no links",
+   * it is "no link that 404s".
+   */
+  it('points every nav item somewhere that resolves', async () => {
+    const { CODED_ROUTES } = await import('@blog/core');
+    const { NAV, STUB_PAGES } = await import('../components/marketing/brand');
 
-    expect(unbuilt.length).toBeGreaterThan(0);
-    // `#new-menu-item` is what the live site ships. None of it reaches here.
-    for (const child of unbuilt) {
-      expect(child.href, child.label).toBeUndefined();
+    const coded = new Set(CODED_ROUTES.map((route) => `/${route.path}`));
+    const stubs = new Set(Object.keys(STUB_PAGES).map((path) => `/${path}`));
+    // Proxied to the calculator deployment by a rewrite in next.config.ts.
+    const rewritten = new Set(['/calc']);
+
+    const links = NAV.flatMap((item) => [item, ...(item.children ?? [])]).filter(
+      (item) => item.href,
+    );
+
+    expect(links.length).toBeGreaterThan(0);
+
+    for (const item of links) {
+      const href = item.href as string;
+      if (item.external) {
+        expect(href, item.label).toMatch(/^https?:\/\//);
+        continue;
+      }
+      expect(
+        coded.has(href) || stubs.has(href) || rewritten.has(href),
+        `${item.label} -> ${href} resolves to a page, a stub or the calc rewrite`,
+      ).toBe(true);
     }
+  });
+
+  it('keeps the phone number out of the header and in the footer', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const read = (file: string) =>
+      readFileSync(join(__dirname, '..', 'components', 'marketing', file), 'utf8');
+
+    // One phone number, one place. Two in the header split the click.
+    expect(read('site-header.tsx')).not.toContain('CONTACT.phone');
+    expect(read('site-footer.tsx')).toContain('CONTACT.phone');
   });
 });
 
