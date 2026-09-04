@@ -214,8 +214,13 @@
  * against WCAG AA on the #141414 ground:
  *   --ft-muted  #98989A  6.33:1
  *   --ft-subtle #7E7E81  4.56:1
- *   --ft-faint  #6E6E71  3.61:1 — clears 3:1 for LARGE text only, and is used
- *                                 only on the 30px hero eyebrow.
+ *   --ft-accent #E0A840  8.65:1 — the hero eyebrow is gold, so it clears AA as
+ *                                 body text, not merely as large text.
+ *
+ * There was a third tone, --ft-faint #6E6E71 at 3.61:1, which only ever cleared
+ * 3:1 for large text and only ever styled that eyebrow. Turning the eyebrow gold
+ * orphaned it, so it is gone rather than left as a trap for the next person who
+ * reaches for the dimmest token in the list.
  * The template also puts #666666 (3.21:1) on 18px testimonial locations, which
  * fails AA for body text. Those use --ft-subtle here instead; the difference is
  * invisible next to the design and the alternative is shipping unreadable text.
@@ -233,7 +238,6 @@
     --ft-ink: #ffffff;
     --ft-muted: #98989a;
     --ft-subtle: #7e7e81;
-    --ft-faint: #6e6e71;
 
     --ft-accent: #e0a840;
     --ft-icon-dim: #404040;

@@ -1,18 +1,28 @@
 import Image from 'next/image';
+import Link from 'next/link';
+
+import {
+  blogIndexPath,
+  categoryPath,
+  excerptFor,
+  formatPostDate,
+  mediaPublicUrl,
+  postAuthorName,
+  postPath,
+  type PostSummary,
+  type TermRow,
+} from '@blog/core';
 
 import { CTA_HREF, HERO_VIDEO, IMAGES, LOCAL_IMAGES } from '../brand';
 import {
   ArrowUpRightIcon,
-  CommentIcon,
   CrescentIcon,
   CloverIcon,
   EyeIcon,
   FacetIcon,
-  HeartIcon,
   LeafIcon,
   OrbitIcon,
   PrismIcon,
-  ShareIcon,
   SparkIcon,
   StarIcon,
 } from './icons';
@@ -46,11 +56,17 @@ import { BLOG_SECTION, CLOSING, FEATURES, HERO, RESOURCES, TESTIMONIALS } from '
  *  - Photographs are drawn placeholders (`ImageSlot`). The template's are
  *    licensed stock and the two photos this repo owns are 540x960 portraits
  *    that would upscale badly into a 16:9 slot.
- *  - Avatars are initial discs rather than the template's stock headshots.
+ *  - Avatars are initial discs rather than the template's stock headshots, in
+ *    the sections still on placeholder copy. The blog band uses real ones.
  *
- * Everything is a server component. There is no interactivity in the design
- * beyond hover, and the category tabs are presentational — wiring them to real
- * filtering would mean client state this page does not otherwise need.
+ * The hero and the blog section are no longer placeholder: the hero carries the
+ * live homepage's copy, figures and video, and the blog section is fed the
+ * site's real posts and categories. Everything from Features down is still the
+ * template's own words.
+ *
+ * Everything is a server component, including the blog band — its category
+ * pills are links to the existing archives rather than in-page filters, which
+ * is what keeps client state out of a page that otherwise needs none.
  */
 
 /* ---------------------------------------------------------------------------
@@ -92,10 +108,17 @@ function Chip({ children }: { children: React.ReactNode }) {
 }
 
 /** The dark bordered button with a gold arrow, used for every secondary action. */
-function GhostButton({ children, href = '#' }: { children: React.ReactNode; href?: string }) {
+function GhostButton({
+  children,
+  href,
+}: {
+  children: React.ReactNode;
+  /** Defaults to '#' — the sections that are still placeholder have nowhere to go. */
+  href?: string;
+}) {
   return (
     <a
-      href={href}
+      href={href ?? '#'}
       className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
     >
       {children}
@@ -121,11 +144,13 @@ function SectionHead({
   label,
   heading,
   cta,
+  ctaHref,
   id,
 }: {
   label: string;
   heading: string;
   cta?: string;
+  ctaHref?: string;
   id?: string;
 }) {
   return (
@@ -142,7 +167,7 @@ function SectionHead({
             {heading}
           </h2>
         </div>
-        {cta ? <GhostButton>{cta}</GhostButton> : null}
+        {cta ? <GhostButton href={ctaHref}>{cta}</GhostButton> : null}
       </div>
     </div>
   );
@@ -264,6 +289,61 @@ function ImageSlot({ icon, className }: { icon: keyof typeof BRAND_ICONS; classN
  * Sections
  * ------------------------------------------------------------------------- */
 
+/**
+ * The press-logo marquee, ported from the live homepage's `FeaturedOn`.
+ *
+ * Structure is deliberately identical to that one (see nntm/homepage.tsx): eight
+ * duplicated copies of the six logos give a track comfortably wider than any
+ * viewport, so translating by exactly -50% loops seamlessly. Only the first copy
+ * carries alt text; the rest are `aria-hidden`, so a screen reader hears the
+ * logos once rather than eight times.
+ *
+ * THE ANIMATION CLASS IS COPIED CHARACTER FOR CHARACTER, and must stay that way.
+ * The `prefers-reduced-motion` rule in globals.css targets the literal escaped
+ * selector `.animate-\[nt-marquee_100s_linear_infinite\]`, so a different
+ * duration here would still animate for readers who asked for no motion —
+ * silently, since nothing would look wrong in normal browsing.
+ *
+ * The logos are the source art, unfiltered, on Denis's instruction: they are
+ * 500x500 with opaque WHITE backgrounds, so on this dark band they read as white
+ * tiles rather than as floating marks. That is expected and temporary — the
+ * artwork is being replaced. When it is, the fix is transparent logos, not a
+ * filter stack here.
+ */
+function FeaturedOn() {
+  const track = Array.from({ length: 8 }, (_, dup) => dup);
+
+  return (
+    <div className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
+      <div className={CONTAINER}>
+        <Chip>Featured On</Chip>
+      </div>
+
+      <div
+        className="relative mt-8 overflow-hidden
+          [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]
+          [-webkit-mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
+      >
+        <div className="flex w-max animate-[nt-marquee_100s_linear_infinite]">
+          {track.map((dup) => (
+            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-12 pr-12">
+              {IMAGES.featuredOn.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={src}
+                  alt={dup === 0 ? 'Press logo' : ''}
+                  className="h-12 w-auto shrink-0 rounded-md object-contain"
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Hero() {
   return (
     <section aria-labelledby="ft-hero" className="border-b border-[var(--ft-line)]">
@@ -271,7 +351,7 @@ function Hero() {
         {/* Left: the headline column, inset to the container's left edge. */}
         <div className={`${BLEED_INSET} flex flex-col justify-center pr-5 lg:pr-16`}>
           <div className="flex flex-col gap-6 py-16 lg:py-24">
-            <p className="font-[family-name:var(--font-headline)] text-[clamp(1.125rem,2vw,1.5rem)] text-[var(--ft-faint)]">
+            <p className="font-[family-name:var(--font-headline)] text-[clamp(1.125rem,2vw,1.5rem)] text-[var(--ft-accent)]">
               {HERO.eyebrow}
             </p>
             <h1
@@ -359,6 +439,8 @@ function Hero() {
         </div>
       </div>
 
+      <FeaturedOn />
+
       {/* The three proof tiles, one bordered cell each. */}
       <div className="border-t border-[var(--ft-line)]">
         <div className={`${CONTAINER} grid md:grid-cols-3`}>
@@ -434,7 +516,39 @@ function Features() {
   );
 }
 
-function BlogPosts() {
+/**
+ * The post list, fed by the site's real published posts.
+ *
+ * Diverges from the Figma in three ways, all requested:
+ *
+ *  - The left cell is the post's featured image, not its author. The author
+ *    moves under it as a small byline mirroring components/blog/post-byline.tsx,
+ *    so a reader gets the same author treatment here as on the post itself.
+ *  - The like / comment / share pills are gone. They were the template's
+ *    invention; nothing in this schema counts any of them, so they could only
+ *    ever have been decoration that looked like data.
+ *  - The category row is real and each entry is a link to that archive.
+ *
+ * A consequence of the first change worth recording: `PostSummary` carries no
+ * categories (SUMMARY_COLUMNS does not select post_terms — only DETAIL_COLUMNS
+ * does), and the per-post category label lived in the author cell that is now a
+ * thumbnail. So nothing needs it, and widening the shared summary query to serve
+ * a label this layout no longer has would have put a join on every post listing
+ * in the app.
+ */
+function BlogPosts({
+  posts,
+  categories,
+  locale,
+}: {
+  posts: readonly PostSummary[];
+  categories: readonly TermRow[];
+  locale: string;
+}) {
+  // A band with a heading and no posts under it reads as broken, so a site with
+  // nothing published simply does not get this section.
+  if (posts.length === 0) return null;
+
   return (
     <section aria-labelledby="ft-blog">
       <SectionHead
@@ -442,84 +556,125 @@ function BlogPosts() {
         label={BLOG_SECTION.label}
         heading={BLOG_SECTION.heading}
         cta={BLOG_SECTION.cta}
+        ctaHref={blogIndexPath()}
       />
 
       {/*
-        Presentational, not a filter. Marked up as a list rather than buttons so
-        it does not promise an interaction that is not wired up; `aria-current`
-        carries the selected state to a screen reader.
-      */}
-      <div className="border-b border-[var(--ft-line)]">
-        <ul className={`${CONTAINER} flex flex-wrap gap-4 py-10`}>
-          {BLOG_SECTION.tabs.map((tab, i) => (
-            <li
-              key={tab}
-              aria-current={i === 0 ? 'true' : undefined}
-              className={`rounded-[42px] px-7 py-3.5 text-[0.9375rem] ${
-                i === 0
-                  ? 'bg-[var(--ft-bg)] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)]'
-                  : 'text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)]'
-              }`}
-            >
-              {tab}
+       * Links to the archives, not tabs. The design draws them as a tab strip
+       * with "All" selected, and "All" keeps that emphasis because it is where
+       * the whole list lives — but there is deliberately no `aria-current`, since
+       * none of these is the page you are on.
+       */}
+      {categories.length > 0 ? (
+        <nav aria-label="Post categories" className="border-b border-[var(--ft-line)]">
+          <ul className={`${CONTAINER} flex flex-wrap gap-4 py-10`}>
+            <li>
+              <Link
+                href={blogIndexPath()}
+                className="inline-block rounded-[42px] bg-[var(--ft-bg)] px-7 py-3.5 text-[0.9375rem] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)] transition-colors hover:ring-[var(--ft-accent)]"
+              >
+                All
+              </Link>
             </li>
-          ))}
-        </ul>
-      </div>
+            {categories.map((category) => (
+              <li key={category.id}>
+                <Link
+                  href={categoryPath(category.slug)}
+                  className="inline-block rounded-[42px] px-7 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)] transition-colors hover:text-[var(--ft-ink)] hover:ring-[var(--ft-accent)]"
+                >
+                  {category.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
 
-      {BLOG_SECTION.posts.map((post) => (
-        <article key={post.title} className="border-b border-[var(--ft-line)]">
-          <div
-            className={`${CONTAINER} grid gap-8 py-12 lg:grid-cols-[minmax(0,0.6fr)_minmax(0,1.7fr)_auto] lg:items-start lg:gap-14 lg:py-16`}
-          >
-            <div className="flex items-center gap-4">
-              <Avatar name={post.author} className="h-14 w-14 text-base" />
+      {posts.map((post) => {
+        const image = post.featured_image;
+        const author = postAuthorName(post);
+        const avatar = post.byline?.avatar ?? null;
+
+        return (
+          <article key={post.id} className="border-b border-[var(--ft-line)]">
+            <div
+              className={`${CONTAINER} grid gap-8 py-12 lg:grid-cols-[minmax(0,0.6fr)_minmax(0,1.7fr)_auto] lg:items-start lg:gap-14 lg:py-16`}
+            >
               <div>
-                <p className="font-medium text-[var(--ft-ink)]">{post.author}</p>
-                <p className="mt-0.5 text-[1.0625rem] text-[var(--ft-muted)]">{post.category}</p>
+                {/*
+                 * `aria-hidden` + `tabIndex={-1}`, as post-card.tsx does: the
+                 * title below is already a link to the same place, and a screen
+                 * reader should not meet the post twice.
+                 */}
+                <Link href={postPath(post.slug)} aria-hidden="true" tabIndex={-1}>
+                  {image ? (
+                    <Image
+                      src={mediaPublicUrl(image.storage_path)}
+                      alt=""
+                      width={image.width ?? 480}
+                      height={image.height ?? 360}
+                      placeholder={image.blur_data_url ? 'blur' : 'empty'}
+                      blurDataURL={image.blur_data_url ?? undefined}
+                      sizes="(min-width: 1024px) 300px, 100vw"
+                      className="aspect-[4/3] w-full rounded-xl object-cover"
+                    />
+                  ) : (
+                    <ImageSlot icon="orbit" className="aspect-[4/3] w-full" />
+                  )}
+                </Link>
+
+                {author ? (
+                  <div className="mt-5 flex items-center gap-3">
+                    {avatar ? (
+                      <Image
+                        src={mediaPublicUrl(avatar.storage_path)}
+                        alt=""
+                        width={72}
+                        height={72}
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <Avatar name={author} className="h-9 w-9 text-xs" />
+                    )}
+                    <div className="leading-tight">
+                      <p className="font-medium text-[var(--ft-ink)]">{author}</p>
+                      {/* Only an author record carries a role; a plain-text byline has none. */}
+                      {post.byline?.title ? (
+                        <p className="mt-0.5 text-sm text-[var(--ft-muted)]">{post.byline.title}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              <div>
+                <p className="font-medium text-[var(--ft-muted)]">
+                  <time dateTime={post.published_at}>
+                    {formatPostDate(post.published_at, locale)}
+                  </time>
+                </p>
+                <h3 className="mt-3 text-[1.5rem] font-semibold leading-[1.25] text-[var(--ft-ink)]">
+                  <Link href={postPath(post.slug)} className="hover:text-[var(--ft-accent)]">
+                    {post.title}
+                  </Link>
+                </h3>
+                <p className="mt-3 max-w-[70ch] text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
+                  {/* Summaries carry no body, so there is nothing to fall back to. */}
+                  {excerptFor({ excerpt: post.excerpt, content_html: '' }, 200)}
+                </p>
+              </div>
+
+              <div className="lg:pt-10">
+                <GhostButton href={postPath(post.slug)}>View Blog</GhostButton>
               </div>
             </div>
-
-            <div>
-              <p className="font-medium text-[var(--ft-muted)]">{post.date}</p>
-              <h3 className="mt-3 text-[1.5rem] font-semibold leading-[1.25] text-[var(--ft-ink)]">
-                {post.title}
-              </h3>
-              <p className="mt-3 max-w-[70ch] text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
-                {post.excerpt}
-              </p>
-
-              <ul className="mt-6 flex flex-wrap gap-3">
-                <li className="inline-flex items-center gap-2 rounded-full bg-[var(--ft-card)] px-4 py-2 text-[0.9375rem] text-[var(--ft-muted)]">
-                  <HeartIcon
-                    filled={post.liked}
-                    className={`h-[18px] w-[18px] ${post.liked ? 'text-[#FF5500]' : ''}`}
-                  />
-                  {post.likes}
-                  <span className="sr-only"> likes</span>
-                </li>
-                <li className="inline-flex items-center gap-2 rounded-full bg-[var(--ft-card)] px-4 py-2 text-[0.9375rem] text-[var(--ft-muted)]">
-                  <CommentIcon className="h-[18px] w-[18px]" />
-                  {post.comments}
-                  <span className="sr-only"> comments</span>
-                </li>
-                <li className="inline-flex items-center gap-2 rounded-full bg-[var(--ft-card)] px-4 py-2 text-[0.9375rem] text-[var(--ft-muted)]">
-                  <ShareIcon className="h-[18px] w-[18px]" />
-                  {post.shares}
-                  <span className="sr-only"> shares</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="lg:pt-10">
-              <GhostButton>View Blog</GhostButton>
-            </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </section>
   );
 }
+
 
 function Resources() {
   return (
@@ -730,12 +885,20 @@ function Closing() {
 
 /* ------------------------------------------------------------------------- */
 
-export function HomeV2() {
+export function HomeV2({
+  posts,
+  categories,
+  locale,
+}: {
+  posts: readonly PostSummary[];
+  categories: readonly TermRow[];
+  locale: string;
+}) {
   return (
     <div className="ft-surface">
       <Hero />
       <Features />
-      <BlogPosts />
+      <BlogPosts posts={posts} categories={categories} locale={locale} />
       <Resources />
       <Testimonials />
       <Closing />

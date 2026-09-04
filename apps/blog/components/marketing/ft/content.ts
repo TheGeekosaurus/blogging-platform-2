@@ -99,55 +99,6 @@ export const BLOG_SECTION = {
   label: 'A Knowledge Treasure Trove',
   heading: "Explore FutureTech's In-Depth Blog Posts",
   cta: 'View All Blogs',
-  /** The first entry is the selected tab in the design. */
-  tabs: [
-    'All',
-    'Quantum Computing',
-    'AI Ethics',
-    'Space Exploration',
-    'Biotechnology',
-    'Renewable Energy',
-  ],
-  posts: [
-    {
-      author: 'John Techson',
-      category: 'Quantum Computing',
-      date: 'October 15, 2023',
-      title: 'The Quantum Leap in Computing',
-      excerpt:
-        'Explore the revolution in quantum computing, its applications, and its potential ' +
-        'impact on various industries.',
-      liked: true,
-      likes: '24.5k',
-      comments: '50',
-      shares: '20',
-    },
-    {
-      author: 'Sarah Ethicist',
-      category: 'AI Ethics',
-      date: 'November 5, 2023',
-      title: 'The Ethical Dilemmas of AI',
-      excerpt:
-        'A deep dive into ethical challenges posed by AI, including bias, privacy, and ' +
-        'transparency.',
-      liked: false,
-      likes: '32k',
-      comments: '72',
-      shares: '18',
-    },
-    {
-      author: 'Astronomer X',
-      category: 'Space Exploration',
-      date: 'December 10, 2023',
-      title: 'The Mars Colonization Challenge',
-      excerpt:
-        'Exploring the technical and logistical challenges of human colonization on Mars.',
-      liked: false,
-      likes: '20k',
-      comments: '31',
-      shares: '12',
-    },
-  ],
 } as const;
 
 export const RESOURCES = {

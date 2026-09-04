@@ -95,6 +95,12 @@ function revalidateFor(target: Target): string[] | null {
       browsePath(),
       '/sitemap.xml',
       '/feed.xml',
+      // The homepage candidate lists posts too, and it is force-static with no
+      // timer — so without this line publishing would appear to work while
+      // /home-v2 kept serving whatever was published at build time, with no way
+      // to flush it. Delete this when the page is promoted to '/', which is
+      // already above.
+      '/home-v2',
     ];
     for (const path of paths) revalidatePath(path);
 
