@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { Lato, Poppins } from 'next/font/google';
 import Link from 'next/link';
 
-import { absoluteUrl, blogIndexPath, browsePath } from '@blog/core';
+import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core';
 
+import { JsonLd } from '@/components/json-ld';
 import { Analytics } from '@/components/marketing/analytics';
 import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { SiteFooter } from '@/components/marketing/site-footer';
@@ -122,6 +123,21 @@ export default async function RootLayout({
           which it deliberately does not.
         */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+
+        {/*
+          Site-wide structured data, from Settings.
+
+          Here rather than per-route because that is what "site-wide" means: an
+          Organization or WebSite node describes the publisher, not the page,
+          and the pages that most need one — the home page, the marketing
+          pages, the archives — are precisely the routes that emit no
+          structured data of their own. Every one of them goes through this
+          layout.
+
+          A post additionally emits its own BlogPosting and BreadcrumbList.
+          Separate script tags, so neither can invalidate the other.
+        */}
+        <JsonLd nodes={readSnippets(site.structured_data)} />
       </head>
       <body className={marketing ? 'marketing-root' : undefined}>
         {marketing ? <Analytics /> : null}

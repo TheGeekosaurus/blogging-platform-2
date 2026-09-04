@@ -7,6 +7,7 @@ import { sanitizePageHtml, slugify, type PageTemplate, type PostStatus } from '@
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
+import { readStructuredData } from '@/lib/structured-data';
 import { createClient } from '@/lib/supabase/server';
 
 export interface SavePageState {
@@ -68,6 +69,9 @@ export async function savePage(
 
   const submitted = String(formData.get('content_html') ?? '');
 
+  const structured = readStructuredData(formData);
+  if ('error' in structured) return { error: structured.error };
+
   const row = {
     site_id: site.id,
     title,
@@ -82,6 +86,7 @@ export async function savePage(
     seo_title: String(formData.get('seo_title') ?? '').trim() || null,
     seo_description: String(formData.get('seo_description') ?? '').trim() || null,
     noindex: formData.get('noindex') === 'on',
+    structured_data: structured.nodes,
   };
 
   let pageId = id;

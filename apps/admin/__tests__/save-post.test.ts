@@ -203,3 +203,102 @@ describe('savePost — slug is one segment', () => {
     expect(captured.insert?.slug).toBe('my-post');
   });
 });
+
+describe('savePost — schema markup snippets', () => {
+  /**
+   * The panel names every snippet textarea `structured_data`, so what arrives
+   * is repeated entries under one key. The `form()` helper above takes a plain
+   * object and cannot express that, which is the whole shape under test.
+   */
+  function withSnippets(snippets: string[], fields: Record<string, string> = {}): FormData {
+    const data = form({ title: 'T', content_html: '<p>x</p>', ...fields });
+    for (const snippet of snippets) data.append('structured_data', snippet);
+    return data;
+  }
+
+  it('stores nothing when the panel was never opened', async () => {
+    await savePost({}, form({ title: 'T', content_html: '<p>x</p>' }));
+    expect(captured.insert?.structured_data).toEqual([]);
+  });
+
+  it('stores snippets as parsed nodes, in the order they appear', async () => {
+    // Order is the reason the textareas are the fields rather than a serialised
+    // blob: getAll() returns them in document order, so the list a reader gets
+    // is the list the author arranged.
+    await savePost({}, withSnippets([
+      '{"@type":"FAQPage","mainEntity":[]}',
+      '{"@type":"Person","name":"Denis"}',
+    ]));
+
+    expect(captured.insert?.structured_data).toEqual([
+      { '@type': 'FAQPage', mainEntity: [] },
+      { '@type': 'Person', name: 'Denis' },
+    ]);
+  });
+
+  it('drops an emptied textarea instead of failing the save', async () => {
+    // Clearing the box is the obvious way to remove a snippet. Refusing the
+    // save for it would teach authors to distrust the panel.
+    await savePost({}, withSnippets(['{"@type":"Person"}', '   ', '']));
+
+    expect(captured.insert?.structured_data).toEqual([{ '@type': 'Person' }]);
+  });
+
+  it('strips a pasted @context', async () => {
+    await savePost({}, withSnippets(['{"@context":"https://schema.org","@type":"Person"}']));
+
+    expect(captured.insert?.structured_data).toEqual([{ '@type': 'Person' }]);
+  });
+
+  it('refuses the whole save on a malformed snippet, writing nothing', async () => {
+    /*
+     * Not "save the good ones and drop the bad one": the author would see
+     * "Saved", reload, and find their markup gone with no indication why. The
+     * post body is also unwritten here, which is the point — a half-applied
+     * save is worse than a rejected one.
+     */
+    const result = await savePost({}, withSnippets([
+      '{"@type":"FAQPage"}',
+      '{"@type":"Person",}',
+    ]));
+
+    expect(result.error).toMatch(/snippet 2/i);
+    expect(result.error).toMatch(/not valid json/i);
+    expect(captured.insert).toBeUndefined();
+  });
+
+  it('numbers the rejected snippet as the panel labels it', async () => {
+    // Including blanks, so "snippet 3" is the third box on screen and not the
+    // third non-empty one.
+    const result = await savePost({}, withSnippets(['{"@type":"Person"}', '', 'nonsense']));
+
+    expect(result.error).toMatch(/snippet 3/i);
+  });
+
+  it('rejects a node with no @type', async () => {
+    const result = await savePost({}, withSnippets(['{"name":"anonymous"}']));
+
+    expect(result.error).toMatch(/@type/);
+    expect(captured.insert).toBeUndefined();
+  });
+
+  it('rejects a set that is over the page-weight budget', async () => {
+    const fat = JSON.stringify({ '@type': 'Article', text: 'x'.repeat(10 * 1024) });
+    const result = await savePost({}, withSnippets(Array.from({ length: 8 }, () => fat)));
+
+    expect(result.error).toMatch(/64 KB/);
+    expect(captured.insert).toBeUndefined();
+  });
+
+  it('keeps a </script> payload as data rather than rejecting it', async () => {
+    // Legal JSON and legitimate content — an article about script tags. It is
+    // the renderer's escaping that makes it safe, not a ban here.
+    await savePost({}, withSnippets([
+      '{"@type":"Article","headline":"Closing tags: </script>"}',
+    ]));
+
+    expect(captured.insert?.structured_data).toEqual([
+      { '@type': 'Article', headline: 'Closing tags: </script>' },
+    ]);
+  });
+});

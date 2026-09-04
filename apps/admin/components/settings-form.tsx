@@ -5,10 +5,22 @@ import { useActionState, useState, useTransition } from 'react';
 import type { SiteRow } from '@blog/core';
 
 import { flushCache, saveSettings, type SettingsState } from '@/app/actions/site';
+import { StructuredDataPanel } from './editor/structured-data-panel';
 
 const INITIAL: SettingsState = {};
 
-export function SettingsForm({ site }: { site: SiteRow }) {
+export function SettingsForm({
+  site,
+  snippets,
+}: {
+  site: SiteRow;
+  /*
+   * Pre-formatted by the page. The panel is a client component and the stored
+   * value is jsonb, so the JSON.stringify happens once on the server rather
+   * than on every keystroke here.
+   */
+  snippets: string[];
+}) {
   const [state, formAction, pending] = useActionState(saveSettings, INITIAL);
   const [flushState, setFlushState] = useState<SettingsState>({});
   const [flushing, startFlush] = useTransition();
@@ -21,7 +33,12 @@ export function SettingsForm({ site }: { site: SiteRow }) {
             {state.error}
           </p>
         ) : null}
-        {state.saved ? (
+        {state.warning ? (
+          <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {state.warning}
+          </p>
+        ) : null}
+        {state.saved && !state.warning ? (
           <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
             Settings saved.
           </p>
@@ -94,6 +111,8 @@ export function SettingsForm({ site }: { site: SiteRow }) {
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
           />
         </div>
+
+        <StructuredDataPanel variant="site" defaultSnippets={snippets} />
 
         <div>
           <button

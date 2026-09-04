@@ -15,6 +15,20 @@ export type MemberRole = 'owner' | 'admin' | 'editor' | 'author';
 export type TermKind = 'category' | 'tag';
 export type PageTemplate = 'prose' | 'full';
 
+/**
+ * One JSON-LD node, as stored in a `structured_data` column.
+ *
+ * Deliberately `unknown` values rather than a schema.org type map. schema.org
+ * has hundreds of types and permits arbitrary nesting, and authors paste
+ * whatever Google's documentation told them to — a narrower type here would be
+ * a type that lies. The guarantees are enforced at the boundary instead
+ * (parseSnippet on write, readSnippets on read, both in structured-data.ts).
+ *
+ * `@context` is NOT stored: it is identical for every node and re-added when
+ * the script tag is written.
+ */
+export type SchemaNode = Record<string, unknown>;
+
 export type SiteRow = {
   id: string;
   slug: string;
@@ -28,6 +42,14 @@ export type SiteRow = {
   analytics_id: string | null;
   /** Page served at '/'. Null falls back to the post index. */
   homepage_page_id: string | null;
+  /**
+   * Author-written JSON-LD nodes, in the order they should be emitted.
+   *
+   * Validated in TypeScript, not SQL — see structured-data.ts. The database
+   * only guarantees this is an array (0008_structured_data.sql), so read it
+   * through readSnippets() rather than trusting the element shape.
+   */
+  structured_data: SchemaNode[];
   created_at: string;
   updated_at: string;
 }
@@ -58,6 +80,14 @@ export type PostRow = {
   canonical_url: string | null;
   noindex: boolean;
   wp_post_id: number | null;
+  /**
+   * Author-written JSON-LD nodes, in the order they should be emitted.
+   *
+   * Validated in TypeScript, not SQL — see structured-data.ts. The database
+   * only guarantees this is an array (0008_structured_data.sql), so read it
+   * through readSnippets() rather than trusting the element shape.
+   */
+  structured_data: SchemaNode[];
   created_at: string;
   updated_at: string;
 }
@@ -152,6 +182,14 @@ export type PageRow = {
   canonical_url: string | null;
   noindex: boolean;
   sort_order: number;
+  /**
+   * Author-written JSON-LD nodes, in the order they should be emitted.
+   *
+   * Validated in TypeScript, not SQL — see structured-data.ts. The database
+   * only guarantees this is an array (0008_structured_data.sql), so read it
+   * through readSnippets() rather than trusting the element shape.
+   */
+  structured_data: SchemaNode[];
   created_at: string;
   updated_at: string;
 }
@@ -196,13 +234,13 @@ export type Database = {
     Tables: {
       sites: {
         Row: SiteRow;
-        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id' | 'homepage_page_id'>;
+        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id' | 'homepage_page_id' | 'structured_data'>;
         Update: Partial<SiteRow>;
         Relationships: [];
       };
       posts: {
         Row: PostRow;
-        Insert: Writable<PostRow, Generated | 'excerpt' | 'content_html' | 'original_html' | 'status' | 'published_at' | 'author_id' | 'author_name' | 'byline_id' | 'featured_image_id' | 'reading_minutes' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'wp_post_id'>;
+        Insert: Writable<PostRow, Generated | 'excerpt' | 'content_html' | 'original_html' | 'status' | 'published_at' | 'author_id' | 'author_name' | 'byline_id' | 'featured_image_id' | 'reading_minutes' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'wp_post_id' | 'structured_data'>;
         Update: Partial<PostRow>;
         Relationships: [
           {
@@ -300,7 +338,7 @@ export type Database = {
       };
       pages: {
         Row: PageRow;
-        Insert: Writable<PageRow, Generated | 'parent_id' | 'path' | 'content_html' | 'original_html' | 'template' | 'status' | 'published_at' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'sort_order'>;
+        Insert: Writable<PageRow, Generated | 'parent_id' | 'path' | 'content_html' | 'original_html' | 'template' | 'status' | 'published_at' | 'seo_title' | 'seo_description' | 'canonical_url' | 'noindex' | 'sort_order' | 'structured_data'>;
         Update: Partial<PageRow>;
         Relationships: [
           {

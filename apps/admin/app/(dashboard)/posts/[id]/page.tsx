@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { deletePost } from '@/app/actions/posts';
 import { PostForm } from '@/components/editor/post-form';
 import { requireCurrentSite } from '@/lib/current-site';
+import { snippetsToText } from '@/lib/structured-data';
 import {
   getPostForEdit,
   listAllTerms,
@@ -50,6 +51,7 @@ export default async function EditPostPage({
           seo_title: post.seo_title ?? '',
           seo_description: post.seo_description ?? '',
           noindex: post.noindex,
+          structuredData: snippetsToText(post.structured_data),
           termIds: post.termIds,
           featuredImageId: post.featured_image_id,
         }}

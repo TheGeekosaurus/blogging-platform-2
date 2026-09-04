@@ -1,8 +1,10 @@
 import type { Client } from './supabase';
 import { SOCIAL_PLATFORMS } from './database.types';
+import { readSnippets } from './structured-data';
 import type {
   PageRow,
   RedirectRow,
+  SchemaNode,
   SiteRow,
   SocialLinks,
   SocialPlatform,
@@ -90,6 +92,13 @@ export interface PostDetail extends PostSummary {
   canonical_url: string | null;
   noindex: boolean;
   tags: TermRow[];
+  /**
+   * Author-written JSON-LD, emitted alongside the generated nodes.
+   *
+   * Detail-only: nothing on a card or an index reads it, and it is the one
+   * column here that can run to kilobytes.
+   */
+  structured_data: SchemaNode[];
 }
 
 /** Supabase types a to-one embed as possibly-array; normalise it. */
@@ -131,6 +140,7 @@ const SUMMARY_COLUMNS = `
 const DETAIL_COLUMNS = `
   id, slug, title, excerpt, content_html, published_at, author_name,
   reading_minutes, seo_title, seo_description, canonical_url, noindex, updated_at,
+  structured_data,
   featured_image:media(id, storage_path, alt, width, height, blur_data_url),
   ${BYLINE_EMBED},
   ${TERMS_EMBED}
@@ -345,6 +355,7 @@ export async function getPostBySlug(
     seo_description: string | null;
     canonical_url: string | null;
     noindex: boolean;
+    structured_data: unknown;
   };
 
   /*
@@ -358,6 +369,9 @@ export async function getPostBySlug(
     seo_description: row.seo_description,
     canonical_url: row.canonical_url,
     noindex: row.noindex,
+    // Normalised on the way out, not trusted: the column is only guaranteed to
+    // be an array, and this value ends up inside a <script> tag.
+    structured_data: readSnippets(row.structured_data),
     tags: embeddedTerms(row.post_terms).filter((t) => t.kind === 'tag'),
   };
 }

@@ -117,7 +117,12 @@ export default async function PostPage({
 
   return (
     <article className="blog-surface">
-      <PostJsonLd site={site} post={post} description={description} />
+      <PostJsonLd
+        site={site}
+        post={post}
+        description={description}
+        imageUrl={image ? mediaPublicUrl(image.storage_path) : null}
+      />
 
       {/*
         The post section is a FRAME, not a set of floating dividers.
