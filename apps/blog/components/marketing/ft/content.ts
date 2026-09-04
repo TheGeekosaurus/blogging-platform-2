@@ -145,54 +145,16 @@ export const RESOURCES = {
   expertiseLabel: 'Average Author Expertise',
 } as const;
 
+/*
+ * No `items` here any more. The section renders the real SocialJuice wall, so
+ * the template's six invented reviews from a fictional company are gone rather
+ * than sitting unused next to genuine ones. The heading survives because it
+ * happens to describe real reviews just as well as invented ones.
+ */
 export const TESTIMONIALS = {
   label: 'What Our Readers Say',
   heading: 'Real Words from Real Readers',
   cta: 'View All Testimonials',
-  items: [
-    {
-      name: 'Sarah Thompson',
-      location: 'San Francisco, USA',
-      quote:
-        'The ebooks on AI in education have been a game-changer for my research. They provide ' +
-        'in-depth insights and case studies that are invaluable for staying updated.',
-    },
-    {
-      name: 'Raj Patel',
-      location: 'Mumbai, India',
-      quote:
-        'The whitepapers on renewable energy strategies have greatly influenced my work. They ' +
-        'offer detailed data and analysis, helping me make informed decisions.',
-    },
-    {
-      name: 'Emily Adams',
-      location: 'London, UK',
-      quote:
-        'The AI in healthcare reports have been an essential resource for our hospital. They ' +
-        'highlight the latest innovations and best practices, improving patient care.',
-    },
-    {
-      name: 'Alan Jackson',
-      location: 'Houston, USA',
-      quote:
-        'The reports on space mining prospects have fueled my passion for space exploration. ' +
-        'They provide a comprehensive view of what lies beyond Earth.',
-    },
-    {
-      name: 'Jessica Miller',
-      location: 'Boston, USA',
-      quote:
-        "The research papers on genomic breakthroughs have been a goldmine of information. " +
-        "They've shaped the direction of my research in genomics.",
-    },
-    {
-      name: 'Diego Lopez',
-      location: 'Barcelona, Spain',
-      quote:
-        'The ebooks on renewable energy strategies have given me the insights I needed to pivot ' +
-        'our startup toward sustainability.',
-    },
-  ],
 } as const;
 
 export const CLOSING = {

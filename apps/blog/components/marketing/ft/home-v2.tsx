@@ -13,7 +13,8 @@ import {
   type TermRow,
 } from '@blog/core';
 
-import { CTA_HREF, HERO_VIDEO, IMAGES, LOCAL_IMAGES } from '../brand';
+import { CTA_HREF, HERO_VIDEO, IMAGES, LOCAL_IMAGES, REVIEWS } from '../brand';
+import { TestimonialWall } from '../testimonial-wall';
 import {
   ArrowUpRightIcon,
   CrescentIcon,
@@ -24,7 +25,6 @@ import {
   OrbitIcon,
   PrismIcon,
   SparkIcon,
-  StarIcon,
 } from './icons';
 import { BLOG_SECTION, CLOSING, FEATURES, HERO, RESOURCES, TESTIMONIALS } from './content';
 
@@ -111,14 +111,19 @@ function Chip({ children }: { children: React.ReactNode }) {
 function GhostButton({
   children,
   href,
+  external,
 }: {
   children: React.ReactNode;
   /** Defaults to '#' — the sections that are still placeholder have nowhere to go. */
   href?: string;
+  /** Off-site, so it opens in a new tab — the treatment site-header.tsx uses. */
+  external?: boolean;
 }) {
   return (
     <a
       href={href ?? '#'}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
       className="inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
     >
       {children}
@@ -145,12 +150,14 @@ function SectionHead({
   heading,
   cta,
   ctaHref,
+  ctaExternal,
   id,
 }: {
   label: string;
   heading: string;
   cta?: string;
   ctaHref?: string;
+  ctaExternal?: boolean;
   id?: string;
 }) {
   return (
@@ -167,7 +174,11 @@ function SectionHead({
             {heading}
           </h2>
         </div>
-        {cta ? <GhostButton href={ctaHref}>{cta}</GhostButton> : null}
+        {cta ? (
+          <GhostButton href={ctaHref} external={ctaExternal}>
+            {cta}
+          </GhostButton>
+        ) : null}
       </div>
     </div>
   );
@@ -773,6 +784,17 @@ function Resources() {
   );
 }
 
+/**
+ * Real reviews, from the same SocialJuice wall the live homepage embeds.
+ *
+ * The design's six cards are gone — they were the template's invented copy about
+ * a fictional company, and there is no version of that worth keeping next to
+ * genuine reviews. What survives is the section's header band, so the page keeps
+ * its rhythm, with the wall in place of the grid.
+ *
+ * The wall is an iframe, so this page's dark palette cannot reach inside it. Its
+ * theme is set in the SocialJuice dashboard, not here.
+ */
 function Testimonials() {
   return (
     <section aria-labelledby="ft-testimonials">
@@ -781,46 +803,12 @@ function Testimonials() {
         label={TESTIMONIALS.label}
         heading={TESTIMONIALS.heading}
         cta={TESTIMONIALS.cta}
+        ctaHref={REVIEWS.collectUrl}
+        ctaExternal
       />
 
-      <div className={`${CONTAINER} grid border-[var(--ft-line)] sm:grid-cols-2 lg:grid-cols-3`}>
-        {TESTIMONIALS.items.map((item, i) => (
-          <figure
-            key={item.name}
-            className={`flex flex-col items-center gap-6 border-[var(--ft-line)] px-6 py-14 lg:px-10 lg:py-20 ${
-              i % 3 !== 0 ? 'lg:border-l' : ''
-            } ${i % 2 !== 0 ? 'sm:border-l lg:border-l' : 'sm:border-l-0'} ${
-              i >= 3 ? 'lg:border-t' : ''
-            } ${i >= 2 ? 'sm:border-t' : ''} ${i > 0 ? 'border-t sm:border-t-0' : ''}`}
-          >
-            <figcaption className="flex items-center gap-3">
-              <Avatar name={item.name} />
-              <span>
-                <span className="block font-medium text-[var(--ft-ink)]">{item.name}</span>
-                <span className="mt-0.5 block text-[1.0625rem] text-[var(--ft-subtle)]">
-                  {item.location}
-                </span>
-              </span>
-            </figcaption>
-
-            {/*
-              The star pill straddles the card's top edge in the design, so the
-              card carries the top padding and the pill is pulled up over it.
-            */}
-            <div className="relative w-full">
-              <span className="absolute -top-[22px] left-1/2 z-10 inline-flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-[var(--ft-card-raised)] px-5 py-2.5">
-                {Array.from({ length: 5 }, (_, star) => (
-                  <StarIcon key={star} className="h-[18px] w-[18px] text-[var(--ft-accent)]" />
-                ))}
-                <span className="sr-only">5 out of 5</span>
-              </span>
-
-              <blockquote className="rounded-xl bg-[var(--ft-card)] px-7 pb-8 pt-12 text-center text-[1.0625rem] leading-[1.55] text-[var(--ft-ink)]">
-                {item.quote}
-              </blockquote>
-            </div>
-          </figure>
-        ))}
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <TestimonialWall />
       </div>
     </section>
   );

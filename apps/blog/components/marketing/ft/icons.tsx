@@ -13,8 +13,8 @@
  * stay independent of the accent, and `currentColor` only carries one value.
  *
  * The small UI icons at the bottom are hand-drawn on a 24-unit grid. They are
- * generic shapes (arrow, heart, star…) where matching the template exactly buys
- * nothing, and a shared stroke width matters more than provenance.
+ * generic shapes (arrow, eye) where matching the template exactly buys nothing,
+ * and a shared stroke width matters more than provenance.
  */
 
 type IconProps = { className?: string };
@@ -192,14 +192,6 @@ export function EyeIcon({ className }: IconProps) {
     >
       <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
       <circle cx="12" cy="12" r="3" />
-    </svg>
-  );
-}
-
-export function StarIcon({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
-      <path d="m12 2.6 2.9 5.9 6.5.9-4.7 4.6 1.1 6.4-5.8-3-5.8 3 1.1-6.4L2.6 9.4l6.5-.9Z" />
     </svg>
   );
 }

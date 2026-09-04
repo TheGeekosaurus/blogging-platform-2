@@ -66,6 +66,59 @@ describe('brand constants', () => {
   });
 });
 
+describe('the SocialJuice review wall', () => {
+  async function source() {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    return readFileSync(
+      join(__dirname, '..', 'components', 'marketing', 'testimonial-wall.tsx'),
+      'utf8',
+    );
+  }
+
+  it('embeds this account\'s wall', async () => {
+    const { REVIEWS } = await import('../components/marketing/brand');
+
+    expect(REVIEWS.wallUrl).toContain('embed.socialjuice.io/wall/9690');
+    expect(REVIEWS.wallUrl).toContain('s=nntm-capital');
+  });
+
+  /*
+   * The same invisible regression the HighLevel iframe has, and the reason both
+   * are pinned: iframeResizer resolves its target from a selector built off this
+   * id. Change one without the other and the wall still renders — it just never
+   * resizes, staying clipped at initialHeight, with nothing logged anywhere.
+   */
+  it('points the resizer at the id the iframe actually carries', async () => {
+    const code = await source();
+    const id = code.match(/const FRAME_ID = '([^']+)'/)?.[1];
+
+    expect(id, 'FRAME_ID should be a string literal the test can read').toBeTruthy();
+    expect(code).toContain('id={FRAME_ID}');
+    expect(code).toContain('`#${FRAME_ID}`');
+  });
+
+  it('calls the resizer from onLoad, so the library is there when it runs', async () => {
+    const code = await source();
+
+    // Next only guarantees script ORDER for beforeInteractive, so an inline call
+    // beside the <Script src> could run before iFrameResize exists. onLoad is the
+    // documented mechanism — and it is why this component is client-side.
+    expect(code).toContain("strategy=\"afterInteractive\"");
+    expect(code).toContain('onLoad=');
+    expect(code).toMatch(/^'use client';/);
+    // A bare <script src> would be hoisted into <head> and could run too early.
+    expect(code).not.toMatch(/<script\s+src=/);
+  });
+
+  it('reserves a height so the sections below it do not jump', async () => {
+    const { REVIEWS } = await import('../components/marketing/brand');
+
+    expect(REVIEWS.initialHeight).toBeGreaterThan(0);
+    expect(await source()).toContain('height: REVIEWS.initialHeight');
+  });
+});
+
 describe('the HighLevel survey embed', () => {
   async function source() {
     const { readFileSync } = await import('node:fs');
