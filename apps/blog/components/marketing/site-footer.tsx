@@ -29,7 +29,7 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[var(--color-brand)] text-white">
+    <footer className="bg-[var(--color-ground)] text-white">
       <div className="border-b border-white/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-5 py-12 text-center lg:flex-row lg:justify-between lg:px-8 lg:text-left">
           <h2 className="font-[family-name:var(--font-headline)] text-2xl leading-tight sm:text-3xl">

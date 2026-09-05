@@ -36,15 +36,46 @@
   --color-gold-hover: #c68c2e;
 
   /*
+   * THE dark ground, from the /home-v2 design (--ft-bg there).
+   *
+   * Slightly lifted off the #0B0B0C brand ink above, and the difference is not
+   * subtle in place: the site header has been #141414 since /home-v2 landed
+   * while the footer stayed on the ink, so the two ends of every page were
+   * different blacks. That mismatch is what prompted this.
+   *
+   * Declared once here because four surfaces now share it — the header, the
+   * footer, /home-v2 and the blog's dark reading theme. It was already written
+   * out twice as a bare hex before this; a third copy in the footer is how a
+   * palette drifts apart one edit at a time.
+   *
+   * --color-brand stays #0B0B0C. It is still the ground of the ORIGINAL
+   * homepage's dark bands, and repointing it would silently restyle a page
+   * nobody asked to change.
+   */
+  --color-ground: #141414;
+
+  /*
    * Blog reading surface: the brand near-black, per Denis's choice of the
    * ink+gold palette over the template's own dark greys. Separate tokens from
    * --color-surface/--color-ink because those still drive the light marketing
    * pages, and the blog now diverges from them.
    */
-  --color-blog-bg: #0b0b0c;
-  --color-blog-raised: #17171a;
+  --color-blog-bg: var(--color-ground);
+  /*
+   * Raised had to move with the ground, not just track it. It was #17171A
+   * against a #0B0B0C floor — twelve points of separation. On the new ground
+   * that gap is three, which is nothing: cards, code blocks and the author box
+   * would have dissolved into the page. #1A1A1A is /home-v2's own card tone,
+   * so the two surfaces are now the same pair that design already balances.
+   */
+  --color-blog-raised: #1a1a1a;
   --color-blog-ink: #f2f2f3;
   --color-blog-muted: #9a9a9e;
+  /*
+   * Unchanged. #27272B and /home-v2's #262626 differ by five points on one
+   * channel and are indistinguishable in place, so aligning them would be
+   * churn on a rule that was just settled.
+   */
   --color-blog-line: #27272b;
 
   /*
@@ -229,7 +260,8 @@
   .ft-surface {
     color-scheme: dark;
 
-    --ft-bg: #141414;
+    /* The shared ground — see --color-ground. Was a bare #141414 here. */
+    --ft-bg: var(--color-ground);
     --ft-band: #1a1a1a;
     --ft-card: #1a1a1a;
     --ft-card-raised: #262626;
