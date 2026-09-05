@@ -13,7 +13,7 @@ import {
   type TermRow,
 } from '@blog/core';
 
-import { HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
+import { CTA_HREF, HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
 import { CtaButton } from '../cta-button';
 import { HighLevelForm } from '../highlevel-form';
 import { TestimonialWall } from '../testimonial-wall';
@@ -66,12 +66,15 @@ import {
  *
  * Deviations from the brief worth knowing:
  *
- *  - The hero's CTA pair sits in the LEFT column under the paragraph, not in the
- *    video panel. Stripping the panel's placeholder text left the buttons
- *    floating alone over footage; under the headline is both the stronger
- *    placement and where the live homepage puts its CTA.
  *  - "How It Works" is a numbered timeline, not cards, so it cannot be mistaken
  *    for the three-card CTA row directly above it.
+ *
+ * The hero's CTA sits over the video, where the design puts it. It was briefly
+ * moved into the left column alongside a second Loan Calculator button, on the
+ * argument that a lone button over footage looked orphaned once the template's
+ * placeholder text was stripped out — Denis looked at both and kept the design's
+ * arrangement. The placeholder text and avatar discs that used to sit above the
+ * button are gone for good; only the button came back.
  *
  * Everything here is a server component except the review wall, which has to be
  * one to call the iframe resizer — see testimonial-wall.tsx.
@@ -410,18 +413,6 @@ function Hero() {
             <p className="max-w-[62ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-subtle)]">
               {HERO.body}
             </p>
-
-            {/*
-              Both CTAs sit here rather than over the video. Get Funded stays the
-              filled gold button so it keeps the weight; the calculator is the
-              outline variant of the same component the header uses.
-            */}
-            <div className="mt-2 flex flex-wrap items-center gap-4">
-              <CtaButton>{APPLY_LABEL}</CtaButton>
-              <CtaButton variant="outline" href={HERO.secondaryCta.href}>
-                {HERO.secondaryCta.label}
-              </CtaButton>
-            </div>
           </div>
 
           <dl className="grid grid-cols-3 border-t border-[var(--ft-line)]">
@@ -469,8 +460,21 @@ function Hero() {
             aria-hidden="true"
             className="nt-hero-video absolute inset-0 h-full w-full object-cover"
           />
-          {/* Ties the footage into the page ground on both meeting edges. */}
+          {/*
+            Ties the footage into the page ground on both meeting edges, and
+            gives the button below something to sit on.
+
+            Deliberately lighter than the scrim this panel carried when it held
+            the template's placeholder paragraph: that text needed the footage
+            dimmed to 97% at the base to stay legible over moving frames. A
+            button does not — GhostButton paints its own opaque --ft-card — so
+            the video keeps its brightness.
+          */}
           <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(20,20,20,0.75),rgba(20,20,20,0.15))]" />
+
+          <div className="relative flex h-full flex-col items-start justify-end p-8 lg:p-12">
+            <GhostButton href={CTA_HREF}>{APPLY_LABEL}</GhostButton>
+          </div>
         </div>
       </div>
 
