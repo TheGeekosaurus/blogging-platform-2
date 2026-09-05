@@ -128,11 +128,16 @@ export default async function PostPage({
         The post section is a FRAME, not a set of floating dividers.
 
         The four strokes that make it — this bottom line, the two around the
-        byline, the column rule, and the intro rule in globals.css — are the
-        accent colour: gold on the dark ground, copper on the light one. Only
-        those four. Cards, tag pills, the author box and the contents rail keep
-        --color-line, because a page where every border is gold reads as a
-        wireframe rather than a framed article.
+        byline, the column rule, and the intro rule in globals.css — are
+        --color-line, the same quiet grey as every other border on the page.
+
+        They were briefly the accent colour, gold on dark and copper on light.
+        That is reverted: picking the frame out in a bright hue turned a set of
+        dividers into a drawn box, and the page read as boxy rather than as
+        framed prose. The strokes still MEET — that is structural and is what
+        the rest of this comment is about — they just do not announce it.
+        Accent stays where it earns attention: links, list markers, the
+        category label on a card.
 
         Three things make the strokes meet, and none of them is decoration:
 
@@ -162,7 +167,7 @@ export default async function PostPage({
         which 48px is the gutter — so the article is exactly as wide as before
         and the contents list gains the 32px the old `pl-8` was taking.
       */}
-      <div className="post-frame border-b border-[var(--color-accent)]">
+      <div className="post-frame border-b border-[var(--color-line)]">
         <div className="mx-auto w-full max-w-7xl px-5 lg:flex lg:px-8">
           <div className="min-w-0 flex-1 py-12 lg:py-16 lg:pr-[var(--frame-gutter)]">
             {/*
@@ -184,7 +189,7 @@ export default async function PostPage({
                 reach the divider while this row's own content — the name, and
                 the date opposite it — stops a gutter short of it.
               */}
-              <div className="post-rule mt-6 border-y border-[var(--color-accent)] py-4">
+              <div className="post-rule mt-6 border-y border-[var(--color-line)] py-4">
                 <PostByline post={post} locale={site.locale} />
               </div>
 
@@ -286,7 +291,7 @@ export default async function PostPage({
             gives up once stuck is not worth chasing with a fixed offset that
             cannot be right at every width.
           */}
-          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-accent)] lg:py-16 lg:pl-[var(--frame-gutter)]">
+          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-line)] lg:py-16 lg:pl-[var(--frame-gutter)]">
             <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
               <div className="flex shrink-0 flex-col gap-1.5">
                 {/*

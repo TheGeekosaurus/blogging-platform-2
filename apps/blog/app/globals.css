@@ -640,12 +640,13 @@
   }
 
   /*
-   * The accent colour, on the frame stroke only. Scoped to .post-frame rather
-   * than changing the rule that draws it: `.post-body` is also the prose
-   * template for database-backed marketing pages, where --color-accent is the
-   * site blue and a blue line across the page would be nobody's intent.
+   * No colour override here on purpose.
+   *
+   * This rule briefly re-pointed the intro stroke at --color-accent, to make
+   * the frame gold on dark and copper on light. Reverted: the bright frame
+   * read as a drawn box rather than as dividers. Deleting the override rather
+   * than setting it back to --color-line is the point — the base rule at
+   * `.post-body > h2:nth-of-type(2)` already draws it in --color-line, and a
+   * second declaration saying the same thing is one more place to disagree.
    */
-  .post-frame .post-body > h2:nth-of-type(2) {
-    border-top-color: var(--color-accent);
-  }
 }

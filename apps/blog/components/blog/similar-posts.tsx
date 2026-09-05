@@ -13,7 +13,7 @@ import {
 } from '@blog/core';
 
 /**
- * The "Similar News" row beneath a post.
+ * The "Similar Articles" row beneath a post.
  *
  * Card order, from the reference: thumbnail, category and reading time,
  * title, excerpt, rule, then the author opposite the updated date.
@@ -46,13 +46,13 @@ export function SimilarPosts({ posts, locale }: { posts: PostSummary[]; locale: 
             id="similar-heading"
             className="font-[family-name:var(--font-headline)] text-2xl text-[var(--color-ink)] sm:text-3xl"
           >
-            Similar News
+            Similar Articles
           </h2>
           <Link
             href={blogIndexPath()}
             className="inline-flex items-center gap-2 rounded-full border border-[var(--color-line)] px-6 py-3 text-sm font-semibold !text-[var(--color-ink)] no-underline transition-colors hover:border-[var(--color-accent)] hover:!text-[var(--color-accent)]"
           >
-            View All News
+            View All Articles
             <span aria-hidden="true">↗</span>
           </Link>
         </div>
