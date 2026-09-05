@@ -251,3 +251,66 @@ describe('sanitizePageHtml — script execution is still not negotiable', () => 
     expect(out).not.toContain('<input');
   });
 });
+
+describe('sanitizePostHtml — what the Tiptap editor emits for a table', () => {
+  /*
+   * The editor's table output is NOT the shape a hand-written table has, and
+   * the difference matters:
+   *
+   *   - there is no <thead>. ProseMirror's table model has no such node; a
+   *     header row is <th> cells sitting directly in <tbody>.
+   *   - every cell carries explicit colspan="1" rowspan="1".
+   *   - cell content is wrapped in <p>.
+   *
+   * If the allowlist ever tightened around any of that, an author would build
+   * a table, save, and watch it come back as loose paragraphs. This pins the
+   * exact output rather than a tidied-up approximation of it.
+   */
+  const EDITOR_TABLE =
+    '<table><tbody>' +
+    '<tr><th colspan="1" rowspan="1"><p>Term</p></th><th colspan="1" rowspan="1"><p>Rate</p></th></tr>' +
+    '<tr><td colspan="1" rowspan="1"><p>12 months</p></td><td colspan="1" rowspan="1"><p>8%</p></td></tr>' +
+    '</tbody></table>';
+
+  it('survives untouched', () => {
+    expect(sanitizePostHtml(EDITOR_TABLE)).toBe(EDITOR_TABLE);
+  });
+
+  it('keeps header cells that are not inside a thead', () => {
+    const out = sanitizePostHtml(EDITOR_TABLE);
+    expect(out).toContain('<th colspan="1" rowspan="1"><p>Term</p></th>');
+  });
+
+  it('keeps a merged cell', () => {
+    const merged = '<table><tbody><tr><td colspan="2" rowspan="1"><p>Both</p></td></tr></tbody></table>';
+    expect(sanitizePostHtml(merged)).toContain('colspan="2"');
+  });
+
+  it('still drops a script hidden in a cell', () => {
+    const hostile =
+      '<table><tbody><tr><td><p>fine</p><script>alert(1)</script></td></tr></tbody></table>';
+    const out = sanitizePostHtml(hostile);
+
+    expect(out).toContain('<p>fine</p>');
+    expect(out).not.toContain('script');
+  });
+
+  it('drops the column widths the editor is configured never to produce', () => {
+    /*
+     * Tiptap writes `colwidth` and a <colgroup> of inline styles when column
+     * resizing is on. The allowlist permits neither, so resizing is disabled in
+     * the editor rather than widened for here — see the note in
+     * apps/admin/components/editor/rich-text-editor.tsx. This asserts the
+     * boundary that decision rests on.
+     */
+    const resized =
+      '<table><colgroup><col style="width: 200px"></colgroup><tbody>' +
+      '<tr><td colwidth="200" colspan="1" rowspan="1"><p>x</p></td></tr></tbody></table>';
+    const out = sanitizePostHtml(resized);
+
+    expect(out).not.toContain('style');
+    expect(out).not.toContain('colwidth');
+    // The content itself is never the casualty.
+    expect(out).toContain('<p>x</p>');
+  });
+});
