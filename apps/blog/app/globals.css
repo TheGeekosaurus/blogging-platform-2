@@ -258,6 +258,99 @@
   }
 
   /*
+   * The "how it works" timeline, animated as a travelling highlight.
+   *
+   * A sweep rather than a filling progress bar: each numeral brightens, the rule
+   * to its right draws itself left-to-right, and the next numeral takes over.
+   * Elements are staggered by `animation-delay` alone — which is why the
+   * highlight travels rather than accumulating. A version where the trail stayed
+   * lit and cleared all at once would need every element to reach the same
+   * absolute moment in a shared keyframe, and a delay-staggered animation cannot
+   * express that without per-element keyframes.
+   *
+   * Pure CSS, so HowItWorks stays a server component. There is no state here
+   * worth shipping a client boundary for.
+   */
+  @keyframes ft-step-number {
+    0% {
+      opacity: 0.3;
+    }
+    3% {
+      opacity: 1;
+    }
+    18% {
+      opacity: 1;
+    }
+    26% {
+      opacity: 0.3;
+    }
+    100% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes ft-step-line {
+    0% {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    3% {
+      transform: scaleX(0);
+      opacity: 1;
+    }
+    18% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    26% {
+      transform: scaleX(1);
+      opacity: 0;
+    }
+    100% {
+      transform: scaleX(1);
+      opacity: 0;
+    }
+  }
+
+  .ft-step-number {
+    opacity: 0.3;
+    animation: ft-step-number 7.5s linear infinite;
+  }
+
+  .ft-step-fill {
+    transform: scaleX(0);
+    transform-origin: left center;
+    opacity: 0;
+    animation: ft-step-line 7.5s linear infinite;
+  }
+
+  /*
+   * Denis asked for the sweep to stop on hover, and `focus-within` comes with
+   * it: a keyboard user tabbing into the row gets the same pause a mouse user
+   * does, and pausing is the whole point for anyone reading rather than glancing.
+   */
+  .ft-steps:hover .ft-step-number,
+  .ft-steps:hover .ft-step-fill,
+  .ft-steps:focus-within .ft-step-number,
+  .ft-steps:focus-within .ft-step-fill {
+    animation-play-state: paused;
+  }
+
+  /*
+   * The carousel track scrolls but shows no bar: the arrows and the card edges
+   * are the affordance, and a scrollbar under a row of cards reads as a defect
+   * on this design. Still a real scroll container, so trackpads, touch and
+   * keyboard all work.
+   */
+  .ft-carousel-track {
+    scrollbar-width: none;
+  }
+
+  .ft-carousel-track::-webkit-scrollbar {
+    display: none;
+  }
+
+  /*
    * The hero's ray burst, drawn rather than photographed.
    *
    * The template puts a licensed stock image here. Committing one would mean a
@@ -317,6 +410,21 @@
      */
     .nt-marquee-track {
       animation: none !important;
+    }
+
+    /*
+     * The timeline stops sweeping and simply shows every step lit, which is the
+     * state it was communicating anyway. The rules stay undrawn — an animation
+     * frozen mid-draw would read as a rendering fault rather than a design.
+     */
+    .ft-step-number {
+      animation: none !important;
+      opacity: 1;
+    }
+
+    .ft-step-fill {
+      animation: none !important;
+      opacity: 0;
     }
 
     .nt-hero-video {
