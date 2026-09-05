@@ -26,7 +26,6 @@ export const HERO = {
   body:
     "Whether you're a startup, established business, or real estate investor, access " +
     'flexible financing solutions to fuel your next big move.',
-  secondaryCta: { label: 'Loan Calculator', href: '/calc' },
   /*
    * `unit` is split from `value` because the design puts the accent colour on
    * the trailing symbol alone — "2,300" in white, the "+" in gold.
