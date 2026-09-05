@@ -1,185 +1,212 @@
 /**
- * Copy for the /home-v2 design.
+ * Copy for /home-v2.
  *
- * Every string is the Figma template's PLACEHOLDER copy, transcribed verbatim —
- * it is about a fictional AI-news publication, not about Nanotom Capital, and is
- * here so the layout can be judged at its real text lengths before the real
- * words exist. Nothing outside this file needs editing to swap it: the layout in
- * `home-v2.tsx` reads every label, heading and body string from here.
+ * This file is now REAL COPY, not the Figma template's placeholder text. Every
+ * string is Nanotom Capital's, taken from the live GoHighLevel site so the
+ * migration changes presentation and not claims — the funding figures, the
+ * product descriptions and the qualifying criteria are all things the business
+ * says today, and none of them should be reworded here without checking.
  *
- * When you replace a string, keep roughly the same length. The design leans on
- * two- and three-line headings and on the four feature cards being of a similar
- * size; copy that is much shorter leaves cells looking empty, and much longer
- * pushes the two-column blocks out of alignment.
+ * The layout in `home-v2.tsx` reads every label, heading and body string from
+ * here, so re-copywriting the page never means touching the markup.
+ *
+ * Several blocks are duplicated from `components/marketing/nntm/homepage.tsx`
+ * rather than shared with it. That is deliberate and unchanged from the hero:
+ * one is the live page and the other is a draft of its replacement, and a shared
+ * constant would mean editing the live homepage to iterate on this one. When a
+ * figure changes, change it in both.
  */
 
-/*
- * The hero is REAL COPY, not placeholder — the first section retrofitted to the
- * business. Every string below is the live homepage's, verbatim: the eyebrow,
- * headline and paragraph from its <Hero>, and the three figures from its
- * <TrackRecord>. Both live in components/marketing/nntm/homepage.tsx. If a
- * number changes there, change it here too; there is deliberately no shared
- * constant, because the two pages are a live one and a draft of its
- * replacement, and coupling them would mean editing the live homepage to
- * iterate on this one.
- *
- * `unit` is split from `value` because the design puts the accent colour on the
- * trailing symbol alone — "2,300" in white, the "+" in gold.
- */
+/** Every "Get Funded" on the page. */
+export const APPLY_LABEL = 'Get Funded';
+
 export const HERO = {
   eyebrow: 'Entrepreneurs & Business Owners',
   heading: 'Get The Capital Your Business Needs To Grow',
   body:
     "Whether you're a startup, established business, or real estate investor, access " +
     'flexible financing solutions to fuel your next big move.',
+  secondaryCta: { label: 'Loan Calculator', href: '/calc' },
+  /*
+   * `unit` is split from `value` because the design puts the accent colour on
+   * the trailing symbol alone — "2,300" in white, the "+" in gold.
+   */
   stats: [
     { value: '2,300', unit: '+', label: 'businesses funded since 2012' },
     // The live homepage writes this '$36+ M'. Same figure, conventional order.
     { value: '$36M', unit: '+', label: 'provided in financing' },
     { value: '4.7', unit: ' Stars', label: 'from happy customers' },
   ],
-  card: {
-    title: 'Explore 1000+ resources',
-    body: 'Over 1,000 articles on emerging tech trends and breakthroughs.',
-    cta: 'Get Funded',
-  },
-  /** `icon` keys map to the brand icons in ./icons. */
+  /** `icon` keys map to the icons in ./icons via the map in home-v2.tsx. */
   tiles: [
     {
-      icon: 'spark',
-      title: 'Latest News Updates',
-      subtitle: 'Stay Current',
-      note: 'Over 1,000 articles published monthly',
+      icon: 'coins',
+      title: 'Explore Funding Options',
+      subtitle: 'Find Your Fit',
+      note: '$15K to $5M across 6 funding types',
+      href: '/funding-solutions',
     },
     {
-      icon: 'clover',
-      title: 'Expert Contributors',
-      subtitle: 'Trusted Insights',
-      note: '50+ renowned AI experts on our team',
+      icon: 'calculator',
+      title: 'Loan Calculator',
+      subtitle: 'Run The Numbers',
+      note: 'Estimate your payment in under 60 seconds',
+      href: '/calc',
     },
     {
-      icon: 'leaf',
-      title: 'Global Readership',
-      subtitle: 'Worldwide Impact',
-      note: '2 million monthly readers',
+      icon: 'growth',
+      title: 'DIY Programs',
+      subtitle: 'Get Funding-Ready',
+      note: 'Self-paced courses in credit repair, credit 101, and budgeting',
+      href: '/programs',
     },
   ],
 } as const;
 
-export const FEATURES = {
-  label: 'Unlock the Power of',
-  heading: 'FutureTech Features',
-  blocks: [
+export const HOW_IT_WORKS = {
+  heading: 'Funding that moves at your speed.',
+  steps: [
     {
-      icon: 'orbit',
-      title: 'Future Technology Blog',
-      body: 'Stay informed with our blog section dedicated to future technology.',
-      cards: [
-        { title: 'Quantity', body: 'Over 1,000 articles on emerging tech trends and breakthroughs.' },
-        { title: 'Variety', body: 'Articles cover fields like AI, robotics, biotechnology, and more.' },
-        { title: 'Frequency', body: 'Fresh content added daily to keep you up to date.' },
-        { title: 'Authoritative', body: 'Written by our team of tech experts and industry professionals.' },
+      title: 'Complete the application.',
+      body: 'Our streamlined process is designed to be completed in just minutes.',
+    },
+    {
+      title: 'Get a decision.',
+      body: 'Work with an expert loan advisor to choose the best option for you.',
+    },
+    {
+      title: 'Receive your funds.',
+      body: 'Sign your contract and get funds as soon as the same day.',
+    },
+  ],
+} as const;
+
+export const FUNDING_OPTIONS = {
+  label: 'The Nanotom Capital Advantage',
+  heading: 'Funding Options Built to Work for You.',
+  cards: [
+    {
+      title: 'The Ultimate Revolving Line of Credit',
+      body:
+        "Get the financial flexibility your business demands with BANKROLL's " +
+        'industry-leading revolving credit line. Access up to $1,500,000 in capital with ' +
+        'the freedom to draw funds when you need them and pay down principal when cash ' +
+        'flow allows.',
+      /** Each point leads with a bolded label, so they are split rather than parsed. */
+      points: [
+        { label: 'Massive Credit Limits', body: 'Approvals up to $1,500,000' },
+        {
+          label: 'True Flexibility',
+          body: 'Unlimited draws and paydowns of $5,000+ during your 1-year revolving period',
+        },
+        { label: 'Predictable Payments', body: 'Fixed weekly payments over terms up to 36 months' },
+        {
+          label: 'Complete Control',
+          body: 'You decide when to borrow, how much to pay, and when to pay off',
+        },
+        { label: 'No Penalties', body: 'Early payoff available anytime without fees' },
+        {
+          label: 'Smart Financing',
+          body: 'Pay interest only on what you use, with no minimum finance charges',
+        },
       ],
+      tag: 'Great for keeping funds on hand',
+      cta: { label: 'Learn More', href: '/funding-solutions/line-of-credit' },
     },
     {
-      icon: 'prism',
-      title: 'Research Insights Blogs',
-      body: 'Dive deep into future technology concepts with our research section.',
-      cards: [
-        { title: 'Depth', body: '500+ research articles for in-depth understanding.' },
-        { title: 'Graphics', body: 'Visual aids and infographics to enhance comprehension.' },
-        { title: 'Trends', body: 'Explore emerging trends in future technology research.' },
-        { title: 'Contributors', body: 'Contributions from tech researchers and academics.' },
+      title: 'Pay Only The Interest For Up To A Year',
+      body:
+        'Access up to $750,000 with the ultimate cash flow solution. Pay only interest for ' +
+        'up to one full year while enjoying unlimited access to additional funds through ' +
+        'your built-in line of credit.',
+      points: [
+        { label: 'Lower Entry Point', body: 'Start with just $50,000 (reduced from $150,000)' },
+        { label: 'Interest-Only Freedom', body: 'Pay only interest for up to 52 weeks' },
+        {
+          label: 'Built-In Line of Credit',
+          body: 'Unlimited draws of $25,000+ during your interest-only period',
+        },
+        {
+          label: 'Maximum Flexibility',
+          body: 'Take your initial loan in multiple draws across consecutive business days',
+        },
+        {
+          label: 'Safety Net Included',
+          body: 'Built-in rollover amortization option up to 2 years',
+        },
+        {
+          label: 'Smart Structure',
+          body: 'Your credit line equals the difference between your approval and initial draw',
+        },
       ],
+      tag: null,
+      /*
+       * The interest-only product is the closest fit among the five funding
+       * types in the nav; there is no dedicated page for it yet.
+       */
+      cta: { label: 'Learn More', href: '/funding-solutions/revenue-based-financing' },
     },
   ],
 } as const;
 
-export const BLOG_SECTION = {
-  label: 'A Knowledge Treasure Trove',
-  heading: "Explore FutureTech's In-Depth Blog Posts",
-  cta: 'View All Blogs',
-} as const;
-
-export const RESOURCES = {
-  label: 'Your Gateway to In-Depth Information',
-  heading: "Unlock Valuable Knowledge with FutureTech's Resources",
-  cta: 'View All Resources',
-  blocks: [
-    {
-      icon: 'crescent',
-      title: 'Ebooks',
-      body: 'Explore our collection of ebooks covering a wide spectrum of future technology topics.',
-      cta: 'Download Ebooks Now',
-      downloadedBy: '10k + Users',
-      topicsTitle: 'Variety of Topics',
-      topicsBody:
-        'Topics include AI in education (25%), renewable energy (20%), healthcare (15%), ' +
-        'space exploration (25%), and biotechnology (15%).',
-      totalLabel: 'Total Ebooks',
-      totalValue: 'Over 100 ebooks',
-      expertise: 'Ebooks are authored by renowned experts with an average of 15 years of experience',
-    },
-    {
-      icon: 'facet',
-      title: 'Whitepapers',
-      body: 'Dive into comprehensive reports and analyses with our collection of whitepapers.',
-      cta: 'Download Whitepapers Now',
-      downloadedBy: '10k + Users',
-      topicsTitle: 'Topics Coverage',
-      topicsBody:
-        'Whitepapers cover quantum computing (20%), AI ethics (15%), space mining prospects ' +
-        '(20%), AI in healthcare (15%), and renewable energy strategies (30%).',
-      totalLabel: 'Total Whitepapers',
-      totalValue: 'Over 50 whitepapers',
-      expertise:
-        'Whitepapers are authored by subject matter experts with an average of 20 years of ' +
-        'experience.',
-    },
+export const QUALIFIER = {
+  label: 'Get Started',
+  heading: 'Not Sure What Is Best for You?',
+  points: [
+    'Answer a few simple questions',
+    'We will look at your particular situation',
+    "We'll send you some recommendations",
   ],
-  /** Shared by both blocks — the labels do not vary in the design. */
-  formatsLabel: 'Download Formats',
-  formatsValue: 'PDF format for access.',
-  previewLabel: 'Preview',
-  downloadedByLabel: 'Downloaded By',
-  expertiseLabel: 'Average Author Expertise',
 } as const;
 
-/*
- * No `items` here any more. The section renders the real SocialJuice wall, so
- * the template's six invented reviews from a fictional company are gone rather
- * than sitting unused next to genuine ones. The heading survives because it
- * happens to describe real reviews just as well as invented ones.
- */
+export const USE_CASES = {
+  heading: 'What can you do with funding from Nanotom Capital?',
+  body:
+    'No matter your goal, our in-house loan advisors can help you choose a financing ' +
+    'solution — no middleman or delays.',
+  items: [
+    { icon: 'inventory', label: 'Purchase inventory' },
+    { icon: 'payroll', label: 'Cover payroll' },
+    { icon: 'expand', label: 'Expand or renovate' },
+    { icon: 'marketing', label: 'Launch marketing campaigns' },
+    { icon: 'cashflow', label: 'Stabilize cash flow' },
+    { icon: 'equipment', label: 'Upgrade equipment' },
+    { icon: 'hiring', label: 'Hire more employees' },
+    { icon: 'consolidate', label: 'Consolidate business debt' },
+  ],
+} as const;
+
+export const REQUIREMENTS = {
+  heading: 'Are we a match? Check our minimum requirements.',
+  /** Same value/unit split as the hero stats, for the same reason. */
+  stats: [
+    { lead: 'As little as', value: '30 Days', trail: 'in business' },
+    { lead: 'Be on the approved', value: 'Industries', trail: 'list' },
+    { lead: 'Minimum', value: '551', trail: 'personal FICO® score' },
+  ],
+  note: "We look beyond your credit score to say 'Yes' when others won't.",
+  /*
+   * The callout catches a visitor at the moment they read the numbers above and
+   * count themselves out. It is the page's second conversion path, not a
+   * footnote, which is why it gets its own panel rather than small print.
+   */
+  callout: {
+    heading: 'Below 551, or under 30 days in business?',
+    body:
+      'Our DIY programs walk you through credit repair, business credit, and budgeting so ' +
+      'you can come back approval-ready.',
+    cta: { label: 'Browse Programs', href: '/programs' },
+  },
+} as const;
+
 export const TESTIMONIALS = {
-  label: 'What Our Readers Say',
-  heading: 'Real Words from Real Readers',
+  label: 'Testimonials',
+  heading: 'What Others Are Saying',
   cta: 'View All Testimonials',
 } as const;
 
-export const CLOSING = {
-  label: 'Learn, Connect, and Innovate',
-  heading: 'Be Part of the Future Tech Revolution',
-  body:
-    'Immerse yourself in the world of future technology. Explore our comprehensive resources, ' +
-    'connect with fellow tech enthusiasts, and drive innovation in the industry. Join a ' +
-    'dynamic community of forward-thinkers.',
-  cards: [
-    {
-      title: 'Resource Access',
-      body: 'Visitors can access a wide range of resources, including ebooks, whitepapers, reports.',
-    },
-    {
-      title: 'Community Forum',
-      body:
-        'Join our active community forum to discuss industry trends, share insights, and ' +
-        'collaborate with peers.',
-    },
-    {
-      title: 'Tech Events',
-      body:
-        'Stay updated on upcoming tech events, webinars, and conferences to enhance your ' +
-        'knowledge.',
-    },
-  ],
+export const BLOG_SECTION = {
+  label: 'Insights & Guides',
+  heading: 'From the Nanotom Capital Blog',
+  cta: 'View All Blogs',
 } as const;

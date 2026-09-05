@@ -53,6 +53,27 @@ const nextConfig: NextConfig = {
     ],
   },
 
+  /*
+   * The loan calculator, proxied so it answers on this domain.
+   *
+   * A REWRITE, not a redirect: the URL stays /calc, so the hero button, the CTA
+   * card and the nav can all point at one path on one domain while the app
+   * itself keeps running where it already runs.
+   *
+   * Deliberately one-way. calc.nanotomcapital.com is left up and untouched —
+   * pointing it back here would build a chain that has to be unpicked when the
+   * rest of the redirects land at domain transfer. That is one pass, later.
+   *
+   * Two rules because `trailingSlash: true` means /calc/ and /calc/anything are
+   * different matches, and a single :path* would not cover the bare path.
+   */
+  async rewrites() {
+    return [
+      { source: '/calc', destination: 'https://calc.nanotomcapital.com' },
+      { source: '/calc/:path*', destination: 'https://calc.nanotomcapital.com/:path*' },
+    ];
+  },
+
   async redirects() {
     return loadRedirects();
   },

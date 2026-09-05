@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { CtaButton } from './cta-button';
-import { CONTACT, LOCAL_IMAGES, NAV, type NavItem } from './brand';
+import { LOCAL_IMAGES, NAV, type NavItem } from './brand';
 import { MobileNav } from './mobile-nav';
 
 function DesktopItem({ item }: { item: NavItem }) {
@@ -106,27 +106,12 @@ export function SiteHeader() {
           </ul>
         </nav>
 
-        <div className="ml-auto hidden shrink-0 items-center gap-7 lg:flex">
-          <a
-            href={CONTACT.phoneHref}
-            className="inline-flex items-center gap-2 font-mono text-sm text-white no-underline hover:text-[var(--color-gold)]"
-          >
-            <svg
-              className="h-[15px] w-[15px] text-[var(--color-gold)]"
-              viewBox="0 0 24 24"
-              fill="none"
-              aria-hidden="true"
-            >
-              <path
-                d="M6.6 10.8c1.4 2.8 3.7 5.1 6.5 6.5l2.2-2.2a1 1 0 0 1 1-.25c1.1.36 2.3.55 3.5.55a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.2.19 2.4.55 3.5a1 1 0 0 1-.25 1L6.6 10.8Z"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            {CONTACT.phone}
-          </a>
+        {/*
+          The phone number used to sit here beside the CTA. It now lives only in
+          the footer: two numbers competing in the header split the click, and
+          the header's job is to get people into the application.
+        */}
+        <div className="ml-auto hidden shrink-0 items-center lg:flex">
           <CtaButton className="!px-8 !py-3 !text-sm" />
         </div>
 

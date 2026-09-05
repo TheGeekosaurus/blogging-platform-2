@@ -11,7 +11,9 @@ import {
 } from '@blog/core';
 
 import { JsonLd } from '@/components/json-ld';
+import { STUB_PAGES } from '@/components/marketing/brand';
 import { PageBody } from '@/components/page-body';
+import { isMarketingSite } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 
 /*
@@ -33,12 +35,25 @@ export async function generateStaticParams() {
   return paths.map((path) => ({ path: path.split('/') }));
 }
 
+
+/**
+ * The heading for a path that is linked in the nav but has no page yet, or null.
+ *
+ * Gated on the marketing site for the same reason the rest of the coded chrome
+ * is: `apps/blog` runs once per blog from one codebase, and another blog's
+ * domain must not start answering /funding-solutions with a Nanotom heading.
+ */
+function stubHeading(path: string): string | null {
+  if (!isMarketingSite()) return null;
+  return STUB_PAGES[path] ?? null;
+}
+
 async function load(paramsPromise: Promise<{ path?: string[] }>) {
   const { path } = await paramsPromise;
   const joined = (path ?? []).map((segment) => decodeURIComponent(segment)).join('/');
   const site = await getSite();
   const page = joined ? await getPageByPath(getClient(), site.id, joined) : null;
-  return { site, page };
+  return { site, page, path: joined };
 }
 
 export async function generateMetadata({
@@ -46,8 +61,14 @@ export async function generateMetadata({
 }: {
   params: Promise<{ path?: string[] }>;
 }): Promise<Metadata> {
-  const { page } = await load(params);
-  if (!page) return {};
+  const { page, path } = await load(params);
+
+  if (!page) {
+    const heading = stubHeading(path);
+    // noindex, because an empty page in the index is worse than no page at all.
+    // `follow` stays on so the header and footer links here are still crawled.
+    return heading ? { title: heading, robots: { index: false, follow: true } } : {};
+  }
 
   const description =
     page.seo_description ?? truncateWords(htmlToPlainText(page.content_html), 160);
@@ -71,9 +92,25 @@ export default async function Page({
 }: {
   params: Promise<{ path?: string[] }>;
 }) {
-  const { page } = await load(params);
+  const { page, path } = await load(params);
 
   if (!page) {
+    /*
+     * A real page at this path always wins — this only runs when the lookup
+     * found nothing. So publishing content here retires the stub by itself;
+     * there is no route file anyone has to remember to delete.
+     */
+    const heading = stubHeading(path);
+    if (heading) {
+      return (
+        <article className="mx-auto w-full max-w-3xl px-5 py-24">
+          <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
+            {heading}
+          </h1>
+        </article>
+      );
+    }
+
     notFound();
   }
 

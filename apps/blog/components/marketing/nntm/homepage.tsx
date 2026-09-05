@@ -192,7 +192,7 @@ function FeaturedOn() {
           [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]
           [-webkit-mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
       >
-        <div className="flex w-max animate-[nt-marquee_100s_linear_infinite]">
+        <div className="nt-marquee-track flex w-max animate-[nt-marquee_100s_linear_infinite]">
           {track.map((dup) => (
             <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-12 pr-12">
               {IMAGES.featuredOn.map((src, i) => (

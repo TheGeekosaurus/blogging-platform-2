@@ -240,7 +240,6 @@
     --ft-subtle: #7e7e81;
 
     --ft-accent: #e0a840;
-    --ft-icon-dim: #404040;
 
     background-color: var(--ft-bg);
     color: var(--ft-ink);
@@ -308,7 +307,15 @@
    * `poster` would show — so the hero keeps its design and loses the motion.
    */
   @media (prefers-reduced-motion: reduce) {
-    .animate-\[nt-marquee_100s_linear_infinite\] {
+    /*
+     * Targets a plain class, not the escaped Tailwind arbitrary-value selector
+     * `.animate-\[nt-marquee_100s_linear_infinite\]` it used to name. That
+     * selector matched one exact duration string, so changing a marquee's speed
+     * silently dropped this guard — no visible breakage, just motion for readers
+     * who asked for none. Both marquees now carry `nt-marquee-track` and run at
+     * different speeds; this cannot rot the same way.
+     */
+    .nt-marquee-track {
       animation: none !important;
     }
 

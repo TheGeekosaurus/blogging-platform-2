@@ -84,12 +84,15 @@ export const CONTACT = {
   legalEntity: 'Nanotom LLC',
 } as const;
 
-export const SOCIAL = [
-  { label: 'Instagram', href: 'https://www.instagram.com/' },
-  { label: 'Facebook', href: 'https://www.facebook.com/' },
-  { label: 'LinkedIn', href: 'https://www.linkedin.com/' },
-  { label: 'YouTube', href: 'https://www.youtube.com/' },
-] as const;
+/*
+ * SOCIAL is gone rather than fixed.
+ *
+ * It listed instagram.com, facebook.com, linkedin.com and youtube.com — the
+ * networks' own home pages, not this company's profiles, carried over from the
+ * HighLevel template. A footer icon that takes a visitor to Instagram's logged-out
+ * splash page is worse than no icon, so the row is removed until real profile
+ * URLs exist. Add them back here and restore the block in site-footer.tsx.
+ */
 
 export type NavItem = {
   label: string;
@@ -99,29 +102,80 @@ export type NavItem = {
 };
 
 /**
- * The live nav's "Funding Solutions" and "Industries" dropdown items all point
- * at `#new-menu-item` — HighLevel's placeholder for a menu entry whose page was
- * never built. Rather than ship seven dead links, those entries carry no href
- * and render as plain text. Give them real pages and add the href.
+ * The main navigation.
+ *
+ * Every dropdown entry used to be href-less — HighLevel's placeholder for a menu
+ * item whose page was never built — and rendered as greyed-out text. They now
+ * point at real paths, all of which resolve: the ones without content yet are
+ * served as noindex stubs by the pages catch-all (see STUB_PAGES below), so
+ * there are no dead links in the header.
+ *
+ * The Loan Calculator is no longer an external link to the calc subdomain. It is
+ * /calc on this domain, proxied by a rewrite in next.config.ts, so the header,
+ * the hero and the CTA card all point at one path. The subdomain still works and
+ * is deliberately left up — retiring it belongs with the other redirects at
+ * domain transfer, not here.
  */
 export const NAV: readonly NavItem[] = [
   {
     label: 'Funding Solutions',
+    href: '/funding-solutions',
     children: [
-      { label: 'Business Loans' },
-      { label: 'Line of Credit' },
-      { label: 'Revenue-Based Financing' },
-      { label: 'Working Capital' },
-      { label: 'Equipment Financing' },
+      { label: 'Business Loans', href: '/funding-solutions/business-loans' },
+      { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
+      { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
+      { label: 'Working Capital', href: '/funding-solutions/working-capital' },
+      { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
     ],
   },
   {
     label: 'Industries',
-    children: [{ label: 'Food Business' }, { label: 'Construction Business' }],
+    href: '/industries',
+    children: [
+      { label: 'Food Business', href: '/industries/food-business' },
+      { label: 'Construction Business', href: '/industries/construction-business' },
+    ],
   },
-  { label: 'Loan Calculator', href: 'https://calc.nanotomcapital.com/', external: true },
+  { label: 'Loan Calculator', href: '/calc' },
   { label: 'Programs', href: '/programs' },
 ] as const;
+
+/**
+ * Paths that must resolve but have no content yet.
+ *
+ * Served by the pages catch-all as a heading and nothing else, `noindex` so an
+ * empty page never reaches the index. Deliberately NOT eight new route files:
+ * every one of these is destined to become a real database page, and the moment
+ * someone publishes a page at the same path it wins, because the catch-all only
+ * falls back to this map when the lookup finds nothing. So the stub disappears
+ * on its own — nobody has to remember to delete a route.
+ *
+ * The value is the <h1>, which matches the nav label that leads here.
+ */
+export const STUB_PAGES: Readonly<Record<string, string>> = {
+  /*
+   * These two are not new nav items — they were already linked from the header,
+   * the footer and every CTA on the site, and both were returning 404 in
+   * production when this was written. `get-funded` is CTA_HREF, i.e. the
+   * destination of the primary button on every page.
+   *
+   * A heading-only stub is not a fix for that, it just stops the bleeding. The
+   * application page needs real content, and it needs it before this design goes
+   * anywhere near '/'.
+   */
+  'get-funded': 'Get Funded',
+  programs: 'Programs',
+
+  'funding-solutions': 'Funding Solutions',
+  'funding-solutions/business-loans': 'Business Loans',
+  'funding-solutions/line-of-credit': 'Line of Credit',
+  'funding-solutions/revenue-based-financing': 'Revenue-Based Financing',
+  'funding-solutions/working-capital': 'Working Capital',
+  'funding-solutions/equipment-financing': 'Equipment Financing',
+  industries: 'Industries',
+  'industries/food-business': 'Food Business',
+  'industries/construction-business': 'Construction Business',
+};
 
 /** Footer policy row. Every one of these is a real, live page. */
 export const POLICY_LINKS = [
