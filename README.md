@@ -2,7 +2,7 @@
 
 A fast, statically-rendered website with a blog. Content lives in Postgres and is
 published from a browser; pages are prerendered and served from cache, so a
-visitor request never touches the database.
+visitor request never touches the database..
 
 URL structure:
 
