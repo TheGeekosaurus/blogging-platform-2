@@ -17,6 +17,7 @@ import { HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
 import { CtaButton } from '../cta-button';
 import { HighLevelForm } from '../highlevel-form';
 import { TestimonialWall } from '../testimonial-wall';
+import { FundingCarousel } from './funding-carousel';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -528,21 +529,33 @@ function HowItWorks() {
       <div className={`${CONTAINER} py-16 lg:py-24`}>
         <PlainHead id="ft-how" heading={HOW_IT_WORKS.heading} />
 
-        <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
+        {/*
+         * The sweep is staggered purely by `animation-delay`, computed here so
+         * the order lives with the markup rather than in five CSS rules: numeral,
+         * its rule, the next numeral, and so on, 1.2s apart.
+         */}
+        <ol className="ft-steps mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
           {HOW_IT_WORKS.steps.map((step, i) => (
             <li key={step.title} className="flex flex-col gap-5">
               <div className="flex items-center gap-5">
                 <span
                   aria-hidden="true"
-                  className="font-[family-name:var(--font-headline)] text-[2.75rem] font-semibold leading-none text-[var(--ft-accent)] opacity-40"
+                  style={{ animationDelay: `${i * 2.4}s` }}
+                  className="ft-step-number font-[family-name:var(--font-headline)] text-[2.75rem] font-semibold leading-none text-[var(--ft-accent)]"
                 >
                   {String(i + 1).padStart(2, '0')}
                 </span>
                 {i < HOW_IT_WORKS.steps.length - 1 ? (
                   <span
                     aria-hidden="true"
-                    className="hidden h-px flex-1 bg-[var(--ft-line)] md:block"
-                  />
+                    className="relative hidden h-px flex-1 bg-[var(--ft-line)] md:block"
+                  >
+                    {/* Drawn over the resting rule, so the rule never disappears. */}
+                    <span
+                      style={{ animationDelay: `${i * 2.4 + 1.2}s` }}
+                      className="ft-step-fill absolute inset-0 block bg-[var(--ft-accent)]"
+                    />
+                  </span>
                 ) : null}
               </div>
 
@@ -572,11 +585,17 @@ function FundingOptions() {
       />
 
       <div className={`${CONTAINER} py-14 lg:py-20`}>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <FundingCarousel label={FUNDING_OPTIONS.heading}>
           {FUNDING_OPTIONS.cards.map((card) => (
             <article
               key={card.title}
-              className="flex flex-col gap-6 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-8 lg:p-10"
+              /*
+               * The card keeps the width it had as half of a two-column grid, so
+               * the carousel changes how many exist and how they move, not how
+               * they look. `shrink-0` is what makes the flex track scroll rather
+               * than squeeze four cards into the viewport.
+               */
+              className="flex w-full shrink-0 snap-start flex-col gap-6 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-8 lg:w-[calc(50%-0.75rem)] lg:p-10"
             >
               <div>
                 <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.375rem,2.4vw,1.75rem)] font-semibold leading-[1.2] text-[var(--ft-ink)]">
@@ -611,7 +630,7 @@ function FundingOptions() {
               </div>
             </article>
           ))}
-        </div>
+        </FundingCarousel>
 
         <ApplyRow className="mt-14" />
       </div>
@@ -735,8 +754,6 @@ function Requirements() {
             </CtaButton>
           </div>
         </div>
-
-        <ApplyRow className="mt-14" />
       </div>
     </section>
   );

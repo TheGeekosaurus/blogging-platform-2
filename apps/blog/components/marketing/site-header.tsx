@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { CtaButton } from './cta-button';
+import { HeaderShell } from './header-shell';
 import { LOCAL_IMAGES, NAV, type NavItem } from './brand';
 import { MobileNav } from './mobile-nav';
 
@@ -74,18 +75,19 @@ function DesktopItem({ item }: { item: NavItem }) {
 }
 
 /**
- * Ink-glass header: near-black at 72% opacity with a 14px backdrop blur,
- * matching the design refresh. Sticky rather than the floating pill the design
- * kit sketches for the homepage specifically — this component is shared by
- * every marketing route (blog, programs, get-funded), and reserving its own
- * flow height keeps every one of those pages' spacing simple and keeps the
- * homepage statically prerenderable (a route-aware floating variant would need
- * per-request pathname branching in the root layout, which forces the whole
- * marketing site off `force-static`).
+ * The site header. Opaque at the top of the page, ink-glass once scrolled — see
+ * HeaderShell, which owns that one piece of state and nothing else.
+ *
+ * Sticky rather than the floating pill the design kit sketches for the homepage
+ * specifically: this component is shared by every marketing route (blog,
+ * programs, get-funded), and reserving its own flow height keeps every one of
+ * those pages' spacing simple and keeps the homepage statically prerenderable
+ * (a route-aware floating variant would need per-request pathname branching in
+ * the root layout, which forces the whole marketing site off `force-static`).
  */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[rgba(11,11,12,0.72)] backdrop-blur-[14px]">
+    <HeaderShell>
       <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center py-3 no-underline">
           <Image
@@ -119,6 +121,6 @@ export function SiteHeader() {
           <MobileNav />
         </div>
       </div>
-    </header>
+    </HeaderShell>
   );
 }

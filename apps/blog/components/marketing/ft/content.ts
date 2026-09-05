@@ -146,6 +146,51 @@ export const FUNDING_OPTIONS = {
        */
       cta: { label: 'Learn More', href: '/funding-solutions/revenue-based-financing' },
     },
+
+    /*
+     * PLACEHOLDERS — REPLACE BEFORE THIS PAGE GOES ANYWHERE PUBLIC.
+     *
+     * Two lorem ipsum cards, added at Denis's request so the carousel can be
+     * judged at four cards rather than two. They are real lorem ipsum, which
+     * means they will read as finished copy to anyone skimming: this is the one
+     * thing on the page that must not survive to launch, and the reason they are
+     * flagged here rather than quietly blended in.
+     *
+     * Replacing them is this array and nothing else — the carousel takes however
+     * many cards it is given.
+     */
+    {
+      title: 'Lorem Ipsum Dolor Sit Amet',
+      body:
+        'Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore ' +
+        'magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+      points: [
+        { label: 'Lorem Ipsum', body: 'Dolor sit amet consectetur adipiscing' },
+        { label: 'Sed Do Eiusmod', body: 'Tempor incididunt ut labore et dolore magna' },
+        { label: 'Ut Enim Ad Minim', body: 'Veniam quis nostrud exercitation ullamco' },
+        { label: 'Duis Aute Irure', body: 'Dolor in reprehenderit in voluptate velit esse' },
+        { label: 'Excepteur Sint', body: 'Occaecat cupidatat non proident sunt in culpa' },
+        { label: 'Qui Officia', body: 'Deserunt mollit anim id est laborum' },
+      ],
+      tag: null,
+      cta: { label: 'Learn More', href: '/funding-solutions' },
+    },
+    {
+      title: 'Nulla Pariatur Excepteur Sint',
+      body:
+        'Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id ' +
+        'est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.',
+      points: [
+        { label: 'Accusantium Doloremque', body: 'Laudantium totam rem aperiam eaque ipsa' },
+        { label: 'Quae Ab Illo', body: 'Inventore veritatis et quasi architecto beatae' },
+        { label: 'Vitae Dicta Sunt', body: 'Explicabo nemo enim ipsam voluptatem quia' },
+        { label: 'Voluptas Sit', body: 'Aspernatur aut odit aut fugit sed quia' },
+        { label: 'Consequuntur Magni', body: 'Dolores eos qui ratione voluptatem sequi' },
+        { label: 'Nesciunt Neque', body: 'Porro quisquam est qui dolorem ipsum quia' },
+      ],
+      tag: null,
+      cta: { label: 'Learn More', href: '/funding-solutions' },
+    },
   ],
 } as const;
 
