@@ -1,8 +1,10 @@
 import type { Client } from './supabase';
 import { SOCIAL_PLATFORMS } from './database.types';
+import { readSnippets } from './structured-data';
 import type {
   PageRow,
   RedirectRow,
+  SchemaNode,
   SiteRow,
   SocialLinks,
   SocialPlatform,
@@ -47,6 +49,9 @@ export interface Byline {
   slug: string;
   name: string;
   title: string | null;
+  /** Only the author box renders these two; the byline row shows `title`. */
+  bio: string | null;
+  social: SocialLinks;
   avatar: { id: string; storage_path: string; alt: string | null } | null;
 }
 
@@ -65,6 +70,19 @@ export interface PostSummary {
   byline: Byline | null;
   reading_minutes: number | null;
   featured_image: FeaturedImage | null;
+  /**
+   * Last edited. Cards show this rather than `published_at`, matching the post
+   * page — see components/blog/post-byline.tsx.
+   */
+  updated_at: string;
+  /**
+   * This post's OWN categories.
+   *
+   * Added because the related-post cards were being handed the *current* post's
+   * category for every card, so all three showed the same one whatever they
+   * were filed under.
+   */
+  categories: TermRow[];
 }
 
 export interface PostDetail extends PostSummary {
@@ -73,9 +91,14 @@ export interface PostDetail extends PostSummary {
   seo_description: string | null;
   canonical_url: string | null;
   noindex: boolean;
-  updated_at: string;
-  categories: TermRow[];
   tags: TermRow[];
+  /**
+   * Author-written JSON-LD, emitted alongside the generated nodes.
+   *
+   * Detail-only: nothing on a card or an index reads it, and it is the one
+   * column here that can run to kilobytes.
+   */
+  structured_data: SchemaNode[];
 }
 
 /** Supabase types a to-one embed as possibly-array; normalise it. */
@@ -98,20 +121,29 @@ function one<T>(value: T | T[] | null | undefined): T | null {
  * foreign key would make `featured_image:media(...)` ambiguous.
  */
 const BYLINE_EMBED =
-  'byline:authors(id, slug, name, title, avatar:media(id, storage_path, alt))';
+  'byline:authors(id, slug, name, title, bio, social, avatar:media(id, storage_path, alt))';
+
+/*
+ * Categories and tags arrive as one embed and are split by `kind` after the
+ * fact, exactly as the detail query does.
+ */
+const TERMS_EMBED =
+  'post_terms(term:terms(id, site_id, kind, slug, name, description, parent_id, created_at, updated_at))';
 
 const SUMMARY_COLUMNS = `
-  id, slug, title, excerpt, published_at, author_name, reading_minutes,
+  id, slug, title, excerpt, published_at, updated_at, author_name, reading_minutes,
   featured_image:media(id, storage_path, alt, width, height, blur_data_url),
-  ${BYLINE_EMBED}
+  ${BYLINE_EMBED},
+  ${TERMS_EMBED}
 `;
 
 const DETAIL_COLUMNS = `
   id, slug, title, excerpt, content_html, published_at, author_name,
   reading_minutes, seo_title, seo_description, canonical_url, noindex, updated_at,
+  structured_data,
   featured_image:media(id, storage_path, alt, width, height, blur_data_url),
   ${BYLINE_EMBED},
-  post_terms(term:terms(id, site_id, kind, slug, name, description, parent_id, created_at, updated_at))
+  ${TERMS_EMBED}
 `;
 
 function fail(context: string, error: { message: string }): never {
@@ -126,8 +158,10 @@ interface RawSummary {
   published_at: string;
   author_name: string | null;
   reading_minutes: number | null;
+  updated_at: string;
   featured_image: FeaturedImage | FeaturedImage[] | null;
   byline: RawByline | RawByline[] | null;
+  post_terms: Array<{ term: TermRow | TermRow[] | null }> | null;
 }
 
 /** As it arrives: both embeds may be typed as arrays. */
@@ -136,6 +170,8 @@ interface RawByline {
   slug: string;
   name: string;
   title: string | null;
+  bio: string | null;
+  social: SocialLinks | null;
   avatar:
     | { id: string; storage_path: string; alt: string | null }
     | Array<{ id: string; storage_path: string; alt: string | null }>
@@ -154,8 +190,19 @@ function toSummary(row: RawSummary): PostSummary {
     // it. Supabase types both as possibly-array.
     byline: toByline(one(row.byline)),
     reading_minutes: row.reading_minutes,
+    updated_at: row.updated_at,
     featured_image: one(row.featured_image),
+    categories: embeddedTerms(row.post_terms).filter((t) => t.kind === 'category'),
   };
+}
+
+/** Flatten the post_terms embed into the terms themselves. */
+function embeddedTerms(
+  rows: Array<{ term: TermRow | TermRow[] | null }> | null | undefined,
+): TermRow[] {
+  return (rows ?? [])
+    .map((entry) => one(entry.term))
+    .filter((term): term is TermRow => term !== null);
 }
 
 function toByline(row: RawByline | null): Byline | null {
@@ -165,6 +212,9 @@ function toByline(row: RawByline | null): Byline | null {
     slug: row.slug,
     name: row.name,
     title: row.title,
+    bio: row.bio,
+    // jsonb defaults to '{}' in the column, but a null still typechecks.
+    social: row.social ?? {},
     avatar: one(row.avatar),
   };
 }
@@ -305,14 +355,13 @@ export async function getPostBySlug(
     seo_description: string | null;
     canonical_url: string | null;
     noindex: boolean;
-    updated_at: string;
-    post_terms: Array<{ term: TermRow | TermRow[] | null }> | null;
+    structured_data: unknown;
   };
 
-  const terms = (row.post_terms ?? [])
-    .map((entry) => one(entry.term))
-    .filter((term): term is TermRow => term !== null);
-
+  /*
+   * `toSummary` already resolved updated_at and the categories from the same
+   * embed, so only the tags are left to split out here.
+   */
   return {
     ...toSummary(row),
     content_html: row.content_html,
@@ -320,9 +369,10 @@ export async function getPostBySlug(
     seo_description: row.seo_description,
     canonical_url: row.canonical_url,
     noindex: row.noindex,
-    updated_at: row.updated_at,
-    categories: terms.filter((t) => t.kind === 'category'),
-    tags: terms.filter((t) => t.kind === 'tag'),
+    // Normalised on the way out, not trusted: the column is only guaranteed to
+    // be an array, and this value ends up inside a <script> tag.
+    structured_data: readSnippets(row.structured_data),
+    tags: embeddedTerms(row.post_terms).filter((t) => t.kind === 'tag'),
   };
 }
 

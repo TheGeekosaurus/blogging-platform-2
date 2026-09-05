@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { pagePath, type PageRow, type SiteRow } from '@blog/core';
 
 import { savePage, type SavePageState } from '@/app/actions/pages';
+import { StructuredDataPanel } from './editor/structured-data-panel';
 import type { PageListItem } from '@/lib/queries';
 
 const INITIAL: SavePageState = {};
@@ -20,6 +21,8 @@ export interface PageFormValues {
   seo_title: string;
   seo_description: string;
   noindex: boolean;
+  /** One pretty-printed JSON-LD node per snippet, in emission order. */
+  structuredData: string[];
   /** Current live path, for the preview line. */
   path?: string;
 }
@@ -200,6 +203,8 @@ export function PageForm({
           </label>
         </div>
       </details>
+
+      <StructuredDataPanel variant="page" defaultSnippets={values.structuredData} />
 
       <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
         <label htmlFor="status" className="text-sm font-medium">

@@ -17,6 +17,7 @@ import {
   tagPath,
 } from '@blog/core';
 
+import { AuthorBox } from '@/components/blog/author-box';
 import { Breadcrumbs } from '@/components/blog/breadcrumbs';
 import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
@@ -114,36 +115,56 @@ export default async function PostPage({
   // One trail, two renderings: this nav and the BreadcrumbList in PostJsonLd.
   const crumbs = postBreadcrumbs(site, post, primaryCategory);
 
-  const primaryCategoryFor = new Map(
-    related.flatMap((item) => {
-      const term = post.categories[0];
-      return term ? [[item.id, term] as const] : [];
-    }),
-  );
-
   return (
     <article className="blog-surface">
-      <PostJsonLd site={site} post={post} description={description} />
+      <PostJsonLd
+        site={site}
+        post={post}
+        description={description}
+        imageUrl={image ? mediaPublicUrl(image.storage_path) : null}
+      />
 
       {/*
-        Three columns: contents, article, metadata.
+        The post section is a FRAME, not a set of floating dividers.
 
-        Fixed side rails with a flexible centre, rather than the percentages this
-        started with. Percentages scale the rails along with the viewport, which
-        at the narrow end squeezes them below the width their content needs; the
-        article is the only column that genuinely wants the slack, so it takes
-        all of it. The prose keeps its own 68ch cap regardless, so a wide window
-        buys margin rather than a 100-character line.
+        The four strokes that make it — this bottom line, the two around the
+        byline, the column rule, and the intro rule in globals.css — are the
+        accent colour: gold on the dark ground, copper on the light one. Only
+        those four. Cards, tag pills, the author box and the contents rail keep
+        --color-line, because a page where every border is gold reads as a
+        wireframe rather than a framed article.
 
-        The breakpoint for three columns is `xl` (1280), not `lg`. At 1024 the
-        two rails and their gutters take 636 of the available 984px, leaving the
-        article about 350px — three columns simply do not fit, so that range
-        keeps the two-column arrangement with the contents list above the
-        article instead.
+        Three things make the strokes meet, and none of them is decoration:
+
+        1. The bottom rule lives on this wrapper, which is full-bleed, so it
+           runs edge to edge and gives the vertical rule something to land on.
+           It is here rather than left to <SimilarPosts> because a post with no
+           related posts renders no SimilarPosts at all — and the frame must
+           still close. The two coincide when both are present, as they do in
+           the Figma, where the columns and the following section each carry a
+           stroke at that line.
+
+        2. The vertical padding is INSIDE each column rather than on the row.
+           Padding on the row would hold both columns short of the header and
+           the bottom line, which no amount of border-placement can recover.
+
+        3. There is no `gap`. Both columns pad themselves by --frame-gutter
+           instead, so each column's BOX ends exactly at the divider while its
+           content sits a gutter clear of it. A `gap` cannot do that: it holds
+           the whole box away, taking the strokes with it — which is how
+           everything here ended up 48px short of the rule it should meet.
+           The rules bleed back out over that padding (see .post-rule in
+           globals.css), so they land on the divider and only the content is
+           inset.
+
+        Widths are unchanged by all this. The old arrangement spent 48px of gap
+        plus a 352px rail; this one spends 400px on the sidebar wrapper, of
+        which 48px is the gutter — so the article is exactly as wide as before
+        and the contents list gains the 32px the old `pl-8` was taking.
       */}
-      <div className="mx-auto w-full max-w-7xl px-5 lg:px-8">
-        <div className="flex flex-col gap-12 py-12 lg:flex-row lg:gap-12 lg:py-16">
-          <div className="min-w-0 flex-1">
+      <div className="post-frame border-b border-[var(--color-accent)]">
+        <div className="mx-auto w-full max-w-7xl px-5 lg:flex lg:px-8">
+          <div className="min-w-0 flex-1 py-12 lg:py-16 lg:pr-[var(--frame-gutter)]">
             {/*
               The post's top matter, in the reading column rather than a
               full-bleed band above it. Removing the hero also removed a whole
@@ -157,7 +178,13 @@ export default async function PostPage({
                 {post.title}
               </h1>
 
-              <div className="mt-6 border-y border-[var(--color-line)] py-4">
+              {/*
+                `post-rule` runs both strokes out to the screen edge on the
+                left and over the column's right padding on the right, so they
+                reach the divider while this row's own content — the name, and
+                the date opposite it — stops a gutter short of it.
+              */}
+              <div className="post-rule mt-6 border-y border-[var(--color-accent)] py-4">
                 <PostByline post={post} locale={site.locale} />
               </div>
 
@@ -181,7 +208,7 @@ export default async function PostPage({
                     start at a different place on every post.
                   */
                   className="mt-8 aspect-video w-full rounded-xl object-cover"
-                  sizes="(min-width: 1280px) 740px, 100vw"
+                  sizes="(min-width: 1280px) 768px, 100vw"
                 />
               ) : null}
             </header>
@@ -199,10 +226,14 @@ export default async function PostPage({
               className="mb-10 lg:hidden"
             />
 
-            <div
-              className="post-body max-w-[68ch]"
-              dangerouslySetInnerHTML={{ __html: bodyHtml }}
-            />
+            {/*
+              No width cap here. It used to be `max-w-[68ch]`, which also
+              capped the h2 — and so the rule drawn above the second one, which
+              is why that line was short. The reading measure now lives on the
+              prose's text children (see .blog-surface .post-body in
+              globals.css), leaving headings free to span the column.
+            */}
+            <div className="post-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
 
             {post.tags.length > 0 ? (
               <footer className="mt-12 border-t border-[var(--color-line)] pt-6">
@@ -220,24 +251,32 @@ export default async function PostPage({
                 </p>
               </footer>
             ) : null}
+
+            {/*
+              Only with an author RECORD. A post carrying just a free-text
+              byline gets nothing: a box with one name, an empty photo frame and
+              no bio advertises missing data rather than earning trust.
+            */}
+            {post.byline ? <AuthorBox byline={post.byline} /> : null}
+
           </div>
 
           {/*
-            Metadata only now that the contents list has its own column — Denis
-            has plans for the space this frees.
+            The sidebar is TWO nested boxes, and the nesting is the fix for the
+            rule that used to float.
 
-            Still sticky: it is short enough to sit in the viewport whole, which
-            is precisely what stopped being true once the contents list shared
-            the column. `self-start` is required for sticky inside a flex row.
-          */}
-          {/*
-            One sidebar, holding the contents list and the reading-theme control.
+            The outer one is an ordinary flex child, so it stretches to the
+            row's full height and its left border runs from the header boundary
+            to the bottom line. The border cannot live on the sticky element: a
+            sticky, `self-start`, `max-h`-bounded box is by definition only as
+            tall as its own content, so its border was only ever as long as the
+            contents list.
 
-            The aside is the bounded, sticky box and the contents list scrolls
-            INSIDE it — two separate elements, because `overflow` on an ancestor
-            breaks `position: sticky` for its descendants, so one element cannot
-            be both. The theme control sits above the list and outside the scroll
-            area, so it stays put however long the list is.
+            The inner one is the bounded sticky box, with the contents list
+            scrolling inside it — still two elements, because `overflow` on an
+            ancestor breaks `position: sticky` for its descendants. The theme
+            control sits above the list and outside the scroll area, so it stays
+            put however long the list is.
 
             `max-h` is sized for the rail's NATURAL top, not the 96px it settles
             at once stuck. Before it sticks it sits below that — ~137px at 1280
@@ -247,29 +286,32 @@ export default async function PostPage({
             gives up once stuck is not worth chasing with a fixed offset that
             cannot be right at every width.
           */}
-          <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:w-[320px] lg:shrink-0 lg:flex-col lg:self-start">
-            <div className="flex shrink-0 flex-col gap-1.5">
-              {/*
-                aria-hidden, not decorative: the control carries its own sr-only
-                legend with this wording, so both in the tree announces it twice.
-              */}
-              <span aria-hidden="true" className="text-sm text-[var(--color-ink-muted)]">
-                Reading theme
-              </span>
-              <ThemeToggle />
-            </div>
+          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-accent)] lg:py-16 lg:pl-[var(--frame-gutter)]">
+            <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
+              <div className="flex shrink-0 flex-col gap-1.5">
+                {/*
+                  aria-hidden, not decorative: the control carries its own
+                  sr-only legend with this wording, so both in the tree
+                  announces it twice.
+                */}
+                <span aria-hidden="true" className="text-sm text-[var(--color-ink-muted)]">
+                  Reading theme
+                </span>
+                <ThemeToggle />
+              </div>
 
-            <TableOfContents
-              groups={headingGroups}
-              variant="rail"
-              id="toc-rail"
-              className="mt-8 hidden min-h-0 flex-1 lg:flex"
-            />
-          </aside>
+              <TableOfContents
+                groups={headingGroups}
+                variant="rail"
+                id="toc-rail"
+                className="mt-8 hidden min-h-0 flex-1 lg:flex"
+              />
+            </aside>
+          </div>
         </div>
       </div>
 
-      <SimilarPosts posts={related} categoryFor={primaryCategoryFor} />
+      <SimilarPosts posts={related} locale={site.locale} />
     </article>
   );
 }

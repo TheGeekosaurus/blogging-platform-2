@@ -6,9 +6,11 @@ import {
   htmlToPlainText,
   listPublishedPagePaths,
   pagePath,
+  readSnippets,
   truncateWords,
 } from '@blog/core';
 
+import { JsonLd } from '@/components/json-ld';
 import { STUB_PAGES } from '@/components/marketing/brand';
 import { PageBody } from '@/components/page-body';
 import { isMarketingSite } from '@/lib/marketing';
@@ -112,16 +114,32 @@ export default async function Page({
     notFound();
   }
 
+  /*
+   * A page's own structured data, and all it gets.
+   *
+   * No generated nodes here, unlike a post. A page is any shape at all — a
+   * landing page, a policy, a pricing table — so there is no Article to infer
+   * and no breadcrumb trail rendered above it to mirror. Whatever a page should
+   * claim to be, it claims explicitly, which is what the editor panel is for.
+   */
+  const snippets = <JsonLd nodes={readSnippets(page.structured_data)} />;
+
   // A 'full' page owns the whole viewport. It gets no container at all — which
   // is now literally true, since the root layout stopped supplying one.
   if (page.template === 'full') {
-    return <PageBody page={page} />;
+    return (
+      <>
+        {snippets}
+        <PageBody page={page} />
+      </>
+    );
   }
 
   // 'prose' pages supply the reading column themselves. It used to come from the
   // root layout, which no longer wraps anything.
   return (
     <article className="mx-auto w-full max-w-3xl px-5 py-10">
+      {snippets}
       <h1 className="mb-8 text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
         {page.title}
       </h1>

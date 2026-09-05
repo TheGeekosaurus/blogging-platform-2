@@ -31,6 +31,7 @@ export default async function NewPostPage() {
           seo_title: '',
           seo_description: '',
           noindex: false,
+          structuredData: [],
           termIds: [],
           featuredImageId: null,
         }}
