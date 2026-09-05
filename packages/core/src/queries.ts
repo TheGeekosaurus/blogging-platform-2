@@ -3,6 +3,7 @@ import { SOCIAL_PLATFORMS } from './database.types';
 import { readSnippets } from './structured-data';
 import type {
   PageRow,
+  PostStatus,
   RedirectRow,
   SchemaNode,
   SiteRow,
@@ -25,6 +26,27 @@ import { termsWithPosts } from './terms';
  * call site, and it means these queries stay correct if ever run with a
  * service-role client (which bypasses RLS).
  */
+
+/**
+ * Whether a post or page is currently served to the public.
+ *
+ * The same rule the `.eq('status', 'published').lte('published_at', now)` pairs
+ * below apply, expressed once for callers that hold a row rather than a query —
+ * the admin, which needs to decide whether a row HAS a live URL before offering
+ * a link to it.
+ *
+ * Both halves matter. `status = 'published'` alone is not enough: the
+ * `*_published_needs_date` constraints require a date but do not require it to
+ * be in the past, so a row can sit published-with-a-future-date and 404 for
+ * everyone. Linking to that is worse than showing no link.
+ */
+export function isLive(row: {
+  status: PostStatus;
+  published_at: string | null;
+}): boolean {
+  if (row.status !== 'published' || !row.published_at) return false;
+  return new Date(row.published_at).getTime() <= Date.now();
+}
 
 export const POSTS_PER_PAGE = 10;
 

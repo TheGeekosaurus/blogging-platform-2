@@ -1,8 +1,9 @@
 import Link from 'next/link';
 
-import { codedRoutesFor, pagePath, pageUrl, type PostStatus } from '@blog/core';
+import { codedRoutesFor, isLive, pagePath, pageUrl, type PostStatus } from '@blog/core';
 
 import { setHomepage } from '@/app/actions/pages';
+import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listPages } from '@/lib/queries';
 
@@ -79,6 +80,19 @@ export default async function PagesPage() {
                     homepage
                   </span>
                 ) : null}
+                {/*
+                  Absent on a draft, a scheduled page, or one dated in the
+                  future: the blog serves none of those, so the icon would lead
+                  to a 404 and the author could not tell whether the link or
+                  their page was broken.
+                */}
+                {isLive(page) ? (
+                  <ViewLiveLink
+                    href={pageUrl(site, pagePath(page.path))}
+                    label={page.title}
+                    className="ml-auto"
+                  />
+                ) : null}
               </li>
             );
           })}
@@ -113,14 +127,13 @@ export default async function PagesPage() {
                     not in sitemap
                   </span>
                 ) : null}
-                <a
+                {/* The same control as the rows above — a screen showing two
+                    different affordances for one action reads as two actions. */}
+                <ViewLiveLink
                   href={pageUrl(site, pagePath(route.path))}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="ml-auto text-sm underline"
-                >
-                  View live ↗
-                </a>
+                  label={route.title}
+                  className="ml-auto"
+                />
               </li>
             ))}
           </ul>

@@ -1,7 +1,8 @@
 import Link from 'next/link';
 
-import { formatPostDate, type PostStatus } from '@blog/core';
+import { formatPostDate, isLive, pageUrl, postPath, type PostStatus } from '@blog/core';
 
+import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listAllTerms, listPosts, POSTS_PER_PAGE } from '@/lib/queries';
 
@@ -138,6 +139,17 @@ export default async function PostsPage({
                   ? formatPostDate(post.published_at, site.locale)
                   : `edited ${formatPostDate(post.updated_at, site.locale)}`}
               </span>
+              {/*
+                Only when the post is actually served. `ml-auto` moved to the
+                date above, so the icon sits after it rather than fighting it
+                for the same push.
+              */}
+              {isLive(post) ? (
+                <ViewLiveLink
+                  href={pageUrl(site, postPath(post.slug))}
+                  label={post.title}
+                />
+              ) : null}
             </li>
           ))}
         </ul>
