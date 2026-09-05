@@ -71,6 +71,48 @@
     border-radius: 0.375rem;
   }
 
+  /*
+   * Tables.
+   *
+   * Borders are not decoration here: without them a table in a contenteditable
+   * is indistinguishable from a run of paragraphs, and there is no other cue
+   * telling an author which cell the caret is in. These roughly mirror the
+   * blog's own table styling so the editor previews what gets published.
+   */
+  .prose-editor table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    table-layout: fixed;
+    overflow: hidden;
+  }
+
+  .prose-editor th,
+  .prose-editor td {
+    border: 1px solid #cbd5e1;
+    padding: 0.375rem 0.5rem;
+    vertical-align: top;
+    /* Cells are the only place in this editor a caret can land inside a box
+       with its own width; without this a long word pushes the column open. */
+    min-width: 3rem;
+    position: relative;
+  }
+
+  .prose-editor th {
+    background: #f1f5f9;
+    font-weight: 600;
+    text-align: left;
+  }
+
+  /* ProseMirror's own class for a cell inside the current selection. */
+  .prose-editor .selectedCell::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(29, 78, 216, 0.12);
+    pointer-events: none;
+  }
+
   /* Placeholder for an empty document. */
   .prose-editor p.is-editor-empty:first-child::before {
     content: 'Write your post…';

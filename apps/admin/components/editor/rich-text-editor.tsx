@@ -2,6 +2,7 @@
 
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+import { TableKit } from '@tiptap/extension-table';
 import { EditorContent, useEditor, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useState } from 'react';
@@ -17,10 +18,28 @@ import { MediaPicker } from './media-picker';
  * sanitiser strips is silent data loss at save time — the author sees it in the
  * editor, saves, and it vanishes.
  *
- * Two alignments to preserve:
+ * THE RULE RUNS BOTH WAYS, and the second direction is the one that bit us.
+ * Anything the SANITISER allows but the editor cannot represent is data loss at
+ * LOAD time: ProseMirror parses incoming HTML against its schema and silently
+ * drops what it has no node for, so opening such a post and saving it writes
+ * the loss back to the database.
+ *
+ * That is exactly what happened to tables. The sanitiser has allowed
+ * table/thead/tbody/tr/th/td since the beginning and the importer carried them
+ * through intact — but there was no table extension here, so every imported
+ * table survived the import and died the first time someone opened the post in
+ * this editor. `posts.original_html` is the only reason they are recoverable.
+ *
+ * Alignments to preserve:
  *   - Headings start at h2. The sanitiser drops h1 because the page template
  *     owns the only h1 on the page.
  *   - Link and Image are explicit because the sanitiser allows <a> and <img>.
+ *   - TableKit is configured `resizable: false`. Column resizing writes
+ *     `colwidth` attributes and a <colgroup> of inline styles, and the
+ *     sanitiser allows neither `style` anywhere nor `colwidth` on cells — so
+ *     resizing would appear to work and be gone on save. Widening the
+ *     allowlist for it would trade a real XSS boundary for a nicety; tables
+ *     render full-width on the blog regardless.
  */
 
 function ToolbarButton({
@@ -77,6 +96,11 @@ export function RichTextEditor({
         protocols: ['http', 'https', 'mailto', 'tel'],
       }),
       Image.configure({ inline: false }),
+      /*
+       * resizable: false — see the note at the top. Also `HTMLAttributes: {}`
+       * by default, so no editor-only classes reach the stored HTML.
+       */
+      TableKit.configure({ table: { resizable: false } }),
     ],
     content: defaultValue,
     onUpdate: ({ editor: instance }) => setHtml(instance.getHTML()),
@@ -202,7 +226,94 @@ export function RichTextEditor({
         >
           Image
         </ToolbarButton>
+        <ToolbarButton
+          editor={editor}
+          label="Insert table"
+          active={editor.isActive('table')}
+          onClick={() =>
+            editor
+              .chain()
+              .focus()
+              // A header row by default: the blog styles <th> distinctly, and a
+              // table whose first row is not marked up as headers is the single
+              // most common accessibility fault in pasted content.
+              .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+              .run()
+          }
+        >
+          Table
+        </ToolbarButton>
       </div>
+
+      {/*
+        Table controls, shown only inside a table.
+
+        A second row rather than six more buttons in the main toolbar: every one
+        of these is meaningless with the caret anywhere else, and a permanently
+        visible row of disabled buttons is noise on every post that has no
+        table at all.
+      */}
+      {editor.isActive('table') ? (
+        <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-100 p-2">
+          <span className="mr-1 text-xs font-medium text-slate-500">Table</span>
+          <ToolbarButton
+            editor={editor}
+            label="Add row below"
+            active={false}
+            onClick={() => editor.chain().focus().addRowAfter().run()}
+          >
+            + Row
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Add column to the right"
+            active={false}
+            onClick={() => editor.chain().focus().addColumnAfter().run()}
+          >
+            + Column
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Delete row"
+            active={false}
+            onClick={() => editor.chain().focus().deleteRow().run()}
+          >
+            − Row
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Delete column"
+            active={false}
+            onClick={() => editor.chain().focus().deleteColumn().run()}
+          >
+            − Column
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Toggle header row"
+            active={editor.isActive('tableHeader')}
+            onClick={() => editor.chain().focus().toggleHeaderRow().run()}
+          >
+            Header row
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Merge or split cells"
+            active={false}
+            onClick={() => editor.chain().focus().mergeOrSplit().run()}
+          >
+            Merge/split
+          </ToolbarButton>
+          <ToolbarButton
+            editor={editor}
+            label="Delete table"
+            active={false}
+            onClick={() => editor.chain().focus().deleteTable().run()}
+          >
+            Delete table
+          </ToolbarButton>
+        </div>
+      ) : null}
 
       {/*
         Mounted between the toolbar and the body so choosing an image does not
