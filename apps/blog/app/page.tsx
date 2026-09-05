@@ -6,11 +6,12 @@ import {
   blogIndexPath,
   getPageById,
   htmlToPlainText,
+  listNonEmptyTerms,
   listPublishedPosts,
   truncateWords,
 } from '@blog/core';
 
-import { NntmHomepage } from '@/components/marketing/nntm/homepage';
+import { HomeV2 } from '@/components/marketing/ft/home-v2';
 import { PageBody } from '@/components/page-body';
 import { PostCard } from '@/components/post-card';
 import { isMarketingSite } from '@/lib/marketing';
@@ -19,8 +20,8 @@ import { getClient, getSite } from '@/lib/site';
 /*
  * The homepage.
  *
- * On the marketing site this is a hand-coded route: the page is a replica of a
- * HighLevel landing page with third-party embeds, which is code, not content.
+ * On the marketing site this is a hand-coded route: the page is a bespoke
+ * layout with third-party embeds, which is code, not content.
  * `sites.homepage_page_id` is ignored there.
  *
  * Every other site keeps the database-driven behaviour — the page named by
@@ -29,6 +30,20 @@ import { getClient, getSite } from '@/lib/site';
  */
 export const dynamic = 'force-static';
 export const revalidate = false;
+
+/**
+ * How many posts the design's blog band holds before it stops looking like a
+ * highlight and starts looking like the archive. The archive is one click away
+ * via "View All Blogs".
+ */
+const HOMEPAGE_POSTS = 3;
+
+/**
+ * And how many category pills fit on one row at the design's width. Ordered by
+ * name upstream, so this takes the first few alphabetically rather than an
+ * arbitrary slice of an arbitrary order.
+ */
+const HOMEPAGE_CATEGORIES = 6;
 
 async function loadHomepage() {
   const site = await getSite();
@@ -67,7 +82,31 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   if (isMarketingSite()) {
-    return <NntmHomepage />;
+    const site = await getSite();
+
+    /*
+     * `listNonEmptyTerms`, not `listTerms`: a pill leading to an archive with
+     * nothing in it is a dead end, and on a homepage it is a dead end in the
+     * shop window.
+     *
+     * This route is force-static with `revalidate = false`, exactly like /blog,
+     * so both are refreshed by on-demand revalidation rather than a timer. That
+     * only works because '/' is one of the post target's paths in
+     * app/api/revalidate/route.ts — without it this band would freeze at
+     * whatever was published when the site was last built.
+     */
+    const [posts, categories] = await Promise.all([
+      listPublishedPosts(getClient(), site.id, { limit: HOMEPAGE_POSTS }),
+      listNonEmptyTerms(getClient(), site.id, 'category'),
+    ]);
+
+    return (
+      <HomeV2
+        posts={posts}
+        categories={categories.slice(0, HOMEPAGE_CATEGORIES)}
+        locale={site.locale}
+      />
+    );
   }
 
   const { site, page } = await loadHomepage();

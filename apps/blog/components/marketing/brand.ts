@@ -154,16 +154,14 @@ export const NAV: readonly NavItem[] = [
  */
 export const STUB_PAGES: Readonly<Record<string, string>> = {
   /*
-   * These two are not new nav items — they were already linked from the header,
-   * the footer and every CTA on the site, and both were returning 404 in
-   * production when this was written. `get-funded` is CTA_HREF, i.e. the
-   * destination of the primary button on every page.
+   * Not a new nav item — /programs is linked from the header and from the
+   * requirements callout on the homepage, and was returning 404 in production
+   * when this was written. A heading-only stub is not a fix for that, it just
+   * stops the bleeding; it still needs real content.
    *
-   * A heading-only stub is not a fix for that, it just stops the bleeding. The
-   * application page needs real content, and it needs it before this design goes
-   * anywhere near '/'.
+   * `get-funded` used to sit here for the same reason and no longer does: it is
+   * a coded route now (app/get-funded/page.tsx).
    */
-  'get-funded': 'Get Funded',
   programs: 'Programs',
 
   'funding-solutions': 'Funding Solutions',
@@ -203,7 +201,7 @@ export const CTA_HREF = '/get-funded';
  * placeholder state that reads as a bug rather than as missing config.
  */
 /**
- * The SocialJuice review wall, embedded on the homepage and on /home-v2.
+ * The SocialJuice review wall, embedded on the homepage.
  *
  * Identifiers live here rather than inline in the component, for the same reason
  * SURVEY does: they are account-specific values that two pages now share, and a

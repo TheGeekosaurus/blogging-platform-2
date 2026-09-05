@@ -1,20 +1,20 @@
 /**
- * Copy for /home-v2.
+ * Copy for the homepage and /get-funded.
  *
- * This file is now REAL COPY, not the Figma template's placeholder text. Every
+ * This file is REAL COPY, not the Figma template's placeholder text. Every
  * string is Nanotom Capital's, taken from the live GoHighLevel site so the
  * migration changes presentation and not claims — the funding figures, the
  * product descriptions and the qualifying criteria are all things the business
  * says today, and none of them should be reworded here without checking.
  *
- * The layout in `home-v2.tsx` reads every label, heading and body string from
- * here, so re-copywriting the page never means touching the markup.
+ * The layouts read every label, heading and body string from here, so
+ * re-copywriting a page never means touching its markup.
  *
- * Several blocks are duplicated from `components/marketing/nntm/homepage.tsx`
- * rather than shared with it. That is deliberate and unchanged from the hero:
- * one is the live page and the other is a draft of its replacement, and a shared
- * constant would mean editing the live homepage to iterate on this one. When a
- * figure changes, change it in both.
+ * This is now the single source for that copy. It used to carry a note saying
+ * several blocks were duplicated from the older hand-built homepage component
+ * deliberately, because that was the live page and this was a draft of its
+ * replacement; the draft won and the old page is gone, so there is nowhere else
+ * to keep in step.
  */
 
 /** Every "Get Funded" on the page. */
@@ -36,7 +36,7 @@ export const HERO = {
     { value: '$36M', unit: '+', label: 'provided in financing' },
     { value: '4.7', unit: ' Stars', label: 'from happy customers' },
   ],
-  /** `icon` keys map to the icons in ./icons via the map in home-v2.tsx. */
+  /** `icon` keys map to the icons in ./icons via the map in the homepage. */
   tiles: [
     {
       icon: 'coins',
@@ -253,4 +253,28 @@ export const BLOG_SECTION = {
   label: 'Insights & Guides',
   heading: 'From the Nanotom Capital Blog',
   cta: 'View All Blogs',
+} as const;
+
+/* ---------------------------------------------------------------------------
+ * /get-funded
+ *
+ * The whole page above the survey. The live GoHighLevel page has exactly these
+ * three strings and then the form, and that is the point of it: it is the
+ * destination of every "Get Funded" button on the site, so anything else here
+ * is something between a visitor and the only thing we want them to do.
+ *
+ * NOT copied here, deliberately: "This information helps us match you with the
+ * right solution..." and "We look beyond your credit score...". Both look like
+ * page copy on the live site and both are actually the survey's own step
+ * headings, rendered inside the iframe. Putting them on the page shows each
+ * twice.
+ * ------------------------------------------------------------------------- */
+
+export const GET_FUNDED = {
+  /* Cased like the hero eyebrow; `Chip` uppercases it. The trailing ellipsis is
+     the live page's, kept so the line still reads as an opener rather than a
+     claim about who qualifies. */
+  eyebrow: 'For Business Owners, Startups, Entrepreneurs, and Growth-Focused Companies…',
+  heading: 'We Can Secure The Capital You Need For Your Business',
+  sub: 'And Build A Comprehensive Funding Strategy',
 } as const;

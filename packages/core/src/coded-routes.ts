@@ -43,12 +43,8 @@ export const MARKETING_SITE_SLUG = 'nntm-capital';
 
 export const CODED_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
-  // A homepage candidate under review, not the live homepage. index: false
-  // keeps it out of the sitemap — the route also sends `robots: noindex` — but
-  // it is listed so it is visible and previewable from the admin's Pages screen.
-  // Delete this entry when the design either replaces '' or is abandoned.
-  { path: 'home-v2', title: 'Home (design preview)', index: false },
-  // Still to build: programs, get-funded, privacy-policy, terms-of-use,
+  { path: 'get-funded', title: 'Get Funded', index: true },
+  // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.
 ];

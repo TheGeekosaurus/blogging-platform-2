@@ -14,7 +14,7 @@ import { SURVEY } from './brand';
  * Our own `X-Frame-Options: SAMEORIGIN` (next.config.ts) governs who may frame
  * US and has no effect on outbound embeds, so no config change is needed.
  */
-export function HighLevelForm() {
+export function HighLevelForm({ eager = false }: { eager?: boolean }) {
   return (
     <>
       <iframe
@@ -36,10 +36,13 @@ export function HighLevelForm() {
         /* The resizer sizes the frame to its content, so an inner scrollbar would
            only ever appear mid-resize. */
         scrolling="no"
-        /* Sixth section of ten, well below the fold, and the survey document is
-           ~176 KB — worth deferring. The resizer attaches on load, so lazy costs
-           nothing beyond holding initialHeight until it scrolls into view. */
-        loading="lazy"
+        /* The survey document is ~176 KB, so it defers by default: on the
+           homepage it is the sixth section of ten and the resizer attaches on
+           load, meaning lazy costs nothing beyond holding initialHeight until it
+           scrolls into view. `eager` is for /get-funded, where the survey is the
+           page and deferring the one thing the visitor came for is the wrong
+           trade. */
+        loading={eager ? 'eager' : 'lazy'}
         style={{ border: 'none', width: '100%', height: SURVEY.initialHeight }}
       />
 

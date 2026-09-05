@@ -257,9 +257,14 @@ describe('the page ground is one colour', () => {
     expect(css).toContain('--ft-bg: var(--color-ground)');
   });
 
-  it('leaves --color-brand alone for the original homepage', () => {
-    // Still the ground of the first homepage's dark bands. Repointing it would
-    // have restyled a page nobody asked to change.
+  it('leaves --color-brand alone', () => {
+    /*
+     * A separate ink from the ground, and still declared. The first homepage's
+     * dark bands were its main consumer and that page is gone; what remains is
+     * --color-brand-raised, the panel behind the header and mobile-nav
+     * dropdowns, which is read against this value rather than against the
+     * ground. Repointing it would restyle those.
+     */
     expect(read('app', 'globals.css')).toContain('--color-brand: #0b0b0c');
   });
 });

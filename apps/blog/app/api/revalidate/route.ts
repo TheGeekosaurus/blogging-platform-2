@@ -85,9 +85,12 @@ function revalidateFor(target: Target): string[] | null {
     const slug = typeof target.slug === 'string' ? target.slug.trim() : '';
     if (!slug) return null;
 
-    // '/' is included because the homepage falls back to a post list when no
-    // homepage page is set. sitemap and feed both list posts, so any post change
-    // dirties them too.
+    // '/' is included on both counts: the marketing homepage carries a band of
+    // recent posts, and every other site's homepage falls back to a post list
+    // when no homepage page is set. Both are force-static with no timer, so
+    // without this line publishing would appear to work while '/' kept serving
+    // whatever was published at build time. sitemap and feed both list posts, so
+    // any post change dirties them too.
     const paths = [
       postPath(slug),
       blogIndexPath(),
@@ -95,12 +98,6 @@ function revalidateFor(target: Target): string[] | null {
       browsePath(),
       '/sitemap.xml',
       '/feed.xml',
-      // The homepage candidate lists posts too, and it is force-static with no
-      // timer — so without this line publishing would appear to work while
-      // /home-v2 kept serving whatever was published at build time, with no way
-      // to flush it. Delete this when the page is promoted to '/', which is
-      // already above.
-      '/home-v2',
     ];
     for (const path of paths) revalidatePath(path);
 
