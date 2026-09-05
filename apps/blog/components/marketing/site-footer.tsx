@@ -3,8 +3,8 @@ import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
-import { CtaButton } from './cta-button';
 import { CONTACT, LOCAL_IMAGES, POLICY_LINKS } from './brand';
+import { FooterCta } from './footer-cta';
 
 /**
  * Site footer.
@@ -30,14 +30,8 @@ export function SiteFooter() {
 
   return (
     <footer className="bg-[var(--color-brand)] text-white">
-      <div className="border-b border-white/10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-5 py-12 text-center lg:flex-row lg:justify-between lg:px-8 lg:text-left">
-          <h2 className="font-[family-name:var(--font-headline)] text-2xl leading-tight sm:text-3xl">
-            We Can Secure The Capital You Need For Your Business
-          </h2>
-          <CtaButton className="shrink-0" />
-        </div>
-      </div>
+      {/* Absent on /get-funded, where it would duplicate the h1 — see FooterCta. */}
+      <FooterCta />
 
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1.2fr] lg:px-8">
         <div>

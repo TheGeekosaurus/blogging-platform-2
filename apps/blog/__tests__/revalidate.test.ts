@@ -76,17 +76,16 @@ describe('POST /api/revalidate — targets', () => {
     await POST(request({ type: 'post', slug: 'hello-world' }, SECRET));
 
     const calls = revalidatePath.mock.calls.map((call) => call[0]);
-    // Posts live under /blog now; '/' is still purged because the homepage
-    // falls back to a post list when no homepage page is set.
+    // Posts live under /blog now; '/' is purged because the marketing homepage
+    // carries a band of recent posts and every other site's homepage falls back
+    // to a post list. Both are force-static with no timer, so leaving it out
+    // would strand the front page on build-time content with no way to flush it.
     expect(calls).toContain('/blog/hello-world');
     expect(calls).toContain('/blog');
     expect(calls).toContain('/');
     expect(calls).toContain('/blog/categories');
     expect(calls).toContain('/sitemap.xml');
     expect(calls).toContain('/feed.xml');
-    // The homepage candidate lists posts and is force-static with no timer, so
-    // leaving it out would strand it on build-time content with no way to flush.
-    expect(calls).toContain('/home-v2');
 
     // Dynamic-route form, so every generated page of those routes is dropped —
     // a new post changes pagination and archive membership.

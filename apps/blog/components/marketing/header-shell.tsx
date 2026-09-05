@@ -5,9 +5,9 @@ import { useEffect, useState } from 'react';
 /**
  * The header's chrome, which changes with scroll position.
  *
- * At the top of the page it is opaque #141414 — the same ground /home-v2 sits
- * on, so header and hero read as one surface. Once scrolled it becomes the
- * ink-glass it was before: near-black at 72% with a 14px backdrop blur, so
+ * At the top of the page it is opaque #141414 — the same ground the marketing
+ * pages sit on, so header and hero read as one surface. Once scrolled it becomes
+ * the ink-glass it was before: near-black at 72% with a 14px backdrop blur, so
  * content passing underneath is visible through it.
  *
  * WHY A CLIENT COMPONENT, when the rest of the header is not. Scroll position

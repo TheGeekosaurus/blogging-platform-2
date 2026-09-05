@@ -1,5 +1,5 @@
 /*
- * Icons for the /home-v2 page.
+ * Icons for the homepage.
  *
  * All hand-drawn on a 24-unit grid at a shared 1.6 stroke, and all single-tone,
  * so they take their colour from whatever `text-*` class is on them.

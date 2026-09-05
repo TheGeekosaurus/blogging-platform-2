@@ -18,6 +18,7 @@ import { CtaButton } from '../cta-button';
 import { HighLevelForm } from '../highlevel-form';
 import { TestimonialWall } from '../testimonial-wall';
 import { FundingCarousel } from './funding-carousel';
+import { Chip, CONTAINER } from './primitives';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -45,7 +46,7 @@ import {
 } from './content';
 
 /*
- * The Nanotom Capital homepage candidate.
+ * The Nanotom Capital homepage.
  *
  * Started as a rebuild of a tech-blog Figma template ("FutureTech") and is now a
  * funding lead-gen page. What survives from the template is its VISUAL LANGUAGE
@@ -56,8 +57,8 @@ import {
  * resource blocks, the "Future Tech Revolution" closing band) are gone rather
  * than re-labelled, because a funding site has nothing to put in them.
  *
- * The copy is the live GoHighLevel site's, in ./content — see that file's note
- * on why it is duplicated from nntm/homepage.tsx rather than shared with it.
+ * The copy is the live GoHighLevel site's, in ./content, which is its single
+ * source — the older hand-built homepage this replaced is gone.
  *
  * Ordering follows the funnel: what we do (hero, proof, options), then how it
  * works, then the qualifier, then the objection handlers (what funding is for,
@@ -84,9 +85,6 @@ import {
  * Primitives
  * ------------------------------------------------------------------------- */
 
-/** The centred column. Matches the site header's container exactly. */
-const CONTAINER = 'mx-auto w-full max-w-7xl px-5 lg:px-8';
-
 /**
  * The left inset that lines a full-bleed row's first cell up with CONTAINER,
  * while its last cell still runs to the viewport edge. Below the container's
@@ -110,15 +108,6 @@ const USE_CASE_ICONS = {
   hiring: HiringIcon,
   consolidate: ConsolidateIcon,
 } as const;
-
-/** The grey chip every section label sits in. */
-function Chip({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
-      {children}
-    </span>
-  );
-}
 
 /** The dark bordered button with a gold arrow, used for every secondary action. */
 function GhostButton({
