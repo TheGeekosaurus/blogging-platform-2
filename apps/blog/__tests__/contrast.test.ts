@@ -18,10 +18,33 @@ import { describe, expect, it } from 'vitest';
  */
 const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
 
-function token(name: string): string {
-  const match = CSS.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{3,8})`));
+/**
+ * A token's literal colour, following `var()` indirection.
+ *
+ * Tokens are allowed to alias one another — `--color-blog-bg` is
+ * `var(--color-ground)`, the ground the header, footer and /home-v2 all share —
+ * and the contrast of an aliased token is the contrast of what it resolves to.
+ * Reading only literals would have forced a second copy of that hex just to
+ * keep this test happy, which is the opposite of the single source of truth it
+ * exists to protect.
+ *
+ * The hop limit is what keeps a cycle from hanging the suite rather than
+ * failing it.
+ */
+function token(name: string, hops = 4): string {
+  const match = CSS.match(new RegExp(`--${name}:\\s*([^;]+);`));
   if (!match?.[1]) throw new Error(`token --${name} not found in globals.css`);
-  return match[1];
+
+  const value = match[1].trim();
+  if (/^#[0-9a-fA-F]{3,8}$/.test(value)) return value;
+
+  const alias = value.match(/^var\(\s*--([a-z0-9-]+)\s*\)$/i);
+  if (alias?.[1]) {
+    if (hops === 0) throw new Error(`token --${name} aliases more than 4 levels deep`);
+    return token(alias[1], hops - 1);
+  }
+
+  throw new Error(`token --${name} is "${value}", neither a hex colour nor a plain var()`);
 }
 
 /** Relative luminance, per WCAG 2.1. */

@@ -29,7 +29,7 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-[var(--color-brand)] text-white">
+    <footer className="bg-[var(--color-ground)] text-white">
       {/* Absent on /get-funded, where it would duplicate the h1 — see FooterCta. */}
       <FooterCta />
 

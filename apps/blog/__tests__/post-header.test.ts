@@ -239,7 +239,7 @@ describe('the Figma dividers', () => {
   it('closes the frame at the bottom on the section itself', () => {
     // Not left to SimilarPosts: a post with no related posts renders none of
     // it, and the vertical rule would then end on nothing.
-    expect(page).toContain('post-frame border-b border-[var(--color-accent)]');
+    expect(page).toContain('post-frame border-b border-[var(--color-line)]');
   });
 
   it('does not let SimilarPosts draw that line a second time', () => {
@@ -256,26 +256,59 @@ describe('the Figma dividers', () => {
     );
   });
 
-  it('draws the four frame strokes in the accent colour', () => {
-    // Denis's ask: gold on the dark ground, copper on the light one. Both come
-    // from --color-accent, which the two palettes already re-point.
-    expect(page).toContain('post-frame border-b border-[var(--color-accent)]');
-    expect(page).toContain('border-y border-[var(--color-accent)]');
-    expect(page).toContain('lg:border-l lg:border-[var(--color-accent)]');
-    expect(css).toMatch(
-      /\.post-frame \.post-body > h2:nth-of-type\(2\) \{\s*border-top-color: var\(--color-accent\)/,
+  it('draws the four frame strokes in --color-line, not the accent', () => {
+    /*
+     * These were gold on dark and copper on light for exactly one revision.
+     * Denis's call to revert: picking the frame out in a bright hue turned a
+     * set of dividers into a drawn box — "highlight makes it too boxy".
+     *
+     * Asserted as an ABSENCE as well as a presence, because the failure mode
+     * is a re-introduction. Someone reaching for "make the frame stand out"
+     * lands on --color-accent again, and nothing else on the page would
+     * complain.
+     */
+    expect(page).toContain('post-frame border-b border-[var(--color-line)]');
+    expect(page).toContain('border-y border-[var(--color-line)]');
+    expect(page).toContain('lg:border-l lg:border-[var(--color-line)]');
+    // Static borders only. `hover:border-[var(--color-accent)]` on the tag
+    // pills stays: a border that turns gold under the cursor is feedback, and
+    // it is the resting state that was making the page look boxy.
+    expect(stripComments(page)).not.toMatch(/(?<!hover:)border-\[var\(--color-accent\)\]/);
+
+    // The intro rule inherits --color-line from the base .post-body rule. The
+    // override that re-pointed it is gone rather than restated, so there is
+    // one declaration of that colour and not two.
+    expect(css).toMatch(/\.post-body > h2:nth-of-type\(2\) \{\s*border-top: 1px solid var\(--color-line\)/);
+    expect(css).not.toMatch(/border-top-color: var\(--color-accent\)/);
+  });
+
+  it('keeps the accent for things that should draw the eye', () => {
+    // Reverting the frame is not a ban on the colour. Links, list markers and
+    // a card's category label still earn it — that is where a highlight reads
+    // as emphasis rather than as a box.
+    expect(css).toMatch(/\.post-body a[\s\S]{0,200}color: var\(--color-accent\)/);
+    expect(read('components', 'blog', 'similar-posts.tsx')).toContain(
+      '!text-[var(--color-accent)]',
     );
   });
 
   it('leaves the rest of the page on --color-line', () => {
-    // A page where every border is gold reads as a wireframe. Cards, pills,
-    // the author box and the contents rail are deliberately not part of it.
+    // Cards, pills, the author box and the contents rail were never part of
+    // the frame, and are now the same colour as it.
     expect(read('components', 'blog', 'author-box.tsx')).toContain(
       'border border-[var(--color-line)]',
     );
     expect(read('components', 'blog', 'similar-posts.tsx')).toContain(
       'border-t border-[var(--color-line)]',
     );
+  });
+
+  it('calls the related row Articles, not News', () => {
+    const similar = read('components', 'blog', 'similar-posts.tsx');
+
+    expect(similar).toContain('Similar Articles');
+    expect(similar).toContain('View All Articles');
+    expect(similar).not.toContain('News');
   });
 
   it('carries the vertical rule on a stretching wrapper, not the sticky box', () => {

@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 /**
@@ -207,5 +210,61 @@ describe('the HighLevel survey embed', () => {
     const { SURVEY } = await import('../components/marketing/brand');
     expect(SURVEY.initialHeight).toBeGreaterThan(0);
     expect(await source()).toContain('height: SURVEY.initialHeight');
+  });
+});
+
+describe('the page ground is one colour', () => {
+  /**
+   * The header and the footer sit at opposite ends of every marketing page, so
+   * nothing on screen ever shows them together — which is exactly why they
+   * drifted apart. The header moved to #141414 when /home-v2 landed and the
+   * footer stayed on --color-brand (#0B0B0C), and the mismatch survived until
+   * someone scrolled the whole page and noticed.
+   *
+   * Asserting they name the SAME token, rather than that each equals some hex:
+   * the point is that there is one declaration to change, not two that happen
+   * to agree today.
+   */
+  const read = (...parts: string[]) =>
+    readFileSync(join(__dirname, '..', ...parts), 'utf8');
+
+  it('declares the ground once', () => {
+    const css = read('app', 'globals.css');
+    const declarations = css.match(/--color-ground:\s*#[0-9a-fA-F]{6}/g) ?? [];
+
+    expect(declarations).toHaveLength(1);
+    expect(declarations[0]).toContain('#141414');
+  });
+
+  it.each([
+    ['header', ['components', 'marketing', 'header-shell.tsx']],
+    ['footer', ['components', 'marketing', 'site-footer.tsx']],
+  ])('the %s paints with it', (_label, parts) => {
+    expect(read(...parts)).toContain('bg-[var(--color-ground)]');
+  });
+
+  it('does not leave the footer on the old brand ink', () => {
+    expect(read('components', 'marketing', 'site-footer.tsx')).not.toContain(
+      'bg-[var(--color-brand)]',
+    );
+  });
+
+  it('gives the blog and /home-v2 the same ground', () => {
+    const css = read('app', 'globals.css');
+
+    // Aliases, not copies of the hex — one edit repaints all four surfaces.
+    expect(css).toContain('--color-blog-bg: var(--color-ground)');
+    expect(css).toContain('--ft-bg: var(--color-ground)');
+  });
+
+  it('leaves --color-brand alone', () => {
+    /*
+     * A separate ink from the ground, and still declared. The first homepage's
+     * dark bands were its main consumer and that page is gone; what remains is
+     * --color-brand-raised, the panel behind the header and mobile-nav
+     * dropdowns, which is read against this value rather than against the
+     * ground. Repointing it would restyle those.
+     */
+    expect(read('app', 'globals.css')).toContain('--color-brand: #0b0b0c');
   });
 });
