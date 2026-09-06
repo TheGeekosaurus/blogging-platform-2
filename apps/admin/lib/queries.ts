@@ -219,6 +219,8 @@ export interface PageListItem {
   parent_id: string | null;
   template: PageTemplate;
   status: PostStatus;
+  /* Needed to decide whether a page is actually live — see isLive(). */
+  published_at: string | null;
   updated_at: string;
 }
 
@@ -231,7 +233,7 @@ export async function listPages(siteId: string): Promise<PageListItem[]> {
 
   const { data, error } = await supabase
     .from('pages')
-    .select('id, slug, path, title, parent_id, template, status, updated_at')
+    .select('id, slug, path, title, parent_id, template, status, published_at, updated_at')
     .eq('site_id', siteId)
     .order('path');
 
