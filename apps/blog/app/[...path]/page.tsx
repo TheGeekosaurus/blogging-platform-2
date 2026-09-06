@@ -13,7 +13,7 @@ import {
 import { JsonLd } from '@/components/json-ld';
 import { STUB_PAGES } from '@/components/marketing/brand';
 import { PageBody } from '@/components/page-body';
-import { isMarketingSite } from '@/lib/marketing';
+import { isNntmCapital } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 
 /*
@@ -44,7 +44,7 @@ export async function generateStaticParams() {
  * domain must not start answering /funding-solutions with a Nanotom heading.
  */
 function stubHeading(path: string): string | null {
-  if (!isMarketingSite()) return null;
+  if (!isNntmCapital()) return null;
   return STUB_PAGES[path] ?? null;
 }
 

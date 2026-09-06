@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Lato, Poppins } from 'next/font/google';
+import { Lato, Poppins, Roboto_Flex, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
 
 import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core';
@@ -7,11 +7,13 @@ import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core
 import { JsonLd } from '@/components/json-ld';
 import { Analytics } from '@/components/marketing/analytics';
 import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
+import { LabsFooter } from '@/components/marketing/labs/site-footer';
+import { LabsHeader } from '@/components/marketing/labs/site-header';
 import { SiteFooter } from '@/components/marketing/site-footer';
 import { SiteHeader } from '@/components/marketing/site-header';
 import { getSite } from '@/lib/site';
 import { THEME_SCRIPT } from '@/lib/theme';
-import { isMarketingSite } from '@/lib/marketing';
+import { codedSite } from '@/lib/marketing';
 import './globals.css';
 
 /*
@@ -32,6 +34,33 @@ const poppins = Poppins({
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
   variable: '--font-poppins',
+});
+
+/*
+ * NNTM Labs' faces.
+ *
+ * Both are declared unconditionally, because next/font is a build-time
+ * transform: the call has to be a module-scope literal for the compiler to
+ * find it, so it cannot be put behind a slug check. What IS conditional is the
+ * className — the variables are only attached to <html> on the Labs
+ * deployment, and a font nothing references is never requested by the browser.
+ *
+ * Roboto Flex spans the whole scale on its own; no `weight` here, so next/font
+ * fetches the variable face and the design's 400/500/700 come from one file
+ * rather than three. Roboto Mono carries the uppercase label style — see
+ * --font-nl-mono in globals.css for why it is an inference rather than a spec.
+ */
+const robotoFlex = Roboto_Flex({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto-flex',
+});
+
+const robotoMono = Roboto_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  variable: '--font-roboto-mono',
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -66,7 +95,21 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/** Generic chrome, for any site that is not the coded marketing site. */
+/**
+ * The <body> class each deployment paints with.
+ *
+ * Keyed by coded-site slug with a 'default' entry, so adding a third coded
+ * site is one row here rather than another ternary. `marketing-root` opts
+ * Capital out of the reader's dark-mode preference; `nl-surface` carries NNTM
+ * Labs' whole dark palette — see globals.css for both.
+ */
+const BODY_CLASS: Record<'nntm-capital' | 'nntm-labs' | 'default', string | undefined> = {
+  'nntm-capital': 'marketing-root',
+  'nntm-labs': 'nl-surface',
+  default: undefined,
+};
+
+/** Generic chrome, for any site that is not a coded marketing site. */
 function DefaultHeader({ name }: { name: string }) {
   return (
     <header className="mx-auto flex w-full max-w-3xl flex-wrap items-baseline justify-between gap-3 border-b border-[var(--color-line)] px-5 py-7">
@@ -100,10 +143,28 @@ export default async function RootLayout({
   children: React.ReactNode;
 }) {
   const site = await getSite();
-  const marketing = isMarketingSite();
+  const coded = codedSite();
+  const marketing = coded === 'nntm-capital';
+  const labs = coded === 'nntm-labs';
+
+  /*
+   * Font variables are attached per deployment rather than all at once, so a
+   * deployment only downloads the faces it actually renders.
+   *
+   * `nl-fonts` comes with them on Labs. Labs serves /blog as well as its coded
+   * pages, and the blog's reading styles are written against --font-headline
+   * and --font-body — Lato and Poppins. Without the repoint those routes would
+   * silently fall back to the system stack on this one deployment, which is
+   * the kind of thing nobody notices until they look at two sites side by
+   * side. Repointing is better than shipping four families: Roboto Flex spans
+   * the whole scale, so the blog and the marketing pages end up on one face.
+   */
+  const fonts = labs
+    ? `nl-fonts ${robotoFlex.variable} ${robotoMono.variable}`
+    : `${lato.variable} ${poppins.variable}`;
 
   return (
-    <html lang={site.locale} className={`${lato.variable} ${poppins.variable}`}>
+    <html lang={site.locale} className={fonts}>
       <head>
         {/*
           Marketing images are hotlinked from HighLevel's CDN by decision, so the
@@ -146,7 +207,7 @@ export default async function RootLayout({
         */}
         <JsonLd nodes={readSnippets(site.structured_data)} />
       </head>
-      <body className={marketing ? 'marketing-root' : undefined}>
+      <body className={BODY_CLASS[coded ?? 'default']}>
         {marketing ? <Analytics /> : null}
 
         <a
@@ -157,15 +218,17 @@ export default async function RootLayout({
         </a>
 
         <div className="flex min-h-screen w-full flex-col">
-          {marketing ? <SiteHeader /> : <DefaultHeader name={site.name} />}
+          {marketing ? <SiteHeader /> : null}
+          {labs ? <LabsHeader /> : null}
+          {coded ? null : <DefaultHeader name={site.name} />}
 
           <main id="content" className="flex flex-1 flex-col">
             {children}
           </main>
 
-          {marketing ? (
-            <SiteFooter />
-          ) : (
+          {marketing ? <SiteFooter /> : null}
+          {labs ? <LabsFooter /> : null}
+          {coded ? null : (
             <footer className="mx-auto w-full max-w-3xl border-t border-[var(--color-line)] px-5 py-7 text-sm text-[var(--color-ink-muted)]">
               <p>
                 © {new Date().getFullYear()} {site.name}

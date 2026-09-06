@@ -24,17 +24,33 @@ afterEach(() => {
   vi.resetModules();
 });
 
-describe('isMarketingSite', () => {
-  it('is true only for the marketing slug', async () => {
-    const { isMarketingSite, MARKETING_SITE_SLUG } = await loadWithSlug('nntm-capital');
-    expect(MARKETING_SITE_SLUG).toBe('nntm-capital');
-    expect(isMarketingSite()).toBe(true);
+describe('codedSite', () => {
+  it('names the Nanotom Capital deployment', async () => {
+    const { codedSite, isNntmCapital, isNntmLabs, NNTM_CAPITAL_SLUG } =
+      await loadWithSlug('nntm-capital');
+    expect(NNTM_CAPITAL_SLUG).toBe('nntm-capital');
+    expect(codedSite()).toBe('nntm-capital');
+    expect(isNntmCapital()).toBe(true);
+    // The two coded sites must never both answer true: the root layout would
+    // then render one company's header above the other's footer.
+    expect(isNntmLabs()).toBe(false);
   });
 
-  it('is false for any other blog, which keeps the generic chrome', async () => {
-    for (const slug of ['demo', 'second-blog', 'nntm-capital-staging']) {
-      const { isMarketingSite } = await loadWithSlug(slug);
-      expect(isMarketingSite(), slug).toBe(false);
+  it('names the NNTM Labs deployment', async () => {
+    const { codedSite, isNntmCapital, isNntmLabs, NNTM_LABS_SLUG } =
+      await loadWithSlug('nntm-labs');
+    expect(NNTM_LABS_SLUG).toBe('nntm-labs');
+    expect(codedSite()).toBe('nntm-labs');
+    expect(isNntmLabs()).toBe(true);
+    expect(isNntmCapital()).toBe(false);
+  });
+
+  it('is null for any other blog, which keeps the generic chrome', async () => {
+    for (const slug of ['demo', 'second-blog', 'nntm-capital-staging', 'nntm-labs-staging']) {
+      const { codedSite, isNntmCapital, isNntmLabs } = await loadWithSlug(slug);
+      expect(codedSite(), slug).toBeNull();
+      expect(isNntmCapital(), slug).toBe(false);
+      expect(isNntmLabs(), slug).toBe(false);
     }
   });
 });
@@ -66,10 +82,12 @@ describe('brand constants', () => {
    * it is "no link that 404s".
    */
   it('points every nav item somewhere that resolves', async () => {
-    const { CODED_ROUTES } = await import('@blog/core');
+    const { codedRoutesFor, NNTM_CAPITAL_SLUG } = await import('@blog/core');
     const { NAV, STUB_PAGES } = await import('../components/marketing/brand');
 
-    const coded = new Set(CODED_ROUTES.map((route) => `/${route.path}`));
+    const coded = new Set(
+      codedRoutesFor(NNTM_CAPITAL_SLUG).map((route) => `/${route.path}`),
+    );
     const stubs = new Set(Object.keys(STUB_PAGES).map((path) => `/${path}`));
     // Proxied to the calculator deployment by a rewrite in next.config.ts.
     const rewritten = new Set(['/calc']);

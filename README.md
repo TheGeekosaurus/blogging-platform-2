@@ -128,17 +128,29 @@ sees, so several WordPress render-time behaviours are reproduced:
 Raw source HTML is kept in `posts.original_html`, so content can be re-derived if
 these transforms or the sanitiser allowlist change.
 
-## The marketing site
+## The marketing sites
 
-One deployment additionally serves hand-coded marketing pages at the root: a
-replica of the Nanotom Capital site that used to live in HighLevel. These are
-routes in `apps/blog/components/marketing/`, not rows in `pages` — they carry
-third-party embeds and a bespoke layout, which is code, not content.
+Two deployments serve hand-coded pages at the root instead of database content.
+These are routes in `apps/blog/components/marketing/`, not rows in `pages` —
+they carry third-party embeds and bespoke layouts, which is code, not content.
+
+| Slug | What it is | Components |
+| --- | --- | --- |
+| `nntm-capital` | Nanotom Capital, replicating the site that lived in HighLevel | `marketing/`, `marketing/ft/` |
+| `nntm-labs` | NNTM Labs, the agency site, from a Figma template | `marketing/labs/` |
 
 `apps/blog` is deployed once **per blog** from one codebase, so all of it is
-gated on `SITE_SLUG` via `apps/blog/lib/marketing.ts`. A site whose slug does not
-match keeps the generic chrome and the database-driven homepage. Without that
-gate a second blog would silently serve another company's navigation and footer.
+gated on `SITE_SLUG` — `apps/blog/lib/marketing.ts` resolves the slug to a coded
+site, and `codedRoutesFor()` in `@blog/core` says which routes each one owns. A
+site whose slug matches neither keeps the generic chrome and the
+database-driven homepage. Without that gate a third blog would silently serve
+another company's navigation and footer.
+
+`lib/marketing.ts` returns the slug rather than a boolean, deliberately: with
+two coded sites, "is this the marketing site" no longer has an answer — the
+root layout has to know *which*, because the chrome differs completely.
+
+### Nanotom Capital
 
 Two things stay in HighLevel deliberately:
 
@@ -160,6 +172,30 @@ Two things stay in HighLevel deliberately:
 The page ships no JavaScript of its own. The mobile menu is a `<details>`
 element and the nav dropdown is CSS-only, so the whole header stays a server
 component.
+
+### NNTM Labs
+
+A replica of a Figma template, measured out of the PDF export rather than
+estimated — 1920 desktop and 390 mobile artboards, both matched. Three things
+are worth knowing before editing it:
+
+- **The palette is the design's, with one deviation.** Its muted grey (#676665)
+  measures 2.88:1 on the raised surface and fails WCAG AA for body text, so
+  `--nl-muted` is #878685 instead. `__tests__/labs.test.ts` holds every tone to
+  4.5:1 on every surface it can land on.
+- **The hero headline is 68px where the artwork says 78.** The design's face
+  runs 0.54 em per character and Roboto Flex runs ~0.65, and Google Fonts serves
+  the subset with the `wdth` axis pinned, so the gap cannot be closed. The
+  composition is preserved instead of the number.
+- **The forms are presentational.** Neither the enquiry form nor the newsletter
+  has an endpoint, so both are disabled rather than posting nowhere. The
+  enquiry form is the site's only conversion path — it needs a real destination
+  before launch, and a test fails if a field is enabled without one.
+
+The template's testimonials, success stories and prices are placeholder copy
+naming people and companies who are not customers. See the header of
+`marketing/labs/content.ts`: they must be replaced before the site serves real
+traffic.
 
 ## Security model
 
@@ -187,7 +223,8 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
-| The marketing site | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
+| Nanotom Capital | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
+| NNTM Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical

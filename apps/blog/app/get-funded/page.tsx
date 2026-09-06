@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { GetFunded } from '@/components/marketing/ft/get-funded';
-import { isMarketingSite } from '@/lib/marketing';
+import { isNntmCapital } from '@/lib/marketing';
 
 /*
  * The application page — CTA_HREF, and so the destination of the header button,
@@ -40,7 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function GetFundedPage() {
-  if (!isMarketingSite()) notFound();
+  if (!isNntmCapital()) notFound();
 
   return <GetFunded />;
 }
