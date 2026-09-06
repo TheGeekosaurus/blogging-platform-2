@@ -944,11 +944,28 @@
     --nl-accent-wash: #f3dfd8;
 
     /*
-     * The design's radii, read off the artwork: 24px on the outer panels and
-     * the header bar, 16px on cards and image tiles, 999px on pills.
+     * The design's radius scale, measured off the artwork's path geometry
+     * rather than estimated — every rounded rect's corner curve gives its
+     * radius exactly, and the values cluster into these seven steps.
+     *
+     * This started as two tokens (24 panel / 16 card) and read visibly too
+     * round, because collapsing the scale pushed the small controls up: nav
+     * items, tabs, buttons and inputs were all `rounded-full` when the design
+     * gives them 10-12px. A pill and a 12px rounded rect are different shapes,
+     * and the difference is most obvious exactly where there are most of them,
+     * along the header.
+     *
+     * Fully round IS correct in three places, and they stay `rounded-full`:
+     * the arrow rings (68x68 r=34), the avatars (60x60 r=30) and the success
+     * stories' metadata pills (47 tall, r=23.5).
      */
-    --nl-radius-panel: 24px;
-    --nl-radius-card: 16px;
+    --nl-radius-badge: 6px;    /* the footer's "Soon" chip */
+    --nl-radius-input: 10px;   /* form fields, the hero image's tag */
+    --nl-radius-control: 12px; /* nav items, buttons, tabs, marquee bars, icon tiles */
+    --nl-radius-card: 14px;    /* service, story and social cards */
+    --nl-radius-card-lg: 16px; /* the header bar, section headers, testimonials, FAQ rows */
+    --nl-radius-block: 20px;   /* hero cards, the CTA band, project thumbs, footer links */
+    --nl-radius-panel: 24px;   /* the outer section panels */
 
     background-color: var(--nl-bg);
     color: var(--nl-body);

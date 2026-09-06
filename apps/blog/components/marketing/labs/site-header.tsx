@@ -25,7 +25,8 @@ import { NAV, type NavItem } from './brand';
 
 /** Shared by the desktop bar and the mobile drawer, so styling cannot drift. */
 function navClasses(item: NavItem): string {
-  const base = 'nl-label rounded-full px-4 py-2.5 text-xs transition-colors lg:px-5 lg:text-sm';
+  const base =
+    'nl-label rounded-[var(--nl-radius-control)] px-4 py-2.5 text-xs transition-colors lg:px-5 lg:text-sm';
 
   if (item.cta) {
     return `${base} bg-[var(--nl-accent)] text-[#0f0f0f] hover:bg-[var(--nl-accent-strong)]`;
@@ -67,7 +68,7 @@ function Wordmark() {
 export function LabsHeader() {
   return (
     <div className="sticky top-0 z-40 px-4 pt-4 lg:px-[50px] lg:pt-[30px]">
-      <header className="rounded-[var(--nl-radius-panel)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
+      <header className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
         <div className="flex items-center justify-between gap-4 px-5 py-4 lg:px-10 lg:py-6">
           <Wordmark />
 
@@ -84,7 +85,7 @@ export function LabsHeader() {
            */}
           <details className="group relative lg:hidden">
             <summary
-              className="nl-label flex cursor-pointer list-none items-center gap-2 rounded-full border border-[var(--nl-line)] px-4 py-2 text-xs text-[var(--nl-ink)] [&::-webkit-details-marker]:hidden"
+              className="nl-label flex cursor-pointer list-none items-center gap-2 rounded-[var(--nl-radius-control)] border border-[var(--nl-line)] px-4 py-2 text-xs text-[var(--nl-ink)] [&::-webkit-details-marker]:hidden"
               aria-label="Open menu"
             >
               Menu
@@ -97,7 +98,7 @@ export function LabsHeader() {
 
             <nav
               aria-label="Primary"
-              className="absolute right-0 top-[calc(100%+12px)] z-50 flex w-56 flex-col gap-1 rounded-[var(--nl-radius-card)] border border-[var(--nl-line)] bg-[var(--nl-card)] p-3 shadow-2xl"
+              className="absolute right-0 top-[calc(100%+12px)] z-50 flex w-56 flex-col gap-1 rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)] p-3 shadow-2xl"
             >
               {NAV.map((item) => (
                 <NavLink key={item.label} item={item} />

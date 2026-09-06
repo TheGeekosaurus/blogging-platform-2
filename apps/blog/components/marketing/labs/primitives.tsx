@@ -170,7 +170,7 @@ export function SectionHeader({
   return (
     <header
       id={id}
-      className="flex items-center justify-between gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-5 py-6 lg:px-12 lg:py-10"
+      className="flex items-center justify-between gap-4 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-6 lg:px-12 lg:py-10"
     >
       <h2 className="nl-heading text-2xl leading-none lg:text-5xl">{title}</h2>
       {link ? (

@@ -278,3 +278,55 @@ describe('the homepage renders', () => {
     expect(alts.some((alt) => alt && alt.length > 0)).toBe(true);
   });
 });
+
+describe('the radius scale matches the artwork', () => {
+  /*
+   * The design has seven radius steps, measured off its path geometry. This
+   * was first built with two (24 panel / 16 card), which read visibly too
+   * round because collapsing the scale pushed every small control up to a
+   * pill. A pill and a 12px rounded rect are different shapes, and the
+   * difference is loudest along the header where seven of them sit in a row.
+   *
+   * Fully round is correct in exactly three places, so this does not ban
+   * `rounded-full` outright — it bans it on the controls the artwork gives a
+   * radius to.
+   */
+  const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+  it('declares every step the components reference', () => {
+    for (const step of [
+      'badge',
+      'input',
+      'control',
+      'card',
+      'card-lg',
+      'block',
+      'panel',
+    ]) {
+      expect(CSS, step).toMatch(new RegExp(`--nl-radius-${step}:\\s*\\d+px;`));
+    }
+  });
+
+  it('gives the header nav rounded rectangles, not pills', () => {
+    const header = read('site-header.tsx');
+    const navClasses = header.slice(
+      header.indexOf('function navClasses'),
+      header.indexOf('function NavLink'),
+    );
+
+    expect(navClasses).toContain('--nl-radius-control');
+    expect(navClasses).not.toContain('rounded-full');
+  });
+
+  it('leaves only the arrow rings, avatars and metadata pills fully round', () => {
+    /*
+     * Every remaining `rounded-full` should be one of those three. Counted
+     * rather than located, so a new pill anywhere in the section components
+     * trips this and has to be justified by updating the count.
+     */
+    const pills = ['home.tsx', 'primitives.tsx', 'site-footer.tsx', 'site-header.tsx']
+      .flatMap((file) => read(file).match(/rounded-full/g) ?? []);
+
+    expect(pills.length).toBeLessThanOrEqual(9);
+  });
+});
