@@ -1,10 +1,10 @@
 /**
  * Pages that are React components in this repo rather than rows in `pages`.
  *
- * The marketing site's layouts carry third-party embeds, a bespoke grid and
- * brand CSS — that is code, not content, so it lives in
- * `apps/blog/components/marketing/`. But something has to know those URLs exist,
- * because two consumers cannot discover them by querying the database:
+ * Some sites' layouts carry third-party embeds, a bespoke grid and brand CSS —
+ * that is code, not content, so it lives in `apps/blog/components/marketing/`.
+ * But something has to know those URLs exist, because two consumers cannot
+ * discover them by querying the database:
  *
  *   - `apps/blog/app/sitemap.ts`, which would otherwise omit them entirely. That
  *     is the expensive failure: an incomplete sitemap on a migration whose whole
@@ -36,12 +36,20 @@ export type CodedRoute = {
 };
 
 /**
- * The site whose pages are coded. `apps/blog` is deployed once per blog from one
- * codebase, so this is what keeps another blog from inheriting these routes.
+ * The sites whose pages are coded.
+ *
+ * `apps/blog` is deployed once per blog from one codebase, so these slugs are
+ * what keeps one company's routes off another's domain. This started as a
+ * single slug and a single route list, on the reasoning that one hand-coded
+ * site was the exception rather than a category. A second one — NNTM Labs —
+ * made that shape untenable: a boolean cannot say WHICH coded site a deployment
+ * is, only that it is one, and the chrome differs completely between them.
  */
-export const MARKETING_SITE_SLUG = 'nntm-capital';
+export const NNTM_CAPITAL_SLUG = 'nntm-capital';
+export const NNTM_LABS_SLUG = 'nntm-labs';
 
-export const CODED_ROUTES: readonly CodedRoute[] = [
+/** Nanotom Capital: the funding site migrated off HighLevel. */
+const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
   { path: 'get-funded', title: 'Get Funded', index: true },
   // Still to build: programs, privacy-policy, terms-of-use,
@@ -49,7 +57,53 @@ export const CODED_ROUTES: readonly CodedRoute[] = [
   // earnings-disclaimer. Add each one here as it lands.
 ];
 
-/** Coded routes belonging to a site, by slug. Empty for every other site. */
+/**
+ * NNTM Labs: the agency site.
+ *
+ * Only the homepage so far. The design's nav promises services, projects,
+ * about, careers and contact, and each is a coded route rather than a `pages`
+ * row — add them here as they land, or they will not reach the sitemap.
+ * `blogs` is deliberately absent: it points at the database-driven /blog
+ * renderer, which the sitemap already covers from `posts`.
+ */
+const NNTM_LABS_ROUTES: readonly CodedRoute[] = [
+  { path: '', title: 'Home', index: true },
+];
+
+/**
+ * Coded routes by site slug.
+ *
+ * Exported so a test can walk every site's list rather than only the one it
+ * happens to name — a per-site invariant that holds for Capital and silently
+ * fails for Labs is the failure mode this registry exists to prevent.
+ */
+export const CODED_SITES: Readonly<Record<string, readonly CodedRoute[]>> = {
+  [NNTM_CAPITAL_SLUG]: NNTM_CAPITAL_ROUTES,
+  [NNTM_LABS_SLUG]: NNTM_LABS_ROUTES,
+};
+
+/**
+ * Shared empty result, so a database-driven blog gets a stable reference rather
+ * than a fresh array per call. `codedRoutesFor` runs in the sitemap and in the
+ * admin's Pages screen, both of which may call it repeatedly.
+ */
+const NO_CODED_ROUTES: readonly CodedRoute[] = [];
+
+/**
+ * Coded routes belonging to a site, by slug. Empty for every other site.
+ *
+ * `Object.hasOwn` rather than a bare index read: slugs come from the database,
+ * and `CODED_SITES['toString']` resolves up the prototype chain to a function
+ * rather than to undefined, so `?? NO_CODED_ROUTES` would not catch it. The
+ * sitemap would then call `.filter` on a function and fail the whole static
+ * build. Far-fetched as a slug, free to rule out.
+ */
 export function codedRoutesFor(siteSlug: string): readonly CodedRoute[] {
-  return siteSlug === MARKETING_SITE_SLUG ? CODED_ROUTES : [];
+  if (!Object.hasOwn(CODED_SITES, siteSlug)) return NO_CODED_ROUTES;
+  return CODED_SITES[siteSlug] ?? NO_CODED_ROUTES;
+}
+
+/** Whether a slug names a site whose pages are coded rather than content. */
+export function isCodedSite(siteSlug: string): boolean {
+  return Object.hasOwn(CODED_SITES, siteSlug);
 }

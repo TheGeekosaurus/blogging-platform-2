@@ -12,9 +12,11 @@ import {
 } from '@blog/core';
 
 import { HomeV2 } from '@/components/marketing/ft/home-v2';
+import { LabsHome } from '@/components/marketing/labs/home';
+import { HERO as LABS_HERO } from '@/components/marketing/labs/content';
 import { PageBody } from '@/components/page-body';
 import { PostCard } from '@/components/post-card';
-import { isMarketingSite } from '@/lib/marketing';
+import { isNntmCapital, isNntmLabs } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 
 /*
@@ -56,7 +58,15 @@ async function loadHomepage() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
-  if (isMarketingSite()) {
+  if (isNntmLabs()) {
+    return {
+      title: LABS_HERO.headingLines.join(' '),
+      description: LABS_HERO.body,
+      alternates: { canonical: '/' },
+    };
+  }
+
+  if (isNntmCapital()) {
     return {
       title: 'Business Funding & Working Capital',
       description:
@@ -81,7 +91,16 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
-  if (isMarketingSite()) {
+  /*
+   * NNTM Labs' homepage is entirely coded — no posts, no categories, no
+   * database read at all — so it returns before the client is ever created.
+   * `sites.homepage_page_id` is ignored here, as it is on Capital.
+   */
+  if (isNntmLabs()) {
+    return <LabsHome />;
+  }
+
+  if (isNntmCapital()) {
     const site = await getSite();
 
     /*
