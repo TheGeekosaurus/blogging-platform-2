@@ -46,10 +46,10 @@ import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primiti
 function Hero() {
   return (
     <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
-      <div className="flex min-w-0 flex-col justify-between gap-10 rounded-[var(--nl-radius-panel)] bg-[var(--nl-card)] p-6 pb-4 lg:p-20 lg:pb-5">
+      <div className="flex min-w-0 flex-col justify-between gap-10 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-6 pb-4 lg:p-20 lg:pb-5">
         <div>
           {/*
-           * The headline tops out at 68px where the artwork says 78px, and the
+           * The headline tops out at 62px where the artwork says 78px, and the
            * difference is the font rather than a judgement call.
            *
            * The design's face runs 0.54 em per character; Roboto Flex at 700
@@ -60,6 +60,13 @@ function Hero() {
            * the first line plus the call needs ~1130px inside a 1047px card, so
            * the call wraps below and the composition the design is built around
            * breaks.
+           *
+           * 62px is measured, not picked: the card's inner width is 1047px, the
+           * call is 231px and the gap 24px, which leaves 792px for the phrase
+           * and puts the ceiling at 66px. 62 keeps a margin, because the font
+           * next/font self-hosts is not byte-identical to the subset this was
+           * measured against and a few pixels either way decides whether the
+           * call sits beside the headline or drops beneath it.
            *
            * The COMPOSITION is what is preserved: two lines, the call beside
            * the first at full width.
@@ -74,7 +81,7 @@ function Hero() {
            * call drops beneath it when there is no room, rather than the phrase
            * breaking mid-sentence. The clamp's ceiling is what fits at 1920.
            */}
-          <h1 className="nl-heading text-[28px] leading-[1.15] lg:text-[clamp(36px,3.6vw,68px)] lg:leading-[1.1]">
+          <h1 className="nl-heading text-[28px] leading-[1.15] lg:text-[clamp(36px,3.3vw,62px)] lg:leading-[1.1]">
             <span className="flex flex-wrap items-center gap-x-6 gap-y-4">
               <span className="lg:whitespace-nowrap">{HERO.headingLines[0]}</span>
 
@@ -113,7 +120,7 @@ function Hero() {
         <Marquee
           items={SERVICE_MARQUEE}
           durationSeconds={38}
-          className="rounded-full bg-[var(--nl-bg)] py-4 lg:py-5"
+          className="rounded-[var(--nl-radius-control)] bg-[var(--nl-bg)] py-4 lg:py-5"
         />
       </div>
 
@@ -132,7 +139,7 @@ function Hero() {
        * change depending on what is behind the hero rather than staying fixed
        * to the accent directly underneath.
        */}
-      <div className="relative isolate min-h-[364px] min-w-0 overflow-hidden rounded-[var(--nl-radius-panel)] bg-[var(--nl-accent)] lg:min-h-[592px]">
+      <div className="relative isolate min-h-[364px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] lg:min-h-[592px]">
         <Image
           src="/nntm-labs/hero-brain.webp"
           alt={HERO.imageAlt}
@@ -144,7 +151,7 @@ function Hero() {
 
         <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-5 lg:p-7">
           <ArrowLink label={HERO.imageCta} href="/blog" variant="solid" />
-          <span className="nl-label rounded-md bg-white px-3 py-2 text-[10px] text-[#0f0f0f] lg:text-xs">
+          <span className="nl-label rounded-[var(--nl-radius-input)] bg-white px-3 py-2 text-[10px] text-[#0f0f0f] lg:text-xs">
             {HERO.imageTag}
           </span>
         </div>
@@ -161,7 +168,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
       <article className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-14">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-14">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-14">
               <Icon className="size-5 lg:size-6" />
             </span>
             <h3 className="nl-heading text-xl lg:text-3xl">{service.title}</h3>
@@ -189,7 +196,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
         <div className="order-3 lg:hidden">
           <Link
             href={ENQUIRY_ANCHOR}
-            className="nl-label flex w-full items-center justify-center rounded-full bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
+            className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
           >
             {LINKS.viewAllProjects}
           </Link>
@@ -207,7 +214,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
           {service.projects.map((project) => (
             <div
               key={project.src}
-              className="relative isolate overflow-hidden rounded-xl bg-[var(--nl-line-strong)]"
+              className="relative isolate overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-line-strong)]"
             >
               <Image
                 src={project.src}
@@ -231,11 +238,11 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
   const Icon = STORY_ICONS[story.icon];
 
   return (
-    <div className="grid gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-raised)] p-3 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)] lg:p-0">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)]">
       <article className="flex flex-col justify-between gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-12">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-[var(--nl-raised)] text-[var(--nl-accent)]">
+            <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
               <Icon className="size-5" />
             </span>
             <h3 className="nl-heading text-xl lg:text-3xl">{story.client}</h3>
@@ -275,8 +282,8 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
               key={tab}
               className={
                 tab === story.activeTab
-                  ? 'nl-label rounded-full bg-[var(--nl-accent)] px-4 py-2 text-[10px] text-[#0f0f0f] lg:text-xs'
-                  : 'nl-label rounded-full bg-[var(--nl-raised)] px-4 py-2 text-[10px] text-[var(--nl-muted)] lg:text-xs'
+                  ? 'nl-label rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-4 py-2 text-[10px] text-[#0f0f0f] lg:text-xs'
+                  : 'nl-label rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] px-4 py-2 text-[10px] text-[var(--nl-muted)] lg:text-xs'
               }
             >
               {tab}
@@ -311,8 +318,8 @@ function Testimonials() {
             className={
               // The mobile artboard shows three; the fourth is desktop-only.
               index === 3
-                ? 'hidden flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] lg:flex'
-                : 'flex flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card)] bg-[var(--nl-card)]'
+                ? 'hidden flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] lg:flex'
+                : 'flex flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)]'
             }
           >
             <blockquote className="p-6 lg:p-8">
@@ -366,7 +373,7 @@ function EnquiryForm() {
           rows={4}
           disabled
           placeholder={placeholder}
-          className="mt-2 w-full resize-none rounded-xl border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
+          className="mt-2 w-full resize-none rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
         />
       ) : (
         <input
@@ -374,7 +381,7 @@ function EnquiryForm() {
           type={id === 'nl-email' ? 'email' : 'text'}
           disabled
           placeholder={placeholder}
-          className="mt-2 w-full rounded-full border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
+          className="mt-2 w-full rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
         />
       )}
     </div>
@@ -399,7 +406,7 @@ function EnquiryForm() {
       <button
         type="button"
         disabled
-        className="nl-label mt-2 w-full rounded-full bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
+        className="nl-label mt-2 w-full rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
       >
         {ENQUIRY_FORM.submit}
       </button>
@@ -407,18 +414,23 @@ function EnquiryForm() {
   );
 }
 
+/**
+ * The FAQ has no panel: its rows and the form sit straight on the page ground,
+ * and only the heading is a card. Column widths are the artwork's — 1054px of
+ * rows against a 746px form.
+ */
 function Faq() {
   return (
-    <Panel className="mt-5">
+    <div className="mt-5">
       <SectionHeader id="faq" title={SECTIONS.faq} link={{ label: LINKS.viewAll }} />
 
-      <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.62fr)]">
+      <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]">
         <div className="flex flex-col gap-4">
           {FAQS.map((faq, index) => (
             <details
               key={faq.question}
               open={index === 0}
-              className="rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-6 py-5 lg:px-8 lg:py-6"
+              className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-raised)] bg-[var(--nl-card)] px-6 py-5 lg:px-8 lg:py-6"
             >
               <summary className="flex items-start justify-between gap-6">
                 <span className="text-base leading-snug text-[var(--nl-ink)] lg:text-lg">
@@ -440,13 +452,13 @@ function Faq() {
       </div>
 
       <SectionLink label={LINKS.viewAll} />
-    </Panel>
+    </div>
   );
 }
 
 function ClosingCta() {
   return (
-    <section className="mx-auto mt-5 w-full max-w-[1824px] rounded-[var(--nl-radius-panel)] bg-[var(--nl-accent)] p-8 lg:p-16">
+    <section className="mx-auto mt-5 w-full max-w-[1824px] rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] p-8 lg:p-16">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
         <div className="max-w-[1000px]">
           {/*
@@ -463,7 +475,7 @@ function ClosingCta() {
 
         <Link
           href={ENQUIRY_ANCHOR}
-          className="nl-label inline-flex shrink-0 items-center gap-3 self-start rounded-full bg-[#0f0f0f] px-6 py-4 text-xs text-[var(--nl-ink)] lg:self-auto lg:text-sm"
+          className="nl-label inline-flex shrink-0 items-center gap-3 self-start rounded-[var(--nl-radius-control)] bg-[#0f0f0f] px-6 py-4 text-xs text-[var(--nl-ink)] lg:self-auto lg:text-sm"
         >
           {CLOSING_CTA.cta}
           <ArrowRight className="size-4" />
@@ -487,15 +499,26 @@ export function LabsHome() {
         </div>
       </Panel>
 
-      <Panel className="mt-5">
+      {/*
+        * Success Stories is the odd one out, and deliberately so: its heading
+        * card sits on the ground rather than inside a panel, and EACH STORY
+        * gets its own panel (the artwork has two 1824x434 panels at y=3177 and
+        * y=3627, not one tall one). Wrapping them together reads as a single
+        * block of four cards instead of two separate case studies.
+        */}
+      <div className="mt-5">
         <SectionHeader title={SECTIONS.successStories} link={{ label: LINKS.viewAll }} />
+
         <div className="mt-5 flex flex-col gap-5">
           {SUCCESS_STORIES.map((story) => (
-            <SuccessStory key={story.client} story={story} />
+            <Panel key={story.client}>
+              <SuccessStory story={story} />
+            </Panel>
           ))}
         </div>
+
         <SectionLink label={LINKS.viewAll} />
-      </Panel>
+      </div>
 
       <Testimonials />
       <Faq />

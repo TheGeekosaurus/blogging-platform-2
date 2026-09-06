@@ -37,7 +37,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
     <span className="inline-flex flex-wrap items-center gap-2">
       {link.label}
       {link.badge ? (
-        <span className="nl-label rounded-full bg-[var(--nl-raised)] px-2 py-0.5 text-[10px] text-[var(--nl-muted)]">
+        <span className="nl-label rounded-[var(--nl-radius-badge)] bg-[var(--nl-raised)] px-2 py-0.5 text-[10px] text-[var(--nl-muted)]">
           {link.badge}
         </span>
       ) : null}
@@ -62,7 +62,7 @@ function FooterLinkItem({ link }: { link: FooterLink }) {
 
 function SocialCards() {
   return (
-    <div className="hidden grid-cols-2 gap-5 xl:grid">
+    <div className="hidden min-w-0 grid-cols-2 content-start gap-5 xl:grid">
       {SOCIAL_CARDS.map((card) => {
         const Icon = SOCIAL_ICONS[card.icon];
 
@@ -72,7 +72,7 @@ function SocialCards() {
             className="flex flex-col justify-between gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6"
           >
             <div className="flex items-start justify-between">
-              <span className="grid size-11 place-items-center rounded-full bg-[var(--nl-raised)] text-[var(--nl-accent)]">
+              <span className="grid size-11 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
                 <Icon className="size-5" />
               </span>
               <ArrowUpRight className="size-5 text-[var(--nl-muted)]" />
@@ -93,7 +93,7 @@ function SocialCards() {
 
 function Newsletter() {
   return (
-    <div className="rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-8">
+    <div className="rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] p-6 lg:p-8">
       <p className="nl-label text-xs text-[var(--nl-muted)]">{NEWSLETTER.eyebrow}</p>
 
       <div className="mt-3 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -104,7 +104,7 @@ function Newsletter() {
          * field is disabled rather than posting nowhere. A form that silently
          * discards an address is worse than one that is visibly not ready.
          */}
-        <div className="flex w-full min-w-0 items-center gap-3 rounded-full border border-[var(--nl-line)] bg-[var(--nl-raised)] py-2 pl-5 pr-2 lg:w-[380px] lg:max-w-full lg:shrink">
+        <div className="flex w-full min-w-0 items-center gap-3 rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-raised)] py-2 pl-5 pr-2 lg:w-[380px] lg:max-w-full lg:shrink">
           <label htmlFor="nl-newsletter" className="sr-only">
             {NEWSLETTER.placeholder}
           </label>
@@ -133,38 +133,45 @@ export function LabsFooter() {
       <Marquee
         items={Array.from({ length: 6 }, () => SOCIAL_MARQUEE)}
         durationSeconds={55}
-        className="py-8 lg:py-12"
+        className="rounded-[var(--nl-radius-control)] bg-[var(--nl-card)] py-5 lg:py-6"
       />
 
-      <div className="rounded-[var(--nl-radius-panel)] bg-[var(--nl-raised)] p-3 lg:p-5">
-        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,3fr)_minmax(0,5fr)]">
-          <SocialCards />
+      {/*
+        * No outer panel. The artwork puts the footer's cards straight on the
+        * page ground — a 2x2 of social cards on the left (364px each) beside a
+        * stack of links, newsletter and legal on the right (1053px), which is
+        * where the 748:1053 split below comes from. An enclosing panel would
+        * add a tone the design does not have and swallow the gaps between the
+        * cards.
+        */}
+      <div className="mt-5 grid min-w-0 gap-5 xl:grid-cols-[minmax(0,748fr)_minmax(0,1053fr)]">
+        <SocialCards />
 
-          <div className="grid min-w-0 gap-5">
-            <div className="grid min-w-0 grid-cols-2 gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-8 xl:grid-cols-4">
-              {FOOTER_COLUMNS.map((column) => (
-                <div key={column.heading} className="min-w-0">
-                  <p className="nl-heading text-sm lg:text-base">{column.heading}</p>
-                  <ul className="mt-4 flex flex-col gap-3">
-                    {column.links.map((link) => (
-                      <FooterLinkItem key={link.label} link={link} />
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            <Newsletter />
-          </div>
-        </div>
-
-        <div className="mt-5 flex flex-col gap-3 px-2 py-4 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-6">
-          <p>{COPYRIGHT}</p>
-          <ul className="flex flex-col gap-3 lg:flex-row lg:gap-10">
-            {LEGAL_LINKS.map((link) => (
-              <FooterLinkItem key={link.label} link={link} />
+        <div className="grid min-w-0 content-start gap-5">
+          <div className="grid min-w-0 grid-cols-2 gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-6 lg:p-8 xl:grid-cols-4">
+            {FOOTER_COLUMNS.map((column) => (
+              <div key={column.heading} className="min-w-0">
+                <p className="nl-heading text-sm lg:text-base">{column.heading}</p>
+                <ul className="mt-4 flex flex-col gap-3">
+                  {column.links.map((link) => (
+                    <FooterLinkItem key={link.label} link={link} />
+                  ))}
+                </ul>
+              </div>
             ))}
-          </ul>
+          </div>
+
+          <Newsletter />
+
+          {/* The legal row is its own card in the artwork, not loose text. */}
+          <div className="flex flex-col gap-3 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-6 py-6 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-8">
+            <p>{COPYRIGHT}</p>
+            <ul className="flex flex-col gap-3 lg:flex-row lg:gap-10">
+              {LEGAL_LINKS.map((link) => (
+                <FooterLinkItem key={link.label} link={link} />
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </footer>
