@@ -330,3 +330,92 @@ describe('the radius scale matches the artwork', () => {
     expect(pills.length).toBeLessThanOrEqual(9);
   });
 });
+
+describe('the success stories switch without JavaScript', () => {
+  /*
+   * The tabs are a radio group styled with CSS — no client component, so the
+   * page still ships none of its own JavaScript. What can regress silently:
+   * the default panel, the per-story grouping, and the CSS that does the
+   * switching. All three fail invisibly (a page that looks right and does
+   * nothing), so they are pinned rather than eyeballed.
+   */
+  const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+  it('offers exactly Before and After, defaulting to the outcome', async () => {
+    const { STORY_TABS, DEFAULT_STORY_TAB } = await import(
+      '../components/marketing/labs/content'
+    );
+
+    expect([...STORY_TABS]).toEqual(['Before', 'After']);
+    expect(DEFAULT_STORY_TAB).toBe('After');
+  });
+
+  it('gives every story a panel for every tab', async () => {
+    const { SUCCESS_STORIES, STORY_TABS } = await import(
+      '../components/marketing/labs/content'
+    );
+
+    for (const story of SUCCESS_STORIES) {
+      for (const tab of STORY_TABS) {
+        const panel = story.panels[tab.toLowerCase() as 'before' | 'after'];
+        expect(panel?.heading, `${story.client}/${tab}`).toBeTruthy();
+        expect(panel?.body, `${story.client}/${tab}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('renders one checked radio per story, in its own group', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+    const html = renderToStaticMarkup(React.createElement(LabsHome));
+
+    const groups = new Set([...html.matchAll(/name="(nl-story-[^"]+)"/g)].map((m) => m[1]));
+    const { SUCCESS_STORIES } = await import('../components/marketing/labs/content');
+
+    // One group per story: a shared name would make the two switch together.
+    expect(groups.size).toBe(SUCCESS_STORIES.length);
+    // One default per story, and it is the "after" input.
+    const checked = [...html.matchAll(/<input[^>]*checked[^>]*>/g)].map((m) => m[0]);
+    expect(checked).toHaveLength(SUCCESS_STORIES.length);
+    for (const input of checked) expect(input).toContain('value="after"');
+  });
+
+  it('keeps the switching in CSS, with a readable no-:has() fallback', () => {
+    const block = CSS.slice(CSS.indexOf('.nl-tab-panel'));
+
+    // The panel swap needs :has() because panels are not siblings of the inputs.
+    expect(block).toContain(":has(input[value='before']:checked)");
+    // The label highlight does not — it is a plain adjacent sibling.
+    expect(block).toContain('input:checked + [data-tab-label]');
+    /*
+     * Only "before" is hidden by default. If both were, a browser without
+     * :has() would render two empty cards instead of the outcome panel.
+     */
+    const bareRule = (tab: string) =>
+      // Anchored to the start of a line, so this matches only the DEFAULT rule
+      // and not the `:has(...) .nl-tab-panel[data-tab='after']` one, which
+      // legitimately hides "after" while "before" is selected.
+      new RegExp(`(^|\\n)\\s*\\.nl-tab-panel\\[data-tab='${tab}'\\]\\s*\\{\\s*display:\\s*none`);
+
+    expect(block).toMatch(bareRule('before'));
+    expect(block).not.toMatch(bareRule('after'));
+  });
+});
+
+describe('the stat band', () => {
+  it('renders every figure and the trailing call', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+    const { STATS, STATS_CTA } = await import('../components/marketing/labs/content');
+    const html = renderToStaticMarkup(React.createElement(LabsHome));
+
+    expect(STATS.length).toBeGreaterThan(0);
+    for (const stat of STATS) {
+      expect(html, stat.label).toContain(stat.label);
+      expect(html, stat.value).toContain(stat.value);
+    }
+    expect(html).toContain(STATS_CTA);
+  });
+});

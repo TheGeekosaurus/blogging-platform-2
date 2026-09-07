@@ -1099,6 +1099,74 @@
   }
 
   /*
+   * The success stories' Before / After tabs — interactive, with no JavaScript.
+   *
+   * A radio group drives it: one visually-hidden input per panel, labels
+   * styled as the buttons, and `:has()` matching the checked input's value.
+   * `:has()` rather than Tailwind's `peer-checked` because that compiles to a
+   * SIBLING combinator, which cannot reach the labels — they are nested inside
+   * the tab row, not siblings of the inputs. `:has()` on the container does not
+   * care how deep either one sits.
+   *
+   * Selecting on `value` rather than on generated ids keeps this static CSS:
+   * the two values are fixed, while the ids are per-story so the two stories
+   * on the page switch independently.
+   *
+   * THE DEFAULT IS PLAIN CSS, deliberately. "After" shows and "Before" hides
+   * before any `:has()` rule applies, so a browser without `:has()` still
+   * renders the outcome panel rather than an empty card — it simply cannot
+   * switch. Everything below is an enhancement on top of a readable page.
+   */
+  .nl-tab-panel[data-tab='before'] {
+    display: none;
+  }
+
+  .nl-tabs:has(input[value='before']:checked) .nl-tab-panel[data-tab='before'] {
+    display: block;
+  }
+
+  .nl-tabs:has(input[value='before']:checked) .nl-tab-panel[data-tab='after'] {
+    display: none;
+  }
+
+  /*
+   * The label's RESTING colours live here too, not as Tailwind utilities on
+   * the element. Utilities sit in a later layer than components, so a
+   * `bg-[var(--nl-raised)]` class would beat the selected rule below and the
+   * active tab would never turn coral — which is exactly what happened the
+   * first time. One source of truth for the button's appearance instead.
+   */
+  .nl-tabs [data-tab-label] {
+    background-color: var(--nl-raised);
+    color: var(--nl-muted);
+  }
+
+  .nl-tabs [data-tab-label]:hover {
+    color: var(--nl-ink);
+  }
+
+  /*
+   * The selected label uses a plain adjacent-sibling match: each input is
+   * rendered immediately before its own label, so `+` reaches it directly and
+   * no `:has()` is needed. The PANELS do need `:has()`, because they sit
+   * outside the tab row and have no sibling relationship to the inputs at all.
+   */
+  .nl-tabs input:checked + [data-tab-label] {
+    background-color: var(--nl-accent);
+    color: #0f0f0f;
+  }
+
+  /*
+   * The inputs are sr-only, so the visible focus ring has to be drawn on the
+   * label instead — without this the tabs are keyboard-operable but give no
+   * sign of where focus is.
+   */
+  .nl-tabs input:focus-visible + [data-tab-label] {
+    outline: 2px solid var(--nl-accent);
+    outline-offset: 2px;
+  }
+
+  /*
    * The FAQ accordion is a <details>, so it needs no JavaScript and no
    * hydration — the same reasoning that keeps Capital's mobile nav a <details>
    * and its header a server component.

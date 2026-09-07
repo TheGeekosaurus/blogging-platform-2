@@ -1,9 +1,12 @@
+import { Fragment } from 'react';
+
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { ENQUIRY_ANCHOR } from './brand';
 import {
   CLOSING_CTA,
+  DEFAULT_STORY_TAB,
   ENQUIRY_FORM,
   FAQS,
   HERO,
@@ -11,6 +14,8 @@ import {
   SECTIONS,
   SERVICES,
   SERVICE_MARQUEE,
+  STATS,
+  STATS_CTA,
   STORY_TABS,
   SUCCESS_STORIES,
   TESTIMONIALS,
@@ -163,6 +168,42 @@ function Hero() {
   );
 }
 
+/**
+ * The stat band beneath the hero.
+ *
+ * Five figures and a call, in one panel. Six equal columns on desktop; two on
+ * mobile, where six would leave each number about 55px of width.
+ *
+ * The call is the sixth TILE rather than a link floated after the row, so the
+ * grid stays even and the band keeps a single rhythm — the artwork does the
+ * same, giving it the identical card and footprint as the figures beside it.
+ */
+function Stats() {
+  return (
+    <Panel className="mt-5">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6 lg:gap-4">
+        {STATS.map((stat) => (
+          <div
+            key={stat.label}
+            className="flex flex-col items-center justify-center gap-2 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 text-center lg:py-8"
+          >
+            <p className="nl-label text-[10px] text-[var(--nl-body)] lg:text-xs">
+              {stat.label}
+            </p>
+            <p className="nl-heading text-3xl text-[var(--nl-accent)] lg:text-4xl">
+              {stat.value}
+            </p>
+          </div>
+        ))}
+
+        <div className="flex items-center justify-center rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 lg:py-8">
+          <ArrowLink label={STATS_CTA} href={ENQUIRY_ANCHOR} />
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
 function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
   const Icon = SERVICE_ICONS[service.icon];
 
@@ -245,8 +286,27 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
   );
 }
 
+/**
+ * A success story, with working Before / After tabs.
+ *
+ * INTERACTIVE WITHOUT JAVASCRIPT. The tabs are a radio group: one hidden input
+ * per panel, labels styled as the buttons, and `peer-checked` variants doing
+ * the switching in CSS. That keeps this a server component, which is the same
+ * call the header's <details> menu and the FAQ accordion already make — a
+ * `useState` toggle here would put a client bundle on every route of the site
+ * to switch between two blocks of static text.
+ *
+ * It is also better than a scripted tablist on the things that usually get
+ * dropped: arrow keys move between the options natively, the state survives
+ * with JS disabled, and the checked panel is real DOM rather than a
+ * conditional render.
+ *
+ * The radio `name` is per-story, so the two stories on the page switch
+ * independently rather than sharing one group.
+ */
 function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
   const Icon = STORY_ICONS[story.icon];
+  const group = `nl-story-${story.icon}`;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)]">
@@ -279,37 +339,60 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
         </dl>
       </article>
 
-      <div className="flex flex-col gap-4">
-        {/*
-         * The tabs are presentational.
-         *
-         * The design shows "Solution" selected on both cards and supplies copy
-         * for that tab only — there is no Challenge or Results text anywhere in
-         * the file. Rendering them as real tab controls would promise panels
-         * that do not exist, so they are styled markers until the copy lands.
-         * Give them content and this becomes a real tablist.
-         */}
-        <ul className="flex flex-wrap gap-2 px-1">
-          {STORY_TABS.map((tab) => (
-            <li
-              key={tab}
-              className={
-                tab === story.activeTab
-                  ? 'nl-label rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-4 py-2 text-[10px] text-[#0f0f0f] lg:text-xs'
-                  : 'nl-label rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] px-4 py-2 text-[10px] text-[var(--nl-muted)] lg:text-xs'
-              }
-            >
-              {tab}
-            </li>
-          ))}
-        </ul>
+      <div className="nl-tabs flex flex-col gap-4">
+        <div
+          role="group"
+          aria-label={`${story.client}: before and after`}
+          className="flex flex-wrap items-center gap-2 px-1"
+        >
+          {STORY_TABS.map((tab) => {
+            const value = tab.toLowerCase();
 
-        <article className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8">
-          <h4 className="nl-heading text-xl lg:text-5xl">{story.activeTab}</h4>
-          <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6 lg:text-lg">
-            {story.body}
-          </p>
-        </article>
+            return (
+              /*
+               * A Fragment rather than a wrapper element, so the input and its
+               * label are direct children of the row. The CSS matches the
+               * label with `input:checked + [data-tab-label]`, and an
+               * intervening element would break that adjacency.
+               */
+              <Fragment key={tab}>
+                <input
+                  type="radio"
+                  name={group}
+                  id={`${group}-${value}`}
+                  value={value}
+                  defaultChecked={tab === DEFAULT_STORY_TAB}
+                  className="sr-only"
+                />
+                <label
+                  htmlFor={`${group}-${value}`}
+                  data-tab-label={value}
+                  className="nl-label cursor-pointer rounded-[var(--nl-radius-control)] px-4 py-2 text-[10px] transition-colors lg:text-xs"
+                >
+                  {tab}
+                </label>
+              </Fragment>
+            );
+          })}
+        </div>
+
+        {STORY_TABS.map((tab) => {
+          const value = tab.toLowerCase() as Lowercase<typeof tab>;
+          const panel = story.panels[value];
+
+          return (
+            <article
+              key={tab}
+              data-tab={value}
+              className="nl-tab-panel flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
+            >
+              <h4 className="nl-heading text-xl lg:text-5xl">{panel.heading}</h4>
+              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6 lg:text-lg">
+                {panel.body}
+              </p>
+            </article>
+          );
+        })}
       </div>
     </div>
   );
@@ -502,6 +585,7 @@ export function LabsHome() {
   return (
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
+      <Stats />
 
       <Panel className="mt-[var(--nl-section-gap)]">
         <SectionHeader title={SECTIONS.services} />
