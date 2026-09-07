@@ -198,10 +198,11 @@ coded, so it reads no content from the database beyond its `sites` row, and it
 has no third-party embeds and no analytics container of its own.
 
 Two things are deliberately not wired yet, and both are visible on the page: the
-enquiry form at the bottom of the homepage and the newsletter field in the
-footer are disabled, because neither has an endpoint. Every call to action on
-the site points at that form, so wiring it is the first thing to do before the
-domain goes live.
+enquiry form — one copy at the bottom of the homepage, one at the bottom of
+`/services` — and the newsletter field in the footer are disabled, because
+neither has an endpoint. Every call to action on the site points at the nearer
+copy of that form, so wiring it is the first thing to do before the domain goes
+live.
 
 ### If this is the Nanotom Capital marketing deployment
 

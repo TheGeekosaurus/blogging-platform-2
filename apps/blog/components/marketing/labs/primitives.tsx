@@ -70,6 +70,41 @@ export function ArrowLink({ label, href, variant = 'outline', className }: Arrow
 }
 
 /**
+ * The larger, filled sibling of ArrowLink — the "Learn More" control on the
+ * Services page's reasons cards.
+ *
+ * A separate primitive rather than another ArrowLink variant, because it
+ * differs in every dimension that matters: the ring is 68px against 44px and
+ * filled with the page ground rather than hollow, and the label is body copy
+ * in sentence case rather than the uppercase monospaced `nl-label` used
+ * everywhere else. Folding those into ArrowLink would need three more props
+ * and would leave the two controls one typo apart.
+ *
+ * Renders a <span> without an href, for the reason ArrowLink does: a control
+ * that looks operable and is not is worse than plain text.
+ */
+export function DiscLink({ label, href }: { label: string; href?: string }) {
+  const content = (
+    <>
+      <span className="grid size-12 shrink-0 place-items-center rounded-full border border-[var(--nl-line-strong)] bg-[var(--nl-bg)] text-[var(--nl-accent)] transition-transform duration-200 group-hover:-translate-y-px lg:size-[68px]">
+        <ArrowUpRight className="size-5 lg:size-6" />
+      </span>
+      <span className="text-sm text-[var(--nl-body)] lg:text-base">{label}</span>
+    </>
+  );
+
+  const classes = 'group inline-flex items-center gap-3';
+
+  if (!href) return <span className={classes}>{content}</span>;
+
+  return (
+    <Link href={href} className={classes}>
+      {content}
+    </Link>
+  );
+}
+
+/**
  * A horizontally scrolling strip.
  *
  * `items` is rendered TWICE inside the track, and the keyframe travels exactly

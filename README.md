@@ -175,9 +175,16 @@ component.
 
 ### Nanotom Labs
 
-A replica of a Figma template, measured out of the PDF export rather than
-estimated — 1920 desktop and 390 mobile artboards, both matched. Three things
-are worth knowing before editing it:
+Two pages so far — `/` and `/services` — each a replica of a Figma template
+frame, measured out of the PDF export rather than estimated. The homepage had
+1920 desktop and 390 mobile artboards and both are matched; only a desktop
+frame was supplied for `/services`, so its layout below `lg` is an inference
+from the homepage's mobile frame rather than a transcription.
+
+The two pages share a grid and four whole sections — the stat band, the
+testimonial wall, the FAQ and its form, and the closing call — which live in
+`marketing/labs/sections.tsx`. Each page owns its hero and the sections between.
+Things worth knowing before editing any of it:
 
 - **The accent is Nanotom's brand gold (#E0A840), not the template's
   terracotta**, so Labs and Capital read as one company. Everything accented
@@ -200,10 +207,15 @@ are worth knowing before editing it:
   enquiry form is the site's only conversion path — it needs a real destination
   before launch, and a test fails if a field is enabled without one.
 
-The template's testimonials, success stories and prices are placeholder copy
-naming people and companies who are not customers. See the header of
-`marketing/labs/content.ts`: they must be replaced before the site serves real
-traffic.
+- **Careers and Blogs are off the header by decision**, not by oversight: there
+  are no openings to list and the blog is not this site's front door. `/blog`
+  still renders, is still in the sitemap, and is still linked from the footer.
+
+The template's testimonials, success stories, prices, stat figures and the two
+"our works" case studies are placeholder copy naming people, companies and
+engagements that are not Nanotom Labs'. See the headers of
+`marketing/labs/content.ts` and `marketing/labs/services-content.ts`: they must
+be replaced before the site serves real traffic.
 
 ## Security model
 

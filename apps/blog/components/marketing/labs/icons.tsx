@@ -108,6 +108,40 @@ function Fitness({ className }: IconProps) {
   );
 }
 
+/**
+ * The Zenith Fitness App project mark: a five-pointed spark.
+ *
+ * Filled rather than stroked, which is what the artwork shows — every other
+ * glyph here is a line mark, and these two project marks are the exception
+ * rather than an inconsistency introduced here.
+ */
+function Spark({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path
+        d="M12 2.6c.5 0 .8.3 1 .7l1.9 4.4 4.7.5c.9.1 1.2 1.2.6 1.8l-3.6 3.2 1 4.7c.2.9-.8 1.6-1.6 1.1L12 16.5l-4 2.5c-.8.5-1.8-.2-1.6-1.1l1-4.7-3.6-3.2c-.6-.6-.3-1.7.6-1.8l4.7-.5L11 3.3c.2-.4.5-.7 1-.7z"
+        fill="currentColor"
+      />
+      <path d="m14.4 15.4 3.9 4" {...STROKE} strokeWidth={2} />
+    </svg>
+  );
+}
+
+/** The A-Aura Ecommerce project mark: a balloon with a knotted tail. */
+function Balloon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path
+        d="M12 2.5a6.5 6.5 0 0 1 6.5 6.5c0 3.6-2.9 6.5-6.5 6.5S5.5 12.6 5.5 9A6.5 6.5 0 0 1 12 2.5z"
+        fill="currentColor"
+      />
+      <path d="M12 15.5V18" {...STROKE} strokeWidth={2} />
+      <path d="M10.6 19.4h2.8" {...STROKE} strokeWidth={2} />
+      <path d="M9 7.5a3.4 3.4 0 0 1 2.4-2.3" stroke="#0f0f0f" fill="none" strokeWidth={1.4} strokeLinecap="round" opacity={0.35} />
+    </svg>
+  );
+}
+
 function Instagram({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
@@ -159,6 +193,12 @@ export const SERVICE_ICONS = {
 export const STORY_ICONS = {
   klothink: Klothink,
   fitness: Fitness,
+} as const;
+
+/** Project marks on /services, keyed by `Work['icon']` in ./services-content.ts. */
+export const WORK_ICONS = {
+  spark: Spark,
+  balloon: Balloon,
 } as const;
 
 /** Footer social icons, keyed by `SocialCard['icon']` in ./brand.ts. */
