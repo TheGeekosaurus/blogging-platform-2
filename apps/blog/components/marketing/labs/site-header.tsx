@@ -23,17 +23,34 @@ import { NAV, type NavItem } from './brand';
  * of duplicated constant that drifts.
  */
 
-/** Shared by the desktop bar and the mobile drawer, so styling cannot drift. */
+/**
+ * Shared by the desktop bar and the mobile drawer, so styling cannot drift.
+ *
+ * The bar itself appears at `xl`, not `lg`. At the artwork's spacing the seven
+ * items need about 950px and a 1024px viewport only leaves the header 844px
+ * inside its own padding, so the row overflowed the page. The drawer covers
+ * everything below that.
+ */
 function navClasses(item: NavItem): string {
+  /*
+   * Padding is the artwork's: its "HOME" pill is 92x63 around 14px monospaced
+   * text, which works out at roughly 28px of horizontal and 21px of vertical
+   * padding.
+   */
   const base =
-    'nl-label rounded-[var(--nl-radius-control)] px-4 py-2.5 text-xs transition-colors lg:px-5 lg:text-sm';
+    'nl-label rounded-[var(--nl-radius-control)] px-4 py-2.5 text-xs transition-colors xl:px-7 xl:py-5 xl:text-sm';
 
   if (item.cta) {
     return `${base} bg-[var(--nl-accent)] text-[#0f0f0f] hover:bg-[var(--nl-accent-strong)]`;
   }
 
-  // The design gives every nav item a resting pill, not just a hover state.
-  return `${base} bg-[var(--nl-raised)] text-[var(--nl-body)] hover:text-[var(--nl-ink)]`;
+  /*
+   * The resting pill is the PAGE GROUND, not the raised tone — the artwork
+   * fills these with #0F0F0F, the same black the page sits on, so they read as
+   * wells cut into the bar rather than as chips raised off it. Hover lifts the
+   * label instead of the surface.
+   */
+  return `${base} bg-[var(--nl-bg)] text-[var(--nl-body)] hover:text-[var(--nl-ink)]`;
 }
 
 function NavLink({ item }: { item: NavItem }) {
@@ -73,7 +90,7 @@ export function LabsHeader() {
           <Wordmark />
 
           {/* Desktop: the full bar. */}
-          <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-4 xl:flex">
             {NAV.map((item) => (
               <NavLink key={item.label} item={item} />
             ))}
@@ -83,7 +100,7 @@ export function LabsHeader() {
            * Mobile: a <details> drawer. `group` on the element lets the
            * summary's icon respond to [open] without a class toggle in JS.
            */}
-          <details className="group relative lg:hidden">
+          <details className="group relative xl:hidden">
             <summary
               className="nl-label flex cursor-pointer list-none items-center gap-2 rounded-[var(--nl-radius-control)] border border-[var(--nl-line)] px-4 py-2 text-xs text-[var(--nl-ink)] [&::-webkit-details-marker]:hidden"
               aria-label="Open menu"
