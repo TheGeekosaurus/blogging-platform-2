@@ -1,5 +1,5 @@
 /**
- * NNTM Labs' navigation and footer structure.
+ * Nanotom Labs' navigation and footer structure.
  *
  * Separated from ./content.ts the same way Capital separates brand.ts from
  * ft/content.ts: this file is about where things GO, content.ts is about what
@@ -17,6 +17,33 @@
  */
 
 /**
+ * The wordmark, hotlinked rather than stored.
+ *
+ * Same decision Capital already makes for its imagery, and the same CDN
+ * (`images.leadconnectorhq.com`): the file is served as WebP at q_80 behind
+ * Cloudflare, so committing a copy would add a build step and save nothing.
+ * The root layout preconnects to that origin, because this is the first paint
+ * in the header and its DNS+TLS handshake would otherwise sit on the critical
+ * path.
+ *
+ * Rendered with a plain <img>, not next/image, for the reason Capital's README
+ * gives: routing an already-optimised WebP through the optimiser spends quota
+ * to re-encode it into the same thing. `intrinsic` is the file's real pixel
+ * size — it is what reserves the right box before the image lands, so the
+ * header does not reflow.
+ */
+export const LOGO = {
+  src:
+    'https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/' +
+    'u_https://assets.cdn.filesafe.space/BCQ9O5RVXWEILUOh7ic7/media/69c74eca7115ea7e6ac358f8.png',
+  alt: 'Nanotom Labs',
+  intrinsic: { width: 1200, height: 352 },
+} as const;
+
+/** Preconnected in the root layout — see LOGO above. */
+export const LOGO_ORIGIN = 'https://images.leadconnectorhq.com';
+
+/**
  * The homepage's own enquiry form, which every call to action points at until
  * there is a contact page.
  *
@@ -31,7 +58,7 @@ export type NavItem = {
   label: string;
   /** Absent while the destination is unbuilt — rendered unlinked, not as a 404. */
   href?: string;
-  /** The coral pill at the end of the bar. Exactly one item carries it. */
+  /** The accent pill at the end of the bar. Exactly one item carries it. */
   cta?: boolean;
 };
 
@@ -107,7 +134,7 @@ export type SocialCard = {
  * The four footer cards.
  *
  * No hrefs: these are the template's placeholder accounts, and linking them
- * would send visitors to profiles that are not NNTM Labs'. They are dropped
+ * would send visitors to profiles that are not Nanotom Labs'. They are dropped
  * entirely below the `lg` breakpoint, matching the mobile frame.
  */
 export const SOCIAL_CARDS: readonly SocialCard[] = [
@@ -138,5 +165,5 @@ export const LEGAL_LINKS: readonly FooterLink[] = [
   { label: 'Privacy Policy' },
 ];
 
-/** Verbatim from the design, misspelling included — see content.ts on copy. */
-export const COPYRIGHT = '© 2024 NextGen. All rights reserved.';
+/** The year is still the template's — see the note in content.ts. */
+export const COPYRIGHT = '© 2024 Nanotom Labs. All rights reserved.';

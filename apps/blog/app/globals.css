@@ -107,7 +107,7 @@
   --font-body: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
 
   /*
-   * NNTM Labs' faces, likewise bound in app/layout.tsx.
+   * Nanotom Labs' faces, likewise bound in app/layout.tsx.
    *
    * Roboto Flex carries both the headings and the body — one variable family
    * across the whole scale, which is what the design was specified with.
@@ -895,7 +895,7 @@
 }
 
 /*
- * NNTM Labs — the agency site, deployed with SITE_SLUG=nntm-labs.
+ * Nanotom Labs — the agency site, deployed with SITE_SLUG=nntm-labs.
  *
  * Scoped to `.nl-surface` for the same reason `.ft-surface` is: `apps/blog`
  * runs once per blog from one codebase, and an unscoped dark palette would
@@ -907,13 +907,19 @@
  *   --nl-bg     #0F0F0F  the page ground
  *   --nl-card   #191919  section cards
  *   --nl-raised #1F1F1F  the panel those cards sit inside
- *   --nl-accent #CE7D63  a muted terracotta, NOT the brighter salmon it looks
- *                        like at screenshot resolution
+ *   --nl-accent #E0A840  Nanotom's brand gold
+ *
+ * THE ACCENT IS NOT THE TEMPLATE'S. The artwork uses a muted terracotta
+ * (#CE7D63); this is the same gold Nanotom Capital runs on, so the two sites
+ * read as one company. Everything accented follows the variable, including the
+ * hero photograph — it is tinted against the accent with `mix-blend-luminosity`,
+ * so it turned from coral to gold with this one line.
  *
  * Text tones are the design's, with one lifted. Measured against WCAG AA:
  *   --nl-ink    #F9EFEC  16.96:1 on the ground
  *   --nl-body   #B3B3B2   9.13:1
- *   --nl-accent #CE7D63   6.15:1 — clears AA as body text, not merely as large
+ *   --nl-accent #E0A840   8.99:1 — and 8.99:1 for dark ink ON the accent, which
+ *                                  is what the CTA band and the buttons use
  *   --nl-muted  #878685   5.27:1 on the ground, 4.54:1 on the raised panel
  *
  * --nl-muted is the deviation, and the only one. The template uses #676665
@@ -937,11 +943,14 @@
     --nl-body: #b3b3b2;
     --nl-muted: #878685;
 
-    --nl-accent: #ce7d63;
-    /* Accent tints, straight from the design's fills. */
-    --nl-accent-strong: #d48e77;
-    --nl-accent-tint: #e7beb1;
-    --nl-accent-wash: #f3dfd8;
+    --nl-accent: #e0a840;
+    /*
+     * The hover tone, matching Capital's --color-gold-hover. The template's
+     * lighter tints (#E7BEB1, #F3DFD8) are gone rather than translated: nothing
+     * referenced them, and leaving coral-derived values behind a gold accent is
+     * how a palette drifts back apart.
+     */
+    --nl-accent-strong: #c68c2e;
 
     /*
      * The design's radius scale, measured off the artwork's path geometry
@@ -1133,7 +1142,7 @@
    * The label's RESTING colours live here too, not as Tailwind utilities on
    * the element. Utilities sit in a later layer than components, so a
    * `bg-[var(--nl-raised)]` class would beat the selected rule below and the
-   * active tab would never turn coral — which is exactly what happened the
+   * active tab would never take the accent — which is exactly what happened the
    * first time. One source of truth for the button's appearance instead.
    */
   .nl-tabs [data-tab-label] {
@@ -1186,7 +1195,7 @@
 }
 
 /*
- * NNTM Labs' font repoint, deliberately UNLAYERED.
+ * Nanotom Labs' font repoint, deliberately UNLAYERED.
  *
  * `--font-headline` and `--font-body` are generated into a Tailwind layer from
  * `@theme`, and a layered rule loses to an unlayered one regardless of

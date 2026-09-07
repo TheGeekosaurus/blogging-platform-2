@@ -13,7 +13,7 @@ import { ArrowUpRight, SOCIAL_ICONS } from './icons';
 import { Marquee } from './primitives';
 
 /**
- * NNTM Labs' footer, including the social marquee that runs above it.
+ * Nanotom Labs' footer, including the social marquee that runs above it.
  *
  * The marquee lives here rather than on the homepage because it is chrome: it
  * sits between the last section and the footer on every frame in the design,

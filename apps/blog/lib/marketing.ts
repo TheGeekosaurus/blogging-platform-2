@@ -6,7 +6,7 @@ import { NNTM_CAPITAL_SLUG, NNTM_LABS_SLUG, isCodedSite, siteSlug } from '@blog/
  * `apps/blog` is deployed once PER BLOG against one shared codebase, so anything
  * site-specific has to be gated or every future blog inherits it. Without these
  * checks a third blog's deployment would render Nanotom Capital's nav and footer
- * — or NNTM Labs' — on its own domain.
+ * — or Nanotom Labs' — on its own domain.
  *
  * The slugs themselves live in `@blog/core`'s coded-route registry, which the
  * admin also reads. The predicates stay here because they depend on `SITE_SLUG`,
@@ -38,7 +38,7 @@ export function isNntmCapital(): boolean {
   return siteSlug() === NNTM_CAPITAL_SLUG;
 }
 
-/** The NNTM Labs deployment: the agency site. */
+/** The Nanotom Labs deployment: the agency site. */
 export function isNntmLabs(): boolean {
   return siteSlug() === NNTM_LABS_SLUG;
 }

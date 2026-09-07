@@ -1,5 +1,5 @@
 /**
- * NNTM Labs' icons, inline rather than from a package.
+ * Nanotom Labs' icons, inline rather than from a package.
  *
  * The design's glyphs are simple line marks, and every one of them is smaller
  * than the import machinery would be — an icon library would ship a runtime

@@ -24,7 +24,7 @@ type ArrowLinkProps = {
   /**
    * `outline` — a hairline ring in the current text colour. The default.
    * `solid` — a filled white disc with dark glyph, for overlays on imagery.
-   * `accent` — a coral ring and coral label, for the hero's primary call.
+   * `accent` — ring and label both in the accent, for the hero's primary call.
    */
   variant?: 'outline' | 'solid' | 'accent';
   className?: string;

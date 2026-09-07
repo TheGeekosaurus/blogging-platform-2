@@ -1,16 +1,19 @@
 /**
- * Copy for the NNTM Labs homepage.
+ * Copy for the Nanotom Labs homepage.
  *
  * THIS IS THE FIGMA TEMPLATE'S PLACEHOLDER COPY, VERBATIM — the opposite of
  * Capital's ft/content.ts, which carries real claims taken off a live site.
  * The brief was a faithful replica of the design, so every string here is the
- * template's, transcribed from the PDF export rather than retyped: the
- * "NextGen" misspelling in the footer copyright, the truncated
- * "that leave a lasting." in the first service, and "FAQˇs" in the footer are
- * all the artwork's own.
+ * template's, transcribed from the PDF export rather than retyped — the
+ * truncated "that leave a lasting." in the first service and "FAQˇs" in the
+ * footer are the artwork's own, not typos introduced here.
+ *
+ * THE COMPANY NAME IS NOT the template's. Every "NexGen" is now "Nanotom
+ * Labs"; the copyright line still carries the template's 2024, which is worth
+ * correcting when the real copy lands.
  *
  * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. Three blocks below name
- * people and companies who are not NNTM Labs' customers:
+ * people and companies who are not Nanotom Labs' customers:
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
  *   - SUCCESS_STORIES: two client engagements with described outcomes
  *   - SERVICES[].price: four price points
@@ -26,7 +29,7 @@ export const HERO = {
   headingLines: ['Our Comprehensive', 'Digital Solutions'],
   cta: 'Start a Project',
   body:
-    'At NexGen, we offer a comprehensive suite of digital solutions designed to propel ' +
+    'At Nanotom Labs, we offer a comprehensive suite of digital solutions designed to propel ' +
     'your business to new heights in the digital realm. With a team of skilled ' +
     'professionals, cutting-edge technologies, and a passion for innovation',
   /** Overlays on the hero image card. */
@@ -238,7 +241,7 @@ export type Testimonial = {
  */
 export const TESTIMONIALS: readonly Testimonial[] = [
   {
-    quote: 'NexGen turned our business around!',
+    quote: 'Nanotom Labs turned our business around!',
     body:
       'Their digital marketing strategies helped us reach new customers and increase our ' +
       'revenue by 30% within just a few months. Highly recommended!',
@@ -247,7 +250,7 @@ export const TESTIMONIALS: readonly Testimonial[] = [
     avatar: '/nntm-labs/avatar-sarah-thompson.webp',
   },
   {
-    quote: 'NexGen turned our business around!',
+    quote: 'Nanotom Labs turned our business around!',
     body:
       'Their digital marketing strategies helped us reach new customers and increase our ' +
       'revenue by 30% within just a few months. Highly recommended!',
@@ -256,7 +259,7 @@ export const TESTIMONIALS: readonly Testimonial[] = [
     avatar: '/nntm-labs/avatar-wade-warren.webp',
   },
   {
-    quote: 'Working with NexGen was a pleasure.',
+    quote: 'Working with Nanotom Labs was a pleasure.',
     body:
       "Their web design team created a stunning website that perfectly captured our " +
       "brand's essence. The feedback from our customers has been overwhelmingly positive.",
@@ -265,7 +268,7 @@ export const TESTIMONIALS: readonly Testimonial[] = [
     avatar: '/nntm-labs/avatar-lisa-williams.webp',
   },
   {
-    quote: "NexGen's web design team brought our vision to life.",
+    quote: "Nanotom Labs' web design team brought our vision to life.",
     body:
       'Their responsive design ensures our website looks stunning on all devices, ' +
       'contributing to increased user engagement.',
@@ -307,7 +310,7 @@ export const ENQUIRY_FORM = {
 export const CLOSING_CTA = {
   heading: 'Ready to Transform Your Digital Presence?',
   body:
-    'Take the first step towards digital success with NexGen by your side. Our team of ' +
+    'Take the first step towards digital success with Nanotom Labs by your side. Our team of ' +
     'experts is eager to craft tailored solutions that drive growth for your business.',
   cta: 'Get in Touch',
 } as const;
