@@ -191,7 +191,7 @@ and rankings survive the move. Attach that subdomain to this same Vercel project
 Vercel's own domain redirect cannot do it — it preserves the path, and the path
 needs a `/blog` prefix. Leave the variable unset if you have no old subdomain.
 
-### If this is the NNTM Labs deployment
+### If this is the Nanotom Labs deployment
 
 Set `SITE_SLUG` to `nntm-labs`. Nothing else is needed — the site's pages are
 coded, so it reads no content from the database beyond its `sites` row, and it

@@ -137,7 +137,7 @@ they carry third-party embeds and bespoke layouts, which is code, not content.
 | Slug | What it is | Components |
 | --- | --- | --- |
 | `nntm-capital` | Nanotom Capital, replicating the site that lived in HighLevel | `marketing/`, `marketing/ft/` |
-| `nntm-labs` | NNTM Labs, the agency site, from a Figma template | `marketing/labs/` |
+| `nntm-labs` | Nanotom Labs, the agency site, from a Figma template | `marketing/labs/` |
 
 `apps/blog` is deployed once **per blog** from one codebase, so all of it is
 gated on `SITE_SLUG` — `apps/blog/lib/marketing.ts` resolves the slug to a coded
@@ -173,16 +173,24 @@ The page ships no JavaScript of its own. The mobile menu is a `<details>`
 element and the nav dropdown is CSS-only, so the whole header stays a server
 component.
 
-### NNTM Labs
+### Nanotom Labs
 
 A replica of a Figma template, measured out of the PDF export rather than
 estimated — 1920 desktop and 390 mobile artboards, both matched. Three things
 are worth knowing before editing it:
 
-- **The palette is the design's, with one deviation.** Its muted grey (#676665)
+- **The accent is Nanotom's brand gold (#E0A840), not the template's
+  terracotta**, so Labs and Capital read as one company. Everything accented
+  follows the variable — including the hero photograph, which is tinted against
+  it with `mix-blend-luminosity` and turned gold with that one line.
+- **The greys are the design's, with one deviation.** Its muted grey (#676665)
   measures 2.88:1 on the raised surface and fails WCAG AA for body text, so
   `--nl-muted` is #878685 instead. `__tests__/labs.test.ts` holds every tone to
-  4.5:1 on every surface it can land on.
+  4.5:1 on every surface it can land on, and pins the accent to `--color-gold`
+  so the two sites cannot quietly diverge.
+- **The wordmark is hotlinked, not committed** — same CDN and same reasoning as
+  Capital's imagery, with the intrinsic size on the `<img>` so the header
+  cannot reflow.
 - **The hero headline is 68px where the artwork says 78.** The design's face
   runs 0.54 em per character and Roboto Flex runs ~0.65, and Google Fonts serves
   the subset with the `wdth` axis pinned, so the gap cannot be closed. The
@@ -224,7 +232,7 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
 | Nanotom Capital | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
-| NNTM Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
+| Nanotom Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical

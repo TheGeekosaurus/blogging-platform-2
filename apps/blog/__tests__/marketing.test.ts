@@ -36,7 +36,7 @@ describe('codedSite', () => {
     expect(isNntmLabs()).toBe(false);
   });
 
-  it('names the NNTM Labs deployment', async () => {
+  it('names the Nanotom Labs deployment', async () => {
     const { codedSite, isNntmCapital, isNntmLabs, NNTM_LABS_SLUG } =
       await loadWithSlug('nntm-labs');
     expect(NNTM_LABS_SLUG).toBe('nntm-labs');

@@ -41,7 +41,7 @@ export type CodedRoute = {
  * `apps/blog` is deployed once per blog from one codebase, so these slugs are
  * what keeps one company's routes off another's domain. This started as a
  * single slug and a single route list, on the reasoning that one hand-coded
- * site was the exception rather than a category. A second one — NNTM Labs —
+ * site was the exception rather than a category. A second one — Nanotom Labs —
  * made that shape untenable: a boolean cannot say WHICH coded site a deployment
  * is, only that it is one, and the chrome differs completely between them.
  */
@@ -58,7 +58,7 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
 ];
 
 /**
- * NNTM Labs: the agency site.
+ * Nanotom Labs: the agency site.
  *
  * Only the homepage so far. The design's nav promises services, projects,
  * about, careers and contact, and each is a coded route rather than a `pages`

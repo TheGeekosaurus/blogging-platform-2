@@ -92,7 +92,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   /*
-   * NNTM Labs' homepage is entirely coded — no posts, no categories, no
+   * Nanotom Labs' homepage is entirely coded — no posts, no categories, no
    * database read at all — so it returns before the client is ever created.
    * `sites.homepage_page_id` is ignored here, as it is on Capital.
    */

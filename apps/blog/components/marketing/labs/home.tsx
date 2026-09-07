@@ -24,7 +24,7 @@ import { ArrowRight, Plus, SERVICE_ICONS, STORY_ICONS } from './icons';
 import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
 
 /**
- * The NNTM Labs homepage.
+ * The Nanotom Labs homepage.
  *
  * A replica of the Figma template's Services frame, which is the page the
  * brief nominated as the homepage. Geometry is measured out of the PDF export
@@ -35,7 +35,7 @@ import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primiti
  * Those two artboards disagree in three places, and each disagreement is the
  * mobile frame's own decision rather than a shortcut taken here:
  *   - the hero's image card moves below the copy instead of beside it
- *   - each service row drops its paired project gallery for a single coral
+ *   - each service row drops its paired project gallery for a single accent
  *     "View all Projects" button
  *   - the fourth testimonial is dropped
  * Each is implemented as a breakpoint change at `lg`, so both ends match their
@@ -133,14 +133,17 @@ function Hero() {
       </div>
 
       {/*
-       * The coral here is a BLEND LAYER, not a backdrop.
+       * The accent here is a BLEND LAYER, not a backdrop.
        *
        * The source photograph is violet — that is what comes out of the Figma
-       * export — but it reads as coral monochrome in the artwork. The design
-       * tints it against the accent, so the card paints the accent and the
-       * image sits on it in `luminosity`: hue and saturation come from the
-       * coral beneath, lightness from the photograph. Drop the blend and the
-       * hero turns violet, which is the one colour nowhere else on the page.
+       * export — but the artwork shows it as a monochrome tint. The card paints
+       * the accent and the image sits on it in `luminosity`: hue and saturation
+       * come from the accent beneath, lightness from the photograph. Drop the
+       * blend and the hero turns violet, which is the one colour nowhere else
+       * on the page.
+       *
+       * Because it reads the variable, the hero followed the brand: it was
+       * terracotta on the template's accent and is gold on Nanotom's.
        *
        * `isolate` on the card matters. Without it the blend composites against
        * whatever ancestor happens to form a stacking context, so the tint would

@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
-import { NAV, type NavItem } from './brand';
+import { LOGO, NAV, type NavItem } from './brand';
 
 /**
- * NNTM Labs' header.
+ * Nanotom Labs' header.
  *
  * A server component with no JavaScript of its own, matching Capital's: the
  * mobile menu is a <details> element, so it opens and closes natively. The
@@ -77,11 +77,31 @@ function NavLink({ item }: { item: NavItem }) {
 
 function Wordmark() {
   return (
-    <Link
-      href="/"
-      className="nl-label text-lg tracking-[0.12em] text-[var(--nl-ink)] lg:text-xl"
-    >
-      NexGen
+    <Link href="/" className="flex shrink-0 items-center" aria-label={LOGO.alt}>
+      {/*
+        * A plain <img>, hotlinked — see LOGO in ./brand.ts for why it is not
+        * next/image and not committed to the repo.
+        *
+        * `width`/`height` are the file's intrinsic pixels and the height is
+        * capped in CSS, so the browser knows the aspect ratio and reserves the
+        * right box before the bytes arrive. Without them the header would
+        * reflow on load, and it is the first thing on the page.
+        *
+        * Not lazy: this is above the fold on every route.
+        *
+        * 40px tall, which is as large as it can be without growing the bar —
+        * the nav pills are 41px, so they still set the header's height. At the
+        * 32px it started at, the "LABS" line and its rule were too fine to
+        * read.
+        */}
+      <img
+        src={LOGO.src}
+        alt={LOGO.alt}
+        width={LOGO.intrinsic.width}
+        height={LOGO.intrinsic.height}
+        fetchPriority="high"
+        className="h-9 w-auto lg:h-10"
+      />
     </Link>
   );
 }

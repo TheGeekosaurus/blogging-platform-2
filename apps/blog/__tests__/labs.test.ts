@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * NNTM Labs — the second hand-coded site.
+ * Nanotom Labs — the second hand-coded site.
  *
  * Two classes of regression are guarded here, and neither surfaces on its own.
  *
@@ -127,7 +127,7 @@ describe('the marquees loop seamlessly', () => {
   });
 });
 
-describe('the NNTM Labs palette meets WCAG AA', () => {
+describe('the Nanotom Labs palette meets WCAG AA', () => {
   const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
 
   function token(name: string): string {
@@ -176,7 +176,7 @@ describe('the NNTM Labs palette meets WCAG AA', () => {
   );
 
   it('puts dark ink on the accent band, not white', () => {
-    // #0F0F0F on the accent is 6.15:1; white is 3.10:1 and fails for body copy.
+    // #0F0F0F on the brand gold is 8.99:1; white is 2.13:1 and fails badly.
     // The closing CTA is a full-width band of exactly this pairing.
     const accent = token('nl-accent');
     expect(contrast('#0f0f0f', accent)).toBeGreaterThanOrEqual(4.5);
@@ -417,5 +417,50 @@ describe('the stat band', () => {
       expect(html, stat.value).toContain(stat.value);
     }
     expect(html).toContain(STATS_CTA);
+  });
+});
+
+describe('the Nanotom Labs branding', () => {
+  it('runs on Capital\'s brand gold, so the two sites match', () => {
+    const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+    const gold = CSS.match(/--color-gold:\s*(#[0-9a-f]{6});/i)?.[1];
+    const accent = CSS.match(/--nl-accent:\s*(#[0-9a-f]{6});/i)?.[1];
+
+    expect(gold).toBeTruthy();
+    // Read from --color-gold rather than hardcoded, so if Capital's brand
+    // moves this fails instead of the two sites quietly diverging.
+    expect(accent).toBe(gold);
+  });
+
+  it('hotlinks the wordmark rather than committing it', async () => {
+    const { LOGO, LOGO_ORIGIN } = await import('../components/marketing/labs/brand');
+    const { readdirSync } = await import('node:fs');
+
+    expect(LOGO.src.startsWith(LOGO_ORIGIN)).toBe(true);
+    // Nothing logo-shaped landed in the asset folder alongside the design art.
+    const assets = readdirSync(join(__dirname, '..', 'public', 'nntm-labs'));
+    expect(assets.filter((f) => /logo|wordmark|nanotom/i.test(f))).toHaveLength(0);
+  });
+
+  it('reserves the wordmark\'s box so the header cannot reflow', () => {
+    const header = read('site-header.tsx');
+
+    // Intrinsic width and height on the <img> give the browser the aspect
+    // ratio before the bytes arrive; without them the header jumps on load.
+    expect(header).toContain('width={LOGO.intrinsic.width}');
+    expect(header).toContain('height={LOGO.intrinsic.height}');
+    expect(header).not.toMatch(/loading="lazy"/);
+  });
+
+  it('calls the company Nanotom Labs everywhere, with no template name left', async () => {
+    const content = read('content.ts');
+    const brand = read('brand.ts');
+    const strip = (s: string) =>
+      s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+
+    for (const [name, source] of [['content.ts', content], ['brand.ts', brand]] as const) {
+      expect(strip(source), name).not.toMatch(/NexGen|NextGen/);
+    }
+    expect(content).toContain('Nanotom Labs');
   });
 });

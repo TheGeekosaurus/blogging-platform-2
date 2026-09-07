@@ -7,6 +7,7 @@ import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core
 import { JsonLd } from '@/components/json-ld';
 import { Analytics } from '@/components/marketing/analytics';
 import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
+import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
 import { LabsHeader } from '@/components/marketing/labs/site-header';
 import { SiteFooter } from '@/components/marketing/site-footer';
@@ -37,7 +38,7 @@ const poppins = Poppins({
 });
 
 /*
- * NNTM Labs' faces.
+ * Nanotom Labs' faces.
  *
  * Both are declared unconditionally, because next/font is a build-time
  * transform: the call has to be a module-scope literal for the compiler to
@@ -172,6 +173,13 @@ export default async function RootLayout({
           hero. Preconnecting overlaps it with HTML parsing instead.
         */}
         {marketing ? <link rel="preconnect" href={IMAGE_ORIGIN} crossOrigin="" /> : null}
+
+        {/*
+          Labs hotlinks its wordmark from the same CDN, and it is the header's
+          first paint — so the handshake is worth overlapping with HTML parsing
+          here for exactly the reason it is above.
+        */}
+        {labs ? <link rel="preconnect" href={LOGO_ORIGIN} /> : null}
 
         {/*
           The review wall is a third-party iframe plus a resizer script from the
