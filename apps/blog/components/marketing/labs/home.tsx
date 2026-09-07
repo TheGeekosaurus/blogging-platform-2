@@ -68,26 +68,29 @@ function Hero() {
            * measured against and a few pixels either way decides whether the
            * call sits beside the headline or drops beneath it.
            *
-           * The COMPOSITION is what is preserved: two lines, the call beside
-           * the first at full width.
+           * The COMPOSITION is what is preserved: two lines, the call anchored
+           * to the right of the first.
            *
            * The size is fluid rather than fixed, because a fixed one is only
-           * ever right at one viewport. The artwork's proportion — headline,
-           * gap and call filling the card's 1047px — holds at 1920 and breaks
-           * everywhere below it: at 1280 the same card is 618px wide and would
-           * need a 32px headline to keep the call alongside, which is not a
-           * headline any more. So the row is allowed to WRAP: the headline
-           * stays on one line at every width (`lg:whitespace-nowrap`) and the
-           * call drops beneath it when there is no room, rather than the phrase
-           * breaking mid-sentence. The clamp's ceiling is what fits at 1920.
+           * ever right at one viewport — at 1280 this card is 618px wide, where
+           * a 62px headline would leave no room beside it. The clamp's ceiling
+           * is what fits at 1920; below that the headline shrinks with the
+           * viewport and the call keeps its place at the right edge.
            */}
           <h1 className="nl-heading text-[28px] leading-[1.15] lg:text-[clamp(36px,3.3vw,62px)] lg:leading-[1.1]">
-            <span className="flex flex-wrap items-center gap-x-6 gap-y-4">
-              <span className="lg:whitespace-nowrap">{HERO.headingLines[0]}</span>
+            {/*
+             * Two columns rather than a flex row, so the call is PINNED to the
+             * right edge of the card instead of trailing the headline. In the
+             * artwork it ends at x=1180 against a card that ends at 1177 — it
+             * is anchored right, not merely placed after the words, and the gap
+             * between them grows and shrinks with the viewport.
+             */}
+            <span className="grid gap-y-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:gap-x-8">
+              <span>{HERO.headingLines[0]}</span>
 
               <Link
                 href={ENQUIRY_ANCHOR}
-                className="group hidden shrink-0 items-center gap-3 lg:inline-flex"
+                className="group hidden shrink-0 items-center gap-3 justify-self-end lg:inline-flex"
               >
                 <span className="grid size-14 shrink-0 place-items-center rounded-full border border-[var(--nl-accent)] text-[var(--nl-accent)] transition-transform duration-200 group-hover:translate-x-0.5">
                   <ArrowRight className="size-6" />
@@ -164,10 +167,16 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
   const Icon = SERVICE_ICONS[service.icon];
 
   return (
-    <div className="grid gap-5 lg:grid-cols-2">
+    <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <article className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-14">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        {/*
+          * Two columns, not a wrapping flex row. With `flex-wrap` a long title
+          * like "Mobile App Development" pushed "Book A Call" onto its own line
+          * and the row lost its right edge; as a grid the call is pinned right
+          * and the title wraps within its own column instead.
+          */}
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-14">
               <Icon className="size-5 lg:size-6" />
             </span>
@@ -175,7 +184,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
           </div>
 
           {/* Desktop only: mobile replaces this with the button below. */}
-          <div className="hidden lg:block">
+          <div className="hidden justify-self-end lg:block">
             <ArrowLink label={LINKS.bookACall} href={ENQUIRY_ANCHOR} />
           </div>
         </div>
@@ -205,9 +214,11 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
 
       {/* The paired gallery, desktop only — the mobile frame has no equivalent. */}
       <article className="hidden flex-col gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-10 lg:flex">
-        <header className="flex items-center justify-between gap-4">
-          <h3 className="nl-heading text-2xl">{service.projectsTitle}</h3>
-          <ArrowLink label={LINKS.viewAll} />
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <h3 className="nl-heading text-xl 2xl:text-2xl">{service.projectsTitle}</h3>
+          <div className="justify-self-end">
+            <ArrowLink label={LINKS.viewAll} />
+          </div>
         </header>
 
         <div className="grid flex-1 grid-cols-2 gap-5">
@@ -240,14 +251,16 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)]">
       <article className="flex flex-col justify-between gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-12">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
               <Icon className="size-5" />
             </span>
             <h3 className="nl-heading text-xl lg:text-3xl">{story.client}</h3>
           </div>
-          <ArrowLink label={LINKS.visitWebsite} />
+          <div className="justify-self-end">
+            <ArrowLink label={LINKS.visitWebsite} />
+          </div>
         </div>
 
         <dl className="flex flex-wrap gap-3">

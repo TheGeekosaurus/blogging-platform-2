@@ -50,7 +50,9 @@ export function ArrowLink({ label, href, variant = 'outline', className }: Arrow
       >
         <ArrowUpRight className="size-4 lg:size-5" />
       </span>
-      <span className={`nl-label text-xs lg:text-sm ${LABEL[variant]}`}>{label}</span>
+      <span className={`nl-label whitespace-nowrap text-xs lg:text-sm ${LABEL[variant]}`}>
+        {label}
+      </span>
     </>
   );
 
