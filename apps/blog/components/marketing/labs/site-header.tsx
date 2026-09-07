@@ -33,12 +33,16 @@ import { NAV, type NavItem } from './brand';
  */
 function navClasses(item: NavItem): string {
   /*
-   * Padding is the artwork's: its "HOME" pill is 92x63 around 14px monospaced
-   * text, which works out at roughly 28px of horizontal and 21px of vertical
-   * padding.
+   * Tighter than the artwork's own pills, deliberately.
+   *
+   * The artwork's "HOME" is 92x63 — about 28px horizontal and 21px vertical
+   * padding — which built a 111px-tall bar that read heavy once the rest of
+   * the page slimmed down. The separation between items now comes from the
+   * 16px gap rather than from padding inside each one, which is what keeps the
+   * bar sleek without crowding the labels.
    */
   const base =
-    'nl-label rounded-[var(--nl-radius-control)] px-4 py-2.5 text-xs transition-colors xl:px-7 xl:py-5 xl:text-sm';
+    'nl-label rounded-[var(--nl-radius-control)] px-4 py-2 text-xs transition-colors lg:px-5 lg:py-2.5 lg:text-sm';
 
   if (item.cta) {
     return `${base} bg-[var(--nl-accent)] text-[#0f0f0f] hover:bg-[var(--nl-accent-strong)]`;
@@ -86,7 +90,7 @@ export function LabsHeader() {
   return (
     <div className="sticky top-0 z-40 px-4 pt-4 lg:px-[50px] lg:pt-[30px]">
       <header className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-4 px-5 py-3 lg:px-8 lg:py-4">
+        <div className="flex items-center justify-between gap-4 px-5 py-3 lg:px-6 lg:py-3">
           <Wordmark />
 
           {/* Desktop: the full bar. */}
