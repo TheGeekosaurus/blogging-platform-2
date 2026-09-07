@@ -53,6 +53,31 @@ export const SERVICE_MARQUEE: readonly string[] = [
 
 export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
 
+/**
+ * The stat band under the hero.
+ *
+ * From the template's HOME frame rather than the Services one this page is
+ * built from, so it is an addition to the replica, not a correction to it.
+ *
+ * EVERY NUMBER HERE IS THE TEMPLATE'S, and they are claims about a business:
+ * client counts, a follower count and a satisfaction rate. Like the
+ * testimonials below, they have to be replaced with real figures or removed
+ * before this serves traffic — a made-up "100%" is the kind of thing that
+ * turns into a consumer-protection problem rather than a design one.
+ */
+export type Stat = { label: string; value: string };
+
+export const STATS: readonly Stat[] = [
+  { label: 'Clients', value: '200+' },
+  { label: 'Projects', value: '280+' },
+  { label: 'Happy Clients', value: '100%' },
+  { label: 'Follower', value: '420K' },
+  { label: 'Years Of Experience', value: '10+' },
+];
+
+/** The band's trailing tile, which is a call rather than a figure. */
+export const STATS_CTA = 'Know More';
+
 export type Service = {
   /** Key into the icon map in ./icons.tsx. */
   icon: 'web-design' | 'mobile-app' | 'web-development' | 'digital-marketing';
@@ -122,8 +147,23 @@ export const SERVICES: readonly Service[] = [
   },
 ];
 
-/** Labels shared by both success stories, in the design's order. */
-export const STORY_TABS = ['Challenge', 'Solution', 'Results'] as const;
+/**
+ * The success stories' tabs.
+ *
+ * The template ships Challenge / Solution / Results and supplies copy for
+ * Solution only. These are Before / After instead — a deliberate change, so a
+ * story can show the numbers on either side of the engagement rather than
+ * three prose panels. `After` is the default because it is the outcome, which
+ * is what the section is selling.
+ */
+export const STORY_TABS = ['Before', 'After'] as const;
+
+export type StoryTab = (typeof STORY_TABS)[number];
+
+/** Which panel opens with the page. The outcome, not the starting point. */
+export const DEFAULT_STORY_TAB: StoryTab = 'After';
+
+export type StoryPanel = { heading: string; body: string };
 
 export type SuccessStory = {
   /** Key into the icon map in ./icons.tsx. */
@@ -131,9 +171,8 @@ export type SuccessStory = {
   client: string;
   industry: string;
   service: string;
-  /** The design shows the Solution tab selected on both cards. */
-  activeTab: (typeof STORY_TABS)[number];
-  body: string;
+  /** Keyed by tab, lowercased — see `panelFor` in home.tsx. */
+  panels: Record<Lowercase<StoryTab>, StoryPanel>;
 };
 
 export const SUCCESS_STORIES: readonly SuccessStory[] = [
@@ -142,25 +181,46 @@ export const SUCCESS_STORIES: readonly SuccessStory[] = [
     client: 'Klothink',
     industry: 'E-commerce',
     service: 'Design & Development',
-    activeTab: 'Solution',
-    body:
-      'Our team conducted a thorough analysis of their target audience and business ' +
-      'objectives. We designed a modern and intuitive website with seamless navigation ' +
-      'and a mobile-responsive layout. Additionally, we integrated an efficient checkout ' +
-      'process and optimized the site for search engines.',
+    panels: {
+      /*
+       * PLACEHOLDER, and written to look like one. The template has no
+       * "before" copy at all, and inventing a starting position for a named
+       * client would be fabricating a case study. Stats replace this.
+       */
+      before: {
+        heading: 'Before',
+        body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
+      },
+      after: {
+        heading: 'After',
+        body:
+          'Our team conducted a thorough analysis of their target audience and business ' +
+          'objectives. We designed a modern and intuitive website with seamless navigation ' +
+          'and a mobile-responsive layout. Additionally, we integrated an efficient checkout ' +
+          'process and optimized the site for search engines.',
+      },
+    },
   },
   {
     icon: 'fitness',
     client: 'Fitness Tracker App',
     industry: 'Health & Fitness',
     service: 'Mobile App Development',
-    activeTab: 'Solution',
-    body:
-      'Leveraging our expertise in app development, we built an interactive mobile app ' +
-      'with user-friendly features. The app allowed users to set personalized fitness ' +
-      'goals, track their progress, and share achievements on social media platforms. ' +
-      'Real-time data synchronization enabled users to access their data on multiple ' +
-      'devices.',
+    panels: {
+      before: {
+        heading: 'Before',
+        body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
+      },
+      after: {
+        heading: 'After',
+        body:
+          'Leveraging our expertise in app development, we built an interactive mobile app ' +
+          'with user-friendly features. The app allowed users to set personalized fitness ' +
+          'goals, track their progress, and share achievements on social media platforms. ' +
+          'Real-time data synchronization enabled users to access their data on multiple ' +
+          'devices.',
+      },
+    },
   },
 ];
 
