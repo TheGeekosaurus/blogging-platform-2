@@ -140,7 +140,7 @@ export function Panel({
 }) {
   return (
     <section
-      className={`mx-auto w-full max-w-[1824px] rounded-[var(--nl-radius-panel)] bg-[var(--nl-raised)] p-3 lg:p-5 ${className ?? ''}`}
+      className={`mx-auto w-full max-w-[1824px] rounded-[var(--nl-radius-panel)] bg-[var(--nl-raised)] p-3 lg:p-4 ${className ?? ''}`}
     >
       {children}
     </section>
@@ -172,7 +172,7 @@ export function SectionHeader({
   return (
     <header
       id={id}
-      className="flex items-center justify-between gap-4 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-6 lg:px-12 lg:py-10"
+      className="flex items-center justify-between gap-4 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-5 lg:px-10 lg:py-7"
     >
       <h2 className="nl-heading text-2xl leading-none lg:text-5xl">{title}</h2>
       {link ? (
@@ -187,7 +187,7 @@ export function SectionHeader({
 /** The mobile half of a section's link — centred beneath the content. */
 export function SectionLink({ label, href }: { label: string; href?: string }) {
   return (
-    <div className="mt-5 flex justify-center lg:hidden">
+    <div className="mt-6 flex justify-center lg:hidden">
       <ArrowLink label={label} href={href} />
     </div>
   );

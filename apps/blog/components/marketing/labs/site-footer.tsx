@@ -69,7 +69,7 @@ function SocialCards() {
         return (
           <div
             key={card.name}
-            className="flex flex-col justify-between gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6"
+            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5"
           >
             <div className="flex items-start justify-between">
               <span className="grid size-11 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
@@ -93,7 +93,7 @@ function SocialCards() {
 
 function Newsletter() {
   return (
-    <div className="rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] p-6 lg:p-8">
+    <div className="rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] p-5 lg:p-7">
       <p className="nl-label text-xs text-[var(--nl-muted)]">{NEWSLETTER.eyebrow}</p>
 
       <div className="mt-3 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -133,7 +133,7 @@ export function LabsFooter() {
       <Marquee
         items={Array.from({ length: 6 }, () => SOCIAL_MARQUEE)}
         durationSeconds={55}
-        className="rounded-[var(--nl-radius-control)] bg-[var(--nl-card)] py-5 lg:py-6"
+        className="mt-[var(--nl-section-gap)] rounded-[var(--nl-radius-control)] bg-[var(--nl-card)] py-4 lg:py-5"
       />
 
       {/*
@@ -148,7 +148,7 @@ export function LabsFooter() {
         <SocialCards />
 
         <div className="grid min-w-0 content-start gap-5">
-          <div className="grid min-w-0 grid-cols-2 gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-6 lg:p-8 xl:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-2 gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 lg:p-7 xl:grid-cols-4">
             {FOOTER_COLUMNS.map((column) => (
               <div key={column.heading} className="min-w-0">
                 <p className="nl-heading text-sm lg:text-base">{column.heading}</p>
@@ -164,7 +164,7 @@ export function LabsFooter() {
           <Newsletter />
 
           {/* The legal row is its own card in the artwork, not loose text. */}
-          <div className="flex flex-col gap-3 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-6 py-6 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-8">
+          <div className="flex flex-col gap-3 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-5 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-7">
             <p>{COPYRIGHT}</p>
             <ul className="flex flex-col gap-3 lg:flex-row lg:gap-10">
               {LEGAL_LINKS.map((link) => (

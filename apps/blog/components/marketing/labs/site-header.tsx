@@ -86,7 +86,7 @@ export function LabsHeader() {
   return (
     <div className="sticky top-0 z-40 px-4 pt-4 lg:px-[50px] lg:pt-[30px]">
       <header className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
-        <div className="flex items-center justify-between gap-4 px-5 py-4 lg:px-10 lg:py-6">
+        <div className="flex items-center justify-between gap-4 px-5 py-3 lg:px-8 lg:py-4">
           <Wordmark />
 
           {/* Desktop: the full bar. */}
