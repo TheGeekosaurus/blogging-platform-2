@@ -46,7 +46,7 @@ import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primiti
 function Hero() {
   return (
     <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
-      <div className="flex min-w-0 flex-col justify-between gap-10 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-6 pb-4 lg:p-20 lg:pb-5">
+      <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 pb-4 lg:p-12 lg:pb-5">
         <div>
           {/*
            * The headline tops out at 62px where the artwork says 78px, and the
@@ -115,7 +115,7 @@ function Hero() {
             <span className="nl-label text-sm text-[var(--nl-accent)]">{HERO.cta}</span>
           </Link>
 
-          <p className="mt-6 max-w-[910px] text-sm leading-relaxed text-[var(--nl-muted)] lg:mt-8 lg:text-lg">
+          <p className="mt-5 max-w-[910px] text-sm leading-relaxed text-[var(--nl-muted)] lg:mt-6 lg:text-lg">
             {HERO.body}
           </p>
         </div>
@@ -142,7 +142,7 @@ function Hero() {
        * change depending on what is behind the hero rather than staying fixed
        * to the accent directly underneath.
        */}
-      <div className="relative isolate min-h-[364px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] lg:min-h-[592px]">
+      <div className="relative isolate min-h-[320px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] lg:min-h-[520px]">
         <Image
           src="/nntm-labs/hero-brain.webp"
           alt={HERO.imageAlt}
@@ -152,7 +152,7 @@ function Hero() {
           className="object-cover mix-blend-luminosity"
         />
 
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-5 lg:p-7">
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-4 lg:p-6">
           <ArrowLink label={HERO.imageCta} href="/blog" variant="solid" />
           <span className="nl-label rounded-[var(--nl-radius-input)] bg-white px-3 py-2 text-[10px] text-[#0f0f0f] lg:text-xs">
             {HERO.imageTag}
@@ -168,7 +168,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
-      <article className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-14">
+      <article className="flex flex-col justify-between gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-9">
         {/*
           * Two columns, not a wrapping flex row. With `flex-wrap` a long title
           * like "Mobile App Development" pushed "Book A Call" onto its own line
@@ -213,7 +213,7 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
       </article>
 
       {/* The paired gallery, desktop only — the mobile frame has no equivalent. */}
-      <article className="hidden flex-col gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-10 lg:flex">
+      <article className="hidden flex-col gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:flex">
         <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <h3 className="nl-heading text-xl 2xl:text-2xl">{service.projectsTitle}</h3>
           <div className="justify-self-end">
@@ -250,7 +250,7 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)]">
-      <article className="flex flex-col justify-between gap-8 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-12">
+      <article className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-9">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
           <div className="flex min-w-0 items-center gap-4">
             <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
@@ -304,7 +304,7 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
           ))}
         </ul>
 
-        <article className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-10">
+        <article className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8">
           <h4 className="nl-heading text-xl lg:text-5xl">{story.activeTab}</h4>
           <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6 lg:text-lg">
             {story.body}
@@ -317,7 +317,7 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
 
 function Testimonials() {
   return (
-    <Panel className="mt-5">
+    <Panel className="mt-[var(--nl-section-gap)]">
       <SectionHeader
         id="testimonials"
         title={SECTIONS.testimonials}
@@ -335,7 +335,7 @@ function Testimonials() {
                 : 'flex flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)]'
             }
           >
-            <blockquote className="p-6 lg:p-8">
+            <blockquote className="p-5 lg:p-7">
               <p className="nl-heading text-base leading-snug lg:text-xl">
                 {testimonial.quote}
               </p>
@@ -344,7 +344,7 @@ function Testimonials() {
               </p>
             </blockquote>
 
-            <figcaption className="flex items-center justify-between gap-3 bg-[var(--nl-raised)] p-5">
+            <figcaption className="flex items-center justify-between gap-3 bg-[var(--nl-raised)] p-4">
               <div className="flex items-center gap-3">
                 <Image
                   src={testimonial.avatar}
@@ -403,7 +403,7 @@ function EnquiryForm() {
   return (
     <div
       id="ask"
-      className="flex flex-col gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-6 lg:p-10"
+      className="flex flex-col gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
     >
       <h3 className="nl-heading text-xl lg:text-2xl">{ENQUIRY_FORM.heading}</h3>
 
@@ -434,7 +434,7 @@ function EnquiryForm() {
  */
 function Faq() {
   return (
-    <div className="mt-5">
+    <div className="mt-[var(--nl-section-gap)]">
       <SectionHeader id="faq" title={SECTIONS.faq} link={{ label: LINKS.viewAll }} />
 
       <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]">
@@ -443,7 +443,7 @@ function Faq() {
             <details
               key={faq.question}
               open={index === 0}
-              className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-raised)] bg-[var(--nl-card)] px-6 py-5 lg:px-8 lg:py-6"
+              className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-raised)] bg-[var(--nl-card)] px-5 py-4 lg:px-7 lg:py-5"
             >
               <summary className="flex items-start justify-between gap-6">
                 <span className="text-base leading-snug text-[var(--nl-ink)] lg:text-lg">
@@ -471,7 +471,7 @@ function Faq() {
 
 function ClosingCta() {
   return (
-    <section className="mx-auto mt-5 w-full max-w-[1824px] rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] p-8 lg:p-16">
+    <section className="mx-auto mt-[var(--nl-section-gap)] w-full max-w-[1824px] rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] p-6 lg:p-12">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
         <div className="max-w-[1000px]">
           {/*
@@ -503,7 +503,7 @@ export function LabsHome() {
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
 
-      <Panel className="mt-5">
+      <Panel className="mt-[var(--nl-section-gap)]">
         <SectionHeader title={SECTIONS.services} />
         <div className="mt-5 flex flex-col gap-5">
           {SERVICES.map((service) => (
@@ -519,7 +519,7 @@ export function LabsHome() {
         * y=3627, not one tall one). Wrapping them together reads as a single
         * block of four cards instead of two separate case studies.
         */}
-      <div className="mt-5">
+      <div className="mt-[var(--nl-section-gap)]">
         <SectionHeader title={SECTIONS.successStories} link={{ label: LINKS.viewAll }} />
 
         <div className="mt-5 flex flex-col gap-5">

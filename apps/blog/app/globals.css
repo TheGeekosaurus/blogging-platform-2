@@ -967,9 +967,28 @@
     --nl-radius-block: 20px;   /* hero cards, the CTA band, project thumbs, footer links */
     --nl-radius-panel: 24px;   /* the outer section panels */
 
+    /*
+     * The black gap between sections — one knob, because it is the page's
+     * main rhythm and every section reads it.
+     *
+     * The artwork runs its sections close together and the result felt fluffy
+     * once the interior padding came down: tight insides with tight gaps reads
+     * as cramped, not sleek. Sleek comes from the contrast — compact cards
+     * separated by generous ground. This is deliberately several times the
+     * 20px gutter used WITHIN a section, so the eye groups a section's cards
+     * together and reads the space between sections as a break.
+     */
+    --nl-section-gap: 64px;
+
     background-color: var(--nl-bg);
     color: var(--nl-body);
     font-family: var(--font-nl-body);
+  }
+
+  @media (min-width: 1024px) {
+    .nl-surface {
+      --nl-section-gap: 104px;
+    }
   }
 
   .nl-surface a {
