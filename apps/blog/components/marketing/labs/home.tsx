@@ -5,23 +5,18 @@ import Link from 'next/link';
 
 import { ENQUIRY_ANCHOR } from './brand';
 import {
-  CLOSING_CTA,
   DEFAULT_STORY_TAB,
-  ENQUIRY_FORM,
-  FAQS,
   HERO,
   LINKS,
   SECTIONS,
   SERVICES,
   SERVICE_MARQUEE,
-  STATS,
-  STATS_CTA,
   STORY_TABS,
   SUCCESS_STORIES,
-  TESTIMONIALS,
 } from './content';
-import { ArrowRight, Plus, SERVICE_ICONS, STORY_ICONS } from './icons';
+import { ArrowRight, SERVICE_ICONS, STORY_ICONS } from './icons';
 import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
+import { ClosingCta, Faq, Stats, Testimonials } from './sections';
 
 /**
  * The Nanotom Labs homepage.
@@ -41,11 +36,9 @@ import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primiti
  * Each is implemented as a breakpoint change at `lg`, so both ends match their
  * artboard and the space between them interpolates.
  *
- * FORMS ARE PRESENTATIONAL. Neither the enquiry form here nor the newsletter
- * in the footer has an endpoint yet, so both are disabled rather than posting
- * into nothing. A form that accepts an address and silently discards it is
- * worse than one that visibly is not ready — and this is the site's only
- * conversion path, so it needs a real destination before launch.
+ * WHAT LIVES HERE is the hero and the two sections unique to this page. The
+ * stat band, the testimonials, the FAQ and the closing call are shared with
+ * /services and live in ./sections.tsx — see the note there.
  */
 
 function Hero() {
@@ -168,42 +161,6 @@ function Hero() {
         </div>
       </div>
     </section>
-  );
-}
-
-/**
- * The stat band beneath the hero.
- *
- * Five figures and a call, in one panel. Six equal columns on desktop; two on
- * mobile, where six would leave each number about 55px of width.
- *
- * The call is the sixth TILE rather than a link floated after the row, so the
- * grid stays even and the band keeps a single rhythm — the artwork does the
- * same, giving it the identical card and footprint as the figures beside it.
- */
-function Stats() {
-  return (
-    <Panel className="mt-5">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-6 lg:gap-4">
-        {STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex flex-col items-center justify-center gap-2 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 text-center lg:py-8"
-          >
-            <p className="nl-label text-[10px] text-[var(--nl-body)] lg:text-xs">
-              {stat.label}
-            </p>
-            <p className="nl-heading text-3xl text-[var(--nl-accent)] lg:text-4xl">
-              {stat.value}
-            </p>
-          </div>
-        ))}
-
-        <div className="flex items-center justify-center rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 lg:py-8">
-          <ArrowLink label={STATS_CTA} href={ENQUIRY_ANCHOR} />
-        </div>
-      </div>
-    </Panel>
   );
 }
 
@@ -401,194 +358,11 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
   );
 }
 
-function Testimonials() {
-  return (
-    <Panel className="mt-[var(--nl-section-gap)]">
-      <SectionHeader
-        id="testimonials"
-        title={SECTIONS.testimonials}
-        link={{ label: LINKS.allTestimonials }}
-      />
-
-      <div className="mt-5 grid gap-5 lg:grid-cols-4">
-        {TESTIMONIALS.map((testimonial, index) => (
-          <figure
-            key={testimonial.name}
-            className={
-              // The mobile artboard shows three; the fourth is desktop-only.
-              index === 3
-                ? 'hidden flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] lg:flex'
-                : 'flex flex-col justify-between overflow-hidden rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)]'
-            }
-          >
-            <blockquote className="p-5 lg:p-7">
-              <p className="nl-heading text-base leading-snug lg:text-xl">
-                {testimonial.quote}
-              </p>
-              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)]">
-                {testimonial.body}
-              </p>
-            </blockquote>
-
-            <figcaption className="flex items-center justify-between gap-3 bg-[var(--nl-raised)] p-4">
-              <div className="flex items-center gap-3">
-                <Image
-                  src={testimonial.avatar}
-                  alt=""
-                  width={44}
-                  height={44}
-                  className="size-11 shrink-0 rounded-full object-cover"
-                />
-                <div>
-                  <p className="text-sm text-[var(--nl-ink)]">{testimonial.name}</p>
-                  <p className="text-xs text-[var(--nl-muted)]">{testimonial.role}</p>
-                </div>
-              </div>
-              <ArrowLink label="" />
-            </figcaption>
-          </figure>
-        ))}
-      </div>
-
-      <SectionLink label={LINKS.allTestimonials} />
-    </Panel>
-  );
-}
-
-function EnquiryForm() {
-  const field = (
-    id: string,
-    label: string,
-    placeholder: string,
-    multiline = false,
-  ) => (
-    <div key={id}>
-      <label htmlFor={id} className="text-sm text-[var(--nl-ink)]">
-        {label}
-      </label>
-      {multiline ? (
-        <textarea
-          id={id}
-          rows={4}
-          disabled
-          placeholder={placeholder}
-          className="mt-2 w-full resize-none rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
-        />
-      ) : (
-        <input
-          id={id}
-          type={id === 'nl-email' ? 'email' : 'text'}
-          disabled
-          placeholder={placeholder}
-          className="mt-2 w-full rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
-        />
-      )}
-    </div>
-  );
-
-  return (
-    <div
-      id="ask"
-      className="flex flex-col gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
-    >
-      <h3 className="nl-heading text-xl lg:text-2xl">{ENQUIRY_FORM.heading}</h3>
-
-      {field('nl-name', ENQUIRY_FORM.name.label, ENQUIRY_FORM.name.placeholder)}
-      {field('nl-email', ENQUIRY_FORM.email.label, ENQUIRY_FORM.email.placeholder)}
-      {field(
-        'nl-question',
-        ENQUIRY_FORM.question.label,
-        ENQUIRY_FORM.question.placeholder,
-        true,
-      )}
-
-      <button
-        type="button"
-        disabled
-        className="nl-label mt-2 w-full rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
-      >
-        {ENQUIRY_FORM.submit}
-      </button>
-    </div>
-  );
-}
-
-/**
- * The FAQ has no panel: its rows and the form sit straight on the page ground,
- * and only the heading is a card. Column widths are the artwork's — 1054px of
- * rows against a 746px form.
- */
-function Faq() {
-  return (
-    <div className="mt-[var(--nl-section-gap)]">
-      <SectionHeader id="faq" title={SECTIONS.faq} link={{ label: LINKS.viewAll }} />
-
-      <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]">
-        <div className="flex flex-col gap-4">
-          {FAQS.map((faq, index) => (
-            <details
-              key={faq.question}
-              open={index === 0}
-              className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-raised)] bg-[var(--nl-card)] px-5 py-4 lg:px-7 lg:py-5"
-            >
-              <summary className="flex items-start justify-between gap-6">
-                <span className="text-base leading-snug text-[var(--nl-ink)] lg:text-lg">
-                  {faq.question}
-                </span>
-                <Plus className="nl-faq-plus mt-0.5 size-5 shrink-0 text-[var(--nl-muted)] transition-transform duration-200" />
-              </summary>
-
-              {faq.answer ? (
-                <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)]">
-                  {faq.answer}
-                </p>
-              ) : null}
-            </details>
-          ))}
-        </div>
-
-        <EnquiryForm />
-      </div>
-
-      <SectionLink label={LINKS.viewAll} />
-    </div>
-  );
-}
-
-function ClosingCta() {
-  return (
-    <section className="mx-auto mt-[var(--nl-section-gap)] w-full max-w-[1824px] rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] p-6 lg:p-12">
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
-        <div className="max-w-[1000px]">
-          {/*
-           * Dark ink on the accent, not white: #0F0F0F on #CE7D63 is 6.15:1,
-           * where white is 3.1:1 and fails AA for the body copy beneath.
-           */}
-          <h2 className="nl-heading text-[28px] leading-tight text-[#0f0f0f] lg:text-[58px]">
-            {CLOSING_CTA.heading}
-          </h2>
-          <p className="mt-4 text-sm leading-relaxed text-[#0f0f0f]/80 lg:text-lg">
-            {CLOSING_CTA.body}
-          </p>
-        </div>
-
-        <Link
-          href={ENQUIRY_ANCHOR}
-          className="nl-label inline-flex shrink-0 items-center gap-3 self-start rounded-[var(--nl-radius-control)] bg-[#0f0f0f] px-6 py-4 text-xs text-[var(--nl-ink)] lg:self-auto lg:text-sm"
-        >
-          {CLOSING_CTA.cta}
-          <ArrowRight className="size-4" />
-        </Link>
-      </div>
-    </section>
-  );
-}
-
 export function LabsHome() {
   return (
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
-      <Stats />
+      <Stats enquiryAnchor={ENQUIRY_ANCHOR} />
 
       <Panel className="mt-[var(--nl-section-gap)]">
         <SectionHeader title={SECTIONS.services} />
@@ -622,7 +396,7 @@ export function LabsHome() {
 
       <Testimonials />
       <Faq />
-      <ClosingCta />
+      <ClosingCta enquiryAnchor={ENQUIRY_ANCHOR} />
     </div>
   );
 }

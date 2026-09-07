@@ -6,14 +6,14 @@
  * they SAY. Re-pointing a link and re-copywriting a section are different jobs
  * and touch different files.
  *
- * WHERE THE LINKS GO TODAY. The design's nav promises seven destinations and
- * only two exist: '/' and the database-driven /blog. The rest are coded pages
- * still to be built, so they carry no href and render as plain text in the
- * same style rather than as links that 404. `__tests__/labs.test.ts` pins
- * that: every href present must resolve to a coded route, /blog, or an
- * in-page anchor. Give an item an href in the same change that adds its
- * route — and add that route to CODED_SITES in @blog/core, or it will be
- * missing from the sitemap with nothing to tell you.
+ * WHERE THE LINKS GO TODAY. Three destinations exist: '/', '/services' and the
+ * database-driven /blog. The rest are coded pages still to be built, so they
+ * carry no href and render as plain text in the same style rather than as
+ * links that 404. `__tests__/labs.test.ts` pins that: every href present must
+ * resolve to a coded route, /blog, or an in-page anchor. Give an item an href
+ * in the same change that adds its route — and add that route to CODED_SITES
+ * in @blog/core, or it will be missing from the sitemap with nothing to tell
+ * you.
  */
 
 /**
@@ -54,6 +54,18 @@ export const LOGO_ORIGIN = 'https://images.leadconnectorhq.com';
  */
 export const ENQUIRY_ANCHOR = '/#ask';
 
+/**
+ * The same form on /services, which carries its own copy of it.
+ *
+ * A separate constant rather than a bare '#ask': the calls that use it sit on
+ * the Services page beside the form, and pointing them at the HOMEPAGE's form
+ * would navigate away from the page the visitor is reading to reach an
+ * identical field set. The site-wide chrome — the header's Contact Us, the
+ * footer — keeps ENQUIRY_ANCHOR above, because it renders on every route and
+ * has no single page to stay on.
+ */
+export const SERVICES_ENQUIRY_ANCHOR = '/services#ask';
+
 export type NavItem = {
   label: string;
   /** Absent while the destination is unbuilt — rendered unlinked, not as a 404. */
@@ -62,13 +74,21 @@ export type NavItem = {
   cta?: boolean;
 };
 
+/**
+ * WHY CAREERS AND BLOGS ARE NOT HERE. Both were in the template's bar and both
+ * were dropped by decision, not by oversight: there are no openings to list,
+ * and the blog is not the front door this site wants. /blog still renders and
+ * is still in the sitemap — the footer's Blogs column links into it — so
+ * nothing is unreachable; it is only off the primary bar.
+ *
+ * That leaves five items where the design has seven, which is also what keeps
+ * the desktop bar inside 1024px without wrapping.
+ */
 export const NAV: readonly NavItem[] = [
   { label: 'Home', href: '/' },
-  { label: 'Services' },
+  { label: 'Services', href: '/services' },
   { label: 'Projects' },
   { label: 'About' },
-  { label: 'Careers' },
-  { label: 'Blogs', href: '/blog' },
   { label: 'Contact Us', href: ENQUIRY_ANCHOR, cta: true },
 ];
 

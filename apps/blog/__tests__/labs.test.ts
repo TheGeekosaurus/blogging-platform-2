@@ -8,10 +8,10 @@ import { describe, expect, it } from 'vitest';
  *
  * Two classes of regression are guarded here, and neither surfaces on its own.
  *
- * The first is a link that goes nowhere. The design's nav promises seven
- * destinations and only two are built, so the unbuilt ones deliberately carry
- * no href. Handing one an href before its route exists produces a 404 on the
- * site's primary navigation, and nothing in a build or a typecheck notices.
+ * The first is a link that goes nowhere. Three of the nav's destinations are
+ * built and the rest deliberately carry no href. Handing one an href before
+ * its route exists produces a 404 on the site's primary navigation, and
+ * nothing in a build or a typecheck notices.
  *
  * The second is a form that accepts input and drops it. Neither the enquiry
  * form nor the newsletter has an endpoint, and the site's only conversion path
@@ -57,8 +57,10 @@ describe('every destination resolves', () => {
         // The database-driven blog, which the /blog routes serve.
         href === '/blog' ||
         href.startsWith('/blog/') ||
-        // An anchor into the homepage — '/#ask' is the enquiry form.
-        href.startsWith('/#');
+        // An anchor into a coded page — '/#ask' is the homepage's enquiry
+        // form, '/services#ask' the Services page's copy of it.
+        href.startsWith('/#') ||
+        coded.has(href.split('#')[0] ?? '');
 
       expect(resolves, `${item.label} -> ${href}`).toBe(true);
     }
@@ -71,31 +73,49 @@ describe('every destination resolves', () => {
 
     // If this list shrinks, the route should exist and be registered in
     // CODED_SITES — check that before updating the expectation.
-    expect(unbuilt).toEqual(['Services', 'Projects', 'About', 'Careers']);
+    expect(unbuilt).toEqual(['Projects', 'About']);
   });
 
-  it('routes every call to action at one destination, so it moves in one edit', async () => {
-    const { ENQUIRY_ANCHOR } = await import('../components/marketing/labs/brand');
-    const home = read('home.tsx');
+  it('routes every call to action at one destination per page, so it moves in one edit', async () => {
+    const { ENQUIRY_ANCHOR, SERVICES_ENQUIRY_ANCHOR } = await import(
+      '../components/marketing/labs/brand'
+    );
 
     expect(ENQUIRY_ANCHOR).toBe('/#ask');
-    // The anchor the CTAs point at has to be an element that actually exists.
-    expect(home).toContain('id="ask"');
-    expect(home).not.toMatch(/href="\/contact/);
+    expect(SERVICES_ENQUIRY_ANCHOR).toBe('/services#ask');
+
+    /*
+     * Both anchors land on the SAME shared component, so the element they
+     * point at exists on whichever page renders it. Pinned here because the
+     * two constants and the id live in three different files now.
+     */
+    expect(read('sections.tsx')).toContain('id="ask"');
+    for (const file of ['home.tsx', 'services.tsx']) {
+      expect(read(file), file).not.toMatch(/href="\/contact/);
+    }
   });
 });
 
 describe('no form silently discards input', () => {
   it.each([
-    ['the enquiry form', 'home.tsx', 3],
+    ['the enquiry form', 'sections.tsx', 3],
     ['the newsletter', 'site-footer.tsx', 1],
   ])('%s is disabled until it has an endpoint', (_label, file, controls) => {
-    const source = read(file);
+    /*
+     * Comments stripped first, the same trap the site-footer and site-header
+     * tests hit: the form's own docstring names the element it is explaining
+     * the absence of, and matching that mention would fail the test for
+     * carrying the sentence that documents the rule.
+     */
+    const source = read(file)
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, '')
+      .replace(/\/\/.*$/gm, '');
     const disabled = source.match(/\bdisabled\b/g) ?? [];
 
     expect(disabled.length).toBeGreaterThanOrEqual(controls);
-    // A bare <form> would submit to the current URL on Enter and look like it
-    // worked. There is deliberately no form element in either.
+    // A bare form element would submit to the current URL on Enter and look
+    // like it worked. There is deliberately none in either.
     expect(source).not.toMatch(/<form[\s>]/);
   });
 });
@@ -181,7 +201,7 @@ describe('the Nanotom Labs palette meets WCAG AA', () => {
     const accent = token('nl-accent');
     expect(contrast('#0f0f0f', accent)).toBeGreaterThanOrEqual(4.5);
     expect(contrast('#ffffff', accent)).toBeLessThan(4.5);
-    expect(read('home.tsx')).toContain('text-[#0f0f0f]');
+    expect(read('sections.tsx')).toContain('text-[#0f0f0f]');
   });
 });
 
@@ -191,7 +211,14 @@ describe('the chrome stays server-rendered', () => {
    * applies here: a `useState` menu toggle would put a client bundle on every
    * route of the site, the blog included, to do what <details> does natively.
    */
-  it.each(['site-header.tsx', 'site-footer.tsx', 'home.tsx', 'primitives.tsx'])(
+  it.each([
+    'site-header.tsx',
+    'site-footer.tsx',
+    'home.tsx',
+    'services.tsx',
+    'sections.tsx',
+    'primitives.tsx',
+  ])(
     '%s ships no client bundle',
     (file) => {
       expect(read(file)).not.toMatch(/^'use client';/m);
@@ -324,10 +351,16 @@ describe('the radius scale matches the artwork', () => {
      * rather than located, so a new pill anywhere in the section components
      * trips this and has to be justified by updating the count.
      */
-    const pills = ['home.tsx', 'primitives.tsx', 'site-footer.tsx', 'site-header.tsx']
-      .flatMap((file) => read(file).match(/rounded-full/g) ?? []);
+    const pills = [
+      'home.tsx',
+      'services.tsx',
+      'sections.tsx',
+      'primitives.tsx',
+      'site-footer.tsx',
+      'site-header.tsx',
+    ].flatMap((file) => read(file).match(/rounded-full/g) ?? []);
 
-    expect(pills.length).toBeLessThanOrEqual(9);
+    expect(pills.length).toBeLessThanOrEqual(21);
   });
 });
 
@@ -453,14 +486,136 @@ describe('the Nanotom Labs branding', () => {
   });
 
   it('calls the company Nanotom Labs everywhere, with no template name left', async () => {
-    const content = read('content.ts');
-    const brand = read('brand.ts');
     const strip = (s: string) =>
       s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
-    for (const [name, source] of [['content.ts', content], ['brand.ts', brand]] as const) {
-      expect(strip(source), name).not.toMatch(/NexGen|NextGen/);
+    for (const file of ['content.ts', 'services-content.ts', 'brand.ts']) {
+      expect(strip(read(file)), file).not.toMatch(/NexGen|NextGen/);
     }
-    expect(content).toContain('Nanotom Labs');
+    expect(read('content.ts')).toContain('Nanotom Labs');
+    expect(read('services-content.ts')).toContain('Nanotom Labs');
+  });
+});
+
+describe('the Services page', () => {
+  /**
+   * Server-rendering the real page, for the reason the homepage block above
+   * gives: everything asserted from source catches wiring but not a component
+   * that throws. This page has two new icon maps and three new content lists,
+   * and a bad key in any of them is a string as far as the typechecker is
+   * concerned.
+   */
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsServices } = await import('../components/marketing/labs/services');
+
+    return renderToStaticMarkup(React.createElement(LabsServices));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const services = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'services');
+
+    /*
+     * The failure this guards is silent by construction: the page renders,
+     * the nav links to it, and it is simply absent from /sitemap.xml and from
+     * the admin's Pages screen with nothing anywhere to say so.
+     */
+    expect(services, 'services missing from CODED_SITES').toBeTruthy();
+    expect(services?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const route = readFileSync(join(__dirname, '..', 'app', 'services', 'page.tsx'), 'utf8');
+
+    // Ungated, this static route would shadow a database page at /services on
+    // every other blog's domain.
+    expect(route).toContain('isNntmLabs()');
+    expect(route).toContain('notFound()');
+  });
+
+  it('puts every section on the page', async () => {
+    const html = await render();
+    const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { REASONS, SERVICES_HERO, SERVICES_SECTIONS, SERVICE_CARDS, WORKS } = await import(
+      '../components/marketing/labs/services-content'
+    );
+
+    for (const line of SERVICES_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(SERVICES_HERO.imageTitle);
+    for (const heading of Object.values(SERVICES_SECTIONS)) expect(html).toContain(heading);
+    expect(html).toContain(SECTIONS.services);
+    for (const reason of REASONS) expect(html, reason.title).toContain(reason.title);
+    for (const service of SERVICE_CARDS) {
+      expect(html, service.title).toContain(service.title);
+      expect(html, service.price).toContain(service.price);
+    }
+    for (const work of WORKS) {
+      expect(html, work.title).toContain(work.title);
+      for (const tech of work.technologies) expect(html, tech).toContain(tech);
+    }
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  it('points its own calls at its own form, not the homepage\'s', async () => {
+    const html = await render();
+    const { ENQUIRY_ANCHOR, SERVICES_ENQUIRY_ANCHOR } = await import(
+      '../components/marketing/labs/brand'
+    );
+
+    // The form is on THIS page. Sending a visitor to the homepage's identical
+    // copy of it would navigate away from what they are reading.
+    expect(html).toContain(`href="${SERVICES_ENQUIRY_ANCHOR}"`);
+    expect(html).not.toContain(`href="${ENQUIRY_ANCHOR}"`);
+    expect(html).toContain('id="ask"');
+  });
+
+  it('renders every work image and leaves the team portraits decorative', async () => {
+    const html = await render();
+    const { WORKS, SERVICES_HERO } = await import(
+      '../components/marketing/labs/services-content'
+    );
+
+    for (const work of WORKS) {
+      // next/image rewrites src through the optimiser, so the encoded path is
+      // what lands in the markup.
+      expect(html, work.image.src).toContain(encodeURIComponent(work.image.src));
+      for (const portrait of work.team) {
+        expect(html, portrait).toContain(encodeURIComponent(portrait));
+      }
+    }
+    expect(html).toContain(encodeURIComponent(SERVICES_HERO.image.src));
+
+    /*
+     * The portraits are the template's stock people and name nobody, so they
+     * are decorative: alt="" rather than an invented name read out five times
+     * per project. The screenshots do describe something and carry real alt.
+     */
+    const alts = [...html.matchAll(/<img[^>]*\balt="([^"]*)"/g)].map((m) => m[1]);
+    expect(alts.filter((alt) => alt === '').length).toBeGreaterThanOrEqual(
+      WORKS.reduce((n, work) => n + work.team.length, 0),
+    );
+    expect(alts).toContain(SERVICES_HERO.image.alt);
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const { WORKS, SERVICES_HERO } = await import(
+      '../components/marketing/labs/services-content'
+    );
+
+    const paths = [
+      SERVICES_HERO.image.src,
+      ...WORKS.flatMap((work) => [work.image.src, ...work.team]),
+    ];
+
+    for (const path of paths) {
+      expect(existsSync(join(__dirname, '..', 'public', path)), path).toBe(true);
+    }
   });
 });
