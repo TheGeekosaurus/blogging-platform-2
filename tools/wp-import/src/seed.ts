@@ -6,6 +6,7 @@ import {
   excerptFor,
   readingMinutes,
   sanitizePostHtml,
+  type Client,
 } from '@blog/core';
 
 import { loadEnv } from './env';
@@ -221,8 +222,65 @@ async function main(): Promise<number> {
     console.log(`  ${existing ? 'updated' : 'created'} ${post.slug}`);
   }
 
+  await seedLeadMagnet(client, siteId, termIds);
+
   console.log(`\nSeeded ${SEED_POSTS.length} posts. Run \`pnpm dev\` and open ${baseUrl}`);
   return 0;
+}
+
+/**
+ * One offer, aimed at the Engineering category.
+ *
+ * Here so that `pnpm seed && pnpm dev` shows the sidebar card on two of the
+ * three seeded posts and not on the third — which is the whole feature, and is
+ * otherwise a five-step setup in the admin before you can see whether it works
+ * at all. Aimed at a category rather than site-wide for the same reason: a
+ * card on every post proves nothing about targeting.
+ */
+async function seedLeadMagnet(
+  client: Client,
+  siteId: string,
+  termIds: Map<string, string>,
+): Promise<void> {
+  const categoryId = termIds.get('category:engineering');
+  if (!categoryId) return;
+
+  const { data: magnet, error } = await client
+    .from('lead_magnets')
+    .upsert(
+      {
+        site_id: siteId,
+        slug: 'performance-checklist',
+        name: 'Performance checklist (seed)',
+        heading: 'Get the performance checklist',
+        body: 'The 20 checks we run before calling a page fast. One page, no signup wall.',
+        button_label: 'Send it to me',
+        success_message: 'On its way. The link below works right now too.',
+        consent_text: 'No spam. Unsubscribe any time.',
+        asset_url: 'https://example.com/performance-checklist.pdf',
+        active: true,
+      },
+      { onConflict: 'site_id,slug' },
+    )
+    .select('id')
+    .single();
+
+  if (error) throw new Error(`Failed to upsert the lead magnet: ${error.message}`);
+
+  // Replaced rather than merged, matching how the admin saves targeting.
+  await client.from('lead_magnet_targets').delete().eq('magnet_id', magnet.id);
+
+  const { error: targetError } = await client.from('lead_magnet_targets').insert({
+    magnet_id: magnet.id,
+    scope: 'category' as const,
+    term_id: categoryId,
+  });
+
+  if (targetError) {
+    throw new Error(`Failed to target the lead magnet: ${targetError.message}`);
+  }
+
+  console.log('  created lead magnet performance-checklist (Engineering posts)');
 }
 
 function slugify(value: string): string {

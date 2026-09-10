@@ -1,5 +1,8 @@
 import type {
   AuthorRow,
+  LeadMagnetRow,
+  LeadMagnetTargetRow,
+  LeadRow,
   PageRow,
   PageTemplate,
   PostRow,
@@ -371,4 +374,141 @@ export async function countPostsPerAuthor(siteId: string): Promise<Map<string, n
     if (row.byline_id) counts.set(row.byline_id, (counts.get(row.byline_id) ?? 0) + 1);
   }
   return counts;
+}
+
+// ---------------------------------------------------------------------------
+// Lead magnets
+// ---------------------------------------------------------------------------
+
+export interface LeadMagnetListItem extends LeadMagnetRow {
+  /** How many rules aim it somewhere. Zero means it appears nowhere. */
+  targetCount: number;
+}
+
+export async function listLeadMagnets(siteId: string): Promise<LeadMagnetListItem[]> {
+  const supabase = await createClient();
+
+  /*
+   * `count` on the embed rather than a second query. PostgREST returns it as
+   * `[{ count: n }]`, which is why the unwrapping below looks odd for what is
+   * one integer.
+   */
+  const { data, error } = await supabase
+    .from('lead_magnets')
+    .select('*, targets:lead_magnet_targets(count)')
+    .eq('site_id', siteId)
+    .order('active', { ascending: false })
+    .order('name');
+
+  if (error) throw new Error(`Failed to list lead magnets: ${error.message}`);
+
+  return (data ?? []).map((row) => {
+    const { targets, ...magnet } = row as LeadMagnetRow & {
+      targets: Array<{ count: number }> | null;
+    };
+
+    return { ...magnet, targetCount: targets?.[0]?.count ?? 0 };
+  });
+}
+
+export interface LeadMagnetForEdit extends LeadMagnetRow {
+  targets: LeadMagnetTargetRow[];
+}
+
+export async function getLeadMagnetForEdit(
+  siteId: string,
+  id: string,
+): Promise<LeadMagnetForEdit | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('lead_magnets')
+    .select('*, targets:lead_magnet_targets(*)')
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw new Error(`Failed to load the lead magnet: ${error.message}`);
+
+  return (data as LeadMagnetForEdit | null) ?? null;
+}
+
+/** Leads captured per magnet, for the list screen. */
+export async function countLeadsPerMagnet(siteId: string): Promise<Map<string, number>> {
+  const supabase = await createClient();
+
+  /*
+   * Returns nothing rather than throwing when the signed-in user is below
+   * `admin`: reading leads is gated at that level (0009_lead_magnets.sql), and
+   * RLS answers a disallowed select with an empty set, not an error. An editor
+   * therefore sees the offers they may configure with no counts beside them,
+   * which is the intended shape of that screen for them.
+   */
+  const { data, error } = await supabase
+    .from('leads')
+    .select('magnet_id')
+    .eq('site_id', siteId)
+    .not('magnet_id', 'is', null);
+
+  if (error) throw new Error(`Failed to count leads: ${error.message}`);
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    if (row.magnet_id) counts.set(row.magnet_id, (counts.get(row.magnet_id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * The most recent captures for one offer.
+ *
+ * Capped rather than paginated. This screen answers "is it working, and who is
+ * signing up" — the mailing list itself lives wherever the webhook sends it,
+ * and building a second CRM here would be building the wrong thing.
+ */
+export const RECENT_LEADS = 25;
+
+export async function listRecentLeads(
+  siteId: string,
+  magnetId: string,
+): Promise<LeadRow[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('leads')
+    .select('*')
+    .eq('site_id', siteId)
+    .eq('magnet_id', magnetId)
+    .order('created_at', { ascending: false })
+    .limit(RECENT_LEADS);
+
+  if (error) throw new Error(`Failed to list leads: ${error.message}`);
+  return data ?? [];
+}
+
+/**
+ * Every post title, for the per-post targeting picker.
+ *
+ * Unpaginated on purpose, and it is the one query here that would not survive a
+ * ten-thousand-post site. It is bounded by what the picker can usefully be:
+ * a list you scroll to find one article. Past a few hundred posts the control
+ * needs to become a search, and that is the change to make — not a LIMIT that
+ * silently hides the post someone is looking for.
+ */
+export interface PostOption {
+  id: string;
+  title: string;
+}
+
+export async function listPostOptions(siteId: string): Promise<PostOption[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('posts')
+    .select('id, title')
+    .eq('site_id', siteId)
+    .order('title');
+
+  if (error) throw new Error(`Failed to list posts: ${error.message}`);
+  return data ?? [];
 }

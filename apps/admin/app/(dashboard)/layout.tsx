@@ -30,6 +30,7 @@ export default async function DashboardLayout({
               <Link href="/posts">Posts</Link>
               <Link href="/terms">Categories &amp; tags</Link>
               <Link href="/authors">Authors</Link>
+              <Link href="/lead-magnets">Lead magnets</Link>
               <Link href="/media">Media</Link>
               <Link href="/settings">Settings</Link>
             </nav>

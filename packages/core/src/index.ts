@@ -9,4 +9,5 @@ export * from './coded-routes';
 export * from './terms';
 export * from './headings';
 export * from './breadcrumbs';
+export * from './lead-magnets';
 export * from './structured-data';
