@@ -476,6 +476,31 @@
     .nt-hero-video {
       display: none;
     }
+
+    /*
+     * The use-case cells keep their hover feedback but lose the movement: the
+     * background still lifts, so a reader can still see which cell they are on,
+     * and only the scale goes. Dropping the hover entirely would take away the
+     * affordance along with the motion.
+     */
+    .ft-use-case {
+      transition: background-color 0.3s ease-out !important;
+    }
+
+    /*
+     * Two traps here, both of which fail silently and were caught only by
+     * measuring the hover with the reduced-motion flag actually set:
+     *
+     *  - `scale`, not `transform`. Tailwind v4's `scale-*` compiles to the
+     *    standalone `scale` property, so resetting `transform` does nothing.
+     *  - `!important`. The utility this overrides lives in Tailwind's
+     *    `utilities` layer, which outranks this one whatever the specificity,
+     *    so an unflagged `scale: 1` loses the cascade and the cell keeps
+     *    zooming for a reader who asked for no motion.
+     */
+    .ft-use-case:hover {
+      scale: 1 !important;
+    }
   }
 
   /*

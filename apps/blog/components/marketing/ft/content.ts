@@ -147,48 +147,67 @@ export const FUNDING_OPTIONS = {
     },
 
     /*
-     * PLACEHOLDERS — REPLACE BEFORE THIS PAGE GOES ANYWHERE PUBLIC.
+     * TERMS NOT YET CONFIRMED AGAINST NANOTOM'S LENDER SHEETS.
      *
-     * Two lorem ipsum cards, added at Denis's request so the carousel can be
-     * judged at four cards rather than two. They are real lorem ipsum, which
-     * means they will read as finished copy to anyone skimming: this is the one
-     * thing on the page that must not survive to launch, and the reason they are
-     * flagged here rather than quietly blended in.
+     * These two replaced the lorem ipsum placeholders. They are the two funding
+     * types the nav already promises that the carousel did not cover — the first
+     * two cards are the line of credit and the interest-only product — so the
+     * four now map onto four real /funding-solutions pages rather than repeating.
      *
-     * Replacing them is this array and nothing else — the carousel takes however
-     * many cards it is given.
+     * The FIGURES, however, are industry-standard ranges taken from how the
+     * category is normally written and sized, NOT from Nanotom's own programs.
+     * Every number below is deliberately inside limits this site already states
+     * elsewhere — the hero's "$15K to $5M", the 551 FICO and 30-days-in-business
+     * minimums in REQUIREMENTS — so nothing here contradicts the page. That makes
+     * them plausible, not verified.
+     *
+     * These are advertised terms for consumer-facing credit products on a page
+     * that collects live applications. Check each figure against the real program
+     * before this is treated as finished copy, and cut anything that cannot be
+     * honoured. The first two cards are BANKROLL's actual terms and are safe.
      */
     {
-      title: 'Lorem Ipsum Dolor Sit Amet',
+      title: 'Equipment Financing That Pays for Itself',
       body:
-        'Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore ' +
-        'magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+        'Finance the machine, vehicle or system your business runs on and let it earn while ' +
+        'you pay for it. The equipment secures the loan, so approvals lean on what you are ' +
+        'buying rather than on the collateral you already own.',
       points: [
-        { label: 'Lorem Ipsum', body: 'Dolor sit amet consectetur adipiscing' },
-        { label: 'Sed Do Eiusmod', body: 'Tempor incididunt ut labore et dolore magna' },
-        { label: 'Ut Enim Ad Minim', body: 'Veniam quis nostrud exercitation ullamco' },
-        { label: 'Duis Aute Irure', body: 'Dolor in reprehenderit in voluptate velit esse' },
-        { label: 'Excepteur Sint', body: 'Occaecat cupidatat non proident sunt in culpa' },
-        { label: 'Qui Officia', body: 'Deserunt mollit anim id est laborum' },
+        { label: 'New or Used', body: 'Dealer, private-party and auction purchases all qualify' },
+        {
+          label: 'Application Only',
+          body: 'No financial statements required on most requests under $250,000',
+        },
+        { label: 'Terms to Match the Asset', body: 'Repayment from 12 to 84 months' },
+        {
+          label: 'Self-Collateralizing',
+          body: 'The equipment is the security — no blanket lien on other assets',
+        },
+        { label: 'Section 179 Eligible', body: 'Most financed equipment can be written off' },
+        { label: 'Fast Turnaround', body: 'Approvals in hours, funding often within two days' },
       ],
       tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions' },
+      cta: { label: 'Learn More', href: '/funding-solutions/equipment-financing' },
     },
     {
-      title: 'Nulla Pariatur Excepteur Sint',
+      title: 'Working Capital When Timing Is Everything',
       body:
-        'Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id ' +
-        'est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.',
+        'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory ' +
+        'and the gaps between invoicing and getting paid. Approval looks at how your business ' +
+        'actually performs, not only at your credit file.',
       points: [
-        { label: 'Accusantium Doloremque', body: 'Laudantium totam rem aperiam eaque ipsa' },
-        { label: 'Quae Ab Illo', body: 'Inventore veritatis et quasi architecto beatae' },
-        { label: 'Vitae Dicta Sunt', body: 'Explicabo nemo enim ipsam voluptatem quia' },
-        { label: 'Voluptas Sit', body: 'Aspernatur aut odit aut fugit sed quia' },
-        { label: 'Consequuntur Magni', body: 'Dolores eos qui ratione voluptatem sequi' },
-        { label: 'Nesciunt Neque', body: 'Porro quisquam est qui dolorem ipsum quia' },
+        { label: 'Right-Sized Amounts', body: 'From $15,000 to $2,000,000' },
+        { label: 'Short and Clear', body: 'Terms from 3 to 36 months, no open-ended balance' },
+        {
+          label: 'Payments That Fit',
+          body: 'Daily, weekly or monthly, matched to your cash cycle',
+        },
+        { label: 'Revenue-Led Underwriting', body: 'Recent deposits carry more weight than FICO' },
+        { label: 'Early Payoff Discounts', body: 'Settle ahead of schedule and pay less interest' },
+        { label: 'Same-Day Funding', body: 'Available once your file is complete' },
       ],
       tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions' },
+      cta: { label: 'Learn More', href: '/funding-solutions/working-capital' },
     },
   ],
 } as const;

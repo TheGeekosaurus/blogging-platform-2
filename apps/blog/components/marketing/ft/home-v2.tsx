@@ -686,7 +686,24 @@ function UseCases() {
             return (
               <li
                 key={item.label}
-                className="flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center"
+                /*
+                 * Hover lifts the cell rather than linking it — these are
+                 * statements about what funding is for, not destinations, so
+                 * the cursor stays default and nothing here is focusable.
+                 *
+                 * `relative z-10` on hover so the growing cell sits over its
+                 * neighbours instead of under them. The scale is small on
+                 * purpose: the grid's hairlines are `gap-px` against the
+                 * container's own background, and a bigger jump would pull the
+                 * cell visibly off them.
+                 *
+                 * The transition names `scale`, NOT `transform`. Tailwind v4's
+                 * `scale-*` compiles to the standalone `scale` property, so a
+                 * `transition-[transform,...]` here animates nothing and the
+                 * zoom snaps while the colour fades. Same trap in the
+                 * reduced-motion guard in globals.css, which resets `scale`.
+                 */
+                className="ft-use-case relative flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center transition-[scale,background-color] duration-300 ease-out hover:z-10 hover:scale-[1.06] hover:bg-[var(--ft-card)]"
               >
                 <Icon className="h-8 w-8 text-[var(--ft-accent)]" />
                 <span className="text-[1.0625rem] leading-[1.4] text-[var(--ft-ink)]">
@@ -936,9 +953,9 @@ export function HomeV2({
     <div className="ft-surface">
       <Hero />
       <HowItWorks />
+      <UseCases />
       <FundingOptions />
       <Qualifier />
-      <UseCases />
       <Requirements />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />
