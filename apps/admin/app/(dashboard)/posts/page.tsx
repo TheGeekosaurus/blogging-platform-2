@@ -123,36 +123,65 @@ export default async function PostsPage({
           with <code>pnpm wp-import</code>.
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-          {posts.map((post) => (
-            <li key={post.id} className="flex flex-wrap items-center gap-3 py-3">
-              <Link href={`/posts/${post.id}`} className="font-medium">
-                {post.title}
-              </Link>
-              <span
-                className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[post.status]}`}
-              >
-                {post.status}
-              </span>
-              <span className="ml-auto text-sm text-slate-500">
-                {post.published_at
-                  ? formatPostDate(post.published_at, site.locale)
-                  : `edited ${formatPostDate(post.updated_at, site.locale)}`}
-              </span>
-              {/*
-                Only when the post is actually served. `ml-auto` moved to the
-                date above, so the icon sits after it rather than fighting it
-                for the same push.
-              */}
-              {isLive(post) ? (
-                <ViewLiveLink
-                  href={pageUrl(site, postPath(post.slug))}
-                  label={post.title}
-                />
-              ) : null}
-            </li>
-          ))}
-        </ul>
+        /*
+         * `overflow-x-auto` on the wrapper, not the table: on a narrow window the
+         * table scrolls inside its own box rather than pushing the whole page
+         * sideways, which is what a min-width on the table alone would do.
+         */
+        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
+          <table className="wp-table">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Author</th>
+                <th scope="col">Categories</th>
+                <th scope="col">Status</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {posts.map((post) => (
+                <tr key={post.id}>
+                  <td>
+                    <div className="flex items-start gap-2">
+                      <Link
+                        href={`/posts/${post.id}`}
+                        className="font-semibold"
+                      >
+                        {post.title}
+                      </Link>
+                      {/* Only when the post is actually served — see isLive. */}
+                      {isLive(post) ? (
+                        <ViewLiveLink
+                          href={pageUrl(site, postPath(post.slug))}
+                          label={post.title}
+                        />
+                      ) : null}
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap">{post.author_name ?? '—'}</td>
+                  <td>{post.categories.length > 0 ? post.categories.join(', ') : '—'}</td>
+                  <td>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[post.status]}`}
+                    >
+                      {post.status}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap">
+                    {post.published_at ? (
+                      formatPostDate(post.published_at, site.locale)
+                    ) : (
+                      <span className="text-slate-500">
+                        edited {formatPostDate(post.updated_at, site.locale)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {pageCount > 1 ? (

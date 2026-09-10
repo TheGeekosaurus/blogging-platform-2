@@ -21,10 +21,10 @@ export default async function PagesPage() {
   const pages = await listPages(site.id);
 
   /*
-   * Pages that are React components in the repo rather than rows in `pages`.
-   * They cannot be edited here, but they have to be VISIBLE here: a page that
-   * renders on the live site while the admin says "no pages yet" reads as data
-   * loss. Listed read-only, with a link out to the live URL.
+   * Coded routes have their own screen now, at /pages/coded. They are still
+   * counted here because the two lists together are "the pages on this site",
+   * and a reader who sees an empty table needs to know the other list exists —
+   * otherwise the admin appears to have lost pages that are live.
    */
   const coded = codedRoutesFor(site.slug);
 
@@ -45,108 +45,99 @@ export default async function PagesPage() {
         </Link>
       </div>
 
+      <p className="mt-2 text-sm text-slate-600">
+        Edited here and stored in the database.{' '}
+        {coded.length > 0 ? (
+          <>
+            <Link href="/pages/coded">{coded.length} more</Link> are built in code and
+            cannot be edited here.
+          </>
+        ) : null}
+      </p>
+
       {pages.length === 0 ? (
         <p className="mt-10 text-slate-600">
           {coded.length > 0
-            ? 'No pages in the database yet. The pages below are built in code — add one here and it will appear in this list.'
+            ? 'No pages in the database yet — add one here and it will appear in this table.'
             : 'No pages yet. Pages live at the root of the site — /about, /projects/solar — while posts live under /blog.'}
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-          {pages.map((page) => {
-            // Ordered by path, so depth can be read off the separators.
-            const depth = page.path.split('/').length - 1;
+        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
+          <table className="wp-table">
+            <thead>
+              <tr>
+                <th scope="col">Title</th>
+                <th scope="col">Path</th>
+                <th scope="col">Template</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pages.map((page) => {
+                // Ordered by path, so depth can be read off the separators.
+                const depth = page.path.split('/').length - 1;
 
-            return (
-              <li key={page.id} className="flex flex-wrap items-center gap-3 py-3">
-                <span style={{ paddingLeft: `${depth * 1.25}rem` }}>
-                  <Link href={`/pages/${page.id}`} className="font-medium">
-                    {page.title}
-                  </Link>
-                </span>
-                <code className="text-xs text-slate-500">{pagePath(page.path)}</code>
-                <span
-                  className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
-                >
-                  {page.status}
-                </span>
-                {page.template === 'full' ? (
-                  <span className="rounded bg-indigo-100 px-1.5 py-0.5 text-xs text-indigo-900">
-                    full width
-                  </span>
-                ) : null}
-                {site.homepage_page_id === page.id && !homepageIsCoded ? (
-                  <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">
-                    homepage
-                  </span>
-                ) : null}
-                {/*
-                  Absent on a draft, a scheduled page, or one dated in the
-                  future: the blog serves none of those, so the icon would lead
-                  to a 404 and the author could not tell whether the link or
-                  their page was broken.
-                */}
-                {isLive(page) ? (
-                  <ViewLiveLink
-                    href={pageUrl(site, pagePath(page.path))}
-                    label={page.title}
-                    className="ml-auto"
-                  />
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
+                return (
+                  <tr key={page.id}>
+                    <td>
+                      <div
+                        className="flex items-start gap-2"
+                        style={{ paddingLeft: `${depth * 1.25}rem` }}
+                      >
+                        <Link
+                          href={`/pages/${page.id}`}
+                          className="font-semibold"
+                        >
+                          {page.title}
+                        </Link>
+                        {site.homepage_page_id === page.id && !homepageIsCoded ? (
+                          <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">
+                            homepage
+                          </span>
+                        ) : null}
+                        {/*
+                          Absent on a draft, a scheduled page, or one dated in
+                          the future: the blog serves none of those, so the icon
+                          would lead to a 404 and the author could not tell
+                          whether the link or their page was broken.
+                        */}
+                        {isLive(page) ? (
+                          <ViewLiveLink
+                            href={pageUrl(site, pagePath(page.path))}
+                            label={page.title}
+                          />
+                        ) : null}
+                      </div>
+                    </td>
+                    <td>
+                      <code className="text-xs text-slate-500">{pagePath(page.path)}</code>
+                    </td>
+                    <td className="whitespace-nowrap">
+                      {page.template === 'full' ? 'Full width' : 'Prose'}
+                    </td>
+                    <td>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
+                      >
+                        {page.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
-
-      {coded.length > 0 ? (
-        <section className="mt-10 border-t border-slate-200 pt-6">
-          <h2 className="text-lg font-semibold">Built in code</h2>
-          <p className="mt-1 max-w-2xl text-sm text-slate-600">
-            These pages are React components, not database rows, so they cannot be edited
-            here — their layouts carry embedded forms and custom styling. The copy lives in{' '}
-            <code className="text-xs">apps/blog/components/marketing/</code> and changing it
-            takes a deploy.
-          </p>
-
-          <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
-            {coded.map((route) => (
-              <li key={route.path} className="flex flex-wrap items-center gap-3 py-3">
-                <span className="font-medium">{route.title}</span>
-                <code className="text-xs text-slate-500">{pagePath(route.path)}</code>
-                <span className="rounded bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-700">
-                  code
-                </span>
-                {route.path === '' ? (
-                  <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">
-                    homepage
-                  </span>
-                ) : null}
-                {!route.index ? (
-                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900">
-                    not in sitemap
-                  </span>
-                ) : null}
-                {/* The same control as the rows above — a screen showing two
-                    different affordances for one action reads as two actions. */}
-                <ViewLiveLink
-                  href={pageUrl(site, pagePath(route.path))}
-                  label={route.title}
-                  className="ml-auto"
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
 
       <section className="mt-10 max-w-xl border-t border-slate-200 pt-6">
         <h2 className="text-lg font-semibold">Homepage</h2>
 
         {homepageIsCoded ? (
           <p className="mt-1 text-sm text-slate-600">
-            <code>{site.base_url}/</code> is served by a coded route, listed above. That
-            takes precedence over any page chosen here, so there is nothing to set.
+            <code>{site.base_url}/</code> is served by a{' '}
+            <Link href="/pages/coded">coded route</Link>. That takes precedence over any
+            page chosen here, so there is nothing to set.
           </p>
         ) : (
           <>
