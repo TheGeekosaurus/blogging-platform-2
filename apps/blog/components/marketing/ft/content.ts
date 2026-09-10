@@ -278,3 +278,41 @@ export const GET_FUNDED = {
   heading: 'We Can Secure The Capital You Need For Your Business',
   sub: 'And Build A Comprehensive Funding Strategy',
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * /calc — the loan calculator
+ *
+ * The numbers this page produces are NOT here: product ranges, pricing and the
+ * minimums live in lib/funding-calc.ts, because they are arguments to the maths
+ * rather than strings on a page. What is here is everything a copywriter should
+ * be able to change without opening the calculator.
+ *
+ * The disclaimer is not decoration. Until a real rate card replaces the
+ * illustrative one in lib/funding-calc.ts, this page shows a lender's estimates
+ * that nobody has committed to honour, and it has to say so where it is read
+ * rather than in a footer.
+ * ------------------------------------------------------------------------- */
+
+export const CALCULATOR = {
+  eyebrow: 'Loan Calculator',
+  heading: 'See what funding costs before you apply.',
+  sub:
+    'Price any of our funding options against your own credit profile and revenue — the ' +
+    'payment, the total cost of capital, and how the file is likely to read to an underwriter.',
+  /** The three things the page says about itself, under the hero. */
+  assurances: [
+    'No credit pull, no email, nothing saved',
+    'Every product we fund, priced side by side',
+    'Built on the same minimums our advisors use',
+  ],
+  disclaimer:
+    'Illustrative estimates, not an offer of credit. Rates and fees shown are modelled from ' +
+    'typical small-business finance pricing; your actual terms are set after underwriting with ' +
+    'a Nanotom Capital advisor and may differ. Nothing on this page is a commitment to lend.',
+  next: {
+    heading: 'Numbers look workable?',
+    body:
+      'An advisor can tell you what the file actually prices at. The application is a few ' +
+      'questions about the business, and funds can land as soon as the same day once you sign.',
+  },
+} as const;
