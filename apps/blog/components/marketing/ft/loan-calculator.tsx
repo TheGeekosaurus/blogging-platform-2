@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Calculator } from './calculator';
 import { CALCULATOR, REQUIREMENTS } from './content';
 import { CalculatorIcon } from './icons';
-import { Chip, CONTAINER } from './primitives';
+import { CONTAINER } from './primitives';
 
 /*
  * /calc — the page around the calculator.
@@ -12,31 +12,48 @@ import { Chip, CONTAINER } from './primitives';
  * matters here: the hero, the requirements strip and the closing band are all
  * static copy and ship as HTML, and only ./calculator.tsx crosses the boundary.
  *
- * The layout follows the design's other pages: a centred hero on the dark
- * ground, then the working panel, then a band. The calculator itself gets the
- * full container width rather than the 3xl column /get-funded uses — it is two
- * panels side by side, and squeezing it into a reading measure would stack them
- * on a desktop screen with room to spare.
+ * Unlike the design's other pages this one opens on the working panel rather
+ * than a hero — see the note on the heading below. The calculator gets the full
+ * container width rather than the 3xl column /get-funded uses: it is two panels
+ * side by side, and squeezing it into a reading measure would stack them on a
+ * desktop screen with room to spare.
  */
 export function LoanCalculator() {
   return (
     <div className="ft-surface">
-      <section aria-labelledby="ft-calc-heading" className={`${CONTAINER} py-16 lg:pt-24 lg:pb-16`}>
-        <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
-          <Chip>{CALCULATOR.eyebrow}</Chip>
+      <section aria-labelledby="ft-calc-heading" className={`${CONTAINER} pt-8 pb-16 lg:pt-10`}>
+        {/*
+          THE HEADING IS DELIBERATELY INVISIBLE, and this is the one thing on the
+          page most likely to be "fixed" by someone who thinks it was left behind.
+          Denis asked for the hero gone so the calculator starts as high as the
+          header allows — a visitor arrives here from a nav item called Loan
+          Calculator and does not need to be told what they are looking at.
+          Removing the <h1> along with it is a different change: the page would
+          then have no top-level heading at all, which costs it the "business loan
+          calculator" query on a site whose entire migration was for SEO, and
+          leaves a screen reader's heading list starting at "Are we a match?".
+          So the words stay, out of the visual flow, saying exactly what the page
+          shows — sr-only text that matches the page is standard practice, not
+          cloaking.
 
-          <h1
-            id="ft-calc-heading"
-            className="mt-6 font-[family-name:var(--font-headline)] text-[clamp(2.25rem,5vw,3.5rem)] font-medium leading-[1.08] text-[var(--ft-ink)]"
-          >
-            {CALCULATOR.heading}
-          </h1>
+          The eyebrow, the standfirst and the assurance row went with the hero.
+          The assurances are below the panel now, beside the disclaimer, where
+          they still answer "is this going to cost me an email address?" without
+          taking the space above the fold to do it.
+        */}
+        <h1 id="ft-calc-heading" className="sr-only">
+          {CALCULATOR.heading}
+        </h1>
 
-          <p className="mt-5 text-[1.125rem] leading-relaxed text-[var(--ft-muted)] sm:text-[1.25rem]">
-            {CALCULATOR.sub}
-          </p>
+        <Calculator />
 
-          <ul className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-[var(--ft-subtle)]">
+        {/*
+          The disclaimer sits directly under the panel it qualifies, not in the
+          footer. The figures above are modelled, not quoted, and a visitor who
+          reads a payment and leaves should have passed this on the way.
+        */}
+        <div className="mx-auto mt-8 max-w-3xl text-center">
+          <ul className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-[var(--ft-subtle)]">
             {CALCULATOR.assurances.map((assurance) => (
               <li key={assurance} className="flex items-center gap-2">
                 <span
@@ -47,20 +64,11 @@ export function LoanCalculator() {
               </li>
             ))}
           </ul>
-        </div>
 
-        <div className="mt-12 lg:mt-16">
-          <Calculator />
+          <p className="mt-4 text-xs leading-relaxed text-[var(--ft-subtle)]">
+            {CALCULATOR.disclaimer}
+          </p>
         </div>
-
-        {/*
-          The disclaimer sits directly under the panel it qualifies, not in the
-          footer. The figures above are modelled, not quoted, and a visitor who
-          reads a payment and leaves should have passed this on the way.
-        */}
-        <p className="mx-auto mt-8 max-w-3xl text-center text-xs leading-relaxed text-[var(--ft-subtle)]">
-          {CALCULATOR.disclaimer}
-        </p>
       </section>
 
       {/* The three published minimums, in the same words as the homepage. */}

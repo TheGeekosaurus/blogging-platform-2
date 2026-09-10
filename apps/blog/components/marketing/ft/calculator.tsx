@@ -7,9 +7,11 @@ import { CONTACT, CTA_HREF } from '../brand';
 import { ArrowUpRightIcon } from './icons';
 import { PaymentChart } from './payment-chart';
 import {
+  FACTOR_RANGE,
   MINIMUMS,
   PRODUCTS,
   PRODUCT_BY_ID,
+  RATE_RANGE,
   cadenceAdverb,
   cadenceUnit,
   calculate,
@@ -19,6 +21,8 @@ import {
   money,
   moneyCompact,
   moneyExact,
+  modelledFactor,
+  modelledRate,
   percent,
   tenure,
   type CalcInput,
@@ -60,6 +64,9 @@ const DEFAULTS: CalcInput = {
   monthlyRevenue: 80_000,
   utilization: 0.6,
   interestOnly: true,
+  /* Null means "price it from the table". The rate control fills these in. */
+  rateOverride: null,
+  factorOverride: null,
 };
 
 type TabId = 'breakdown' | 'schedule' | 'compare' | 'fit';
@@ -192,6 +199,8 @@ export function Calculator() {
             onChange={(value) => set('termMonths', value)}
           />
 
+          <RateControl input={input} product={product} onChange={setInput} />
+
           {product.kind === 'revolving' && (
             <Slider
               label="How much of the line you draw"
@@ -315,7 +324,15 @@ export function Calculator() {
               <Stat label="Net funded" value={money(result.netFunded)} />
               <Stat label="Total payback" value={money(result.totalPayback)} />
               <Stat
-                label={result.factorRate ? 'Factor rate' : 'Est. rate'}
+                label={
+                  result.factorRate
+                    ? result.pricingIsCustom
+                      ? 'Your factor'
+                      : 'Factor rate'
+                    : result.pricingIsCustom
+                      ? 'Your rate'
+                      : 'Est. rate'
+                }
                 value={
                   result.factorRate
                     ? result.factorRate.toFixed(2)
@@ -375,7 +392,12 @@ export function Calculator() {
               {tab === 'breakdown' && <Breakdown result={result} />}
               {tab === 'schedule' && <Schedule result={result} />}
               {tab === 'compare' && (
-                <Compare rows={comparison} activeId={product.id} onSelect={selectProduct} />
+                <Compare
+                  rows={comparison}
+                  activeId={product.id}
+                  customPricing={result.pricingIsCustom}
+                  onSelect={selectProduct}
+                />
               )}
               {tab === 'fit' && <Qualify input={input} result={result} />}
             </div>
@@ -574,10 +596,13 @@ function Schedule({ result }: { result: CalcResult }) {
 function Compare({
   rows,
   activeId,
+  customPricing,
   onSelect,
 }: {
   rows: CalcResult[];
   activeId: string;
+  /** The panel above is on a rate the visitor set; these rows are not. */
+  customPricing: boolean;
   onSelect: (product: Product) => void;
 }) {
   return (
@@ -660,6 +685,10 @@ function Compare({
         Each row prices the same request against that product&rsquo;s own limits, so the capital and
         term under its name are what it could actually put to work — that is the figure the payment
         beside it is on, and it is why the rows differ. Tap a name to switch the calculator to it.
+        {customPricing
+          ? ' Every row is priced from our own estimates, not the rate you set above: a rate belongs' +
+            ' to one product, and applying it to all five would compare them on term alone.'
+          : ''}
       </p>
     </div>
   );
@@ -749,6 +778,86 @@ function StepLabel({ step, children }: { step: number; children: React.ReactNode
 }
 
 /**
+ * The rate control — an interest rate on four of the five products, and a factor
+ * rate on working capital, where an interest rate would mean nothing.
+ *
+ * It starts on what the pricing table models for the file, and follows it as the
+ * FICO and time-in-business sliders move, until the visitor drags it. From then
+ * on it is THEIR number: it stays put, the copy stops calling it an estimate,
+ * and the stat above is relabelled, because a figure a visitor typed in and one
+ * a lender modelled are different claims and only one of them is ours.
+ *
+ * Values run in integer units — tenths of a percent, hundredths of a factor —
+ * rather than as fractions with a 0.001 step. A range input stepping in
+ * thousandths accumulates float error and starts reporting 0.15300000000000002,
+ * which then reaches the schedule.
+ */
+function RateControl({
+  input,
+  product,
+  onChange,
+}: {
+  input: CalcInput;
+  product: Product;
+  onChange: React.Dispatch<React.SetStateAction<CalcInput>>;
+}) {
+  const isFactor = product.kind === 'factor';
+
+  const modelled = isFactor
+    ? modelledFactor(input.fico, input.monthsInBusiness)
+    : modelledRate(product, input.fico, input.monthsInBusiness);
+
+  const override = isFactor ? input.factorOverride : input.rateOverride;
+  const current = override ?? modelled;
+  const scale = isFactor ? 100 : 1000;
+  const range = isFactor ? FACTOR_RANGE : RATE_RANGE;
+  const show = (value: number) => (isFactor ? value.toFixed(2) : percent(value));
+
+  return (
+    <Slider
+      label={isFactor ? 'Factor rate' : 'Interest rate'}
+      value={Math.round(current * scale)}
+      display={show(current)}
+      min={Math.round(range.min * scale)}
+      max={Math.round(range.max * scale)}
+      step={1}
+      format={(value) => (isFactor ? (value / scale).toFixed(2) : percent(value / scale, 0))}
+      onChange={(value) =>
+        onChange((state) => ({
+          ...state,
+          [isFactor ? 'factorOverride' : 'rateOverride']: value / scale,
+        }))
+      }
+      hint={
+        override == null ? (
+          isFactor ? (
+            'Our estimate for this file. Drag it to price a factor you have been quoted.'
+          ) : (
+            'Our estimate for this file. Drag it to price a rate you have been quoted.'
+          )
+        ) : (
+          <>
+            Your own {isFactor ? 'factor' : 'rate'}, not our estimate.{' '}
+            <button
+              type="button"
+              onClick={() =>
+                onChange((state) => ({
+                  ...state,
+                  [isFactor ? 'factorOverride' : 'rateOverride']: null,
+                }))
+              }
+              className="underline underline-offset-4 transition-colors hover:text-[var(--ft-ink)]"
+            >
+              Go back to {show(modelled)}
+            </button>
+          </>
+        )
+      }
+    />
+  );
+}
+
+/**
  * A labelled range input.
  *
  * A native `<input type="range">`, styled in globals.css, rather than a custom
@@ -775,7 +884,7 @@ function Slider({
   max: number;
   step: number;
   format: (value: number) => string;
-  hint?: string;
+  hint?: React.ReactNode;
   onChange: (value: number) => void;
 }) {
   const id = useId();
@@ -818,7 +927,7 @@ function Slider({
         <span>{format(max)}</span>
       </div>
 
-      {hint ? <p className="mt-1.5 text-xs text-[var(--ft-subtle)]">{hint}</p> : null}
+      {hint ? <div className="mt-1.5 text-xs text-[var(--ft-subtle)]">{hint}</div> : null}
     </div>
   );
 }

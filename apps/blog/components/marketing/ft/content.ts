@@ -294,12 +294,20 @@ export const GET_FUNDED = {
  * ------------------------------------------------------------------------- */
 
 export const CALCULATOR = {
-  eyebrow: 'Loan Calculator',
-  heading: 'See what funding costs before you apply.',
-  sub:
-    'Price any of our funding options against your own credit profile and revenue — the ' +
-    'payment, the total cost of capital, and how the file is likely to read to an underwriter.',
-  /** The three things the page says about itself, under the hero. */
+  /**
+   * The page's only <h1>, and it is VISUALLY HIDDEN — the page opens straight on
+   * the calculator, so this exists for crawlers and screen readers. See the note
+   * in ft/loan-calculator.tsx.
+   *
+   * Which is why it reads as a label rather than as a line of marketing. The
+   * hero that stood here said "See what funding costs before you apply." over a
+   * standfirst, and that was the right copy for a heading someone reads. An
+   * invisible one has a different job: it should say what the page is, in the
+   * words someone would search for, and match the <title>. Nobody is being shown
+   * one thing and told another — the page below it is exactly this.
+   */
+  heading: 'Business Loan Calculator',
+  /** The three things the page says about itself, under the panel. */
   assurances: [
     'No credit pull, no email, nothing saved',
     'Every product we fund, priced side by side',

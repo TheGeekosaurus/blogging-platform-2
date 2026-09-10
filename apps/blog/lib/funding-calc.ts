@@ -217,6 +217,16 @@ export const PRICING = {
 
 export type PricedBand = Exclude<CreditBand, 'below-minimum'>;
 
+/**
+ * The bounds the rate control can be dragged between.
+ *
+ * Wider than anything the pricing table produces on purpose: the control exists
+ * so a visitor can put in a number an advisor quoted them, or one a competitor
+ * did, and a range that only spans our own table cannot hold either.
+ */
+export const RATE_RANGE = { min: 0.04, max: PRICING.maxRate, step: 0.001 } as const;
+export const FACTOR_RANGE = { min: 1.05, max: 1.6, step: 0.01 } as const;
+
 export type CalcInput = {
   productId: string;
   amount: number;
@@ -228,6 +238,18 @@ export type CalcInput = {
   utilization: number;
   /** Interest-only opening period on revenue-based financing. */
   interestOnly: boolean;
+  /**
+   * An annual interest rate the visitor set for themselves, overriding the one
+   * the pricing table models. Null means "use ours".
+   *
+   * Separate from `factorOverride` rather than one field read differently per
+   * product, because the two are not the same kind of number: 1.24 is a
+   * perfectly ordinary factor and a nonsensical interest rate, and switching
+   * products would carry one across as the other.
+   */
+  rateOverride: number | null;
+  /** The same, for the factor-priced product, where a rate means nothing. */
+  factorOverride: number | null;
 };
 
 export type ScheduleRow = {
@@ -269,6 +291,8 @@ export type CalcResult = {
   totalCost: number;
   /** Nominal annual rate used to size instalments. Null for factor pricing. */
   rate: number | null;
+  /** Whether the rate or factor above is the visitor's, rather than modelled. */
+  pricingIsCustom: boolean;
   /** Computed from the cash flows, net of origination. Always shown. */
   apr: number;
   /** Cost multiple, for factor-priced products. Null otherwise. */
@@ -339,6 +363,46 @@ function annualRate(product: Product, band: PricedBand, monthsInBusiness: number
   const table =
     PRICING.rate[product.id as keyof typeof PRICING.rate] ?? PRICING.rate.term;
   return Math.min(PRICING.maxRate, table[band] + seasoningBump(monthsInBusiness, 'rate'));
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * The band to price at, for a file that has not been checked for eligibility.
+ *
+ * The rate control has to show a number even while the FICO slider is below the
+ * minimum — it is a control on the same panel, and blanking it as the visitor
+ * drags past 551 reads as a bug. The weakest priced column is the honest thing
+ * to show there, and `calculate` still refuses to price the scenario.
+ */
+function pricedBand(fico: number): PricedBand {
+  const band = creditBand(fico);
+  return band === 'below-minimum' ? 'challenged' : band;
+}
+
+/**
+ * The rate the pricing table models for a file — what the rate control shows
+ * until the visitor moves it, and what "reset to our estimate" goes back to.
+ *
+ * Exported because the control needs the same number `calculate` would use, and
+ * a second copy of `table[band] + seasoning` in the component is exactly how the
+ * displayed rate and the priced rate drift apart.
+ */
+export function modelledRate(product: Product, fico: number, monthsInBusiness: number): number {
+  return annualRate(product, pricedBand(fico), monthsInBusiness);
+}
+
+/** The same, for the factor-priced product. */
+export function modelledFactor(fico: number, monthsInBusiness: number): number {
+  return PRICING.factor[pricedBand(fico)] + seasoningBump(monthsInBusiness, 'factor');
+}
+
+/** The rate to price at: the visitor's if they set one, otherwise the table's. */
+function resolvedRate(product: Product, band: PricedBand, input: CalcInput): number {
+  if (input.rateOverride == null) return annualRate(product, band, input.monthsInBusiness);
+  return clamp(input.rateOverride, RATE_RANGE.min, RATE_RANGE.max);
 }
 
 /** The standard annuity instalment. Falls back to straight-line at a zero rate. */
@@ -475,6 +539,7 @@ function ineligible(
     totalPayback: 0,
     totalCost: 0,
     rate: null,
+    pricingIsCustom: false,
     apr: 0,
     factorRate: null,
     schedule: [],
@@ -520,6 +585,20 @@ export function calculate(input: CalcInput): CalcResult {
   const cadence = product.cadence;
   const ppy = periodsPerYear(cadence);
 
+  /*
+   * Custom pricing, when the visitor has moved the rate control. Clamped to the
+   * control's own range so a hand-edited URL or a stale value cannot produce a
+   * 900% quote, and tracked separately so the copy can say whose number it is —
+   * "the 12% rate you set" and "an estimated 12% rate" are different claims, and
+   * only one of them is ours to make.
+   */
+  const pricingIsCustom =
+    product.kind === 'factor' ? input.factorOverride != null : input.rateOverride != null;
+
+  /** How the copy names the rate — ours is an estimate, theirs is not. */
+  const ratePhrase = (value: number) =>
+    pricingIsCustom ? `the ${percent(value)} rate you set` : `an estimated ${percent(value)} rate`;
+
   let principal = amount;
   let rate: number | null = null;
   let factorRate: number | null = null;
@@ -532,7 +611,9 @@ export function calculate(input: CalcInput): CalcResult {
     // Priced as a multiple, not a rate: total cost is fixed on day one and the
     // instalment is simply the payback split evenly across the term.
     factorRate =
-      PRICING.factor[priced] + seasoningBump(input.monthsInBusiness, 'factor');
+      input.factorOverride == null
+        ? PRICING.factor[priced] + seasoningBump(input.monthsInBusiness, 'factor')
+        : clamp(input.factorOverride, FACTOR_RANGE.min, FACTOR_RANGE.max);
     const periods = termToPeriods(termMonths, cadence);
     const payback = amount * factorRate;
     payment = payback / periods;
@@ -547,11 +628,12 @@ export function calculate(input: CalcInput): CalcResult {
     });
 
     narrative =
-      `Working capital is sold as a factor rate, not an interest rate: ${factorRate.toFixed(2)} × ` +
+      `Working capital is sold as a factor rate, not an interest rate: ` +
+      `${pricingIsCustom ? 'the ' : ''}${factorRate.toFixed(2)}${pricingIsCustom ? ' you set' : ''} × ` +
       `${money(amount)} means ${money(payback)} back in total, fixed on the day you fund. ` +
       'The APR beside it is what that works out to once the payments are spread across the term.';
   } else if (product.kind === 'interest-only') {
-    rate = annualRate(product, priced, input.monthsInBusiness);
+    rate = resolvedRate(product, priced, input);
     const periodRate = rate / ppy;
 
     // The published shape: interest-only for up to 52 weeks, then the balance
@@ -582,9 +664,8 @@ export function calculate(input: CalcInput): CalcResult {
           `${money(amount)} — then ${money(amortPayment)} as the balance amortizes over the remaining ` +
           `${termMonths - ioMonths} months. Nothing is repaid against the principal until the ` +
           'amortization period starts.'
-        : `Modelled as a fully amortizing facility at an estimated ${percent(rate)} rate, ` +
-          'collected weekly. Turn on interest-only above to see the cash-flow shape the ' +
-          'product is known for.';
+        : `Modelled as a fully amortizing facility at ${ratePhrase(rate)}, collected weekly. ` +
+          'Turn on interest-only above to see the cash-flow shape the product is known for.';
   } else {
     // Amortizing, and revolving — which is the same instalment maths applied to
     // the drawn share of the line rather than to the whole limit.
@@ -593,7 +674,7 @@ export function calculate(input: CalcInput): CalcResult {
         ? amount * Math.min(1, Math.max(0.05, input.utilization))
         : amount;
     principal = drawn;
-    rate = annualRate(product, priced, input.monthsInBusiness);
+    rate = resolvedRate(product, priced, input);
     const periods = termToPeriods(termMonths, cadence);
     payment = instalment(drawn, rate, periods, ppy);
     schedule = amortize(drawn, payment, rate, periods, ppy);
@@ -603,9 +684,9 @@ export function calculate(input: CalcInput): CalcResult {
         ? `Assumes ${percent(input.utilization, 0)} of a ${money(amount)} line is drawn — ` +
           `${money(drawn)} in use. Undrawn credit costs nothing, and paying the balance down ` +
           'frees it to draw again.'
-        : `A fully amortizing ${product.name.toLowerCase()} at an estimated ${percent(rate)} ` +
-          `rate over ${termMonths} months. Every instalment is the same; the split between ` +
-          'principal and interest moves toward principal as the balance falls.';
+        : `A fully amortizing ${product.name.toLowerCase()} at ${ratePhrase(rate)} over ` +
+          `${termMonths} months. Every instalment is the same; the split between principal and ` +
+          'interest moves toward principal as the balance falls.';
   }
 
   const originationFee = principal * originationRate(product, priced);
@@ -665,6 +746,7 @@ export function calculate(input: CalcInput): CalcResult {
     totalPayback,
     totalCost,
     rate,
+    pricingIsCustom,
     apr,
     factorRate,
     schedule,
@@ -682,6 +764,12 @@ export function calculate(input: CalcInput): CalcResult {
  * normal equipment term and impossible on working capital, so a shared term
  * would silently price several rows at their ceiling and make the comparison
  * meaningless.
+ *
+ * A rate the visitor set is dropped here for the same reason, and it is the
+ * subtler one: a rate belongs to a product. Applying 12% to all five would make
+ * every row a function of term alone and quietly turn the one screen that says
+ * "these products cost different amounts" into one that says they do not. Each
+ * row is priced from the table; the panel says so when an override is on.
  */
 export function compareAll(input: CalcInput): CalcResult[] {
   return PRODUCTS.map((product) =>
@@ -689,6 +777,8 @@ export function compareAll(input: CalcInput): CalcResult[] {
       ...input,
       productId: product.id,
       termMonths: clampTerm(product, input.termMonths),
+      rateOverride: null,
+      factorOverride: null,
     }),
   );
 }
