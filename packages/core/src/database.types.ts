@@ -16,6 +16,14 @@ export type TermKind = 'category' | 'tag';
 export type PageTemplate = 'prose' | 'full';
 
 /**
+ * Where a lead magnet is allowed to appear.
+ *
+ * Ordered loosest to tightest in `LEAD_MAGNET_SPECIFICITY` (lead-magnets.ts),
+ * which is what decides the winner when a post matches several rules.
+ */
+export type LeadMagnetScope = 'site' | 'category' | 'tag' | 'post';
+
+/**
  * One JSON-LD node, as stored in a `structured_data` column.
  *
  * Deliberately `unknown` values rather than a schema.org type map. schema.org
@@ -161,6 +169,78 @@ export type RedirectRow = {
   to_path: string;
   status_code: number;
   created_at: string;
+}
+
+/**
+ * An offer a reader trades an email address for.
+ *
+ * Copy is plain TEXT, not HTML: it is rendered as text, so it needs no entry in
+ * the sanitiser allowlist and cannot carry markup a post could not. See the
+ * header of 0010_lead_magnets.sql.
+ */
+export type LeadMagnetRow = {
+  id: string;
+  site_id: string;
+  /** Stable public key. This, not the uuid, is what the webhook payload carries. */
+  slug: string;
+  /** Internal label for the admin list; never shown to a reader. */
+  name: string;
+  heading: string;
+  body: string | null;
+  button_label: string;
+  success_message: string;
+  /** Whether the card asks for a first name alongside the address. */
+  collect_name: boolean;
+  /** Small print under the button. Null means none — there is no default. */
+  consent_text: string | null;
+  /**
+   * Direct link handed back on success. Null when delivery is email-only.
+   *
+   * Server-side only — deliberately absent from `LeadMagnetOffer`, the shape
+   * the card receives, so the URL is not in the page source of every article
+   * the offer appears on. The capture endpoint returns it after a submission.
+   */
+  asset_url: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One placement rule. `scope` says which of `term_id` / `post_id` is set, and a
+ * check constraint holds it to that — see 0010_lead_magnets.sql.
+ */
+export type LeadMagnetTargetRow = {
+  id: string;
+  magnet_id: string;
+  scope: LeadMagnetScope;
+  term_id: string | null;
+  post_id: string | null;
+  created_at: string;
+}
+
+/**
+ * A captured email address.
+ *
+ * Never readable with the anon key: there is no grant and no policy for it, and
+ * the blog writes through `capture_lead` rather than an insert.
+ */
+export type LeadRow = {
+  id: string;
+  site_id: string;
+  /** Null once the magnet is deleted. `magnet_slug` is what survives. */
+  magnet_id: string | null;
+  magnet_slug: string;
+  email: string;
+  name: string | null;
+  /** The post they converted on. The reason for per-post targeting at all. */
+  source_path: string | null;
+  referrer: string | null;
+  utm: Record<string, string>;
+  /** Repeat requests bump this instead of writing a second row. */
+  submissions: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export type PageRow = {
@@ -411,14 +491,103 @@ export type Database = {
           },
         ];
       };
+      lead_magnets: {
+        Row: LeadMagnetRow;
+        Insert: Writable<LeadMagnetRow, Generated | 'body' | 'button_label' | 'success_message' | 'collect_name' | 'consent_text' | 'asset_url' | 'active'>;
+        Update: Partial<LeadMagnetRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'lead_magnets_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      lead_magnet_targets: {
+        Row: LeadMagnetTargetRow;
+        Insert: Writable<LeadMagnetTargetRow, 'id' | 'created_at' | 'term_id' | 'post_id'>;
+        Update: Partial<LeadMagnetTargetRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'lead_magnet_targets_magnet_id_fkey';
+            columns: ['magnet_id'];
+            isOneToOne: false;
+            referencedRelation: 'lead_magnets';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_magnet_targets_term_id_fkey';
+            columns: ['term_id'];
+            isOneToOne: false;
+            referencedRelation: 'terms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_magnet_targets_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      leads: {
+        Row: LeadRow;
+        /*
+         * Present for completeness of the generated shape only. Nothing in this
+         * repo inserts here: the blog writes through the capture_lead function
+         * below, which is the sole path the anon key has.
+         */
+        Insert: Writable<LeadRow, Generated | 'magnet_id' | 'name' | 'source_path' | 'referrer' | 'utm' | 'submissions'>;
+        Update: Partial<LeadRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'leads_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'leads_magnet_id_fkey';
+            columns: ['magnet_id'];
+            isOneToOne: false;
+            referencedRelation: 'lead_magnets';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: { [_ in never]: never };
-    Functions: { [_ in never]: never };
+    Functions: {
+      /*
+       * The only write the anon key can perform anywhere in this schema.
+       * security definer, so it inserts into `leads` — which anon has no grant
+       * on — after checking the magnet exists, belongs to the named site and is
+       * active. Returns nothing: a reader must not be able to tell from the
+       * response whether their address was already on the list.
+       */
+      capture_lead: {
+        Args: {
+          p_site_slug: string;
+          p_magnet_slug: string;
+          p_email: string;
+          p_name?: string | null;
+          p_source_path?: string | null;
+          p_referrer?: string | null;
+          p_utm?: Record<string, string>;
+        };
+        Returns: undefined;
+      };
+    };
     Enums: {
       post_status: PostStatus;
       page_template: PageTemplate;
       member_role: MemberRole;
       term_kind: TermKind;
+      lead_magnet_scope: LeadMagnetScope;
     };
     CompositeTypes: { [_ in never]: never };
   };

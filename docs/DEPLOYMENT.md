@@ -24,15 +24,16 @@ Supabase (one project)
 2. Apply the migrations **in order**, pasting each into the SQL editor:
 
    ```
-   supabase/migrations/0001_init.sql            schema
-   supabase/migrations/0002_rls.sql             row level security and grants
-   supabase/migrations/0003_storage.sql         media bucket
-   supabase/migrations/0004_pages.sql           pages, nested to any depth
-   supabase/migrations/0005_term_hierarchy.sql  category nesting checks
-   supabase/migrations/0006_authors.sql         author records for post bylines
-   supabase/migrations/0007_author_title.sql    a short role line for a byline
-   supabase/migrations/0008_structured_data.sql editable schema.org markup
-   supabase/migrations/0009_drop_media_caption.sql  drop an unused column
+   supabase/migrations/0001_init.sql               schema
+   supabase/migrations/0002_rls.sql                row level security and grants
+   supabase/migrations/0003_storage.sql            media bucket
+   supabase/migrations/0004_pages.sql              pages, nested to any depth
+   supabase/migrations/0005_term_hierarchy.sql     category nesting checks
+   supabase/migrations/0006_authors.sql            author records for post bylines
+   supabase/migrations/0007_author_title.sql       a short role line for a byline
+   supabase/migrations/0008_structured_data.sql    editable schema.org markup
+   supabase/migrations/0009_drop_media_caption.sql drop an unused column
+   supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
    ```
 
    This list had stopped at 0003 while three more migrations were added, which
@@ -185,12 +186,49 @@ Environment variables:
 | `SITE_SLUG` | `myblog` — must match the `sites.slug` row |
 | `REVALIDATE_SECRET` | the `revalidate_secret` from step 2 |
 | `SITE_APEX_URL` | *(optional)* `https://myblog.com` — only if retiring an old `blog.` subdomain |
+| `LEAD_WEBHOOK_URL` | *(optional)* where captured leads are forwarded — see below |
+| `LEAD_WEBHOOK_SECRET` | *(optional)* sent as `x-webhook-secret` on that call |
 
 `SITE_APEX_URL` turns on the subdomain redirect: requests arriving at
 `blog.myblog.com/<slug>` are 301'd to `myblog.com/blog/<slug>`, so inbound links
 and rankings survive the move. Attach that subdomain to this same Vercel project.
 Vercel's own domain redirect cannot do it — it preserves the path, and the path
 needs a `/blog` prefix. Leave the variable unset if you have no old subdomain.
+
+### Lead capture, if you are using it
+
+`LEAD_WEBHOOK_URL` is what actually delivers a lead magnet: the blog stores the
+lead and then POSTs it to that URL, and whatever is on the other end — n8n, a
+Supabase function, a CRM — sends the email. Nothing in this codebase sends mail.
+
+Leave it unset to start. The feature works without it: the lead is stored, and
+where the offer has a file the download link is returned to the reader
+immediately. Add the webhook once the automation exists.
+
+The forward is best-effort by design. The row is committed before it is
+attempted and a failure never fails the submission, so a broken automation costs
+the follow-up email and never the lead — check the function logs for
+`Lead webhook failed`, and the leads themselves are still listed in the admin
+under each offer.
+
+The payload is JSON:
+
+```json
+{
+  "site": "myblog",
+  "magnet": "equipment-financing-toolkit",
+  "magnetName": "Equipment Financing Toolkit",
+  "email": "reader@example.com",
+  "name": null,
+  "sourcePath": "/blog/equipment-loans/",
+  "referrer": "https://www.google.com/",
+  "utm": { "utm_source": "newsletter" },
+  "capturedAt": "2026-09-10T09:00:00.000Z"
+}
+```
+
+Branch on `magnet` rather than the offer's name or id: the slug is the stable
+public key, and the admin warns before you change one.
 
 ### If this is the Nanotom Labs deployment
 

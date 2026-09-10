@@ -128,6 +128,27 @@ const SECTIONS: NavSection[] = [
       </Icon>
     ),
   },
+  /*
+   * Below Authors rather than under Posts, though it only appears on posts: an
+   * offer outlives the article it runs on and is aimed at a category or a tag
+   * as often as at one post, so filing it inside Posts would put it under the
+   * narrowest of the things it targets.
+   */
+  {
+    href: '/lead-magnets',
+    label: 'Lead magnets',
+    icon: (
+      <Icon>
+        {/* A horseshoe magnet: the outer arc, the inner one, and the two poles. */}
+        <path d="M4 4h5v8a3 3 0 0 0 6 0V4h5v8a8 8 0 0 1-16 0z" />
+        <path d="M4 9h5M15 9h5" />
+      </Icon>
+    ),
+    children: [
+      { href: '/lead-magnets', label: 'All Offers' },
+      { href: '/lead-magnets/new', label: 'Add New' },
+    ],
+  },
   {
     href: '/settings',
     label: 'Settings',

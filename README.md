@@ -56,15 +56,16 @@ Apply the migrations to a fresh Supabase project, in order — paste each into t
 SQL editor, or use `supabase db push`:
 
 ```
-supabase/migrations/0001_init.sql            schema
-supabase/migrations/0002_rls.sql             row level security and grants
-supabase/migrations/0003_storage.sql         media bucket
-supabase/migrations/0004_pages.sql           pages, nested to any depth
-supabase/migrations/0005_term_hierarchy.sql  category nesting checks
-supabase/migrations/0006_authors.sql         author records for post bylines
-supabase/migrations/0007_author_title.sql    a short role line for a byline
-supabase/migrations/0008_structured_data.sql editable schema.org markup
-supabase/migrations/0009_drop_media_caption.sql  drop an unused column
+supabase/migrations/0001_init.sql               schema
+supabase/migrations/0002_rls.sql                row level security and grants
+supabase/migrations/0003_storage.sql            media bucket
+supabase/migrations/0004_pages.sql              pages, nested to any depth
+supabase/migrations/0005_term_hierarchy.sql     category nesting checks
+supabase/migrations/0006_authors.sql            author records for post bylines
+supabase/migrations/0007_author_title.sql       a short role line for a byline
+supabase/migrations/0008_structured_data.sql    editable schema.org markup
+supabase/migrations/0009_drop_media_caption.sql drop an unused column
+supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -218,6 +219,75 @@ engagements that are not Nanotom Labs'. See the headers of
 `marketing/labs/content.ts` and `marketing/labs/services-content.ts`: they must
 be replaced before the site serves real traffic.
 
+## Lead capture
+
+Post pages can carry an offer — a checklist, a toolkit, whatever the article
+earns — in the sidebar above the contents list, in exchange for an email
+address. It is the thing a WordPress popup plugin does, minus the popup.
+
+Set them up under **Lead magnets** in the admin. Each offer carries its own copy
+and a set of targeting rules, and a post shows at most one card.
+
+| Aimed at | Matches |
+| --- | --- |
+| Every post | all of them — a floor, not a default |
+| A category | posts in it *or any category beneath it*, matching the archives |
+| A tag | posts carrying it |
+| A post | that post |
+
+Where several offers match, the most specific wins: post beats tag beats
+category beats site-wide. A tie between two rules of the same scope goes to the
+older offer, so adding a second one to a category never silently takes traffic
+from the one already running there — aim the new one more tightly, or retire the
+first. An offer with no rules appears nowhere, and the list screen says so
+rather than leaving it to be inferred from a zero.
+
+**Targeting is resolved at build and revalidation time, not per request.** That
+is what makes it free — a visitor request still never touches the database — and
+it is the one thing to remember: editing an offer does not change a published
+post until that post is re-rendered. Saving in the admin fires a site-wide
+refresh for exactly this reason, and reports it if the refresh fails.
+
+### Where a lead goes
+
+Three places, in this order:
+
+1. **Postgres**, via `capture_lead` — a security-definer function that is the
+   only write the anon key can perform anywhere in this schema. The blog is not
+   given an insert grant on `leads`, and must not be: the service-role key stays
+   off deployed projects.
+2. **Back to the reader**, if the offer has a file. The download URL is *not*
+   shipped with the card; the capture endpoint returns it in the success
+   response, so it is not sitting in the page source of every article the offer
+   runs on. Anyone willing to type an address still gets it — that is the deal —
+   but the gate is not decorative.
+3. **`LEAD_WEBHOOK_URL`**, if one is set. This is where the actual follow-up
+   happens: n8n, a Supabase function, a CRM. Nothing here sends email, and
+   nothing should — that would put deliverability and bounce handling on the
+   critical path of a form submission. The row is committed *before* the
+   forward is attempted, so a broken automation loses the follow-up email, never
+   the lead. With no webhook configured the feature still works end to end.
+
+Leads are readable in the admin by owners and admins only, not editors:
+configuring an offer and reading the mailing list it produced are different
+levels of trust. The per-offer screen shows the 25 most recent as a check that
+capture is working — it is not a CRM and should not grow into one.
+
+### What it deliberately does not do
+
+- **It is not an interstitial.** The card renders in the layout and never covers
+  the article. Google ranks down a mobile popup that obscures content, and a
+  blog whose traffic is search should not spend rankings on a form. It still
+  gets the sticky rail, which is the best real estate on the page.
+- **There is no IP rate limiting.** Abuse is bounded by a honeypot field, an
+  email format check in both TypeScript and SQL, and a unique index that turns a
+  resubmission into an `UPDATE` rather than a new row — so a flood costs rows
+  proportional to distinct addresses, not requests. If that stops being enough,
+  the place to fix it is in front of the endpoint, not inside it.
+- **The copy is plain text, not HTML.** Text rendered as text needs no
+  sanitiser allowlist. Rich copy here would mean a third HTML trust level for a
+  headline and a sentence.
+
 ## Security model
 
 Two consumers, two key types:
@@ -243,7 +313,7 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 
 | Project | Root Directory | Environment |
 | --- | --- | --- |
-| One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET` |
+| One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET`, optionally `LEAD_WEBHOOK_URL` |
 | Nanotom Capital | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
 | Nanotom Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
