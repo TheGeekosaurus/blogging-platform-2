@@ -52,6 +52,13 @@ export const NNTM_LABS_SLUG = 'nntm-labs';
 const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
   { path: 'get-funded', title: 'Get Funded', index: true },
+  /*
+   * The loan calculator. It answered on this path as a rewrite to
+   * calc.nanotomcapital.com until it became a route in this repo, which is why
+   * it was absent from this list while the URL already worked: a rewrite is
+   * invisible to both consumers this registry serves.
+   */
+  { path: 'calc', title: 'Loan Calculator', index: true },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.

@@ -77,6 +77,21 @@ const SECTIONS: NavSection[] = [
       { href: '/pages/new', label: 'Add New' },
     ],
   },
+  /*
+   * Its own section rather than a child of Posts or Pages: it reads the body of
+   * both and reports across them, so filing it under either would hide it from
+   * someone working in the other.
+   */
+  {
+    href: '/links',
+    label: 'Links',
+    icon: (
+      <Icon>
+        <path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1L11.5 4.5" />
+        <path d="M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.5-1.4" />
+      </Icon>
+    ),
+  },
   {
     href: '/media',
     label: 'Media',
