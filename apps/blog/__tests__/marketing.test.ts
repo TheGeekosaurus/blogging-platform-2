@@ -174,6 +174,22 @@ describe('the SocialJuice review wall', () => {
     expect(REVIEWS.initialHeight).toBeGreaterThan(0);
     expect(await source()).toContain('height: REVIEWS.initialHeight');
   });
+
+  /*
+   * Another silent one. SocialJuice sets no background on its own html or body —
+   * its dark mode themes the cards and the text only — so without this option the
+   * wall's canvas falls back to the browser default and the whole embed renders
+   * as white space around dark cards on our dark page. Nothing errors; it just
+   * looks broken. `bodyBackground` is how iframe-resizer lets the parent set it
+   * across the origin boundary, and it defaults to null, which the child skips.
+   */
+  it('tells the resizer to paint the wall body, or it renders white', async () => {
+    const code = await source();
+
+    expect(code).toContain('bodyBackground');
+    // Read from the token, not a hex, so the wall tracks the site's ground.
+    expect(code).toContain("getPropertyValue('--color-ground')");
+  });
 });
 
 describe('the HighLevel survey embed', () => {

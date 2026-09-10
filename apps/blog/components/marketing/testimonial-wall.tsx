@@ -67,14 +67,38 @@ export function TestimonialWall() {
         strategy="afterInteractive"
         onLoad={() => {
           /*
+           * WHY bodyBackground. SocialJuice's wall sets no background on its own
+           * html or body — dark mode themes the CARDS (`--color-bg-primary`) and
+           * the text, nothing else — so the document's canvas falls back to the
+           * browser default and the wall renders as white space around dark
+           * cards. We cannot reach into a cross-origin document to fix that, and
+           * a background on the iframe element does not help: the canvas paints
+           * over it.
+           *
+           * `bodyBackground` is iframe-resizer's supported answer. The parent
+           * sends the value in its init message and the child sets
+           * `document.body.style.background` from it, so this is a legitimate
+           * cross-origin channel rather than a workaround. It defaults to null,
+           * which the child skips — hence the white.
+           *
+           * Read from the token rather than written as a hex, so the wall
+           * follows the ground the rest of the site is painted with.
+           *
            * `checkOrigin: false` is SocialJuice's own snippet, kept verbatim. It
            * disables the postMessage origin check, so worth being explicit about
-           * the exposure: the only thing these messages control is the height of
-           * this iframe, so the worst a forged one does is resize a review wall.
-           * Turning it on would mean pinning their embed origin here and breaking
-           * the wall silently if they ever move it.
+           * the exposure: these messages control this iframe's height and now its
+           * body background, so the worst a forged one does is recolour or resize
+           * a review wall. Turning it on would mean pinning their embed origin
+           * here and breaking the wall silently if they ever move it.
            */
-          window.iFrameResize?.({ log: false, checkOrigin: false }, `#${FRAME_ID}`);
+          const ground = getComputedStyle(document.documentElement)
+            .getPropertyValue('--color-ground')
+            .trim();
+
+          window.iFrameResize?.(
+            { log: false, checkOrigin: false, bodyBackground: ground || '#141414' },
+            `#${FRAME_ID}`,
+          );
         }}
       />
     </>
