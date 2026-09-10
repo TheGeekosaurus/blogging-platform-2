@@ -1,11 +1,26 @@
-import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
 import { signOut } from '@/app/actions/auth';
+import { AdminNav } from '@/components/admin-nav';
 import { SiteSwitcher } from '@/components/site-switcher';
 import { getCurrentSite, listMySites } from '@/lib/current-site';
 import { getCurrentUser } from '@/lib/supabase/server';
 
+/**
+ * The dashboard shell: a fixed dark rail on the left, content on the right —
+ * the shape WordPress uses, because that is the shape the people using this
+ * already know.
+ *
+ * The site switcher sits at the very top of the rail rather than off in a
+ * corner. It is the widest-scoped control in the app: every list, every editor
+ * and every URL below it is scoped to whatever it says, so it belongs above the
+ * navigation it changes the meaning of.
+ *
+ * The rail does not collapse on small screens; it becomes a horizontal strip
+ * above the content instead. A slide-out drawer would need state, and this is a
+ * desktop editing tool — the phone case worth supporting is "look something up",
+ * not "lay out a post".
+ */
 export default async function DashboardLayout({
   children,
 }: {
@@ -18,40 +33,34 @@ export default async function DashboardLayout({
   const [sites, site] = await Promise.all([listMySites(), getCurrentSite()]);
 
   return (
-    <div className="min-h-screen">
-      <header className="border-b border-slate-200">
-        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-6 py-3">
-          <div className="flex items-center gap-6">
-            <Link href="/posts" className="font-semibold tracking-tight">
-              Blog admin
-            </Link>
-            <nav className="flex gap-4 text-sm">
-              <Link href="/pages">Pages</Link>
-              <Link href="/posts">Posts</Link>
-              <Link href="/terms">Categories &amp; tags</Link>
-              <Link href="/authors">Authors</Link>
-              <Link href="/links">Links</Link>
-              <Link href="/media">Media</Link>
-              <Link href="/settings">Settings</Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-3">
-            {site ? <SiteSwitcher sites={sites} currentId={site.id} /> : null}
-            <form action={signOut}>
-              <button type="submit" className="text-sm text-slate-600 underline">
-                Sign out
-              </button>
-            </form>
-          </div>
+    <div className="min-h-screen bg-[var(--color-wp-canvas)] lg:flex">
+      <div className="flex flex-col bg-[var(--color-wp-nav)] lg:sticky lg:top-0 lg:h-screen lg:w-[13.75rem] lg:shrink-0">
+        <div className="border-b border-white/10 px-4 py-3">
+          <SiteSwitcher sites={sites} currentId={site?.id ?? ''} />
         </div>
-      </header>
 
-      <main className="mx-auto max-w-5xl px-6 py-8">
+        <AdminNav />
+
+        <div className="border-t border-white/10 px-4 py-3">
+          <p className="truncate text-xs text-[var(--color-wp-nav-ink)]" title={user.email ?? ''}>
+            {user.email}
+          </p>
+          <form action={signOut}>
+            <button
+              type="submit"
+              className="mt-1 text-xs text-[var(--color-wp-nav-ink)] underline hover:text-white"
+            >
+              Sign out
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <main className="min-w-0 flex-1 px-6 py-8 lg:px-10">
         {site ? (
           children
         ) : (
-          <div className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <div className="max-w-2xl rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
             <p className="font-medium">This account is not a member of any site.</p>
             <p className="mt-1">
               Signing in worked, but every query returns nothing until a{' '}
