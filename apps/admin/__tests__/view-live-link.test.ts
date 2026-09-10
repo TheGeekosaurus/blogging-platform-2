@@ -48,6 +48,7 @@ describe('the lists only link to what is actually served', () => {
   it.each([
     ['posts', ['app', '(dashboard)', 'posts', 'page.tsx']],
     ['pages', ['app', '(dashboard)', 'pages', 'page.tsx']],
+    ['links', ['app', '(dashboard)', 'links', 'page.tsx']],
   ])('%s gates the icon on isLive', (_label, parts) => {
     /*
      * The whole point of the gate. A draft, a scheduled row, or one dated in
@@ -81,5 +82,17 @@ describe('the lists only link to what is actually served', () => {
     expect(read('lib', 'queries.ts')).toContain(
       "'id, slug, path, title, parent_id, template, status, published_at, updated_at'",
     );
+  });
+
+  it('the link graph selects it too, for the same gate and for link status', () => {
+    /*
+     * loadLinkGraph feeds isLive() twice over: once for this icon, and once to
+     * decide whether an internal link points at something a visitor can
+     * actually reach. Without published_at both halves silently degrade to
+     * "status says published, so it must be live".
+     */
+    const source = read('lib', 'link-graph.ts');
+    expect(source).toContain('id, title, slug, status, published_at, content_html');
+    expect(source).toContain('id, title, path, status, published_at, content_html');
   });
 });
