@@ -32,6 +32,7 @@ Supabase (one project)
    supabase/migrations/0006_authors.sql         author records for post bylines
    supabase/migrations/0007_author_title.sql    a short role line for a byline
    supabase/migrations/0008_structured_data.sql editable schema.org markup
+   supabase/migrations/0009_drop_media_caption.sql  drop an unused column
    ```
 
    This list had stopped at 0003 while three more migrations were added, which

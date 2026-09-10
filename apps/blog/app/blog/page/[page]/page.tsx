@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -38,6 +39,38 @@ export async function generateStaticParams() {
   return Array.from({ length: Math.max(0, pageCount - 1) }, (_, i) => ({
     page: String(i + 2),
   }));
+}
+
+/*
+ * Same fix as the index: without this every numbered page canonicalised to '/'
+ * and carried the site name as its title, so page 2 and page 7 were
+ * indistinguishable duplicates of the homepage.
+ *
+ * Self-referencing canonicals, NOT a canonical pointing back at /blog. Google
+ * deprecated rel=next/prev and its current guidance is that each page in a
+ * series should canonicalise to itself — pointing them all at page one drops
+ * the deeper posts out of the index, which on an archive is the only thing
+ * those pages are for.
+ *
+ * They are left indexable for the same reason. These are the crawl path to
+ * older posts; noindexing them eventually strands anything past the first page.
+ */
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ page: string }>;
+}): Promise<Metadata> {
+  const { page } = await params;
+  const pageNumber = Number(page);
+  const site = await getSite();
+
+  if (!Number.isInteger(pageNumber) || pageNumber < 2) return {};
+
+  return {
+    title: `Blog — page ${pageNumber}`,
+    description: `Older articles from ${site.name}, page ${pageNumber}.`,
+    alternates: { canonical: blogPagePath(pageNumber) },
+  };
 }
 
 export default async function ArchivePage({

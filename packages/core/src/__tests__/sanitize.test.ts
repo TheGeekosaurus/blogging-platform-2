@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { altTextWarning } from '../content';
 import {
   htmlToPlainText,
   sanitizePageHtml,
@@ -312,5 +313,56 @@ describe('sanitizePostHtml — what the Tiptap editor emits for a table', () => 
     expect(out).not.toContain('colwidth');
     // The content itself is never the casualty.
     expect(out).toContain('<p>x</p>');
+  });
+});
+
+describe('altTextWarning', () => {
+  it('says nothing when every image has alt', () => {
+    expect(altTextWarning('<img src="/a.png" alt="A cat">')).toBeNull();
+  });
+
+  it('says nothing about a deliberately decorative image', () => {
+    /*
+     * alt="" is the CORRECT markup for an image carrying no information. An
+     * author who has decided that has done the right thing, and a warning that
+     * fires on correct markup is one people learn to dismiss — at which point
+     * it stops catching the real cases too.
+     */
+    expect(altTextWarning('<img src="/divider.png" alt="">')).toBeNull();
+  });
+
+  it('names the offending file rather than only counting', () => {
+    // "3 images have no alt text" sends an author hunting through the body.
+    const warning = altTextWarning('<img src="https://cdn.test/photos/chart.png">');
+
+    expect(warning).toContain('1 image has no alt text');
+    expect(warning).toContain('chart.png');
+  });
+
+  it('pluralises and truncates a long list', () => {
+    const html = Array.from({ length: 5 }, (_, i) => `<img src="/img-${i}.png">`).join('');
+    const warning = altTextWarning(html);
+
+    expect(warning).toContain('5 images have no alt text');
+    expect(warning).toContain('img-0.png');
+    expect(warning).toContain('and 2 more');
+  });
+
+  it('counts only the images that are missing it', () => {
+    const warning = altTextWarning('<img src="/a.png" alt="A"><img src="/b.png">');
+
+    expect(warning).toContain('1 image has');
+    expect(warning).toContain('b.png');
+    expect(warning).not.toContain('a.png');
+  });
+
+  it('is not fooled by alt appearing elsewhere in the tag', () => {
+    // `data-alternate` contains "alt" but is not the attribute.
+    const warning = altTextWarning('<img src="/a.png" data-alternate="x">');
+    expect(warning).toContain('no alt text');
+  });
+
+  it('ignores images in other elements and plain text', () => {
+    expect(altTextWarning('<p>alt=nothing here</p><figure></figure>')).toBeNull();
   });
 });
