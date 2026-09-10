@@ -1,14 +1,15 @@
 import { LeadMagnetForm } from '@/components/lead-magnet-form';
 import { requireCurrentSite } from '@/lib/current-site';
-import { listAllTerms, listPostOptions } from '@/lib/queries';
+import { listAllTerms, listMediaOptions, listPostOptions } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewLeadMagnetPage() {
   const site = await requireCurrentSite();
-  const [terms, posts] = await Promise.all([
+  const [terms, posts, media] = await Promise.all([
     listAllTerms(site.id),
     listPostOptions(site.id),
+    listMediaOptions(site.id),
   ]);
 
   return (
@@ -17,6 +18,7 @@ export default async function NewLeadMagnetPage() {
       <LeadMagnetForm
         terms={terms}
         posts={posts}
+        media={media}
         values={{
           name: '',
           slug: '',
@@ -25,6 +27,7 @@ export default async function NewLeadMagnetPage() {
           buttonLabel: '',
           successMessage: '',
           collectName: false,
+          imageId: null,
           consentText: '',
           assetUrl: '',
           /*

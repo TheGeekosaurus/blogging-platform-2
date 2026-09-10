@@ -6,6 +6,7 @@ import type {
   TermRow,
 } from './database.types';
 import { ancestorTerms } from './terms';
+import { mediaPublicUrl } from './urls';
 
 /**
  * Which lead magnet, if any, a given post should offer.
@@ -32,9 +33,25 @@ export const LEAD_MAGNET_SPECIFICITY: Record<LeadMagnetScope, number> = {
   post: 3,
 };
 
+/**
+ * The image columns the card needs, as the query embeds them.
+ *
+ * A projection, like FeaturedImage in queries.ts: `blur_data_url` is stored but
+ * not selected, because the card's image is a few hundred pixels wide in a
+ * sidebar and a blur placeholder for it is a base64 string in the HTML of every
+ * article the offer runs on, to smooth over a load that is already fast.
+ */
+export interface LeadMagnetImage {
+  storage_path: string;
+  alt: string | null;
+  width: number | null;
+  height: number | null;
+}
+
 /** A magnet with its placement rules attached, as the resolver wants them. */
 export interface LeadMagnetWithTargets extends LeadMagnetRow {
   targets: LeadMagnetTargetRow[];
+  image: LeadMagnetImage | null;
 }
 
 /**
@@ -176,9 +193,30 @@ export interface LeadMagnetOffer {
   successMessage: string;
   collectName: boolean;
   consentText: string | null;
+  /**
+   * Resolved to a URL HERE, on the server, rather than passing the storage path
+   * down. `mediaPublicUrl` reads SUPABASE_URL, which has no NEXT_PUBLIC_ prefix
+   * and so is never inlined into the browser bundle — calling it inside the
+   * card would throw in the reader's browser. The admin learned this the hard
+   * way; see the header of env.ts.
+   *
+   * `width` and `height` come along because they are what lets the card
+   * reserve the right space before the image loads. They can be null on a row
+   * that predates the uploader recording them.
+   */
+  image: {
+    url: string;
+    alt: string | null;
+    width: number | null;
+    height: number | null;
+  } | null;
 }
 
-export function toLeadMagnetOffer(magnet: LeadMagnetRow): LeadMagnetOffer {
+export function toLeadMagnetOffer(
+  magnet: LeadMagnetRow & { image?: LeadMagnetImage | null },
+): LeadMagnetOffer {
+  const image = magnet.image ?? null;
+
   return {
     slug: magnet.slug,
     heading: magnet.heading,
@@ -187,6 +225,14 @@ export function toLeadMagnetOffer(magnet: LeadMagnetRow): LeadMagnetOffer {
     successMessage: magnet.success_message,
     collectName: magnet.collect_name,
     consentText: magnet.consent_text,
+    image: image
+      ? {
+          url: mediaPublicUrl(image.storage_path),
+          alt: image.alt,
+          width: image.width,
+          height: image.height,
+        }
+      : null,
   };
 }
 
@@ -235,13 +281,32 @@ export async function listActiveLeadMagnets(
 ): Promise<LeadMagnetWithTargets[]> {
   const { data, error } = await client
     .from('lead_magnets')
-    .select('*, targets:lead_magnet_targets(*)')
+    /*
+     * `image:media(...)` resolves because image_id is the only foreign key
+     * from this table to media — see 0011_lead_magnet_image.sql. Adding a
+     * second one makes this embed ambiguous and every card stops rendering.
+     */
+    .select('*, image:media(storage_path, alt, width, height), targets:lead_magnet_targets(*)')
     .eq('site_id', siteId)
     .eq('active', true);
 
   if (error) throw new Error(`Failed to load lead magnets: ${error.message}`);
 
-  return (data ?? []) as LeadMagnetWithTargets[];
+  /*
+   * PostgREST types a to-one embed as possibly-array, exactly as the post
+   * queries have to unwrap `featured_image`. Normalised here so the resolver
+   * and the card both see a plain object or null.
+   */
+  return (data ?? []).map((row) => {
+    const { image, ...magnet } = row as Omit<LeadMagnetWithTargets, 'image'> & {
+      image: LeadMagnetImage | LeadMagnetImage[] | null;
+    };
+
+    return {
+      ...magnet,
+      image: Array.isArray(image) ? (image[0] ?? null) : (image ?? null),
+    };
+  });
 }
 
 /**

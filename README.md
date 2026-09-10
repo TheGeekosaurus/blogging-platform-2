@@ -66,6 +66,7 @@ supabase/migrations/0007_author_title.sql       a short role line for a byline
 supabase/migrations/0008_structured_data.sql    editable schema.org markup
 supabase/migrations/0009_drop_media_caption.sql drop an unused column
 supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
+supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -225,8 +226,13 @@ Post pages can carry an offer — a checklist, a toolkit, whatever the article
 earns — in the sidebar above the contents list, in exchange for an email
 address. It is the thing a WordPress popup plugin does, minus the popup.
 
-Set them up under **Lead magnets** in the admin. Each offer carries its own copy
-and a set of targeting rules, and a post shows at most one card.
+Set them up under **Lead magnets** in the admin. Each offer carries its own copy,
+an optional image and a set of targeting rules, and a post shows at most one card.
+
+The image is picked from the media library, the same grid the post editor uses,
+and runs full width across the top of the card. It is never cropped — the card
+grows to fit, so a tall image makes a tall card. Upload something around 700px
+wide; the sidebar renders it at about 350.
 
 | Aimed at | Matches |
 | --- | --- |

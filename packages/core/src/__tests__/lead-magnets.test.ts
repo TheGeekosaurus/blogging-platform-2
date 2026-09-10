@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import type { LeadMagnetTargetRow, TermRow } from '../database.types';
 import {
@@ -34,6 +34,8 @@ function magnet(
     button_label: 'Send it to me',
     success_message: 'On its way.',
     collect_name: false,
+    image_id: null,
+    image: null,
     consent_text: null,
     asset_url: 'https://example.com/toolkit.pdf',
     active: true,
@@ -244,6 +246,75 @@ describe('expandCategoryIds', () => {
 
   it('is a no-op with no categories', () => {
     expect(expandCategoryIds(terms, [])).toEqual([]);
+  });
+});
+
+describe('toLeadMagnetOffer — the image', () => {
+  /*
+   * mediaPublicUrl reads SUPABASE_URL and throws without it — see
+   * urls-env.test.ts, which pins that on purpose. Nothing else in this file
+   * touches the environment, so it is set for this block only.
+   */
+  const ORIGINAL = process.env.SUPABASE_URL;
+
+  beforeAll(() => {
+    process.env.SUPABASE_URL = 'https://project.supabase.co';
+  });
+
+  afterAll(() => {
+    if (ORIGINAL === undefined) delete process.env.SUPABASE_URL;
+    else process.env.SUPABASE_URL = ORIGINAL;
+  });
+
+  it('is null when no image is attached', () => {
+    expect(toLeadMagnetOffer(magnet({ targets: [] })).image).toBeNull();
+  });
+
+  /*
+   * Resolved on the server, which is the point. SUPABASE_URL has no
+   * NEXT_PUBLIC_ prefix, so mediaPublicUrl cannot run in the browser — a
+   * storage path reaching the card unresolved would throw on render.
+   */
+  it('resolves the storage path to a full URL', () => {
+    const offer = toLeadMagnetOffer(
+      magnet({
+        targets: [],
+        image: {
+          storage_path: 'site-1/toolkit.png',
+          alt: 'The toolkit',
+          width: 1400,
+          height: 1050,
+        },
+      }),
+    );
+
+    expect(offer.image?.url).toContain('site-1/toolkit.png');
+    expect(offer.image?.url).toMatch(/^https?:\/\//);
+  });
+
+  // Both are needed for next/image to reserve space; the card falls back to a
+  // plain <img> without them rather than inventing numbers.
+  it('carries the dimensions and the alt text through', () => {
+    const offer = toLeadMagnetOffer(
+      magnet({
+        targets: [],
+        image: { storage_path: 'a.png', alt: 'Alt', width: 800, height: 600 },
+      }),
+    );
+
+    expect(offer.image).toMatchObject({ alt: 'Alt', width: 800, height: 600 });
+  });
+
+  it('survives a row whose dimensions were never recorded', () => {
+    const offer = toLeadMagnetOffer(
+      magnet({
+        targets: [],
+        image: { storage_path: 'a.png', alt: null, width: null, height: null },
+      }),
+    );
+
+    expect(offer.image?.width).toBeNull();
+    expect(offer.image?.height).toBeNull();
   });
 });
 

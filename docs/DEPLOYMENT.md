@@ -34,6 +34,7 @@ Supabase (one project)
    supabase/migrations/0008_structured_data.sql    editable schema.org markup
    supabase/migrations/0009_drop_media_caption.sql drop an unused column
    supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
+   supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
    ```
 
    This list had stopped at 0003 while three more migrations were added, which

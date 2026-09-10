@@ -42,6 +42,20 @@ export default async function LeadMagnetsPage() {
 
             return (
               <li key={magnet.id} className="flex flex-wrap items-center gap-3 py-3">
+                {magnet.image_url ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={magnet.image_url}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="h-9 w-9 shrink-0 rounded border border-dashed border-slate-300"
+                  />
+                )}
+
                 <Link href={`/lead-magnets/${magnet.id}`} className="font-medium">
                   {magnet.name}
                 </Link>

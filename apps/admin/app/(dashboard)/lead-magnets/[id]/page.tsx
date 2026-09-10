@@ -6,6 +6,7 @@ import { requireCurrentSite } from '@/lib/current-site';
 import {
   getLeadMagnetForEdit,
   listAllTerms,
+  listMediaOptions,
   listPostOptions,
   listRecentLeads,
   RECENT_LEADS,
@@ -21,10 +22,11 @@ export default async function EditLeadMagnetPage({
   const { id } = await params;
   const site = await requireCurrentSite();
 
-  const [magnet, terms, posts] = await Promise.all([
+  const [magnet, terms, posts, media] = await Promise.all([
     getLeadMagnetForEdit(site.id, id),
     listAllTerms(site.id),
     listPostOptions(site.id),
+    listMediaOptions(site.id),
   ]);
 
   if (!magnet) notFound();
@@ -47,6 +49,7 @@ export default async function EditLeadMagnetPage({
       <LeadMagnetForm
         terms={terms}
         posts={posts}
+        media={media}
         values={{
           id: magnet.id,
           name: magnet.name,
@@ -56,6 +59,7 @@ export default async function EditLeadMagnetPage({
           buttonLabel: magnet.button_label,
           successMessage: magnet.success_message,
           collectName: magnet.collect_name,
+          imageId: magnet.image_id,
           consentText: magnet.consent_text ?? '',
           assetUrl: magnet.asset_url ?? '',
           active: magnet.active,
