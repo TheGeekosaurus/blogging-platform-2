@@ -56,15 +56,16 @@ Apply the migrations to a fresh Supabase project, in order — paste each into t
 SQL editor, or use `supabase db push`:
 
 ```
-supabase/migrations/0001_init.sql            schema
-supabase/migrations/0002_rls.sql             row level security and grants
-supabase/migrations/0003_storage.sql         media bucket
-supabase/migrations/0004_pages.sql           pages, nested to any depth
-supabase/migrations/0005_term_hierarchy.sql  category nesting checks
-supabase/migrations/0006_authors.sql         author records for post bylines
-supabase/migrations/0007_author_title.sql    a short role line for a byline
-supabase/migrations/0008_structured_data.sql editable schema.org markup
-supabase/migrations/0009_lead_magnets.sql   lead capture on post pages
+supabase/migrations/0001_init.sql               schema
+supabase/migrations/0002_rls.sql                row level security and grants
+supabase/migrations/0003_storage.sql            media bucket
+supabase/migrations/0004_pages.sql              pages, nested to any depth
+supabase/migrations/0005_term_hierarchy.sql     category nesting checks
+supabase/migrations/0006_authors.sql            author records for post bylines
+supabase/migrations/0007_author_title.sql       a short role line for a byline
+supabase/migrations/0008_structured_data.sql    editable schema.org markup
+supabase/migrations/0009_drop_media_caption.sql drop an unused column
+supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -319,6 +320,41 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
 URLs, the sitemap, the feed, and cache refreshes are all built from it.
+
+## Links
+
+The admin has a **Links** screen: every internal and external link on the site,
+read live out of each post and page body rather than from a stored link table.
+
+Two views over one graph. *By content* is one row per post or page — how many
+links it sends out, and how many distinct items link back to it — and it is the
+one that finds **orphans**, content nothing else points at. *Every link* is one
+row per link, filterable down to just the broken ones.
+
+Every internal link gets a real verdict, because that needs no network:
+
+| | |
+| --- | --- |
+| broken | Resolves to nothing. A 404 for anyone who clicks it |
+| not published | Points at a draft, so it 404s for visitors but not for you |
+| redirect hop | Goes through the `redirects` table instead of straight there |
+| ok | Reaches a post, page, archive, feed or coded marketing route |
+
+External links are listed but never fetched — proving a third-party URL is alive
+needs a queue and a rate limiter, not a page render, so their status reads
+`unchecked` rather than guessing.
+
+The reason it derives from the body instead of a table maintained on save:
+`tools/wp-import` writes posts straight into Postgres, so a save-time table
+would be empty immediately after the one event that produces thousands of links
+at once. That import is also what the screen is most useful for — WordPress
+serves posts at the root and this site serves them under `/blog/`, so imported
+internal links land one directory too high. They show as broken, each with the
+path they probably meant beside it.
+
+The cost is reading every body per view, bounded at `LINK_GRAPH_LIMIT` (2000
+items) in `apps/admin/lib/link-graph.ts`, which says so on screen when the bound
+bites. Past that the answer is a save-time link table, not a bigger number.
 
 ## Publishing
 

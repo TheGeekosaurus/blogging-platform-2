@@ -1,7 +1,9 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import {
   POSTS_PER_PAGE,
+  blogIndexPath,
   blogPagePath,
   countPublishedPosts,
   listPublishedPosts,
@@ -16,6 +18,25 @@ import { ThemeToggle } from '@/components/blog/theme-toggle';
 // triggers on-demand revalidation (phase 5).
 export const dynamic = 'force-static';
 export const revalidate = false;
+
+/*
+ * Without this the index inherited the ROOT metadata, whose canonical is '/'.
+ * So /blog told Google it was a duplicate of the homepage — the one page on the
+ * site whose whole job is to rank for the blog, disclaiming itself in favour of
+ * a page about funding. It also shared the homepage's title, so the two were
+ * indistinguishable in a SERP.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const site = await getSite();
+
+  return {
+    title: 'Blog',
+    description:
+      site.description ??
+      `Articles, guides and funding explainers from ${site.name}.`,
+    alternates: { canonical: blogIndexPath() },
+  };
+}
 
 export default async function HomePage() {
   const site = await getSite();

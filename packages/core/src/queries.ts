@@ -420,6 +420,105 @@ export async function listRelatedPosts(
 }
 
 // ---------------------------------------------------------------------------
+// Authors
+// ---------------------------------------------------------------------------
+
+/** An author record plus their avatar, for an archive header. */
+export interface AuthorDetail {
+  id: string;
+  slug: string;
+  name: string;
+  title: string | null;
+  bio: string | null;
+  social: SocialLinks;
+  avatar: { id: string; storage_path: string; alt: string | null } | null;
+}
+
+const AUTHOR_COLUMNS = 'id, slug, name, title, bio, social, avatar:media(id, storage_path, alt)';
+
+export async function getAuthorBySlug(
+  client: Client,
+  siteId: string,
+  slug: string,
+): Promise<AuthorDetail | null> {
+  const { data, error } = await client
+    .from('authors')
+    .select(AUTHOR_COLUMNS)
+    .eq('site_id', siteId)
+    .eq('slug', slug)
+    .maybeSingle();
+
+  if (error) fail(`Failed to load author "${slug}"`, error);
+  if (!data) return null;
+
+  const row = data as unknown as Omit<AuthorDetail, 'avatar'> & {
+    avatar: AuthorDetail['avatar'] | AuthorDetail['avatar'][] | null;
+  };
+
+  return { ...row, avatar: one(row.avatar) };
+}
+
+/**
+ * Authors who have at least one published post.
+ *
+ * Drives generateStaticParams and the sitemap, so an author record created but
+ * never assigned does not become an empty indexable page. Two queries rather
+ * than an embed: PostgREST cannot filter the PARENT on a condition over
+ * embedded rows, so counting posts per author has to happen here.
+ */
+export async function listAuthorsWithPosts(
+  client: Client,
+  siteId: string,
+): Promise<AuthorDetail[]> {
+  const { data: posts, error: postError } = await client
+    .from('posts')
+    .select('byline_id')
+    .eq('site_id', siteId)
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .not('byline_id', 'is', null);
+
+  if (postError) fail('Failed to resolve authors with posts', postError);
+
+  const ids = [...new Set((posts ?? []).map((row) => row.byline_id).filter(Boolean))];
+  if (ids.length === 0) return [];
+
+  const { data, error } = await client
+    .from('authors')
+    .select(AUTHOR_COLUMNS)
+    .eq('site_id', siteId)
+    .in('id', ids as string[])
+    .order('name');
+
+  if (error) fail('Failed to list authors', error);
+
+  return ((data ?? []) as unknown as Array<
+    Omit<AuthorDetail, 'avatar'> & { avatar: AuthorDetail['avatar'] | AuthorDetail['avatar'][] | null }
+  >).map((row) => ({ ...row, avatar: one(row.avatar) }));
+}
+
+/** An author's published posts, newest first. */
+export async function listPostsByAuthor(
+  client: Client,
+  siteId: string,
+  authorId: string,
+  { limit = POSTS_PER_PAGE, offset = 0 }: { limit?: number; offset?: number } = {},
+): Promise<PostSummary[]> {
+  const { data, error } = await client
+    .from('posts')
+    .select(SUMMARY_COLUMNS)
+    .eq('site_id', siteId)
+    .eq('byline_id', authorId)
+    .eq('status', 'published')
+    .lte('published_at', new Date().toISOString())
+    .order('published_at', { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (error) fail('Failed to list posts for author', error);
+  return ((data ?? []) as unknown as RawSummary[]).map(toSummary);
+}
+
+// ---------------------------------------------------------------------------
 // Terms
 // ---------------------------------------------------------------------------
 

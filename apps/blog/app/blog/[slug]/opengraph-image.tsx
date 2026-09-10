@@ -1,12 +1,11 @@
-import { ImageResponse } from 'next/og';
-
 import { getPostBySlug, listPublishedSlugs, postAuthorName } from '@blog/core';
 
+import { OG_CONTENT_TYPE, OG_SIZE, ogCard } from '@/lib/og-card';
 import { getClient, getSite } from '@/lib/site';
 
 export const alt = 'Post preview';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
+export const size = OG_SIZE;
+export const contentType = OG_CONTENT_TYPE;
 
 
 export async function generateStaticParams() {
@@ -16,10 +15,11 @@ export async function generateStaticParams() {
 }
 
 /**
- * Social preview card, generated at build time alongside the page.
+ * A post's social preview card, generated at build time alongside the page.
  *
- * Uses only system-default fonts: loading a webfont here would add a network
- * fetch to every page build for no visual gain at this size.
+ * The layout lives in lib/og-card so the post, page and author cards cannot
+ * drift into three different-looking designs. This one used to carry its own
+ * copy, on the generic slate palette rather than the brand's.
  */
 export default async function Image({
   params,
@@ -30,42 +30,9 @@ export default async function Image({
   const site = await getSite();
   const post = await getPostBySlug(getClient(), site.id, decodeURIComponent(slug));
 
-  const title = post?.title ?? site.name;
-  const byline = [post ? postAuthorName(post) : null, site.name]
-    .filter(Boolean)
-    .join(' · ');
-
-  return new ImageResponse(
-    (
-      <div
-        style={{
-          width: '100%',
-          height: '100%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          background: '#101216',
-          color: '#e9ecf1',
-          padding: '72px',
-        }}
-      >
-        <div
-          style={{
-            fontSize: title.length > 70 ? 56 : 72,
-            fontWeight: 700,
-            lineHeight: 1.15,
-            letterSpacing: '-0.02em',
-            display: 'flex',
-          }}
-        >
-          {title}
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: 28 }}>
-          <div style={{ width: 44, height: 6, background: '#7ea8ff', display: 'flex' }} />
-          <div style={{ color: '#9aa4b2', display: 'flex' }}>{byline}</div>
-        </div>
-      </div>
-    ),
-    size,
-  );
+  return ogCard({
+    title: post?.title ?? site.name,
+    eyebrow: post?.categories[0]?.name ?? 'Article',
+    footer: [post ? postAuthorName(post) : null, site.name].filter(Boolean).join(' \u00b7 '),
+  });
 }

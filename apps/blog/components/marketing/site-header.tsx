@@ -100,7 +100,13 @@ export function SiteHeader() {
           />
         </Link>
 
-        <nav aria-label="Main" className="hidden lg:block">
+        {/*
+          `ml-auto` here, not on the CTA: it pushes the nav and the button to the
+          right together as one group, leaving the logo alone on the left. With
+          the auto margin on the CTA instead, the nav stayed tucked against the
+          logo with the gap opening between it and the button.
+        */}
+        <nav aria-label="Main" className="ml-auto hidden lg:block">
           <ul className="flex items-center gap-8">
             {NAV.map((item) => (
               <DesktopItem key={item.label} item={item} />
@@ -113,7 +119,7 @@ export function SiteHeader() {
           the footer: two numbers competing in the header split the click, and
           the header's job is to get people into the application.
         */}
-        <div className="ml-auto hidden shrink-0 items-center lg:flex">
+        <div className="hidden shrink-0 items-center lg:flex">
           <CtaButton className="!px-8 !py-3 !text-sm" />
         </div>
 

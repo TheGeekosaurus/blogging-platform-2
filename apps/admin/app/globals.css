@@ -1,6 +1,81 @@
 @import 'tailwindcss';
 
 /*
+ * Admin chrome.
+ *
+ * The rail's palette is WordPress's, near enough to be familiar without being a
+ * copy: a near-black column, a lighter band for the open submenu, and muted
+ * text that goes white on the current item. Declared as tokens because the rail,
+ * the switcher and the nav are three components that must agree on them.
+ */
+@theme {
+  --color-wp-nav: #1d2327;
+  --color-wp-nav-sub: #2c3338;
+  --color-wp-nav-active: #2271b1;
+  --color-wp-nav-ink: #a7aaad;
+  --color-wp-canvas: #f0f0f1;
+}
+
+@layer base {
+  /*
+   * Links in the content area read as links.
+   *
+   * They did not before: nothing styled a bare <a>, so "Write one" in an empty
+   * state and the cross-links between Pages and Built in Code rendered as plain
+   * body text. Element specificity (0,0,2) loses to any utility class, so the
+   * links that are styled as buttons — `text-white` on a dark ground — keep
+   * their own colour and are unaffected.
+   */
+  main a {
+    color: var(--color-wp-nav-active);
+  }
+
+  main a:hover {
+    text-decoration: underline;
+  }
+}
+
+@layer components {
+  /*
+   * The list tables on Posts and Pages.
+   *
+   * One class rather than the same six utilities repeated down two files: the
+   * two screens are meant to look identical, and they drifted apart as lists
+   * because nothing held them together.
+   */
+  .wp-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    font-size: 0.875rem;
+  }
+
+  .wp-table th {
+    text-align: left;
+    font-weight: 600;
+    color: #1d2327;
+    padding: 0.625rem 0.75rem;
+    border-bottom: 1px solid #c3c4c7;
+    white-space: nowrap;
+  }
+
+  .wp-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e4e5e7;
+    vertical-align: top;
+    color: #3c434a;
+  }
+
+  .wp-table tbody tr:hover {
+    background: #f6f7f7;
+  }
+
+  .wp-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+/*
  * Editor surface styling. The Tiptap content area is plain contenteditable HTML,
  * so these rules mirror what the public site does with .post-body — close enough
  * that what an author sees is what readers get.

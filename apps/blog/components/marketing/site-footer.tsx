@@ -65,14 +65,15 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
-              <a
-                href="https://calc.nanotomcapital.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="no-underline hover:text-white"
-              >
+              {/*
+                /calc, not the calc.nanotomcapital.com subdomain this used to
+                open in a new tab. The calculator is a page in this repo now, and
+                the header has always pointed at the on-domain path — the footer
+                sending people somewhere else was the odd one out.
+              */}
+              <Link href="/calc" className="no-underline hover:text-white">
                 Loan Calculator
-              </a>
+              </Link>
             </li>
           </ul>
         </div>

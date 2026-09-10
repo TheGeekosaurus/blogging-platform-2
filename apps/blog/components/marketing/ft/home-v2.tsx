@@ -180,6 +180,7 @@ function ApplyRow({ className = '' }: { className?: string }) {
 function SectionHead({
   label,
   heading,
+  body,
   cta,
   ctaHref,
   ctaExternal,
@@ -187,6 +188,8 @@ function SectionHead({
 }: {
   label: string;
   heading: string;
+  /** Only the use-of-funds band carries one; the rest are heading-only. */
+  body?: string;
   cta?: string;
   ctaHref?: string;
   ctaExternal?: boolean;
@@ -195,7 +198,7 @@ function SectionHead({
   return (
     <div className="border-y border-[var(--ft-line)] bg-[var(--ft-band)]">
       <div
-        className={`${CONTAINER} flex flex-col gap-8 py-16 md:flex-row md:items-center md:justify-between md:gap-16 lg:py-24`}
+        className={`${CONTAINER} flex flex-col gap-8 py-10 md:flex-row md:items-center md:justify-between md:gap-16 lg:py-14`}
       >
         <div className="flex flex-col items-start gap-4">
           <Chip>{label}</Chip>
@@ -205,6 +208,11 @@ function SectionHead({
           >
             {heading}
           </h2>
+          {body ? (
+            <p className="max-w-[54ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+              {body}
+            </p>
+          ) : null}
         </div>
         {cta ? (
           <GhostButton href={ctaHref} external={ctaExternal}>
@@ -518,16 +526,16 @@ function Hero() {
  */
 function HowItWorks() {
   return (
-    <section aria-labelledby="ft-how" className="border-b border-[var(--ft-line)]">
-      <div className={`${CONTAINER} py-16 lg:py-24`}>
-        <PlainHead id="ft-how" heading={HOW_IT_WORKS.heading} />
+    <section aria-labelledby="ft-how">
+      <SectionHead id="ft-how" label={HOW_IT_WORKS.label} heading={HOW_IT_WORKS.heading} />
 
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
         {/*
          * The sweep is staggered purely by `animation-delay`, computed here so
          * the order lives with the markup rather than in five CSS rules: numeral,
          * its rule, the next numeral, and so on, 1.2s apart.
          */}
-        <ol className="ft-steps mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
+        <ol className="ft-steps grid gap-12 md:grid-cols-3 md:gap-8">
           {HOW_IT_WORKS.steps.map((step, i) => (
             <li key={step.title} className="flex flex-col gap-5">
               <div className="flex items-center gap-5">
@@ -676,17 +684,39 @@ function Qualifier() {
 
 function UseCases() {
   return (
-    <section aria-labelledby="ft-uses" className="border-y border-[var(--ft-line)]">
-      <div className={`${CONTAINER} py-16 lg:py-24`}>
-        <PlainHead id="ft-uses" heading={USE_CASES.heading} body={USE_CASES.body} />
+    <section aria-labelledby="ft-uses">
+      <SectionHead
+        id="ft-uses"
+        label={USE_CASES.label}
+        heading={USE_CASES.heading}
+        body={USE_CASES.body}
+      />
 
-        <ul className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
           {USE_CASES.items.map((item) => {
             const Icon = USE_CASE_ICONS[item.icon];
             return (
               <li
                 key={item.label}
-                className="flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center"
+                /*
+                 * Hover lifts the cell rather than linking it — these are
+                 * statements about what funding is for, not destinations, so
+                 * the cursor stays default and nothing here is focusable.
+                 *
+                 * `relative z-10` on hover so the growing cell sits over its
+                 * neighbours instead of under them. The scale is small on
+                 * purpose: the grid's hairlines are `gap-px` against the
+                 * container's own background, and a bigger jump would pull the
+                 * cell visibly off them.
+                 *
+                 * The transition names `scale`, NOT `transform`. Tailwind v4's
+                 * `scale-*` compiles to the standalone `scale` property, so a
+                 * `transition-[transform,...]` here animates nothing and the
+                 * zoom snaps while the colour fades. Same trap in the
+                 * reduced-motion guard in globals.css, which resets `scale`.
+                 */
+                className="ft-use-case relative flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center transition-[scale,background-color] duration-300 ease-out hover:z-10 hover:scale-[1.06] hover:bg-[var(--ft-card)]"
               >
                 <Icon className="h-8 w-8 text-[var(--ft-accent)]" />
                 <span className="text-[1.0625rem] leading-[1.4] text-[var(--ft-ink)]">
@@ -936,9 +966,9 @@ export function HomeV2({
     <div className="ft-surface">
       <Hero />
       <HowItWorks />
+      <UseCases />
       <FundingOptions />
       <Qualifier />
-      <UseCases />
       <Requirements />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />

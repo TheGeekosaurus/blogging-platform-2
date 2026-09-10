@@ -24,6 +24,10 @@ const SECRET = 'correct-horse-battery-staple';
 
 function request(body: unknown, secret?: string) {
   return {
+    // A real Request always carries `url`, and the route reads its origin to
+    // decide which host to submit to IndexNow. The stub omitted it, so it was
+    // passing a shape that cannot occur.
+    url: 'https://nanotom.test/api/revalidate/',
     headers: { get: (name: string) => (name === 'x-revalidate-secret' ? secret ?? null : null) },
     json: async () => body,
   } as unknown as Parameters<typeof POST>[0];

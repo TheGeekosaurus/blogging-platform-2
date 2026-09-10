@@ -31,6 +31,8 @@ export interface PostListItem {
   published_at: string | null;
   updated_at: string;
   author_name: string | null;
+  /** Category names only — the list shows them, it does not link them. */
+  categories: string[];
 }
 
 export interface PostListResult {
@@ -68,11 +70,23 @@ export async function listPosts(
     if (restrictToIds.length === 0) return { posts: [], total: 0 };
   }
 
+  /*
+   * The embed is what puts a Categories column on the list. It costs one join
+   * on a page of at most POSTS_PER_PAGE rows, not a second round trip, and it
+   * is scoped to this query — the public site's own post queries are in
+   * @blog/core and are untouched, so nothing on the reader-facing side pays
+   * for a column only the admin shows.
+   */
   let query = supabase
     .from('posts')
-    .select('id, slug, title, status, published_at, updated_at, author_name', {
-      count: 'exact',
-    })
+    // One string literal, not a concatenation: supabase-js parses this at
+    // compile time to type the result, and a concatenated expression defeats
+    // that — the rows come back as GenericStringError[] and the shape has to be
+    // cast back in by hand.
+    .select(
+      'id, slug, title, status, published_at, updated_at, author_name, post_terms(term:terms(name, kind))',
+      { count: 'exact' },
+    )
     .eq('site_id', siteId);
 
   if (filters.status && filters.status !== 'all') {
@@ -94,7 +108,22 @@ export async function listPosts(
 
   if (error) throw new Error(`Failed to list posts: ${error.message}`);
 
-  return { posts: (data ?? []) as PostListItem[], total: count ?? 0 };
+  /*
+   * Flattened here rather than in a view: PostgREST returns the join nested,
+   * and the list wants a plain array of names. Tags come back in the same embed
+   * and are filtered out — `terms` holds both kinds, and a Categories column
+   * that quietly included tags would be wrong in a way nobody would notice.
+   */
+  const posts: PostListItem[] = (data ?? []).map(({ post_terms, ...post }) => ({
+    ...post,
+    categories: (post_terms ?? [])
+      .map((row) => row.term)
+      .filter((term) => term !== null && term.kind === 'category')
+      .map((term) => term.name)
+      .sort((a, b) => a.localeCompare(b)),
+  }));
+
+  return { posts, total: count ?? 0 };
 }
 
 export interface PostForEdit extends PostRow {
@@ -439,7 +468,7 @@ export async function countLeadsPerMagnet(siteId: string): Promise<Map<string, n
 
   /*
    * Returns nothing rather than throwing when the signed-in user is below
-   * `admin`: reading leads is gated at that level (0009_lead_magnets.sql), and
+   * `admin`: reading leads is gated at that level (0010_lead_magnets.sql), and
    * RLS answers a disallowed select with an empty set, not an error. An editor
    * therefore sees the offers they may configure with no counts beside them,
    * which is the intended shape of that screen for them.
@@ -511,4 +540,31 @@ export async function listPostOptions(siteId: string): Promise<PostOption[]> {
 
   if (error) throw new Error(`Failed to list posts: ${error.message}`);
   return data ?? [];
+}
+
+export interface RedirectListItem {
+  id: string;
+  from_path: string;
+  to_path: string;
+  status_code: number;
+  created_at: string;
+}
+
+/**
+ * Every redirect for a site, source first.
+ *
+ * Ordered by from_path rather than creation date: the list is used to check
+ * whether a given URL is already handled, and that is a lookup, not a history.
+ */
+export async function listRedirectRows(siteId: string): Promise<RedirectListItem[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('redirects')
+    .select('id, from_path, to_path, status_code, created_at')
+    .eq('site_id', siteId)
+    .order('from_path');
+
+  if (error) throw new Error(`Failed to list redirects: ${error.message}`);
+  return (data ?? []) as RedirectListItem[];
 }

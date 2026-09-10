@@ -111,9 +111,10 @@ export type NavItem = {
  * there are no dead links in the header.
  *
  * The Loan Calculator is no longer an external link to the calc subdomain. It is
- * /calc on this domain, proxied by a rewrite in next.config.ts, so the header,
- * the hero and the CTA card all point at one path. The subdomain still works and
- * is deliberately left up — retiring it belongs with the other redirects at
+ * /calc on this domain — a coded route in this repo now (app/calc/page.tsx),
+ * where it was a rewrite to the subdomain before — so the header, the hero, the
+ * CTA card and the footer all point at one path. The subdomain still works and
+ * is deliberately left up: retiring it belongs with the other redirects at
  * domain transfer, not here.
  */
 export const NAV: readonly NavItem[] = [

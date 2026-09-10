@@ -8,6 +8,7 @@ export * from './urls';
 export * from './coded-routes';
 export * from './terms';
 export * from './headings';
+export * from './links';
 export * from './breadcrumbs';
 export * from './lead-magnets';
 export * from './structured-data';

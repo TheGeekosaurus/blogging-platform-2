@@ -152,7 +152,6 @@ export type MediaRow = {
   site_id: string;
   storage_path: string;
   alt: string | null;
-  caption: string | null;
   width: number | null;
   height: number | null;
   blur_data_url: string | null;
@@ -177,7 +176,7 @@ export type RedirectRow = {
  *
  * Copy is plain TEXT, not HTML: it is rendered as text, so it needs no entry in
  * the sanitiser allowlist and cannot carry markup a post could not. See the
- * header of 0009_lead_magnets.sql.
+ * header of 0010_lead_magnets.sql.
  */
 export type LeadMagnetRow = {
   id: string;
@@ -209,7 +208,7 @@ export type LeadMagnetRow = {
 
 /**
  * One placement rule. `scope` says which of `term_id` / `post_id` is set, and a
- * check constraint holds it to that — see 0009_lead_magnets.sql.
+ * check constraint holds it to that — see 0010_lead_magnets.sql.
  */
 export type LeadMagnetTargetRow = {
   id: string;
@@ -404,7 +403,7 @@ export type Database = {
       };
       media: {
         Row: MediaRow;
-        Insert: Writable<MediaRow, Generated | 'alt' | 'caption' | 'width' | 'height' | 'blur_data_url' | 'mime_type' | 'bytes' | 'source_url'>;
+        Insert: Writable<MediaRow, Generated | 'alt' | 'width' | 'height' | 'blur_data_url' | 'mime_type' | 'bytes' | 'source_url'>;
         Update: Partial<MediaRow>;
         Relationships: [
           {

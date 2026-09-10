@@ -77,9 +77,13 @@ describe('brand constants', () => {
    * This guard used to assert the opposite — that the dropdown items had NO
    * href, because HighLevel never built their pages and the header greyed them
    * out. They have destinations now, and every one resolves: either a coded
-   * route, the calculator rewrite, or a STUB_PAGES entry the pages catch-all
-   * answers with a heading. The invariant worth pinning is no longer "no links",
-   * it is "no link that 404s".
+   * route or a STUB_PAGES entry the pages catch-all answers with a heading. The
+   * invariant worth pinning is no longer "no links", it is "no link that 404s".
+   *
+   * /calc was a third case here — a rewrite to the calculator's own deployment,
+   * which resolved without being either. It is a coded route now, so the
+   * exception is gone; if this list ever needs one again, that is the sign a URL
+   * is resolving by configuration nothing else can see.
    */
   it('points every nav item somewhere that resolves', async () => {
     const { codedRoutesFor, NNTM_CAPITAL_SLUG } = await import('@blog/core');
@@ -89,8 +93,6 @@ describe('brand constants', () => {
       codedRoutesFor(NNTM_CAPITAL_SLUG).map((route) => `/${route.path}`),
     );
     const stubs = new Set(Object.keys(STUB_PAGES).map((path) => `/${path}`));
-    // Proxied to the calculator deployment by a rewrite in next.config.ts.
-    const rewritten = new Set(['/calc']);
 
     const links = NAV.flatMap((item) => [item, ...(item.children ?? [])]).filter(
       (item) => item.href,
@@ -105,8 +107,8 @@ describe('brand constants', () => {
         continue;
       }
       expect(
-        coded.has(href) || stubs.has(href) || rewritten.has(href),
-        `${item.label} -> ${href} resolves to a page, a stub or the calc rewrite`,
+        coded.has(href) || stubs.has(href),
+        `${item.label} -> ${href} resolves to a coded page or a stub`,
       ).toBe(true);
     }
   });
@@ -173,6 +175,22 @@ describe('the SocialJuice review wall', () => {
 
     expect(REVIEWS.initialHeight).toBeGreaterThan(0);
     expect(await source()).toContain('height: REVIEWS.initialHeight');
+  });
+
+  /*
+   * Another silent one. SocialJuice sets no background on its own html or body —
+   * its dark mode themes the cards and the text only — so without this option the
+   * wall's canvas falls back to the browser default and the whole embed renders
+   * as white space around dark cards on our dark page. Nothing errors; it just
+   * looks broken. `bodyBackground` is how iframe-resizer lets the parent set it
+   * across the origin boundary, and it defaults to null, which the child skips.
+   */
+  it('tells the resizer to paint the wall body, or it renders white', async () => {
+    const code = await source();
+
+    expect(code).toContain('bodyBackground');
+    // Read from the token, not a hex, so the wall tracks the site's ground.
+    expect(code).toContain("getPropertyValue('--color-ground')");
   });
 });
 

@@ -76,18 +76,21 @@ export default async function EditLeadMagnetPage({
           </p>
         ) : (
           <>
-            <table className="mt-3 w-full text-sm">
+            {/* `wp-table`, the same class Posts and Pages use. It exists so
+                the list screens cannot drift apart again; a fourth table with
+                its own borders would be the drift. */}
+            <table className="wp-table mt-3">
               <thead>
-                <tr className="border-b border-slate-200 text-left text-slate-500">
-                  <th className="py-2 font-medium">Email</th>
-                  <th className="py-2 font-medium">From</th>
-                  <th className="py-2 font-medium">When</th>
+                <tr>
+                  <th>Email</th>
+                  <th>From</th>
+                  <th>When</th>
                 </tr>
               </thead>
               <tbody>
                 {leads.map((lead) => (
-                  <tr key={lead.id} className="border-b border-slate-100">
-                    <td className="py-2">
+                  <tr key={lead.id}>
+                    <td>
                       {lead.email}
                       {lead.name ? (
                         <span className="text-slate-500"> · {lead.name}</span>
@@ -98,8 +101,8 @@ export default async function EditLeadMagnetPage({
                         <span className="text-slate-500"> · ×{lead.submissions}</span>
                       ) : null}
                     </td>
-                    <td className="py-2 text-slate-500">{lead.source_path ?? '—'}</td>
-                    <td className="py-2 text-slate-500">
+                    <td className="text-slate-500">{lead.source_path ?? '—'}</td>
+                    <td className="whitespace-nowrap text-slate-500">
                       {new Date(lead.created_at).toLocaleDateString(site.locale)}
                     </td>
                   </tr>

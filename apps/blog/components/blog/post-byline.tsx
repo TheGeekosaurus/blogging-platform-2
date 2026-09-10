@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import Image from 'next/image';
 
-import { formatPostDate, mediaPublicUrl, postAuthorName, type PostDetail } from '@blog/core';
+import { authorPath, formatPostDate, mediaPublicUrl, postAuthorName, type PostDetail } from '@blog/core';
 
 /**
  * The author and timing row under a post title.
@@ -38,7 +39,23 @@ export function PostByline({ post, locale }: { post: PostDetail; locale: string 
           ) : null}
 
           <div className="leading-tight">
-            <p className="font-semibold text-[var(--color-ink)]">{author}</p>
+            {/*
+              Linked only when a RECORD is attached. A free-text byline has no
+              slug and therefore no archive, and inventing one from the name
+              would produce a link to a 404.
+            */}
+            <p className="font-semibold text-[var(--color-ink)]">
+              {byline ? (
+                <Link
+                  href={authorPath(byline.slug)}
+                  className="!text-[var(--color-ink)] no-underline hover:!text-[var(--color-accent)]"
+                >
+                  {author}
+                </Link>
+              ) : (
+                author
+              )}
+            </p>
             {/* Only a record carries a role; a plain-text byline has none. */}
             {byline?.title ? (
               <p className="mt-0.5 text-sm text-[var(--color-ink-muted)]">{byline.title}</p>

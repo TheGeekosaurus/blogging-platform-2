@@ -24,15 +24,16 @@ Supabase (one project)
 2. Apply the migrations **in order**, pasting each into the SQL editor:
 
    ```
-   supabase/migrations/0001_init.sql            schema
-   supabase/migrations/0002_rls.sql             row level security and grants
-   supabase/migrations/0003_storage.sql         media bucket
-   supabase/migrations/0004_pages.sql           pages, nested to any depth
-   supabase/migrations/0005_term_hierarchy.sql  category nesting checks
-   supabase/migrations/0006_authors.sql         author records for post bylines
-   supabase/migrations/0007_author_title.sql    a short role line for a byline
-   supabase/migrations/0008_structured_data.sql editable schema.org markup
-   supabase/migrations/0009_lead_magnets.sql   lead capture on post pages
+   supabase/migrations/0001_init.sql               schema
+   supabase/migrations/0002_rls.sql                row level security and grants
+   supabase/migrations/0003_storage.sql            media bucket
+   supabase/migrations/0004_pages.sql              pages, nested to any depth
+   supabase/migrations/0005_term_hierarchy.sql     category nesting checks
+   supabase/migrations/0006_authors.sql            author records for post bylines
+   supabase/migrations/0007_author_title.sql       a short role line for a byline
+   supabase/migrations/0008_structured_data.sql    editable schema.org markup
+   supabase/migrations/0009_drop_media_caption.sql drop an unused column
+   supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
    ```
 
    This list had stopped at 0003 while three more migrations were added, which

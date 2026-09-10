@@ -28,12 +28,15 @@ export const HERO = {
     'flexible financing solutions to fuel your next big move.',
   /*
    * `unit` is split from `value` because the design puts the accent colour on
-   * the trailing symbol alone — "2,300" in white, the "+" in gold.
+   * the trailing symbol alone — "300" in white, the "+" in gold.
+   *
+   * The figures were corrected downward by Denis from the 2,300 and $36M the
+   * GoHighLevel homepage carried. Those came across in the first migration pass
+   * and were never the business's own numbers.
    */
   stats: [
-    { value: '2,300', unit: '+', label: 'businesses funded since 2012' },
-    // The live homepage writes this '$36+ M'. Same figure, conventional order.
-    { value: '$36M', unit: '+', label: 'provided in financing' },
+    { value: '300', unit: '+', label: 'businesses funded since 2012' },
+    { value: '$6M', unit: '+', label: 'provided in financing' },
     { value: '4.7', unit: ' Stars', label: 'from happy customers' },
   ],
   /** `icon` keys map to the icons in ./icons via the map in the homepage. */
@@ -63,6 +66,7 @@ export const HERO = {
 } as const;
 
 export const HOW_IT_WORKS = {
+  label: 'How It Works',
   heading: 'Funding that moves at your speed.',
   steps: [
     {
@@ -147,48 +151,67 @@ export const FUNDING_OPTIONS = {
     },
 
     /*
-     * PLACEHOLDERS — REPLACE BEFORE THIS PAGE GOES ANYWHERE PUBLIC.
+     * TERMS NOT YET CONFIRMED AGAINST NANOTOM'S LENDER SHEETS.
      *
-     * Two lorem ipsum cards, added at Denis's request so the carousel can be
-     * judged at four cards rather than two. They are real lorem ipsum, which
-     * means they will read as finished copy to anyone skimming: this is the one
-     * thing on the page that must not survive to launch, and the reason they are
-     * flagged here rather than quietly blended in.
+     * These two replaced the lorem ipsum placeholders. They are the two funding
+     * types the nav already promises that the carousel did not cover — the first
+     * two cards are the line of credit and the interest-only product — so the
+     * four now map onto four real /funding-solutions pages rather than repeating.
      *
-     * Replacing them is this array and nothing else — the carousel takes however
-     * many cards it is given.
+     * The FIGURES, however, are industry-standard ranges taken from how the
+     * category is normally written and sized, NOT from Nanotom's own programs.
+     * Every number below is deliberately inside limits this site already states
+     * elsewhere — the hero's "$15K to $5M", the 551 FICO and 30-days-in-business
+     * minimums in REQUIREMENTS — so nothing here contradicts the page. That makes
+     * them plausible, not verified.
+     *
+     * These are advertised terms for consumer-facing credit products on a page
+     * that collects live applications. Check each figure against the real program
+     * before this is treated as finished copy, and cut anything that cannot be
+     * honoured. The first two cards are BANKROLL's actual terms and are safe.
      */
     {
-      title: 'Lorem Ipsum Dolor Sit Amet',
+      title: 'Equipment Financing That Pays for Itself',
       body:
-        'Consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore ' +
-        'magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.',
+        'Finance the machine, vehicle or system your business runs on and let it earn while ' +
+        'you pay for it. The equipment secures the loan, so approvals lean on what you are ' +
+        'buying rather than on the collateral you already own.',
       points: [
-        { label: 'Lorem Ipsum', body: 'Dolor sit amet consectetur adipiscing' },
-        { label: 'Sed Do Eiusmod', body: 'Tempor incididunt ut labore et dolore magna' },
-        { label: 'Ut Enim Ad Minim', body: 'Veniam quis nostrud exercitation ullamco' },
-        { label: 'Duis Aute Irure', body: 'Dolor in reprehenderit in voluptate velit esse' },
-        { label: 'Excepteur Sint', body: 'Occaecat cupidatat non proident sunt in culpa' },
-        { label: 'Qui Officia', body: 'Deserunt mollit anim id est laborum' },
+        { label: 'New or Used', body: 'Dealer, private-party and auction purchases all qualify' },
+        {
+          label: 'Application Only',
+          body: 'No financial statements required on most requests under $250,000',
+        },
+        { label: 'Terms to Match the Asset', body: 'Repayment from 12 to 84 months' },
+        {
+          label: 'Self-Collateralizing',
+          body: 'The equipment is the security — no blanket lien on other assets',
+        },
+        { label: 'Section 179 Eligible', body: 'Most financed equipment can be written off' },
+        { label: 'Fast Turnaround', body: 'Approvals in hours, funding often within two days' },
       ],
       tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions' },
+      cta: { label: 'Learn More', href: '/funding-solutions/equipment-financing' },
     },
     {
-      title: 'Nulla Pariatur Excepteur Sint',
+      title: 'Working Capital When Timing Is Everything',
       body:
-        'Occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id ' +
-        'est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem.',
+        'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory ' +
+        'and the gaps between invoicing and getting paid. Approval looks at how your business ' +
+        'actually performs, not only at your credit file.',
       points: [
-        { label: 'Accusantium Doloremque', body: 'Laudantium totam rem aperiam eaque ipsa' },
-        { label: 'Quae Ab Illo', body: 'Inventore veritatis et quasi architecto beatae' },
-        { label: 'Vitae Dicta Sunt', body: 'Explicabo nemo enim ipsam voluptatem quia' },
-        { label: 'Voluptas Sit', body: 'Aspernatur aut odit aut fugit sed quia' },
-        { label: 'Consequuntur Magni', body: 'Dolores eos qui ratione voluptatem sequi' },
-        { label: 'Nesciunt Neque', body: 'Porro quisquam est qui dolorem ipsum quia' },
+        { label: 'Right-Sized Amounts', body: 'From $15,000 to $2,000,000' },
+        { label: 'Short and Clear', body: 'Terms from 3 to 36 months, no open-ended balance' },
+        {
+          label: 'Payments That Fit',
+          body: 'Daily, weekly or monthly, matched to your cash cycle',
+        },
+        { label: 'Revenue-Led Underwriting', body: 'Recent deposits carry more weight than FICO' },
+        { label: 'Early Payoff Discounts', body: 'Settle ahead of schedule and pay less interest' },
+        { label: 'Same-Day Funding', body: 'Available once your file is complete' },
       ],
       tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions' },
+      cta: { label: 'Learn More', href: '/funding-solutions/working-capital' },
     },
   ],
 } as const;
@@ -204,6 +227,7 @@ export const QUALIFIER = {
 } as const;
 
 export const USE_CASES = {
+  label: 'Use of Funds',
   heading: 'What can you do with funding from Nanotom Capital?',
   body:
     'No matter your goal, our in-house loan advisors can help you choose a financing ' +
@@ -277,4 +301,50 @@ export const GET_FUNDED = {
   eyebrow: 'For Business Owners, Startups, Entrepreneurs, and Growth-Focused Companies…',
   heading: 'We Can Secure The Capital You Need For Your Business',
   sub: 'And Build A Comprehensive Funding Strategy',
+} as const;
+
+/* ---------------------------------------------------------------------------
+ * /calc — the loan calculator
+ *
+ * The numbers this page produces are NOT here: product ranges, pricing and the
+ * minimums live in lib/funding-calc.ts, because they are arguments to the maths
+ * rather than strings on a page. What is here is everything a copywriter should
+ * be able to change without opening the calculator.
+ *
+ * The disclaimer is not decoration. Until a real rate card replaces the
+ * illustrative one in lib/funding-calc.ts, this page shows a lender's estimates
+ * that nobody has committed to honour, and it has to say so where it is read
+ * rather than in a footer.
+ * ------------------------------------------------------------------------- */
+
+export const CALCULATOR = {
+  /**
+   * The page's only <h1>, and it is VISUALLY HIDDEN — the page opens straight on
+   * the calculator, so this exists for crawlers and screen readers. See the note
+   * in ft/loan-calculator.tsx.
+   *
+   * Which is why it reads as a label rather than as a line of marketing. The
+   * hero that stood here said "See what funding costs before you apply." over a
+   * standfirst, and that was the right copy for a heading someone reads. An
+   * invisible one has a different job: it should say what the page is, in the
+   * words someone would search for, and match the <title>. Nobody is being shown
+   * one thing and told another — the page below it is exactly this.
+   */
+  heading: 'Business Loan Calculator',
+  /** The three things the page says about itself, under the panel. */
+  assurances: [
+    'No credit pull, no email, nothing saved',
+    'Every product we fund, priced side by side',
+    'Built on the same minimums our advisors use',
+  ],
+  disclaimer:
+    'Illustrative estimates, not an offer of credit. Rates and fees shown are modelled from ' +
+    'typical small-business finance pricing; your actual terms are set after underwriting with ' +
+    'a Nanotom Capital advisor and may differ. Nothing on this page is a commitment to lend.',
+  next: {
+    heading: 'Numbers look workable?',
+    body:
+      'An advisor can tell you what the file actually prices at. The application is a few ' +
+      'questions about the business, and funds can land as soon as the same day once you sign.',
+  },
 } as const;

@@ -5,6 +5,8 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 import { blogIndexPath, browsePath, pagePath, postPath } from '@blog/core';
 
+import { submitToIndexNow } from '@/lib/indexnow';
+
 /**
  * On-demand revalidation, called by the admin after a write.
  *
@@ -70,7 +72,56 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  return NextResponse.json({ revalidated, now: Date.now() });
+  /*
+   * IndexNow, on the CANONICAL urls only.
+   *
+   * Deliberately not `revalidated` — that list is what had to be purged, and it
+   * contains /sitemap.xml, /feed.xml and dynamic route patterns like
+   * '/blog/category/[slug]'. Submitting a route pattern gets the whole batch
+   * rejected, and asking a crawler to index the sitemap inverts what the
+   * sitemap is for.
+   *
+   * Never fails the request. Revalidation has already happened by this point
+   * and the pages are live; reporting an error because a third-party endpoint
+   * was slow would tell the admin the publish failed when it did not.
+   */
+  /*
+   * The host comes off the REQUEST, not from the sites row.
+   *
+   * Reading base_url would mean a Supabase round trip — and a hard dependency
+   * on SUPABASE_URL — in a route whose whole job is local cache invalidation.
+   * It is also the wrong source: the admin calls this endpoint AT base_url, so
+   * the request host is that value by construction, and using it guarantees the
+   * submitted URLs share a host with the key file that proves we own them.
+   */
+  const indexNow = await submitToIndexNow(
+    { base_url: new URL(request.url).origin },
+    indexNowPaths(target),
+  );
+
+  return NextResponse.json({ revalidated, indexNow, now: Date.now() });
+}
+
+/** The content URLs a change actually created or updated. */
+function indexNowPaths(target: Target): string[] {
+  if (target?.type === 'post') {
+    const slug = typeof target.slug === 'string' ? target.slug.trim() : '';
+    // The index too: a new post changes what /blog lists, and that page is
+    // worth recrawling on its own.
+    return slug ? [postPath(slug), blogIndexPath()] : [];
+  }
+
+  if (target?.type === 'page') {
+    const raw = typeof target.path === 'string' ? target.path.trim() : '';
+    return raw ? [pagePath(raw)] : [];
+  }
+
+  /*
+   * A site-wide flush is usually a settings change rather than new content, so
+   * only the two entry points are submitted. Enumerating every URL on the site
+   * on every settings save would burn the daily quota to say nothing new.
+   */
+  return ['/', blogIndexPath()];
 }
 
 /** Returns the paths invalidated, or null if the target made no sense. */

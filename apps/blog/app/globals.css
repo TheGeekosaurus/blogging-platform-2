@@ -304,6 +304,77 @@
   }
 
   /*
+   * The calculator's sliders.
+   *
+   * A native <input type="range"> carries dragging, arrow-key stepping, touch
+   * targets and screen-reader semantics for free, and every hand-rolled slider
+   * gives at least one of those up — so /calc uses the real control and restyles
+   * it here rather than rebuilding it in JavaScript.
+   *
+   * The filled portion is a two-stop gradient positioned by `--range-fill`,
+   * which the component sets inline from the value. Firefox has a real
+   * ::-moz-range-progress pseudo-element and takes a flat colour instead; the
+   * two vendor blocks cannot be merged, because a selector one engine does not
+   * recognise invalidates the whole rule for it.
+   */
+  .ft-surface input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 1.25rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .ft-surface input[type='range']:focus-visible {
+    outline: 2px solid var(--ft-accent);
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
+
+  .ft-surface input[type='range']::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--ft-accent) var(--range-fill, 50%),
+      var(--ft-card-raised) var(--range-fill, 50%)
+    );
+  }
+
+  .ft-surface input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 18px;
+    width: 18px;
+    /* (track height - thumb height) / 2, so the thumb rides the track's centre. */
+    margin-top: -6px;
+    border-radius: 999px;
+    background: var(--ft-ink);
+    border: 3px solid var(--ft-accent);
+  }
+
+  .ft-surface input[type='range']::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ft-card-raised);
+  }
+
+  .ft-surface input[type='range']::-moz-range-progress {
+    height: 6px;
+    border-radius: 999px;
+    background: var(--ft-accent);
+  }
+
+  .ft-surface input[type='range']::-moz-range-thumb {
+    height: 18px;
+    width: 18px;
+    border-radius: 999px;
+    background: var(--ft-ink);
+    border: 3px solid var(--ft-accent);
+  }
+
+  /*
    * The "how it works" timeline, animated as a travelling highlight.
    *
    * A sweep rather than a filling progress bar: each numeral brightens, the rule
@@ -475,6 +546,31 @@
 
     .nt-hero-video {
       display: none;
+    }
+
+    /*
+     * The use-case cells keep their hover feedback but lose the movement: the
+     * background still lifts, so a reader can still see which cell they are on,
+     * and only the scale goes. Dropping the hover entirely would take away the
+     * affordance along with the motion.
+     */
+    .ft-use-case {
+      transition: background-color 0.3s ease-out !important;
+    }
+
+    /*
+     * Two traps here, both of which fail silently and were caught only by
+     * measuring the hover with the reduced-motion flag actually set:
+     *
+     *  - `scale`, not `transform`. Tailwind v4's `scale-*` compiles to the
+     *    standalone `scale` property, so resetting `transform` does nothing.
+     *  - `!important`. The utility this overrides lives in Tailwind's
+     *    `utilities` layer, which outranks this one whatever the specificity,
+     *    so an unflagged `scale: 1` loses the cascade and the cell keeps
+     *    zooming for a reader who asked for no motion.
+     */
+    .ft-use-case:hover {
+      scale: 1 !important;
     }
   }
 

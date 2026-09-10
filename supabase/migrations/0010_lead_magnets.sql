@@ -1,4 +1,4 @@
--- 0009_lead_magnets.sql — conditional lead capture on post pages
+-- 0010_lead_magnets.sql — conditional lead capture on post pages
 --
 -- The WordPress equivalent of this is a popup plugin: build a form, attach it to
 -- some posts and not others, collect emails. Three tables reproduce that here.
