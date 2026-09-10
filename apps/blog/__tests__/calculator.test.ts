@@ -85,6 +85,20 @@ describe('the /calc page', () => {
   });
 
   /*
+   * The page opens on the calculator, with no hero above it, and its <h1> is
+   * sr-only. Both halves matter and each undoes the other: put the heading back
+   * in the flow and the panel drops below the fold again; delete it to save the
+   * space and the page loses its only top-level heading, on a site whose whole
+   * migration was for search.
+   */
+  it('keeps its h1 out of the visual flow rather than out of the page', async () => {
+    const html = await render();
+
+    expect(html.match(/<h1/g) ?? [], 'exactly one h1').toHaveLength(1);
+    expect(html).toMatch(/<h1[^>]*class="sr-only"/);
+  });
+
+  /*
    * The pricing in lib/funding-calc.ts is modelled, not Nanotom's rate card. A
    * page quoting payments a lender has not committed to has to say so on the
    * page, so this fails if the line is ever tidied away.
@@ -94,6 +108,18 @@ describe('the /calc page', () => {
 
     expect(html).toContain('not an offer of credit');
     expect(html).toContain('Nothing on this page is a commitment to lend');
+  });
+
+  /*
+   * Every online loan calculator has one, and a visitor who has been quoted a
+   * rate wants to put it in rather than accept ours. Factor-priced working
+   * capital gets the same control in the units it is actually sold in.
+   */
+  it('lets the visitor set the rate, in the right units per product', async () => {
+    const html = await render();
+
+    expect(html).toContain('Interest rate');
+    expect(html).toContain('Drag it to price a rate you have been quoted');
   });
 
   it('offers every product, and an estimate for the default one', async () => {

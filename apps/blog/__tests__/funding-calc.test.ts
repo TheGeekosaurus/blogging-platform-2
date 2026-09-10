@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  FACTOR_RANGE,
   MINIMUMS,
   PRICING,
   PRODUCTS,
+  RATE_RANGE,
   calculate,
   clampAmount,
   clampTerm,
   compareAll,
   creditBand,
   impliedApr,
+  modelledFactor,
+  modelledRate,
   money,
   moneyCompact,
   percent,
@@ -37,6 +41,8 @@ const BASE: CalcInput = {
   monthlyRevenue: 120_000,
   utilization: 0.6,
   interestOnly: false,
+  rateOverride: null,
+  factorOverride: null,
 };
 
 describe('credit bands', () => {
@@ -176,6 +182,73 @@ describe('APR', () => {
   it('is zero when the payments never repay the advance', () => {
     expect(impliedApr(100_000, [1_000, 1_000], 12)).toBe(0);
     expect(impliedApr(0, [500], 12)).toBe(0);
+  });
+});
+
+describe('a rate the visitor sets', () => {
+  it('prices at their rate instead of ours, and says whose it is', () => {
+    const ours = calculate(BASE);
+    const theirs = calculate({ ...BASE, rateOverride: 0.24 });
+
+    expect(ours.pricingIsCustom).toBe(false);
+    expect(theirs.pricingIsCustom).toBe(true);
+    expect(theirs.rate).toBeCloseTo(0.24, 6);
+    expect(theirs.payment).toBeGreaterThan(ours.payment);
+
+    // The copy has to stop calling it an estimate the moment it stops being one.
+    expect(ours.narrative).toContain('an estimated');
+    expect(theirs.narrative).toContain('you set');
+    expect(theirs.narrative).not.toContain('an estimated');
+  });
+
+  it('holds their rate steady while the credit profile moves', () => {
+    const strong = calculate({ ...BASE, rateOverride: 0.18, fico: 800 });
+    const weak = calculate({ ...BASE, rateOverride: 0.18, fico: 560, monthsInBusiness: 2 });
+
+    expect(strong.rate).toBeCloseTo(0.18, 6);
+    expect(weak.rate).toBeCloseTo(0.18, 6);
+  });
+
+  it('clamps a rate outside the control’s range', () => {
+    expect(calculate({ ...BASE, rateOverride: 9 }).rate).toBeCloseTo(RATE_RANGE.max, 6);
+    expect(calculate({ ...BASE, rateOverride: -1 }).rate).toBeCloseTo(RATE_RANGE.min, 6);
+    expect(
+      calculate({ ...BASE, productId: 'wc', factorOverride: 12 }).factorRate,
+    ).toBeCloseTo(FACTOR_RANGE.max, 6);
+  });
+
+  it('takes a factor on the factor-priced product and a rate on the rest', () => {
+    // The two overrides are separate fields, so switching products cannot carry
+    // 1.24 across as a 124% interest rate or 0.18 across as a factor.
+    const workingCapital = calculate({ ...BASE, productId: 'wc', rateOverride: 0.3 });
+    const termLoan = calculate({ ...BASE, factorOverride: 1.4 });
+
+    expect(workingCapital.pricingIsCustom).toBe(false);
+    expect(termLoan.pricingIsCustom).toBe(false);
+  });
+
+  it('defaults the control to exactly what calculate would price at', () => {
+    // The control reads modelledRate/modelledFactor; calculate reads the table.
+    // A second copy of that arithmetic in the component is how the rate on the
+    // slider and the rate in the schedule drift apart.
+    for (const product of PRODUCTS) {
+      const result = calculate({ ...BASE, productId: product.id });
+      const modelled =
+        product.kind === 'factor'
+          ? modelledFactor(BASE.fico, BASE.monthsInBusiness)
+          : modelledRate(product, BASE.fico, BASE.monthsInBusiness);
+
+      expect(result.rate ?? result.factorRate, product.name).toBeCloseTo(modelled, 6);
+    }
+  });
+
+  it('is dropped from the comparison, which prices every row from the table', () => {
+    const rows = compareAll({ ...BASE, rateOverride: 0.42 });
+
+    expect(rows.every((row) => !row.pricingIsCustom)).toBe(true);
+    for (const row of rows) {
+      if (row.rate != null) expect(row.rate, row.product.name).toBeLessThan(0.42);
+    }
   });
 });
 
