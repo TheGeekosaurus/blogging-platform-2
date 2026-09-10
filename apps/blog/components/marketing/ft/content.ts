@@ -30,10 +30,14 @@ export const HERO = {
    * `unit` is split from `value` because the design puts the accent colour on
    * the trailing symbol alone — "2,300" in white, the "+" in gold.
    */
+  /*
+   * Corrected downward by Denis from the 2,300 / $36M the GoHighLevel homepage
+   * carried. These are the real figures; the old ones came across in the first
+   * migration pass and were never the business's own numbers.
+   */
   stats: [
-    { value: '2,300', unit: '+', label: 'businesses funded since 2012' },
-    // The live homepage writes this '$36+ M'. Same figure, conventional order.
-    { value: '$36M', unit: '+', label: 'provided in financing' },
+    { value: '300', unit: '+', label: 'businesses funded since 2012' },
+    { value: '$6M', unit: '+', label: 'provided in financing' },
     { value: '4.7', unit: ' Stars', label: 'from happy customers' },
   ],
   /** `icon` keys map to the icons in ./icons via the map in the homepage. */
@@ -63,6 +67,7 @@ export const HERO = {
 } as const;
 
 export const HOW_IT_WORKS = {
+  label: 'How It Works',
   heading: 'Funding that moves at your speed.',
   steps: [
     {

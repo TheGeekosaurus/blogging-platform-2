@@ -195,7 +195,7 @@ function SectionHead({
   return (
     <div className="border-y border-[var(--ft-line)] bg-[var(--ft-band)]">
       <div
-        className={`${CONTAINER} flex flex-col gap-8 py-16 md:flex-row md:items-center md:justify-between md:gap-16 lg:py-24`}
+        className={`${CONTAINER} flex flex-col gap-8 py-10 md:flex-row md:items-center md:justify-between md:gap-16 lg:py-14`}
       >
         <div className="flex flex-col items-start gap-4">
           <Chip>{label}</Chip>
@@ -518,16 +518,16 @@ function Hero() {
  */
 function HowItWorks() {
   return (
-    <section aria-labelledby="ft-how" className="border-b border-[var(--ft-line)]">
-      <div className={`${CONTAINER} py-16 lg:py-24`}>
-        <PlainHead id="ft-how" heading={HOW_IT_WORKS.heading} />
+    <section aria-labelledby="ft-how">
+      <SectionHead id="ft-how" label={HOW_IT_WORKS.label} heading={HOW_IT_WORKS.heading} />
 
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
         {/*
          * The sweep is staggered purely by `animation-delay`, computed here so
          * the order lives with the markup rather than in five CSS rules: numeral,
          * its rule, the next numeral, and so on, 1.2s apart.
          */}
-        <ol className="ft-steps mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
+        <ol className="ft-steps grid gap-12 md:grid-cols-3 md:gap-8">
           {HOW_IT_WORKS.steps.map((step, i) => (
             <li key={step.title} className="flex flex-col gap-5">
               <div className="flex items-center gap-5">
