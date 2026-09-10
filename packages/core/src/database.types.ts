@@ -144,7 +144,6 @@ export type MediaRow = {
   site_id: string;
   storage_path: string;
   alt: string | null;
-  caption: string | null;
   width: number | null;
   height: number | null;
   blur_data_url: string | null;
@@ -324,7 +323,7 @@ export type Database = {
       };
       media: {
         Row: MediaRow;
-        Insert: Writable<MediaRow, Generated | 'alt' | 'caption' | 'width' | 'height' | 'blur_data_url' | 'mime_type' | 'bytes' | 'source_url'>;
+        Insert: Writable<MediaRow, Generated | 'alt' | 'width' | 'height' | 'blur_data_url' | 'mime_type' | 'bytes' | 'source_url'>;
         Update: Partial<MediaRow>;
         Relationships: [
           {

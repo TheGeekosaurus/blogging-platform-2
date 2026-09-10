@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
 import {
+  altTextWarning,
   excerptFor,
   readingMinutes,
   sanitizePostHtml,
@@ -161,13 +162,32 @@ export async function savePost(
     ? await revalidateSite(site, { type: 'post', slug: previousSlug })
     : { ok: true as const };
 
+  /*
+   * Warnings ACCUMULATE. There are two independent things that can be worth
+   * saying about a save that succeeded, and returning only the first would mean
+   * a failed cache purge silently hid the alt-text notice, or vice versa.
+   *
+   * Neither is an error. The row is committed either way — refusing a save
+   * because an image lacks alt text would block every WordPress import, and
+   * losing a post because a cache purge failed would be far worse than serving
+   * a stale page for a moment.
+   */
+  const warnings: string[] = [];
+
   if (!refresh.ok || !staleWarning.ok) {
-    return {
-      savedId: postId,
-      warning:
-        `Saved, but the live site was not refreshed: ${refresh.error ?? staleWarning.error}. ` +
-        `Use "Flush cache" in site settings once the blog is reachable.`,
-    };
+    warnings.push(
+      `the live site was not refreshed: ${refresh.error ?? staleWarning.error}. ` +
+        `Use "Flush cache" in site settings once the blog is reachable`,
+    );
+  }
+
+  // Checked against the SANITISED html, so it reflects what readers get rather
+  // than what was typed.
+  const altWarning = altTextWarning(contentHtml);
+  if (altWarning) warnings.push(altWarning);
+
+  if (warnings.length > 0) {
+    return { savedId: postId, warning: `Saved, but ${warnings.join(' Also: ')}` };
   }
 
   return { savedId: postId };

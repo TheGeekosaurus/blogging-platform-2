@@ -1,6 +1,6 @@
 import type { SchemaNode, SiteRow, TermRow } from './database.types';
 import { postBreadcrumbs } from './breadcrumbs';
-import { pageUrl, postPath } from './urls';
+import { authorPath, pageUrl, postPath } from './urls';
 
 /**
  * Schema.org structured data: templates, validation, and the nodes the blog
@@ -515,3 +515,70 @@ export const SCHEMA_TEMPLATES: SchemaTemplate[] = [
   }),
   template('custom', 'Empty (write your own)', { '@type': 'Thing', name: 'Replace @type and add properties' }),
 ];
+
+// ---------------------------------------------------------------------------
+// Author archives
+// ---------------------------------------------------------------------------
+
+export interface AuthorSchemaInput {
+  site: Pick<SiteRow, 'name' | 'base_url'>;
+  author: {
+    slug: string;
+    name: string;
+    title: string | null;
+    bio: string | null;
+  };
+  /** Verified profile URLs, already filtered — see socialLinks(). */
+  sameAs?: string[];
+  /** Avatar, absolute. A parameter for the same reason as a post's image. */
+  imageUrl?: string | null;
+  /** How many published posts the archive lists. */
+  postCount?: number;
+}
+
+/**
+ * ProfilePage for an author archive.
+ *
+ * ONE node with the Person nested as `mainEntity`, which is what Google's
+ * profile-page guidance asks for — a bare Person on a page that is not about a
+ * person is the common mistake here, and it is why the wrapper exists.
+ *
+ * `sameAs` is the part that does real work: it is how a name on this site gets
+ * connected to the same name on LinkedIn, which is the entity signal an author
+ * page exists to send. Handed in pre-filtered rather than read off the row,
+ * because socialLinks() already drops anything that is not an http(s) URL.
+ */
+export function buildAuthorSchemas({
+  site,
+  author,
+  sameAs,
+  imageUrl,
+  postCount,
+}: AuthorSchemaInput): SchemaNode[] {
+  const url = pageUrl(site, authorPath(author.slug));
+
+  const person: SchemaNode = {
+    '@type': 'Person',
+    name: author.name,
+    url,
+    ...(author.title ? { jobTitle: author.title } : {}),
+    ...(author.bio ? { description: author.bio } : {}),
+    ...(imageUrl ? { image: imageUrl } : {}),
+    ...(sameAs && sameAs.length > 0 ? { sameAs } : {}),
+    worksFor: { '@type': 'Organization', name: site.name, url: pageUrl(site, '/') },
+  };
+
+  return [
+    {
+      '@type': 'ProfilePage',
+      '@id': url,
+      url,
+      mainEntity: person,
+      ...(postCount ? { interactionStatistic: {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/WriteAction',
+        userInteractionCount: postCount,
+      } } : {}),
+    },
+  ];
+}

@@ -1,0 +1,26 @@
+-- 0009_drop_media_caption.sql — remove a column nothing ever used
+--
+-- `media.caption` has existed since 0001 and in that time nothing has written
+-- it, nothing has selected it, and nothing has rendered it. No admin field
+-- offers it, the importer does not populate it, and no query in @blog/core
+-- names it. It is not an unfinished feature so much as a guess that turned out
+-- to be wrong about where captions belong.
+--
+-- Captions themselves work, and that is the point. A caption is part of a
+-- specific image's placement in a specific article — the same photo captioned
+-- one way in one post and differently in another — so it belongs to the body
+-- HTML, not to the media row. tools/wp-import already converts WordPress's
+-- `[caption]` shortcodes into <figure><figcaption>, the sanitiser allows both
+-- tags, and .post-body figcaption styles them. That path is live and tested.
+--
+-- Dropping it rather than wiring it up, on Denis's call: a stored column with
+-- no UI reads as a broken feature to the next person, and the honest options
+-- were to finish it or to remove it. Finishing it would have meant deciding
+-- which caption wins when the row and the markup disagree, for no gain over
+-- the markup we already have.
+--
+-- Reversible if that judgement is ever revisited: re-adding a nullable text
+-- column costs nothing. What is NOT reversible is the data, and there is none —
+-- every value in this column is null.
+
+alter table public.media drop column caption;

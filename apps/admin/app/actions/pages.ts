@@ -3,7 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { sanitizePageHtml, slugify, type PageTemplate, type PostStatus } from '@blog/core';
+import {
+  altTextWarning,
+  sanitizePageHtml,
+  slugify,
+  type PageTemplate,
+  type PostStatus,
+} from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
@@ -149,13 +155,22 @@ export async function savePage(
     path: saved?.path ?? previousPath ?? '',
   });
 
+  // Accumulated for the same reason as savePost: a failed cache purge and an
+  // alt-text notice are independent, and returning one would hide the other.
+  const warnings: string[] = [];
+
   if (!refresh.ok) {
-    return {
-      savedId: pageId,
-      warning:
-        `Saved, but the live site was not refreshed: ${refresh.error}. ` +
-        `Use "Flush cache" in site settings once the site is reachable.`,
-    };
+    warnings.push(
+      `the live site was not refreshed: ${refresh.error}. ` +
+        `Use "Flush cache" in site settings once the site is reachable`,
+    );
+  }
+
+  const altWarning = altTextWarning(row.content_html);
+  if (altWarning) warnings.push(altWarning);
+
+  if (warnings.length > 0) {
+    return { savedId: pageId, warning: `Saved, but ${warnings.join(' Also: ')}` };
   }
 
   return { savedId: pageId };

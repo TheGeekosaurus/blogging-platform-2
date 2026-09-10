@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import Image from 'next/image';
 
-import {
+import { authorPath,
   mediaPublicUrl,
   socialLinks,
   type Byline,
@@ -83,8 +84,18 @@ export function AuthorBox({ byline }: { byline: Byline }) {
             About the author
           </h2>
 
-          <p className="mt-1 text-xl font-semibold text-[var(--color-accent)]">
-            {byline.name}
+          {/*
+            Linked to the author's archive. Only a record has a slug, and this
+            box only ever renders for a record — a free-text byline gets nothing,
+            which is the existing rule.
+          */}
+          <p className="mt-1 text-xl font-semibold">
+            <Link
+              href={authorPath(byline.slug)}
+              className="!text-[var(--color-accent)] no-underline hover:underline"
+            >
+              {byline.name}
+            </Link>
           </p>
 
           {byline.title ? (
