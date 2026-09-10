@@ -5,7 +5,8 @@ import { useActionState, useState } from 'react';
 import type { TermRow } from '@blog/core';
 
 import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets';
-import type { PostOption } from '@/lib/queries';
+import { MediaPicker } from '@/components/editor/media-picker';
+import type { MediaOptions, PostOption } from '@/lib/queries';
 
 const INITIAL: LeadMagnetState = {};
 
@@ -18,6 +19,7 @@ export interface LeadMagnetFormValues {
   buttonLabel: string;
   successMessage: string;
   collectName: boolean;
+  imageId: string | null;
   consentText: string;
   assetUrl: string;
   active: boolean;
@@ -78,14 +80,17 @@ function CheckboxList({
 export function LeadMagnetForm({
   terms,
   posts,
+  media,
   values,
 }: {
   terms: TermRow[];
   posts: PostOption[];
+  media: MediaOptions;
   values: LeadMagnetFormValues;
 }) {
   const [state, formAction, pending] = useActionState(saveLeadMagnet, INITIAL);
   const [slug, setSlug] = useState(values.slug);
+  const [imageId, setImageId] = useState(values.imageId ?? '');
 
   const categories = terms.filter((term) => term.kind === 'category');
   const tags = terms.filter((term) => term.kind === 'tag');
@@ -174,6 +179,33 @@ export function LeadMagnetForm({
             className={FIELD}
           />
         </div>
+
+        {/*
+          MediaPicker directly rather than a third thin wrapper beside
+          FeaturedImagePicker and AvatarPicker. Those exist because their forms
+          are server-rendered around a client island; this form is already a
+          client component, so the hidden input and the state can just live
+          here.
+        */}
+        <fieldset>
+          <legend className="text-sm font-medium">Image</legend>
+          <p className="mt-1 text-sm text-slate-600">
+            Optional, and shown full width across the top of the card. It is never
+            cropped — the card grows to fit, so a tall image makes a tall card.
+            Around 700px wide is plenty; the sidebar renders it at about 350.
+          </p>
+
+          {/* What reaches saveLeadMagnet. Empty string means "no image". */}
+          <input type="hidden" name="image_id" value={imageId} />
+
+          <div className="mt-3">
+            <MediaPicker
+              media={media}
+              selectedId={imageId}
+              onSelect={(item) => setImageId(item?.id ?? '')}
+            />
+          </div>
+        </fieldset>
 
         <div>
           <label htmlFor="body" className="block text-sm font-medium">

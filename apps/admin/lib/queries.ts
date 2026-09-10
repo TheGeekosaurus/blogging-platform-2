@@ -412,6 +412,8 @@ export async function countPostsPerAuthor(siteId: string): Promise<Map<string, n
 export interface LeadMagnetListItem extends LeadMagnetRow {
   /** How many rules aim it somewhere. Zero means it appears nowhere. */
   targetCount: number;
+  /** Pre-built here, as on the authors list: mediaPublicUrl is server-only. */
+  image_url: string | null;
 }
 
 export async function listLeadMagnets(siteId: string): Promise<LeadMagnetListItem[]> {
@@ -424,7 +426,7 @@ export async function listLeadMagnets(siteId: string): Promise<LeadMagnetListIte
    */
   const { data, error } = await supabase
     .from('lead_magnets')
-    .select('*, targets:lead_magnet_targets(count)')
+    .select('*, image:media(storage_path), targets:lead_magnet_targets(count)')
     .eq('site_id', siteId)
     .order('active', { ascending: false })
     .order('name');
@@ -432,11 +434,17 @@ export async function listLeadMagnets(siteId: string): Promise<LeadMagnetListIte
   if (error) throw new Error(`Failed to list lead magnets: ${error.message}`);
 
   return (data ?? []).map((row) => {
-    const { targets, ...magnet } = row as LeadMagnetRow & {
+    const { targets, image, ...magnet } = row as LeadMagnetRow & {
       targets: Array<{ count: number }> | null;
+      image: { storage_path: string } | { storage_path: string }[] | null;
     };
+    const one = Array.isArray(image) ? image[0] : image;
 
-    return { ...magnet, targetCount: targets?.[0]?.count ?? 0 };
+    return {
+      ...magnet,
+      targetCount: targets?.[0]?.count ?? 0,
+      image_url: one ? mediaPublicUrl(one.storage_path) : null,
+    };
   });
 }
 

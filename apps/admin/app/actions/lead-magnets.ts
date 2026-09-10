@@ -110,6 +110,9 @@ export async function saveLeadMagnet(
     button_label: buttonLabel || 'Send it to me',
     success_message: successMessage || 'Check your inbox — it is on the way.',
     collect_name: formData.get('collect_name') === 'on',
+    // Empty string means "no image". The column is a nullable FK, so '' would
+    // be rejected as a malformed uuid — the same trap as an author's avatar.
+    image_id: String(formData.get('image_id') ?? '').trim() || null,
     consent_text: String(formData.get('consent_text') ?? '').trim() || null,
     asset_url: String(formData.get('asset_url') ?? '').trim() || null,
     active: formData.get('active') === 'on',

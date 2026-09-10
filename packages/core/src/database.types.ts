@@ -191,6 +191,15 @@ export type LeadMagnetRow = {
   success_message: string;
   /** Whether the card asks for a first name alongside the address. */
   collect_name: boolean;
+  /**
+   * A picture of what is on offer, shown across the top of the card.
+   *
+   * The only foreign key from this table to `media`, and it has to stay that
+   * way — the public query embeds it as `image:media(…)`, which PostgREST can
+   * only resolve while one key could satisfy it. See 0006_authors.sql for the
+   * time that rule was learned, and 0011_lead_magnet_image.sql.
+   */
+  image_id: string | null;
   /** Small print under the button. Null means none — there is no default. */
   consent_text: string | null;
   /**
@@ -493,7 +502,7 @@ export type Database = {
       };
       lead_magnets: {
         Row: LeadMagnetRow;
-        Insert: Writable<LeadMagnetRow, Generated | 'body' | 'button_label' | 'success_message' | 'collect_name' | 'consent_text' | 'asset_url' | 'active'>;
+        Insert: Writable<LeadMagnetRow, Generated | 'body' | 'button_label' | 'success_message' | 'collect_name' | 'image_id' | 'consent_text' | 'asset_url' | 'active'>;
         Update: Partial<LeadMagnetRow>;
         Relationships: [
           {
@@ -501,6 +510,13 @@ export type Database = {
             columns: ['site_id'];
             isOneToOne: false;
             referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'lead_magnets_image_id_fkey';
+            columns: ['image_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
             referencedColumns: ['id'];
           },
         ];
