@@ -180,6 +180,7 @@ function ApplyRow({ className = '' }: { className?: string }) {
 function SectionHead({
   label,
   heading,
+  body,
   cta,
   ctaHref,
   ctaExternal,
@@ -187,6 +188,8 @@ function SectionHead({
 }: {
   label: string;
   heading: string;
+  /** Only the use-of-funds band carries one; the rest are heading-only. */
+  body?: string;
   cta?: string;
   ctaHref?: string;
   ctaExternal?: boolean;
@@ -205,6 +208,11 @@ function SectionHead({
           >
             {heading}
           </h2>
+          {body ? (
+            <p className="max-w-[54ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+              {body}
+            </p>
+          ) : null}
         </div>
         {cta ? (
           <GhostButton href={ctaHref} external={ctaExternal}>
@@ -676,11 +684,16 @@ function Qualifier() {
 
 function UseCases() {
   return (
-    <section aria-labelledby="ft-uses" className="border-y border-[var(--ft-line)]">
-      <div className={`${CONTAINER} py-16 lg:py-24`}>
-        <PlainHead id="ft-uses" heading={USE_CASES.heading} body={USE_CASES.body} />
+    <section aria-labelledby="ft-uses">
+      <SectionHead
+        id="ft-uses"
+        label={USE_CASES.label}
+        heading={USE_CASES.heading}
+        body={USE_CASES.body}
+      />
 
-        <ul className="mt-14 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
           {USE_CASES.items.map((item) => {
             const Icon = USE_CASE_ICONS[item.icon];
             return (

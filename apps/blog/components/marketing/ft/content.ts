@@ -28,12 +28,11 @@ export const HERO = {
     'flexible financing solutions to fuel your next big move.',
   /*
    * `unit` is split from `value` because the design puts the accent colour on
-   * the trailing symbol alone — "2,300" in white, the "+" in gold.
-   */
-  /*
-   * Corrected downward by Denis from the 2,300 / $36M the GoHighLevel homepage
-   * carried. These are the real figures; the old ones came across in the first
-   * migration pass and were never the business's own numbers.
+   * the trailing symbol alone — "300" in white, the "+" in gold.
+   *
+   * The figures were corrected downward by Denis from the 2,300 and $36M the
+   * GoHighLevel homepage carried. Those came across in the first migration pass
+   * and were never the business's own numbers.
    */
   stats: [
     { value: '300', unit: '+', label: 'businesses funded since 2012' },
@@ -228,6 +227,7 @@ export const QUALIFIER = {
 } as const;
 
 export const USE_CASES = {
+  label: 'Use of Funds',
   heading: 'What can you do with funding from Nanotom Capital?',
   body:
     'No matter your goal, our in-house loan advisors can help you choose a financing ' +
