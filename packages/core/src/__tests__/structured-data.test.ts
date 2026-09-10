@@ -5,6 +5,7 @@ import {
   MAX_SNIPPETS,
   MAX_SNIPPET_BYTES,
   SCHEMA_TEMPLATES,
+  buildAuthorSchemas,
   buildPostSchemas,
   checkSnippetBudget,
   parseSnippet,
@@ -13,7 +14,7 @@ import {
   snippetLabel,
 } from '../structured-data';
 import { pageUrl, postPath } from '../urls';
-import type { SiteRow } from '../database.types';
+import type { SchemaNode, SiteRow } from '../database.types';
 
 const site = {
   name: 'Nanotom Capital',
@@ -348,5 +349,92 @@ describe('SCHEMA_TEMPLATES', () => {
   it('has unique ids', () => {
     const ids = SCHEMA_TEMPLATES.map((t) => t.id);
     expect(new Set(ids).size).toBe(ids.length);
+  });
+});
+
+describe('buildAuthorSchemas', () => {
+  const author = {
+    slug: 'denis-beaulieu',
+    name: 'Denis Beaulieu',
+    title: 'Founder, Nanotom Capital',
+    bio: 'Writes about how small businesses actually get funded.',
+  };
+
+  const [profile] = buildAuthorSchemas({ site, author, postCount: 12 });
+
+  it('wraps the Person in a ProfilePage', () => {
+    /*
+     * A bare Person node on a page that IS about that person is the common
+     * mistake — Google's profile-page guidance wants ProfilePage with the
+     * Person as mainEntity, and only then reads it as an author entity.
+     */
+    expect(profile!['@type']).toBe('ProfilePage');
+    expect((profile!.mainEntity as SchemaNode)['@type']).toBe('Person');
+  });
+
+  it('points the page and the person at the author archive', () => {
+    const url = 'https://nanotom.test/blog/author/denis-beaulieu/';
+    expect(profile!.url).toBe(url);
+    expect(profile!['@id']).toBe(url);
+    expect((profile!.mainEntity as SchemaNode).url).toBe(url);
+  });
+
+  it('carries the role and bio when present', () => {
+    const person = profile!.mainEntity as SchemaNode;
+    expect(person.jobTitle).toBe('Founder, Nanotom Capital');
+    expect(person.description).toContain('actually get funded');
+  });
+
+  it('omits sameAs entirely rather than emitting an empty array', () => {
+    // An empty sameAs is a claim that the person has no other profiles.
+    expect(profile!.mainEntity as SchemaNode).not.toHaveProperty('sameAs');
+  });
+
+  it('carries verified profile URLs as sameAs', () => {
+    /*
+     * The part that does the real work: sameAs is how a name here is tied to
+     * the same name on LinkedIn, which is the entity signal the page exists to
+     * send.
+     */
+    const [withLinks] = buildAuthorSchemas({
+      site,
+      author,
+      sameAs: ['https://www.linkedin.com/in/example'],
+    });
+
+    expect((withLinks!.mainEntity as SchemaNode).sameAs).toEqual([
+      'https://www.linkedin.com/in/example',
+    ]);
+  });
+
+  it('names the publisher as worksFor', () => {
+    expect((profile!.mainEntity as SchemaNode).worksFor).toMatchObject({
+      '@type': 'Organization',
+      name: 'Nanotom Capital',
+    });
+  });
+
+  it('drops empty optional fields', () => {
+    const [bare] = buildAuthorSchemas({
+      site,
+      author: { slug: 'x', name: 'X', title: null, bio: null },
+    });
+    const person = bare!.mainEntity as SchemaNode;
+
+    expect(person).not.toHaveProperty('jobTitle');
+    expect(person).not.toHaveProperty('description');
+    expect(person).not.toHaveProperty('image');
+    expect(bare).not.toHaveProperty('interactionStatistic');
+  });
+
+  it('serialises through the same escaper as everything else', () => {
+    const [hostile] = buildAuthorSchemas({
+      site,
+      author: { slug: 'x', name: 'X </script>', title: null, bio: null },
+    });
+    const out = serializeJsonLd(hostile!);
+
+    expect(out).not.toContain('</script>');
+    expect((JSON.parse(out).mainEntity as SchemaNode).name).toBe('X </script>');
   });
 });

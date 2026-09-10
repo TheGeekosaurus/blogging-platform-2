@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
 
 import {
+  authorPath,
   browsePath,
   categoryPath,
   codedRoutesFor,
+  listAuthorsWithPosts,
   listNonEmptyTerms,
   listPublishedPages,
   listPublishedPosts,
@@ -28,10 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // A sitemap must list everything, not just the first page.
   const posts = await listPublishedPosts(client, site.id, { limit: 50_000 });
-  const [categories, tags, pages] = await Promise.all([
+  const [categories, tags, pages, authors] = await Promise.all([
     listNonEmptyTerms(client, site.id, 'category'),
     listNonEmptyTerms(client, site.id, 'tag'),
     listPublishedPages(client, site.id),
+    // Only authors with published posts — the same list the route prerenders,
+    // so the sitemap cannot advertise a URL that 404s.
+    listAuthorsWithPosts(client, site.id),
   ]);
 
   const newest = posts[0]?.published_at;
@@ -96,6 +101,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: pageUrl(site, tagPath(term.slug)),
       changeFrequency: 'weekly' as const,
       priority: 0.4,
+    })),
+    /*
+     * Author archives. Above tags in priority because they are the entity pages
+     * Google reads for authorship — a named person with a bio, a photo and
+     * sameAs links out to their profiles — rather than another slice of the
+     * same post list.
+     */
+    ...authors.map((author) => ({
+      url: pageUrl(site, authorPath(author.slug)),
+      changeFrequency: 'weekly' as const,
+      priority: 0.5,
     })),
   ];
 }

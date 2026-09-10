@@ -92,6 +92,21 @@ const SECTIONS: NavSection[] = [
       </Icon>
     ),
   },
+  /*
+   * Beside Links rather than under Settings: both are about how URLs on this
+   * site resolve, and a redirect is content work — the person fixing a moved
+   * post is not the person configuring the site.
+   */
+  {
+    href: '/redirects',
+    label: 'Redirects',
+    icon: (
+      <Icon>
+        <path d="M4 17h11a4 4 0 0 0 0-8H7" />
+        <path d="m10 6 3 3-3 3" />
+      </Icon>
+    ),
+  },
   {
     href: '/media',
     label: 'Media',

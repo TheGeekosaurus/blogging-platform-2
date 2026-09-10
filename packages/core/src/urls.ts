@@ -47,6 +47,17 @@ export function categoryPath(slug: string): string {
   return `${BLOG_BASE}/category/${slug}`;
 }
 
+/**
+ * An author's archive.
+ *
+ * Under /blog rather than at the root: an author page is blog furniture, and
+ * the root namespace belongs to the marketing pages, where an author slug
+ * could collide with a real page path.
+ */
+export function authorPath(slug: string): string {
+  return `${BLOG_BASE}/author/${slug}`;
+}
+
 export function tagPath(slug: string): string {
   return `${BLOG_BASE}/tag/${slug}`;
 }

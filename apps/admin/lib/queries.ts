@@ -401,3 +401,30 @@ export async function countPostsPerAuthor(siteId: string): Promise<Map<string, n
   }
   return counts;
 }
+
+export interface RedirectListItem {
+  id: string;
+  from_path: string;
+  to_path: string;
+  status_code: number;
+  created_at: string;
+}
+
+/**
+ * Every redirect for a site, source first.
+ *
+ * Ordered by from_path rather than creation date: the list is used to check
+ * whether a given URL is already handled, and that is a lookup, not a history.
+ */
+export async function listRedirectRows(siteId: string): Promise<RedirectListItem[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('redirects')
+    .select('id, from_path, to_path, status_code, created_at')
+    .eq('site_id', siteId)
+    .order('from_path');
+
+  if (error) throw new Error(`Failed to list redirects: ${error.message}`);
+  return (data ?? []) as RedirectListItem[];
+}
