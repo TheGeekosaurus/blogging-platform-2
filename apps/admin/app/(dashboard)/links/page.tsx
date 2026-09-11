@@ -301,49 +301,53 @@ function ContentView({
           Nothing matches. {show === 'orphans' ? 'No orphans is the good outcome here.' : null}
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        /* Same wrapper as Posts and Pages: the table scrolls inside its own box
+         * on a narrow window rather than pushing the page sideways. */
+        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
+          <table className="wp-table">
             <thead>
-              <tr className="border-y border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                <th scope="col" className="py-2 pr-3 font-medium">
-                  Title
-                </th>
-                <th scope="col" className="py-2 pr-3 text-right font-medium">
+              <tr>
+                <th scope="col">Title</th>
+                {/* Right-aligned against .wp-table th's default left, because
+                    these are counts and are read by scanning a column. */}
+                <th scope="col" className="text-right">
                   Internal out
                 </th>
-                <th scope="col" className="py-2 pr-3 text-right font-medium">
+                <th scope="col" className="text-right">
                   External out
                 </th>
-                <th scope="col" className="py-2 pr-3 text-right font-medium">
+                <th scope="col" className="text-right">
                   Incoming
                 </th>
-                <th scope="col" className="py-2 pr-3 font-medium">
-                  Needs attention
-                </th>
-                <th scope="col" className="py-2 font-medium">
-                  <span className="sr-only">Live</span>
-                </th>
+                <th scope="col">Needs attention</th>
               </tr>
             </thead>
             <tbody>
               {rows.map(({ node, ...stats }) => (
-                <tr key={node.id} className="border-b border-slate-100 align-top">
-                  <td className="py-3 pr-3">
-                    <Link href={editHref(node)} className="font-medium">
-                      {node.title}
-                    </Link>
-                    <span className="ml-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
+                <tr key={node.id}>
+                  <td>
+                    <div className="flex items-start gap-2">
+                      <Link href={editHref(node)} className="font-semibold">
+                        {node.title}
+                      </Link>
+                      {/* Same rule as Posts and Pages: no icon for a row that is
+                          not served, so it can never lead to a 404. */}
+                      {isLive(node) ? (
+                        <ViewLiveLink href={pageUrl(site, node.path)} label={node.title} />
+                      ) : null}
+                    </div>
+                    <span className="mr-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
                       {node.kind}
                     </span>
                     <span
-                      className={`ml-1 rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[node.status]}`}
+                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[node.status]}`}
                     >
                       {node.status}
                     </span>
                     <code className="mt-1 block text-xs text-slate-500">{node.path}</code>
                   </td>
 
-                  <td className="py-3 pr-3 text-right tabular-nums">
+                  <td className="text-right tabular-nums">
                     <Link
                       href={`/links${buildQuery({ view: 'links', kind: 'internal', q: node.title })}`}
                       className={stats.internalOut === 0 ? 'text-slate-400' : undefined}
@@ -351,9 +355,7 @@ function ContentView({
                       {stats.internalOut}
                     </Link>
                   </td>
-                  <td className="py-3 pr-3 text-right tabular-nums text-slate-700">
-                    {stats.externalOut}
-                  </td>
+                  <td className="text-right tabular-nums">{stats.externalOut}</td>
 
                   {/*
                     Incoming counts DISTINCT other items, not anchors — five
@@ -361,7 +363,7 @@ function ContentView({
                     counting it as five is how an orphan hides. Self-links are
                     excluded for the same reason.
                   */}
-                  <td className="py-3 pr-3 text-right tabular-nums">
+                  <td className="text-right tabular-nums">
                     <span className={stats.incoming === 0 ? 'text-red-700' : 'text-slate-900'}>
                       {stats.incoming}
                     </span>
@@ -375,7 +377,7 @@ function ContentView({
                     ) : null}
                   </td>
 
-                  <td className="py-3 pr-3">
+                  <td>
                     <div className="flex flex-wrap gap-1">
                       {stats.orphan ? (
                         <span
@@ -410,14 +412,6 @@ function ContentView({
                         </Link>
                       ) : null}
                     </div>
-                  </td>
-
-                  <td className="py-3">
-                    {/* Same rule as the Posts and Pages lists: no icon for a
-                        row that is not served, so it can never lead to a 404. */}
-                    {isLive(node) ? (
-                      <ViewLiveLink href={pageUrl(site, node.path)} label={node.title} />
-                    ) : null}
                   </td>
                 </tr>
               ))}
@@ -556,32 +550,21 @@ function LinksView({
           No links match. {status === 'missing' ? 'Nothing broken is the good outcome.' : null}
         </p>
       ) : (
-        <div className="mt-4 overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+        <div className="mt-4 overflow-x-auto rounded border border-slate-300">
+          <table className="wp-table">
             <thead>
-              <tr className="border-y border-slate-200 text-left text-xs uppercase tracking-wide text-slate-500">
-                <th scope="col" className="py-2 pr-3 font-medium">
-                  Source
-                </th>
-                <th scope="col" className="py-2 pr-3 font-medium">
-                  Destination
-                </th>
-                <th scope="col" className="py-2 pr-3 font-medium">
-                  Type
-                </th>
-                <th scope="col" className="py-2 font-medium">
-                  Status
-                </th>
+              <tr>
+                <th scope="col">Source</th>
+                <th scope="col">Destination</th>
+                <th scope="col">Type</th>
+                <th scope="col">Status</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((link) => (
-                <tr
-                  key={`${link.source.id}\n${link.href}`}
-                  className="border-b border-slate-100 align-top"
-                >
-                  <td className="py-3 pr-3">
-                    <Link href={editHref(link.source)} className="font-medium">
+                <tr key={`${link.source.id}\n${link.href}`}>
+                  <td>
+                    <Link href={editHref(link.source)} className="font-semibold">
                       {link.source.title}
                     </Link>
                     <code className="mt-1 block text-xs text-slate-500">
@@ -589,7 +572,7 @@ function LinksView({
                     </code>
                   </td>
 
-                  <td className="max-w-md py-3 pr-3">
+                  <td className="max-w-md">
                     <Destination link={link} />
                     {link.text ? (
                       <span className="mt-1 block text-xs text-slate-500">
@@ -602,7 +585,7 @@ function LinksView({
                     )}
                   </td>
 
-                  <td className="py-3 pr-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap">
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">
                       {KIND_LABELS[link.kind]}
                     </span>
@@ -624,7 +607,7 @@ function LinksView({
                     ) : null}
                   </td>
 
-                  <td className="py-3 whitespace-nowrap">
+                  <td className="whitespace-nowrap">
                     <span
                       className={`rounded px-1.5 py-0.5 text-xs font-medium ${LINK_STATUS_STYLES[link.status]}`}
                     >
