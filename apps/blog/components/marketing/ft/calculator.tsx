@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { useId, useMemo, useRef, useState } from 'react';
 
 import { CONTACT, CTA_HREF } from '../brand';
+import { CALCULATOR } from './content';
 import { ArrowUpRightIcon } from './icons';
 import { PaymentChart } from './payment-chart';
 import {
   FACTOR_RANGE,
   MINIMUMS,
+  PLAIN_DEFAULT_RATE,
+  PLAIN_RANGE,
   PRODUCTS,
   PRODUCT_BY_ID,
   RATE_RANGE,
@@ -24,10 +27,12 @@ import {
   modelledFactor,
   modelledRate,
   percent,
+  plainLoan,
   tenure,
   type CalcInput,
   type CalcResult,
   type Fit,
+  type LoanShape,
   type Product,
 } from '@/lib/funding-calc';
 
@@ -52,11 +57,20 @@ import {
  * An empty calculator asks the visitor to do work before it shows them
  * anything; a populated one shows the shape of an answer immediately and
  * invites them to correct it. The values are a mid-market file: good credit,
- * three years trading, and a line of credit, which is the product the homepage
- * leads with.
+ * three years trading.
+ *
+ * The product is Business Loans, and that is about the handoff from the simple
+ * view rather than about which product we most want to sell. Simple prices a
+ * plain monthly amortizing loan, which is exactly what a term loan is, and it
+ * carries the amount, the term and the rate across the toggle — so landing on
+ * Business Loans means the advanced view opens on the same payment the visitor
+ * was just looking at, plus the origination fee it now knows to charge. Landing
+ * on the line of credit instead (the homepage's lead product, and what this was)
+ * changed the payment, the cadence and the drawn balance all at once, which
+ * reads as the calculator having lost their numbers.
  */
 const DEFAULTS: CalcInput = {
-  productId: 'loc',
+  productId: 'term',
   amount: 150_000,
   termMonths: 24,
   fico: 680,
@@ -97,13 +111,37 @@ const FIT_LABEL: Record<Fit, { label: string; className: string }> = {
   },
 };
 
+type Mode = 'simple' | 'advanced';
+
+/**
+ * The calculator, in two views.
+ *
+ * SIMPLE IS THE DEFAULT and the reason is worth stating, because the obvious
+ * instinct is to lead with the capable one: the advanced view opens by asking
+ * which of five facilities you want, and a visitor who does not yet know what
+ * they need reads that as a question they have already got wrong. The three
+ * things the simple view asks — how much, for how long, at what rate — are ones
+ * anyone can answer, and the panel starts answering before they touch anything.
+ *
+ * Both views share this component rather than splitting into two, because they
+ * share one input object: amount, term and the rate carry across the toggle
+ * intact, so switching is a change of detail rather than a reset. What they do
+ * NOT share is the arithmetic — see `plainLoan` for why the simple view is a
+ * plain amortizing loan and not the underwriting model with its questions
+ * hidden.
+ */
 export function Calculator() {
+  const [mode, setMode] = useState<Mode>('simple');
   const [input, setInput] = useState<CalcInput>(DEFAULTS);
   const [tab, setTab] = useState<TabId>('breakdown');
 
   const product = PRODUCT_BY_ID[input.productId] ?? PRODUCTS[0];
   const result = useMemo(() => calculate(input), [input]);
-  const comparison = useMemo(() => compareAll(input), [input]);
+  // Five extra amortizations per keystroke, for a table only the advanced view has.
+  const comparison = useMemo(
+    () => (mode === 'advanced' ? compareAll(input) : []),
+    [input, mode],
+  );
 
   function set<K extends keyof CalcInput>(key: K, value: CalcInput[K]) {
     setInput((current) => ({ ...current, [key]: value }));
@@ -125,7 +163,15 @@ export function Calculator() {
     }));
   }
 
-  return (
+  /*
+   * The advanced view, as an element rather than a nested component. A nested
+   * component would be a new function on every render, so React would remount
+   * this whole subtree on every slider drag — losing the chart's hover, the
+   * schedule's expanded state and the focus ring on the control being dragged.
+   * An element built here has none of that: it is the same tree, one branch
+   * deeper.
+   */
+  const advanced = (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:items-start">
       {/* ── Controls ─────────────────────────────────────────────────────── */}
       <div className="min-w-0 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:p-7">
@@ -390,7 +436,7 @@ export function Calculator() {
               className="mt-5 focus-visible:outline-none"
             >
               {tab === 'breakdown' && <Breakdown result={result} />}
-              {tab === 'schedule' && <Schedule result={result} />}
+              {tab === 'schedule' && <Schedule loan={result} />}
               {tab === 'compare' && (
                 <Compare
                   rows={comparison}
@@ -403,6 +449,222 @@ export function Calculator() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+
+  return (
+    <div>
+      <ModeToggle mode={mode} onChange={setMode} />
+
+      {mode === 'simple' ? (
+        <SimpleCalculator
+          input={input}
+          onChange={setInput}
+          onAdvanced={() => setMode('advanced')}
+        />
+      ) : (
+        advanced
+      )}
+    </div>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * Simple mode
+ * ------------------------------------------------------------------------- */
+
+/**
+ * The two-button segmented control above both views.
+ *
+ * A radiogroup rather than tabs: these are not two views of the same content,
+ * they are two different calculations, and the blurb under each says which one
+ * you are getting before you commit to the click.
+ */
+function ModeToggle({ mode, onChange }: { mode: Mode; onChange: (mode: Mode) => void }) {
+  return (
+    <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div
+        role="radiogroup"
+        aria-label="Calculator detail"
+        className="inline-flex rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-1"
+      >
+        {(['simple', 'advanced'] as const).map((id) => {
+          const selected = id === mode;
+          return (
+            <button
+              key={id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              onClick={() => onChange(id)}
+              className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors ${
+                selected
+                  ? 'bg-[var(--ft-accent)] text-[var(--ft-bg)]'
+                  : 'text-[var(--ft-muted)] hover:text-[var(--ft-ink)]'
+              }`}
+            >
+              {CALCULATOR.modes[id].label}
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="text-sm text-[var(--ft-muted)]">{CALCULATOR.modes[mode].blurb}</p>
+    </div>
+  );
+}
+
+/**
+ * How much, for how long, at what rate — and nothing else.
+ *
+ * Everything absent here is absent on purpose. No facility to choose, because
+ * choosing one is the question a visitor is here to answer rather than to be
+ * asked. No FICO, no time in business, no revenue, so nothing is judged and no
+ * scenario comes back refused — which also means this view cannot show a fit
+ * badge, an origination fee, an APR that differs from the rate, or a comparison
+ * across products, because every one of those is a function of something it did
+ * not ask for. The advanced view is one click away and says what it adds.
+ *
+ * It writes to the same input object the advanced view uses, so the three
+ * numbers carry across the toggle. The rate goes to `rateOverride` because in
+ * this view it is always the visitor's own: with no product and no credit
+ * profile there is nothing to model a rate FROM, so nothing here calls it an
+ * estimate.
+ */
+function SimpleCalculator({
+  input,
+  onChange,
+  onAdvanced,
+}: {
+  input: CalcInput;
+  onChange: React.Dispatch<React.SetStateAction<CalcInput>>;
+  onAdvanced: () => void;
+}) {
+  const rate = input.rateOverride ?? PLAIN_DEFAULT_RATE;
+  const loan = useMemo(
+    () => plainLoan({ amount: input.amount, termMonths: input.termMonths, rate }),
+    [input.amount, input.termMonths, rate],
+  );
+
+  return (
+    /*
+     * Narrower and in equal columns, unlike the advanced view. Three sliders
+     * beside a full result panel at the advanced proportions leaves most of a
+     * screen of empty card under the controls; pulling the whole thing in
+     * shortens the panel it is measured against and reads as composed rather
+     * than as half-finished.
+     */
+    <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-2 lg:items-start">
+      <div className="min-w-0 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:p-7">
+        <div className="space-y-7">
+          <Slider
+            label="How much do you need?"
+            value={loan.principal}
+            display={money(loan.principal)}
+            min={PLAIN_RANGE.amount.min}
+            max={PLAIN_RANGE.amount.max}
+            step={PLAIN_RANGE.amount.step}
+            format={moneyCompact}
+            onChange={(value) => onChange((state) => ({ ...state, amount: value }))}
+          />
+
+          <Slider
+            label="Over how long?"
+            value={loan.termMonths}
+            display={tenure(loan.termMonths)}
+            min={PLAIN_RANGE.termMonths.min}
+            max={PLAIN_RANGE.termMonths.max}
+            step={1}
+            format={(months) => tenure(months)}
+            onChange={(value) => onChange((state) => ({ ...state, termMonths: value }))}
+          />
+
+          <Slider
+            label="At what interest rate?"
+            value={Math.round(rate * 1000)}
+            display={percent(rate)}
+            min={Math.round(RATE_RANGE.min * 1000)}
+            max={Math.round(RATE_RANGE.max * 1000)}
+            step={1}
+            format={(value) => percent(value / 1000, 0)}
+            hint="Not sure? Leave it — an advisor prices the real one, and the advanced calculator estimates it from your credit profile."
+            onChange={(value) =>
+              onChange((state) => ({ ...state, rateOverride: value / 1000 }))
+            }
+          />
+        </div>
+
+        <div className="mt-8 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card-raised)] p-4">
+          <p className="text-sm leading-relaxed text-[var(--ft-muted)]">
+            {CALCULATOR.modes.simple.upsell}
+          </p>
+          <button
+            type="button"
+            onClick={onAdvanced}
+            className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-[var(--ft-accent)] underline decoration-[var(--ft-accent)]/40 underline-offset-4 hover:decoration-[var(--ft-accent)]"
+          >
+            {CALCULATOR.modes.simple.upsellAction}
+            <ArrowUpRightIcon className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      <div className="min-w-0 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:p-7 lg:sticky lg:top-28">
+        <p className="text-xs font-medium uppercase tracking-[0.12em] text-[var(--ft-muted)]">
+          Monthly payment
+        </p>
+        <p className="mt-1 font-[family-name:var(--font-headline)] text-[clamp(2.75rem,7vw,4rem)] font-medium leading-none text-[var(--ft-accent)]">
+          {money(loan.payment)}
+        </p>
+        <p className="mt-3 text-sm text-[var(--ft-muted)]">
+          {loan.nPayments} payments of {moneyExact(loan.payment)}
+        </p>
+
+        <div className="mt-6 grid grid-cols-2 gap-2">
+          <Stat label="Total interest" value={money(loan.totalCost)} />
+          <Stat label="Total you repay" value={money(loan.totalPayback)} />
+        </div>
+
+        {/*
+          No cost meter here, unlike the advanced breakdown. Its two figures are
+          the two stats directly above it, word for word, and the chart below
+          carries the principal-against-cost split visually with a legend that
+          names both. Three ways of saying one thing is what the simple view is
+          for getting rid of.
+        */}
+        <div className="mt-7">
+          <PaymentChart schedule={loan.schedule} cadence={loan.cadence} />
+        </div>
+
+        {/*
+          A disclosure rather than a tab. Two tabs to hold one table is furniture
+          on a view whose whole argument is that there is less of it.
+        */}
+        <details className="mt-7 border-t border-[var(--ft-line)] pt-4">
+          <summary className="cursor-pointer text-sm text-[var(--ft-muted)] transition-colors hover:text-[var(--ft-ink)]">
+            See the payment schedule
+          </summary>
+          <div className="mt-4">
+            <Schedule loan={loan} />
+          </div>
+        </details>
+
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href={CTA_HREF}
+            className="flex-1 rounded-md bg-[var(--ft-accent)] px-6 py-3.5 text-center text-[0.9375rem] font-bold text-white transition-colors hover:bg-[var(--color-gold-hover)]"
+          >
+            Get Funded
+          </Link>
+          <a
+            href={CONTACT.phoneHref}
+            className="inline-flex flex-1 items-center justify-center gap-2 rounded-md border border-[var(--ft-line)] px-6 py-3.5 text-center text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+          >
+            {CONTACT.phone}
+            <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+          </a>
+        </div>
       </div>
     </div>
   );
@@ -457,7 +719,7 @@ function Breakdown({ result }: { result: CalcResult }) {
 
   return (
     <div>
-      <CostSplit result={result} />
+      <CostSplit loan={result} />
 
       <div className="mt-7">
         <PaymentChart schedule={result.schedule} cadence={result.cadence} />
@@ -495,17 +757,17 @@ function Breakdown({ result }: { result: CalcResult }) {
  * proportion is read faster from a filled bar than from two dollar amounts they
  * have to subtract.
  */
-function CostSplit({ result }: { result: CalcResult }) {
-  const total = result.totalPayback || 1;
-  const principalShare = Math.min(1, result.principal / total);
+function CostSplit({ loan }: { loan: LoanShape }) {
+  const total = loan.totalPayback || 1;
+  const principalShare = Math.min(1, loan.principal / total);
 
   return (
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <span className="text-sm font-medium text-[var(--ft-ink)]">Cost of capital</span>
         <span className="text-sm tabular-nums text-[var(--ft-muted)]">
-          <span className="text-[var(--ft-ink)]">{money(result.totalCost)}</span> on{' '}
-          {money(result.principal)} borrowed
+          <span className="text-[var(--ft-ink)]">{money(loan.totalCost)}</span> on{' '}
+          {money(loan.principal)} borrowed
         </span>
       </div>
 
@@ -524,11 +786,11 @@ function CostSplit({ result }: { result: CalcResult }) {
   );
 }
 
-function Schedule({ result }: { result: CalcResult }) {
+function Schedule({ loan }: { loan: LoanShape }) {
   const [expanded, setExpanded] = useState(false);
-  const rows = expanded ? result.schedule.slice(0, 60) : result.schedule.slice(0, 12);
-  const remaining = result.schedule.length - rows.length;
-  const unit = result.cadence === 'weekly' ? 'Week' : 'Month';
+  const rows = expanded ? loan.schedule.slice(0, 60) : loan.schedule.slice(0, 12);
+  const remaining = loan.schedule.length - rows.length;
+  const unit = loan.cadence === 'weekly' ? 'Week' : 'Month';
 
   return (
     <div>
@@ -584,7 +846,7 @@ function Schedule({ result }: { result: CalcResult }) {
               onClick={() => setExpanded(true)}
               className="underline underline-offset-4 hover:text-[var(--ft-ink)]"
             >
-              Show more — {result.schedule.length} payments in total
+              Show more — {loan.schedule.length} payments in total
             </button>
           )}
         </p>

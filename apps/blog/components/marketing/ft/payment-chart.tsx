@@ -51,8 +51,14 @@ const COST_FILL = '#8a6a28';
  * costs a ResizeObserver and keeps every label at the size it was chosen at.
  */
 const FALLBACK_WIDTH = 720;
-/** Below this the plot is shorter, since the panel is a phone-width column. */
-const NARROW = 480;
+/**
+ * Below this the plot is shorter and drops to fewer columns.
+ *
+ * 400, not 480: the simple view's result panel is around 445px of chart on a
+ * desktop, and at 480 it was being treated as a phone — sampling 13 periods out
+ * of a 24-month schedule it had room to draw in full. A phone is nearer 310.
+ */
+const NARROW = 400;
 const PAD = { top: 16, right: 8, bottom: 34, left: 52 };
 
 /** Columns are capped rather than filling their slot — the air is the design. */
