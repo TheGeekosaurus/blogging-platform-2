@@ -307,6 +307,29 @@ export const CALCULATOR = {
    * one thing and told another — the page below it is exactly this.
    */
   heading: 'Business Loan Calculator',
+  /**
+   * The two views, and the line under each that says what it is for.
+   *
+   * Simple is the default, and the reason is the one Denis put his finger on:
+   * the advanced view opens by asking which of five facilities you want, and
+   * someone who does not yet know what they need reads that as a question they
+   * have already failed. Simple asks the three things anyone can answer.
+   */
+  modes: {
+    simple: {
+      label: 'Simple',
+      blurb: 'Three numbers, one payment. No questions about you or your business.',
+      /** Sits under the simple panel, offering the rest without insisting. */
+      upsell:
+        'Want it priced against your actual business — the right facility, the fee, the APR, ' +
+        'and whether it fits your revenue?',
+      upsellAction: 'Switch to the advanced calculator',
+    },
+    advanced: {
+      label: 'Advanced',
+      blurb: 'Every facility we fund, priced against your credit profile and revenue.',
+    },
+  },
   /** The three things the page says about itself, under the panel. */
   assurances: [
     'No credit pull, no email, nothing saved',

@@ -684,9 +684,15 @@ export function calculate(input: CalcInput): CalcResult {
         ? `Assumes ${percent(input.utilization, 0)} of a ${money(amount)} line is drawn — ` +
           `${money(drawn)} in use. Undrawn credit costs nothing, and paying the balance down ` +
           'frees it to draw again.'
-        : `A fully amortizing ${product.name.toLowerCase()} at ${ratePhrase(rate)} over ` +
-          `${termMonths} months. Every instalment is the same; the split between principal and ` +
-          'interest moves toward principal as the balance falls.';
+        : /*
+           * Not `product.name` here: the names are plural to match the nav
+           * ("Business Loans"), which reads as "a fully amortizing business
+           * loans" in a sentence. The panel's heading names the product
+           * directly above this line anyway.
+           */
+          `A fully amortizing loan at ${ratePhrase(rate)} over ${termMonths} months. Every ` +
+          'instalment is the same; the split between principal and interest moves toward ' +
+          'principal as the balance falls.';
   }
 
   const originationFee = principal * originationRate(product, priced);
@@ -754,6 +760,111 @@ export function calculate(input: CalcInput): CalcResult {
     monthlyEquivalent,
     paymentToRevenue,
     narrative,
+  };
+}
+
+/* ---------------------------------------------------------------------------
+ * The plain loan — what the calculator's simple mode prices
+ * ------------------------------------------------------------------------- */
+
+/** What a plain loan can be sized at. Inside the site's published envelope. */
+export const PLAIN_RANGE = {
+  amount: { min: 15_000, max: 5_000_000, step: 5_000 },
+  termMonths: { min: 3, max: 84 },
+} as const;
+
+/**
+ * The rate the simple view opens on.
+ *
+ * Derived from the pricing table's own mid column rather than being a second
+ * invented number — but note what it is NOT: it is a starting position for a
+ * slider, not a rate anyone has been offered. With no credit profile and no
+ * product chosen there is nothing to price a rate FROM, so the simple view
+ * never calls this an estimate for the visitor; it is a number to drag.
+ */
+export const PLAIN_DEFAULT_RATE = PRICING.rate.term.good;
+
+/**
+ * The fields a priced facility and a plain loan have in common.
+ *
+ * Exists so the cost meter, the chart and the schedule table are written once
+ * and rendered by both views. `CalcResult` satisfies it structurally, so there
+ * is nothing to convert at the call site.
+ */
+export type LoanShape = {
+  principal: number;
+  totalPayback: number;
+  totalCost: number;
+  cadence: Cadence;
+  schedule: ScheduleRow[];
+};
+
+export type PlainInput = {
+  amount: number;
+  termMonths: number;
+  /** Always the visitor's own — see PLAIN_DEFAULT_RATE. */
+  rate: number;
+};
+
+export type PlainLoan = {
+  principal: number;
+  rate: number;
+  termMonths: number;
+  cadence: Cadence;
+  payment: number;
+  nPayments: number;
+  totalPayback: number;
+  totalCost: number;
+  schedule: ScheduleRow[];
+};
+
+/**
+ * A plain amortizing loan: this much, over this long, at this rate.
+ *
+ * Deliberately a SEPARATE function from `calculate` rather than the same one
+ * with the profile fields hidden. The simple view is not the underwriting model
+ * with its questions collapsed — it is the arithmetic every loan calculator on
+ * the internet does, and the difference is the honest part:
+ *
+ *   - No origination, so no gap between the loan and what lands in the account.
+ *     A fee is a function of the credit band, and there is no band here.
+ *   - No credit band, no seasoning, no eligibility gate. Nothing was asked, so
+ *     nothing is judged, and no scenario is refused.
+ *   - Monthly, because a term in months and a payment in weeks is exactly the
+ *     kind of detail the simple view exists to keep out of the way.
+ *
+ * Which means its APR equals its rate, so the simple view shows one number
+ * instead of two. Everything the advanced view adds — the fee, the band, the
+ * weekly cadence, the products that are not amortizing loans at all — is what
+ * makes those two numbers differ there.
+ */
+export function plainLoan(input: PlainInput): PlainLoan {
+  const principal = clamp(
+    Math.round(input.amount),
+    PLAIN_RANGE.amount.min,
+    PLAIN_RANGE.amount.max,
+  );
+  const termMonths = clamp(
+    Math.round(input.termMonths),
+    PLAIN_RANGE.termMonths.min,
+    PLAIN_RANGE.termMonths.max,
+  );
+  const rate = clamp(input.rate, RATE_RANGE.min, RATE_RANGE.max);
+
+  const payment = instalment(principal, rate, termMonths, 12);
+  const schedule = amortize(principal, payment, rate, termMonths, 12);
+  const totalPayback = schedule.reduce((total, row) => total + row.payment, 0);
+
+  return {
+    principal,
+    rate,
+    termMonths,
+    cadence: 'monthly',
+    payment,
+    nPayments: schedule.length,
+    totalPayback,
+    totalCost: Math.max(0, totalPayback - principal),
+    schedule,
   };
 }
 

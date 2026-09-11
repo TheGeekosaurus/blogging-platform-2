@@ -111,27 +111,46 @@ describe('the /calc page', () => {
   });
 
   /*
-   * Every online loan calculator has one, and a visitor who has been quoted a
-   * rate wants to put it in rather than accept ours. Factor-priced working
-   * capital gets the same control in the units it is actually sold in.
+   * The default view asks three things and judges none of them. The advanced
+   * view — five facilities, a FICO slider, revenue — is a click away and is not
+   * what a visitor who does not yet know what they need should be handed first.
+   *
+   * Server-rendered markup only, so this can assert what the page OPENS on but
+   * not what the toggle leads to: the advanced branch renders on the client, and
+   * this project's vitest runs in node with no DOM. The advanced view's numbers
+   * are covered in funding-calc.test.ts, and its markup in the browser.
    */
-  it('lets the visitor set the rate, in the right units per product', async () => {
+  it('opens on the simple view, not on five facilities and a credit score', async () => {
     const html = await render();
 
-    expect(html).toContain('Interest rate');
-    expect(html).toContain('Drag it to price a rate you have been quoted');
+    expect(html).toContain('How much do you need?');
+    expect(html).toContain('Over how long?');
+    expect(html).toContain('At what interest rate?');
+
+    // The advanced view's opening questions, which must not be the first thing.
+    expect(html).not.toContain('Choose a facility');
+    expect(html).not.toContain('Personal FICO');
+    expect(html).not.toContain('Average monthly revenue');
   });
 
-  it('offers every product, and an estimate for the default one', async () => {
+  it('offers both views, and says what each one is', async () => {
     const html = await render();
-    const { PRODUCTS } = await import('../lib/funding-calc');
+    const { CALCULATOR } = await import('../components/marketing/ft/content');
 
-    for (const product of PRODUCTS) {
-      expect(html, product.name).toContain(product.name);
-    }
+    expect(html).toContain('aria-label="Calculator detail"');
+    expect(html).toContain(CALCULATOR.modes.simple.label);
+    expect(html).toContain(CALCULATOR.modes.advanced.label);
+    expect(html).toContain(CALCULATOR.modes.simple.blurb);
+    // And a way through to the detail from inside the simple panel itself.
+    expect(html).toContain(CALCULATOR.modes.simple.upsellAction);
+  });
 
-    // The panel is populated on the first paint rather than waiting for input.
-    expect(html).toContain('Estimated weekly payment');
+  it('answers before anything is touched', async () => {
+    const html = await render();
+
+    // A populated panel on the first paint, not an empty one asking for input.
+    expect(html).toContain('Monthly payment');
+    expect(html).toContain('Total interest');
     expect(html).toMatch(/\$[\d,]+/);
   });
 

@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   FACTOR_RANGE,
   MINIMUMS,
+  PLAIN_DEFAULT_RATE,
+  PLAIN_RANGE,
   PRICING,
   PRODUCTS,
   RATE_RANGE,
@@ -17,6 +19,7 @@ import {
   money,
   moneyCompact,
   percent,
+  plainLoan,
   tenure,
   type CalcInput,
 } from '../lib/funding-calc';
@@ -393,6 +396,93 @@ describe('product ranges', () => {
 
     for (const product of PRODUCTS) {
       expect(paths.has(product.href), `${product.name} -> ${product.href}`).toBe(true);
+    }
+  });
+});
+
+describe('the plain loan the simple view prices', () => {
+  const loan = plainLoan({ amount: 150_000, termMonths: 36, rate: 0.12 });
+
+  it('is the textbook annuity, to the cent', () => {
+    // 150,000 at 12% over 36 monthly payments. Checkable by hand, and the
+    // reason to: the simple view shows this number with no caveats attached.
+    const r = 0.12 / 12;
+    const expected = (150_000 * r * (1 + r) ** 36) / ((1 + r) ** 36 - 1);
+
+    expect(loan.payment).toBeCloseTo(expected, 6);
+    expect(loan.nPayments).toBe(36);
+    expect(loan.cadence).toBe('monthly');
+  });
+
+  it('repays the principal exactly and lands on zero', () => {
+    const principalRepaid = loan.schedule.reduce((total, row) => total + row.principal, 0);
+
+    expect(principalRepaid).toBeCloseTo(loan.principal, 6);
+    expect(loan.schedule.at(-1)!.balance).toBeCloseTo(0, 6);
+    expect(loan.totalPayback - loan.principal).toBeCloseTo(loan.totalCost, 6);
+  });
+
+  /*
+   * The whole point of it being a separate function. Nothing was asked about the
+   * borrower, so nothing is charged for, nothing is graded, and nothing is
+   * refused — the simple view has no honest way to show a fee or a credit band.
+   */
+  it('charges no fee, so every dollar borrowed is a dollar received', () => {
+    const advanced = calculate({ ...BASE, amount: 150_000, termMonths: 36, rateOverride: 0.12 });
+
+    // The same rate over the same term, so the INTEREST is identical. What the
+    // advanced view adds is a fee taken out of the proceeds — which is why its
+    // APR clears the rate and the simple view's cannot.
+    expect(advanced.totalCost).toBeCloseTo(loan.totalCost, 6);
+    expect(advanced.originationFee).toBeGreaterThan(0);
+    expect(advanced.netFunded).toBeLessThan(advanced.principal);
+    expect(advanced.apr).toBeGreaterThan(0.12);
+
+    expect(
+      impliedApr(loan.principal, loan.schedule.map((row) => row.payment), 12),
+    ).toBeCloseTo(loan.rate, 6);
+  });
+
+  it('costs the same whatever the borrower looks like', () => {
+    // There is no profile to price from, so there is nothing that could vary.
+    expect(plainLoan({ amount: 150_000, termMonths: 36, rate: 0.12 }).payment).toBe(loan.payment);
+  });
+
+  it('clamps into the site’s published envelope', () => {
+    expect(plainLoan({ amount: 1_000, termMonths: 36, rate: 0.12 }).principal).toBe(
+      PLAIN_RANGE.amount.min,
+    );
+    expect(plainLoan({ amount: 9_000_000, termMonths: 36, rate: 0.12 }).principal).toBe(
+      PLAIN_RANGE.amount.max,
+    );
+    expect(plainLoan({ amount: 150_000, termMonths: 500, rate: 0.12 }).termMonths).toBe(
+      PLAIN_RANGE.termMonths.max,
+    );
+    expect(plainLoan({ amount: 150_000, termMonths: 36, rate: 99 }).rate).toBeCloseTo(
+      RATE_RANGE.max,
+      6,
+    );
+  });
+
+  it('opens on a rate from the same table the advanced view prices from', () => {
+    // Not a sixth invented number, and not a quote either — a slider's starting
+    // position, which is why nothing in the simple view calls it an estimate.
+    expect(PLAIN_DEFAULT_RATE).toBe(PRICING.rate.term.good);
+    expect(PLAIN_DEFAULT_RATE).toBeGreaterThan(RATE_RANGE.min);
+    expect(PLAIN_DEFAULT_RATE).toBeLessThan(RATE_RANGE.max);
+  });
+
+  it('spans every product’s range, so the toggle never has to clamp', () => {
+    // Amount and term carry across the toggle. If the simple range were the
+    // narrower one, switching back and forth would quietly edit the visitor's
+    // numbers.
+    for (const product of PRODUCTS) {
+      expect(product.minAmount, product.name).toBeGreaterThanOrEqual(PLAIN_RANGE.amount.min);
+      expect(product.maxAmount, product.name).toBeLessThanOrEqual(PLAIN_RANGE.amount.max);
+      expect(product.minTermMonths, product.name).toBeGreaterThanOrEqual(
+        PLAIN_RANGE.termMonths.min,
+      );
+      expect(product.maxTermMonths, product.name).toBeLessThanOrEqual(PLAIN_RANGE.termMonths.max);
     }
   });
 });
