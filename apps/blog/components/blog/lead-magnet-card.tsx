@@ -5,13 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import {
-  CAPTURE_ENDPOINT,
-  hide,
-  isHidden,
-  LEAD_MAGNET_EVENT,
-  readUtm,
-} from '@/lib/lead-magnet';
+import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
 
 /**
  * The lead capture card: an offer, an email field, and a way to make it go away.
@@ -27,6 +21,12 @@ import {
  * down for it, and a blog whose whole traffic model is search should not be
  * spending rankings on a form. The card still gets the sticky rail — the most
  * valuable real estate on the page — for free.
+ *
+ * IT OWNS NO CHROME. No heading, no border, no way to close it: the panel it
+ * sits in supplies all three (see sidebar-panels.tsx), and the offer's headline
+ * is the panel's title, so it stays readable while the body is collapsed.
+ * Drawing its own box inside that one produced two nested borders, and a second
+ * copy of the headline under the first.
  *
  * The three states are idle, sending and done, and `done` is terminal: there is
  * no path back to the form once an address has been accepted. An error returns
@@ -54,26 +54,15 @@ export function LeadMagnetCard({
 }) {
   const fieldId = useId();
 
-  /*
-   * Starts visible and is corrected on mount, for the same reason the theme
-   * control starts at 'system': the server cannot know what this reader has
-   * dismissed, and reading localStorage during render is a hydration mismatch.
-   *
-   * Starting visible rather than hidden is the right way round. The card is
-   * part of the prerendered HTML, so it is on the page before React runs
-   * either way; starting hidden would make it appear and then vanish, which
-   * reads as a bug. This way it is briefly present for a reader who dismissed
-   * it, then gone.
-   */
-  const [hidden, setHidden] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [assetUrl, setAssetUrl] = useState<string | null>(null);
 
   /*
-   * Set once the response lands, and checked before every setState after an
-   * await. Without it, a reader who dismisses the card while the request is in
-   * flight gets it re-rendered into the success state on top of them.
+   * Checked before every setState after an await. The panel this lives in
+   * unmounts its body when it collapses, so a reader who collapses the offer
+   * mid-submission would otherwise have the response try to set state on a
+   * component that is gone.
    */
   const live = useRef(true);
   useEffect(() => {
@@ -82,31 +71,6 @@ export function LeadMagnetCard({
       live.current = false;
     };
   }, []);
-
-  /*
-   * Set by the instance that took the submission, and read by the broadcast
-   * listener below so it does not hide the card it just succeeded in.
-   *
-   * A ref rather than reading `status`: the listener is registered once and
-   * would close over the status from that first render.
-   */
-  const converted = useRef(false);
-
-  useEffect(() => {
-    if (isHidden(offer.slug)) setHidden(true);
-
-    // The other placement on this page dismissing counts as this one being
-    // dismissed. See LEAD_MAGNET_EVENT.
-    const onChange = (event: Event) => {
-      const detail = (event as CustomEvent<{ slug: string }>).detail;
-      if (detail?.slug === offer.slug && !converted.current) setHidden(true);
-    };
-
-    window.addEventListener(LEAD_MAGNET_EVENT, onChange);
-    return () => window.removeEventListener(LEAD_MAGNET_EVENT, onChange);
-  }, [offer.slug]);
-
-  if (hidden) return null;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -149,19 +113,8 @@ export function LeadMagnetCard({
         return;
       }
 
-      converted.current = true;
       setAssetUrl(body.assetUrl ?? null);
       setStatus('done');
-
-      /*
-       * Recorded as a conversion, but THIS card is not removed — the success
-       * state renders in its place. Whipping the panel away at the moment it
-       * finally has something to give the reader would take the download link
-       * with it. The `converted` ref above is what exempts this instance from
-       * the broadcast; the other placement on the page does hide, and so does
-       * every article after this one.
-       */
-      hide(offer.slug, 'converted');
     } catch {
       if (!live.current) return;
       // Network-level failure: no response at all. Distinguished from a 4xx
@@ -172,49 +125,19 @@ export function LeadMagnetCard({
   }
 
   return (
-    <div
-      className={`overflow-hidden rounded-xl border border-[var(--color-line)] bg-[var(--color-surface-muted)] ${className}`}
-    >
+    <div className={className}>
+      {/*
+        Full-bleed to the panel's edges, which is why the padding is on the
+        block below rather than on this wrapper.
+      */}
       {offer.image ? <OfferImage image={offer.image} /> : null}
 
-      <div className="p-5">
-        <div className="flex items-start justify-between gap-3">
-          <h2
-            className="font-[family-name:var(--font-headline)] text-base leading-snug text-[var(--color-ink)]"
-          >
-            {offer.heading}
-          </h2>
-
-          {/*
-            A real button with a real accessible name, not a decorative ×. It is
-            the only way out of the card for a keyboard reader, and it sits before
-            the form in the tab order so reaching it does not mean tabbing through
-            the fields being declined.
-          */}
-          <button
-            type="button"
-            onClick={() => {
-              hide(offer.slug, 'dismissed');
-              setHidden(true);
-            }}
-            aria-label="Dismiss this offer"
-            title="Dismiss"
-            className="-mr-1.5 -mt-1.5 shrink-0 rounded p-1.5 text-[var(--color-ink-muted)] transition-colors hover:text-[var(--color-ink)]"
-          >
-            <svg
-              viewBox="0 0 20 20"
-              aria-hidden="true"
-              className="h-4 w-4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-            >
-              <path d="M5.5 5.5l9 9M14.5 5.5l-9 9" />
-            </svg>
-          </button>
-        </div>
-
+      {/*
+        A gap rather than margins on the children. The margins here used to
+        space each block off the headline above it; with the headline gone to
+        the panel, the first of them was spacing itself off the padding.
+      */}
+      <div className="flex flex-col gap-3 px-4 pb-4 pt-3">
         {/*
           The live region, always in the tree and empty until there is something
           to say.
@@ -233,7 +156,7 @@ export function LeadMagnetCard({
         </p>
 
         {status === 'done' ? (
-          <div className="mt-3">
+          <div>
             <p className="text-sm leading-relaxed text-[var(--color-ink-muted)]">
               {offer.successMessage}
             </p>
@@ -258,12 +181,12 @@ export function LeadMagnetCard({
         ) : (
           <>
             {offer.body ? (
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-muted)]">
+              <p className="text-sm leading-relaxed text-[var(--color-ink-muted)]">
                 {offer.body}
               </p>
             ) : null}
 
-            <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-2">
+            <form onSubmit={onSubmit} className="flex flex-col gap-2">
               {offer.collectName ? (
                 <>
                   <label htmlFor={`${fieldId}-name`} className="sr-only">
