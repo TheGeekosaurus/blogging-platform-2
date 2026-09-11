@@ -173,21 +173,23 @@ function Group({
 export function TableOfContents({
   groups,
   variant,
-  id,
   className = '',
 }: {
   groups: HeadingGroup[];
   /**
-   * `rail` is the standing left column; `disclosure` is the collapsed block that
-   * takes its place when there is no room for a third column.
+   * `rail` is the standing right column; `disclosure` is the collapsed block
+   * that takes its place when there is no room for a second column.
    *
    * Both are rendered on every post and hidden at the other's breakpoints.
    * `display: none` takes a subtree out of the accessibility tree, so only one
-   * is ever exposed — but each needs its own `id`, since two elements sharing
-   * one would make `aria-labelledby` ambiguous.
+   * is ever exposed.
+   *
+   * There used to be an `id` prop, because each variant labelled its own <nav>
+   * through `aria-labelledby` and two elements cannot share one id. The rail's
+   * heading now belongs to the panel that wraps it (sidebar-panels.tsx), so
+   * the rail names itself with `aria-label` and neither variant needs an id.
    */
   variant: 'rail' | 'disclosure';
-  id: string;
   className?: string;
 }) {
   const activeId = useActiveHeading(HEADING_SELECTOR);
@@ -337,19 +339,14 @@ export function TableOfContents({
   }
 
   return (
-    <nav aria-labelledby={id} className={`flex min-h-0 flex-col ${className}`}>
-      {/*
-        Outside the scroll container on purpose. It used to be inside, so
-        scrolling the list scrolled its own label away and left an unlabelled
-        column of links.
-      */}
-      <h2
-        id={id}
-        className="mb-4 shrink-0 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-muted)]"
-      >
-        Table of Contents
-      </h2>
-
+    /*
+      No heading of its own any more. The panel's header is the heading, and it
+      stays on screen while the list scrolls — which is what the h2 that used
+      to live here was positioned outside the scroll container to achieve.
+      `aria-label` rather than `aria-labelledby` so this component does not
+      have to be told the id of an element it does not render.
+    */
+    <nav aria-label="Table of Contents" className={`flex min-h-0 flex-col ${className}`}>
       {/*
         Only the list scrolls. `min-h-0` is what makes it shrink below its
         content height — a flex child refuses to without it, which is how a
