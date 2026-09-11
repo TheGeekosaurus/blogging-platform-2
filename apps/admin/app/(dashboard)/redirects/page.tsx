@@ -1,7 +1,8 @@
 import { deleteRedirect } from '@/app/actions/redirects';
+import { Pagination, parsePage } from '@/components/pagination';
 import { RedirectForm } from '@/components/redirect-form';
 import { requireCurrentSite } from '@/lib/current-site';
-import { listRedirectRows } from '@/lib/queries';
+import { ADMIN_PER_PAGE, listRedirectRows } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,9 +15,17 @@ export const dynamic = 'force-dynamic';
  * the admin: every URL whose shape changed needs a 301, or its accumulated
  * ranking is thrown away rather than passed on.
  */
-export default async function RedirectsPage() {
+export default async function RedirectsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
   const site = await requireCurrentSite();
-  const redirects = await listRedirectRows(site.id);
+  const page = parsePage(typeof params.page === 'string' ? params.page : undefined);
+
+  const { redirects, total } = await listRedirectRows(site.id, page);
+  const pageCount = Math.max(1, Math.ceil(total / ADMIN_PER_PAGE));
 
   return (
     <>
@@ -39,11 +48,13 @@ export default async function RedirectsPage() {
       </div>
 
       <div className="mt-10">
+        {/* `total`, not the row count: this table is paginated, and a heading
+            reading "20 rules" on the first of nine pages is simply wrong. */}
         <h2 className="text-lg font-semibold">
-          {redirects.length} {redirects.length === 1 ? 'rule' : 'rules'}
+          {total.toLocaleString()} {total === 1 ? 'rule' : 'rules'}
         </h2>
 
-        {redirects.length === 0 ? (
+        {total === 0 ? (
           <p className="mt-3 text-sm text-[#50575e]">
             None yet. Add one above for any URL that has moved.
           </p>
@@ -81,6 +92,8 @@ export default async function RedirectsPage() {
             </tbody>
           </table>
         )}
+
+        <Pagination basePath="/redirects" page={page} pageCount={pageCount} />
       </div>
     </>
   );

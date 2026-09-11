@@ -10,9 +10,11 @@ import {
   type PostStatus,
 } from '@blog/core';
 
+import { clampPage, Pagination } from '@/components/pagination';
 import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
 import { editHref, LINK_GRAPH_LIMIT, loadLinkGraph } from '@/lib/link-graph';
+import { ADMIN_PER_PAGE } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +30,13 @@ export const dynamic = 'force-dynamic';
  * narrowing costs nothing beyond the single read in loadLinkGraph().
  */
 
-const LINKS_PER_PAGE = 100;
+/*
+ * Both views page at the shared admin size. This view used to show 100 rows,
+ * on the reasoning that a link table is scanned rather than read — but it sits
+ * next to Posts and Pages in the rail, and a screen that scrolls five times
+ * further than its neighbours for no stated reason just reads as broken.
+ */
+const LINKS_PER_PAGE = ADMIN_PER_PAGE;
 
 type View = 'content' | 'links';
 
@@ -90,7 +98,13 @@ export default async function LinksPage({
   const kind = one(params, 'kind') ?? 'all';
   const status = one(params, 'status') ?? 'all';
   const search = one(params, 'q')?.trim() ?? '';
-  const page = Math.max(1, Number(one(params, 'page') ?? '1') || 1);
+  /*
+   * One `page` key for both views rather than one each. Only one view renders
+   * at a time, and the tab links drop the key entirely, so switching tabs
+   * always lands on page one — which is what you want, since a page number
+   * from a list of links means nothing in a list of content.
+   */
+  const rawPage = one(params, 'page');
 
   const { totals } = graph;
 
@@ -137,14 +151,20 @@ export default async function LinksPage({
       </nav>
 
       {view === 'content' ? (
-        <ContentView graph={graph} site={site} show={show} search={search} />
+        <ContentView
+          graph={graph}
+          site={site}
+          show={show}
+          search={search}
+          rawPage={rawPage}
+        />
       ) : (
         <LinksView
           graph={graph}
           kind={kind}
           status={status}
           search={search}
-          page={page}
+          rawPage={rawPage}
         />
       )}
     </>
@@ -248,20 +268,37 @@ function ContentView({
   site,
   show,
   search,
+  rawPage,
 }: {
   graph: Awaited<ReturnType<typeof loadLinkGraph>>;
   site: Awaited<ReturnType<typeof requireCurrentSite>>;
   show: string;
   search: string;
+  rawPage: string | undefined;
 }) {
   const needle = search.toLowerCase();
-  const rows = graph.nodes.filter(
+  const filtered = graph.nodes.filter(
     (stats) =>
       matchesShow(stats, show) &&
       (!needle ||
         stats.node.title.toLowerCase().includes(needle) ||
         stats.node.path.toLowerCase().includes(needle)),
   );
+
+  /*
+   * Sliced, not queried. The whole graph has to be built to know any incoming
+   * count at all — that is what makes an orphan an orphan — so paginating the
+   * DATABASE read here would break the numbers rather than save any work. The
+   * page size is only about how much lands on screen.
+   */
+  const pageCount = Math.max(1, Math.ceil(filtered.length / LINKS_PER_PAGE));
+  const page = clampPage(rawPage, pageCount);
+  const rows = filtered.slice((page - 1) * LINKS_PER_PAGE, page * LINKS_PER_PAGE);
+
+  const keep = {
+    show: show === 'all' ? undefined : show,
+    q: search || undefined,
+  };
 
   return (
     <>
@@ -296,7 +333,7 @@ function ContentView({
         </form>
       </div>
 
-      {rows.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="mt-10 text-slate-600">
           Nothing matches. {show === 'orphans' ? 'No orphans is the good outcome here.' : null}
         </p>
@@ -420,6 +457,15 @@ function ContentView({
         </div>
       )}
 
+      <Pagination
+        basePath="/links"
+        page={page}
+        pageCount={pageCount}
+        total={filtered.length}
+        label="item"
+        query={keep}
+      />
+
       <p className="mt-6 max-w-3xl text-sm text-slate-500">
         An <strong>orphan</strong> has nothing linking to it. It is still in the sitemap, so
         it can be found — but nothing on the site passes it any authority, and a reader who
@@ -456,13 +502,13 @@ function LinksView({
   kind,
   status,
   search,
-  page,
+  rawPage,
 }: {
   graph: Awaited<ReturnType<typeof loadLinkGraph>>;
   kind: string;
   status: string;
   search: string;
-  page: number;
+  rawPage: string | undefined;
 }) {
   const needle = search.toLowerCase();
 
@@ -477,8 +523,8 @@ function LinksView({
   );
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / LINKS_PER_PAGE));
-  const clamped = Math.min(page, pageCount);
-  const rows = filtered.slice((clamped - 1) * LINKS_PER_PAGE, clamped * LINKS_PER_PAGE);
+  const page = clampPage(rawPage, pageCount);
+  const rows = filtered.slice((page - 1) * LINKS_PER_PAGE, page * LINKS_PER_PAGE);
 
   const keep = {
     view: 'links',
@@ -538,14 +584,16 @@ function LinksView({
         </form>
       </div>
 
-      <p className="mt-4 text-sm text-slate-500">
-        {filtered.length} {filtered.length === 1 ? 'link' : 'links'}
-        {status === 'unchecked' || kind === 'external'
-          ? ' — external URLs are listed, not fetched, so none of them carry a verdict.'
-          : null}
-      </p>
+      {/* The row count moved into the pager below, which now carries it for
+          every table in the admin. This line keeps only what the pager cannot
+          say: why a whole column of statuses reads "unchecked". */}
+      {status === 'unchecked' || kind === 'external' ? (
+        <p className="mt-4 text-sm text-slate-500">
+          External URLs are listed, not fetched, so none of them carry a verdict.
+        </p>
+      ) : null}
 
-      {rows.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="mt-10 text-slate-600">
           No links match. {status === 'missing' ? 'Nothing broken is the good outcome.' : null}
         </p>
@@ -621,27 +669,14 @@ function LinksView({
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <nav className="mt-6 flex justify-between text-sm">
-          {clamped > 1 ? (
-            <Link href={`/links${buildQuery({ ...keep, page: String(clamped - 1) })}`}>
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-slate-500">
-            Page {clamped} of {pageCount}
-          </span>
-          {clamped < pageCount ? (
-            <Link href={`/links${buildQuery({ ...keep, page: String(clamped + 1) })}`}>
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      ) : null}
+      <Pagination
+        basePath="/links"
+        page={page}
+        pageCount={pageCount}
+        total={filtered.length}
+        label="link"
+        query={keep}
+      />
     </>
   );
 }

@@ -21,7 +21,16 @@ import { createClient } from './supabase/server';
  * public app cannot accidentally import a query that bypasses that filter.
  */
 
-export const POSTS_PER_PAGE = 20;
+/**
+ * Rows per page on every admin table.
+ *
+ * One constant, not one per screen: the number is a reading-comfort decision,
+ * not a per-table one, and separate constants drift until Posts shows 20 and
+ * Pages shows 50 for no reason anyone remembers. Distinct from
+ * `POSTS_PER_PAGE` in @blog/core, which is the PUBLIC blog's page size (10) and
+ * is a visitor-facing design choice with nothing to do with this.
+ */
+export const ADMIN_PER_PAGE = 20;
 
 export interface PostListItem {
   id: string;
@@ -53,7 +62,7 @@ export async function listPosts(
 ): Promise<PostListResult> {
   const supabase = await createClient();
   const page = Math.max(1, filters.page ?? 1);
-  const from = (page - 1) * POSTS_PER_PAGE;
+  const from = (page - 1) * ADMIN_PER_PAGE;
 
   // A category filter resolves to post ids first; PostgREST cannot express
   // "has this term" as a plain column filter.
@@ -72,7 +81,7 @@ export async function listPosts(
 
   /*
    * The embed is what puts a Categories column on the list. It costs one join
-   * on a page of at most POSTS_PER_PAGE rows, not a second round trip, and it
+   * on a page of at most ADMIN_PER_PAGE rows, not a second round trip, and it
    * is scoped to this query — the public site's own post queries are in
    * @blog/core and are untouched, so nothing on the reader-facing side pays
    * for a column only the admin shows.
@@ -104,7 +113,7 @@ export async function listPosts(
 
   const { data, error, count } = await query
     .order('updated_at', { ascending: false })
-    .range(from, from + POSTS_PER_PAGE - 1);
+    .range(from, from + ADMIN_PER_PAGE - 1);
 
   if (error) throw new Error(`Failed to list posts: ${error.message}`);
 
@@ -256,16 +265,62 @@ export interface PageListItem {
   updated_at: string;
 }
 
+/** The page column list, shared so the paged and unpaged reads cannot diverge. */
+const PAGE_COLUMNS =
+  'id, slug, path, title, parent_id, template, status, published_at, updated_at';
+
+export interface PageListResult {
+  pages: PageListItem[];
+  total: number;
+}
+
 /**
- * All pages, ordered by path so the list reads as a tree without needing a
- * recursive query — 'projects' sorts immediately before 'projects/solar'.
+ * One page of pages, ordered by path so the list reads as a tree without
+ * needing a recursive query — 'projects' sorts immediately before
+ * 'projects/solar'.
+ *
+ * Paging by path rather than by date is what keeps that readable across the
+ * break: a parent still precedes its children globally, so page two can begin
+ * mid-subtree but is never out of order. Depth is derived from the path itself,
+ * so the indentation is right even when the parent is on the previous page.
  */
-export async function listPages(siteId: string): Promise<PageListItem[]> {
+export async function listPages(
+  siteId: string,
+  page = 1,
+): Promise<PageListResult> {
+  const supabase = await createClient();
+  const from = (Math.max(1, page) - 1) * ADMIN_PER_PAGE;
+
+  const { data, error, count } = await supabase
+    .from('pages')
+    .select(PAGE_COLUMNS, { count: 'exact' })
+    .eq('site_id', siteId)
+    .order('path')
+    .range(from, from + ADMIN_PER_PAGE - 1);
+
+  if (error) throw new Error(`Failed to list pages: ${error.message}`);
+  return { pages: (data ?? []) as PageListItem[], total: count ?? 0 };
+}
+
+/**
+ * EVERY page, unpaginated.
+ *
+ * For the two consumers that are a `<select>` rather than a table: the parent
+ * picker, and the homepage chooser on the Pages screen. Both have to offer
+ * pages the table is not currently showing — a dropdown silently narrowed to
+ * page one is a control that cannot reach most of its own options, and nothing
+ * about it would look broken.
+ *
+ * Unbounded on purpose. A site with more pages than fit in a `<select>` has a
+ * navigation problem this function cannot solve, and truncating here would make
+ * it invisible instead.
+ */
+export async function listAllPages(siteId: string): Promise<PageListItem[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('pages')
-    .select('id, slug, path, title, parent_id, template, status, published_at, updated_at')
+    .select(PAGE_COLUMNS)
     .eq('site_id', siteId)
     .order('path');
 
@@ -298,7 +353,9 @@ export async function listParentOptions(
   siteId: string,
   excludeId?: string,
 ): Promise<PageListItem[]> {
-  const pages = await listPages(siteId);
+  // listAllPages, not listPages: a parent picker limited to the first 20 pages
+  // cannot express most of the hierarchies it exists to build.
+  const pages = await listAllPages(siteId);
   if (!excludeId) return pages;
 
   const self = pages.find((page) => page.id === excludeId);
@@ -560,21 +617,35 @@ export interface RedirectListItem {
   created_at: string;
 }
 
+export interface RedirectListResult {
+  redirects: RedirectListItem[];
+  total: number;
+}
+
 /**
- * Every redirect for a site, source first.
+ * One page of redirects, source first.
  *
  * Ordered by from_path rather than creation date: the list is used to check
  * whether a given URL is already handled, and that is a lookup, not a history.
+ *
+ * Paginated because this is the table most likely to get very long — a
+ * WordPress migration needs one row per URL whose shape changed, which on a
+ * few hundred posts is a few hundred rows arriving at once.
  */
-export async function listRedirectRows(siteId: string): Promise<RedirectListItem[]> {
+export async function listRedirectRows(
+  siteId: string,
+  page = 1,
+): Promise<RedirectListResult> {
   const supabase = await createClient();
+  const from = (Math.max(1, page) - 1) * ADMIN_PER_PAGE;
 
-  const { data, error } = await supabase
+  const { data, error, count } = await supabase
     .from('redirects')
-    .select('id, from_path, to_path, status_code, created_at')
+    .select('id, from_path, to_path, status_code, created_at', { count: 'exact' })
     .eq('site_id', siteId)
-    .order('from_path');
+    .order('from_path')
+    .range(from, from + ADMIN_PER_PAGE - 1);
 
   if (error) throw new Error(`Failed to list redirects: ${error.message}`);
-  return (data ?? []) as RedirectListItem[];
+  return { redirects: (data ?? []) as RedirectListItem[], total: count ?? 0 };
 }
