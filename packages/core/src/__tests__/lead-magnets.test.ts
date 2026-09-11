@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { LeadMagnetTargetRow, TermRow } from '../database.types';
 import {
   expandCategoryIds,
+  explainLeadMagnetSchemaError,
   resolveLeadMagnet,
   toLeadMagnetOffer,
   type LeadMagnetWithTargets,
@@ -345,5 +346,71 @@ describe('toLeadMagnetOffer', () => {
     expect(offer.heading).toBe('Get the toolkit');
     expect(offer.collectName).toBe(true);
     expect(offer.buttonLabel).toBe('Send it to me');
+  });
+});
+
+describe('explainLeadMagnetSchemaError', () => {
+  /*
+   * This fired on a real deploy: the code shipped before
+   * 0011_lead_magnet_image.sql was applied, PostgREST could not resolve the
+   * `image:media(...)` embed, and the whole static build stopped on the first
+   * post. Failing is correct and documented — docs/DEPLOYMENT.md calls that
+   * window "not a degraded blog, it is no blog" — but the message said only
+   * that a relationship was missing from a schema cache, which does not tell
+   * anyone to go and run a migration.
+   */
+  const DRIFT = {
+    code: 'PGRST200',
+    message:
+      "Could not find a relationship between 'lead_magnets' and 'media' in the schema cache",
+  };
+
+  it('names the migrations to apply', () => {
+    const error = explainLeadMagnetSchemaError(DRIFT, 'Failed to load lead magnets');
+
+    expect(error.message).toContain('0011_lead_magnet_image.sql');
+    expect(error.message).toContain('0010_lead_magnets.sql');
+  });
+
+  // The other half of the diagnosis: applied, but PostgREST has not noticed.
+  it('offers the stale-cache reload as the alternative', () => {
+    const error = explainLeadMagnetSchemaError(DRIFT, 'Failed to load lead magnets');
+    expect(error.message).toContain('reload schema');
+  });
+
+  it('covers a missing table as well as a missing relationship', () => {
+    const error = explainLeadMagnetSchemaError(
+      { code: 'PGRST205', message: "Could not find the table 'public.lead_magnets'" },
+      'Failed to load lead magnets',
+    );
+
+    expect(error.message).toContain('0010_lead_magnets.sql');
+  });
+
+  it('keeps the original message in every case', () => {
+    expect(explainLeadMagnetSchemaError(DRIFT, 'Failed').message).toContain(
+      DRIFT.message,
+    );
+  });
+
+  /*
+   * Everything else passes straight through. A permissions failure or a
+   * timeout dressed up as "apply a migration" would send the next person
+   * looking in the wrong place entirely.
+   */
+  it('does not blame the schema for an unrelated failure', () => {
+    const error = explainLeadMagnetSchemaError(
+      { code: '42501', message: 'permission denied for table lead_magnets' },
+      'Failed to load lead magnets',
+    );
+
+    expect(error.message).toBe(
+      'Failed to load lead magnets: permission denied for table lead_magnets',
+    );
+  });
+
+  it('passes through an error carrying no code at all', () => {
+    const error = explainLeadMagnetSchemaError({ message: 'fetch failed' }, 'Failed');
+    expect(error.message).toBe('Failed: fetch failed');
   });
 });
