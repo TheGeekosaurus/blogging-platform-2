@@ -92,8 +92,41 @@ export async function generateMetadata(): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
     },
-    icons: site.favicon_url ? { icon: site.favicon_url } : undefined,
+    icons: iconsFor(site),
   };
+}
+
+/**
+ * The favicon each coded deployment ships, by slug.
+ *
+ * Committed to this repo rather than set through `sites.favicon_url`, which is
+ * the column this used to read and the only thing that read it. Nothing writes
+ * that column — the admin's settings form does not expose it — so on both
+ * Nanotom deployments it is null and the sites have been serving no favicon at
+ * all.
+ *
+ * The DB value still wins where one exists, so this is a default and not a
+ * replacement. Keyed by slug rather than "any coded site" because the two
+ * Nanotom brands happen to share one mark and a third coded site would not:
+ * adding it is a row here, the same way BODY_CLASS works below.
+ */
+const FAVICON: Partial<Record<'nntm-capital' | 'nntm-labs', string>> = {
+  'nntm-capital': '/brand/nanotom-mark.png',
+  'nntm-labs': '/brand/nanotom-mark.png',
+};
+
+function iconsFor(site: { favicon_url: string | null }): Metadata['icons'] {
+  if (site.favicon_url) return { icon: site.favicon_url };
+
+  const coded = codedSite();
+  const fallback = coded ? FAVICON[coded] : undefined;
+  /*
+   * Sized and typed explicitly: without them a 192px PNG is still used, but
+   * browsers cannot tell it apart from other candidates and some pick the
+   * smallest they can find. Undefined for a generic blog, which must not
+   * inherit another company's mark.
+   */
+  return fallback ? { icon: [{ url: fallback, type: 'image/png', sizes: '192x192' }] } : undefined;
 }
 
 /**
