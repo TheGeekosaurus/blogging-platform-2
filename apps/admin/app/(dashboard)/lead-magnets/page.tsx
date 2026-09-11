@@ -36,60 +36,97 @@ export default async function LeadMagnetsPage() {
           appears.
         </p>
       ) : (
-        <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
-          {magnets.map((magnet) => {
-            const leads = leadCounts.get(magnet.id) ?? 0;
+        /*
+          `wp-table`, like Posts, Pages and Redirects, and `overflow-x-auto` on
+          the wrapper rather than the table, so a narrow window scrolls the
+          table inside its own box instead of pushing the page sideways.
 
-            return (
-              <li key={magnet.id} className="flex flex-wrap items-center gap-3 py-3">
-                {magnet.image_url ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={magnet.image_url}
-                    alt=""
-                    className="h-9 w-9 shrink-0 rounded object-cover"
-                  />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="h-9 w-9 shrink-0 rounded border border-dashed border-slate-300"
-                  />
-                )}
+          This screen started as a <ul> matching Authors, which was the wrong
+          neighbour to copy: an author row is a face and a name, while an offer
+          carries five independent facts — whether it is live, where it
+          appears, how it is performing, and what automations know it as. Those
+          are columns, and reading them off a run-on line means comparing two
+          offers by counting commas.
+        */
+        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
+          <table className="wp-table">
+            <thead>
+              <tr>
+                <th scope="col">Offer</th>
+                <th scope="col">Status</th>
+                <th scope="col">Appears on</th>
+                <th scope="col">Leads</th>
+                <th scope="col">Key</th>
+              </tr>
+            </thead>
+            <tbody>
+              {magnets.map((magnet) => {
+                const leads = leadCounts.get(magnet.id) ?? 0;
 
-                <Link href={`/lead-magnets/${magnet.id}`} className="font-medium">
-                  {magnet.name}
-                </Link>
+                return (
+                  <tr key={magnet.id}>
+                    <td>
+                      <div className="flex items-start gap-2">
+                        {magnet.image_url ? (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={magnet.image_url}
+                            alt=""
+                            className="h-9 w-9 shrink-0 rounded object-cover"
+                          />
+                        ) : (
+                          <span
+                            aria-hidden="true"
+                            className="h-9 w-9 shrink-0 rounded border border-dashed border-slate-300"
+                          />
+                        )}
+                        <Link
+                          href={`/lead-magnets/${magnet.id}`}
+                          className="font-semibold"
+                        >
+                          {magnet.name}
+                        </Link>
+                      </div>
+                    </td>
 
-                {magnet.active ? null : (
-                  <span className="rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
-                    Off
-                  </span>
-                )}
+                    <td className="whitespace-nowrap">
+                      {magnet.active ? (
+                        <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-xs font-medium text-emerald-900">
+                          live
+                        </span>
+                      ) : (
+                        <span className="rounded bg-slate-200 px-1.5 py-0.5 text-xs font-medium text-slate-700">
+                          off
+                        </span>
+                      )}
+                    </td>
 
-                {/*
-                  Called out rather than left to be inferred from a zero. A saved,
-                  live offer that is aimed at nothing renders nowhere and looks
-                  from every other column like it is working.
-                */}
-                {magnet.targetCount === 0 ? (
-                  <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
-                    Appears nowhere
-                  </span>
-                ) : (
-                  <span className="text-sm text-slate-500">
-                    {magnet.targetCount} {magnet.targetCount === 1 ? 'rule' : 'rules'}
-                  </span>
-                )}
+                    {/*
+                      Called out rather than left to be inferred from a zero. A
+                      saved, live offer aimed at nothing renders nowhere and
+                      looks, from every other column, like it is working.
+                    */}
+                    <td className="whitespace-nowrap">
+                      {magnet.targetCount === 0 ? (
+                        <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900">
+                          nowhere
+                        </span>
+                      ) : (
+                        `${magnet.targetCount} ${magnet.targetCount === 1 ? 'rule' : 'rules'}`
+                      )}
+                    </td>
 
-                <span className="text-sm text-slate-500">
-                  {leads} {leads === 1 ? 'lead' : 'leads'}
-                </span>
+                    <td className="whitespace-nowrap">{leads}</td>
 
-                <code className="text-xs text-slate-400">{magnet.slug}</code>
-              </li>
-            );
-          })}
-        </ul>
+                    <td>
+                      <code className="text-xs">{magnet.slug}</code>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <p className="mt-8 max-w-2xl text-sm text-slate-500">

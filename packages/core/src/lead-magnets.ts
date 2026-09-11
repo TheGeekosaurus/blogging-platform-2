@@ -264,6 +264,39 @@ export async function getLeadMagnetBySlug(
 }
 
 /**
+ * Turn a PostgREST schema error into one that names the fix.
+ *
+ * PGRST200 means the relationship an embed needs is not in PostgREST's schema
+ * cache, and PGRST205 means the table itself is not. In practice both say the
+ * same thing: the deployed code is ahead of the database.
+ *
+ * docs/DEPLOYMENT.md already warns about that window in as many words — "not a
+ * degraded blog, it is no blog" — and failing the build is the intended
+ * behaviour, not something to swallow. What it should not do is fail with
+ * `Could not find a relationship between 'lead_magnets' and 'media' in the
+ * schema cache`, which is a true sentence that tells you nothing about what to
+ * run. This is the same courtesy env.ts extends to a missing variable by naming
+ * the file to copy.
+ */
+export function explainLeadMagnetSchemaError(
+  error: { code?: string; message: string },
+  what: string,
+): Error {
+  const drift = error.code === 'PGRST200' || error.code === 'PGRST205';
+
+  if (!drift) return new Error(`${what}: ${error.message}`);
+
+  return new Error(
+    `${what}: ${error.message}\n\n` +
+      'This means the database is behind the code. Apply the lead-magnet ' +
+      'migrations — supabase/migrations/0010_lead_magnets.sql and ' +
+      '0011_lead_magnet_image.sql — to this project, then redeploy. If they ARE ' +
+      "applied, PostgREST is serving a stale schema cache: run \"notify pgrst, " +
+      "'reload schema';\" in the SQL editor.",
+  );
+}
+
+/**
  * Every active magnet for a site, with its rules.
  *
  * All of them in one query rather than a filtered lookup per post: a site runs
@@ -290,7 +323,7 @@ export async function listActiveLeadMagnets(
     .eq('site_id', siteId)
     .eq('active', true);
 
-  if (error) throw new Error(`Failed to load lead magnets: ${error.message}`);
+  if (error) throw explainLeadMagnetSchemaError(error, 'Failed to load lead magnets');
 
   /*
    * PostgREST types a to-one embed as possibly-array, exactly as the post

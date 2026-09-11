@@ -9,7 +9,7 @@ import type {
   PostStatus,
   TermRow,
 } from '@blog/core';
-import { mediaPublicUrl } from '@blog/core';
+import { explainLeadMagnetSchemaError, mediaPublicUrl } from '@blog/core';
 
 import { createClient } from './supabase/server';
 
@@ -431,7 +431,9 @@ export async function listLeadMagnets(siteId: string): Promise<LeadMagnetListIte
     .order('active', { ascending: false })
     .order('name');
 
-  if (error) throw new Error(`Failed to list lead magnets: ${error.message}`);
+  // Same embed as the blog's query, so the same schema-drift failure, and the
+  // admin is where someone would be going to apply the migration.
+  if (error) throw explainLeadMagnetSchemaError(error, 'Failed to list lead magnets');
 
   return (data ?? []).map((row) => {
     const { targets, image, ...magnet } = row as LeadMagnetRow & {

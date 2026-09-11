@@ -198,6 +198,23 @@ needs a `/blog` prefix. Leave the variable unset if you have no old subdomain.
 
 ### Lead capture, if you are using it
 
+Apply `0010_lead_magnets.sql` and `0011_lead_magnet_image.sql` **before** the
+first deploy that includes the feature. This is the ordering rule from step 1
+and it bites here specifically, because the card's query embeds two related
+tables:
+
+```
+Error occurred prerendering page "/blog/…"
+Failed to load lead magnets: Could not find a relationship between
+'lead_magnets' and 'media' in the schema cache
+```
+
+That is the whole build stopping on the first post, not one missing card. If
+you see it, apply the migrations and redeploy. If they are already applied,
+PostgREST is serving a stale schema cache — run `notify pgrst, 'reload schema';`
+in the SQL editor.
+
+
 `LEAD_WEBHOOK_URL` is what actually delivers a lead magnet: the blog stores the
 lead and then POSTs it to that URL, and whatever is on the other end — n8n, a
 Supabase function, a CRM — sends the email. Nothing in this codebase sends mail.
