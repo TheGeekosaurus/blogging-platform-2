@@ -384,6 +384,15 @@ pnpm wp-import    # WordPress import CLI (--help for options)
 
 ## Notes
 
+- Every long admin table — Posts, Pages, Links, Redirects — pages at
+  `ADMIN_PER_PAGE` (20) through one `<Pagination>` component. Posts, Pages and
+  Redirects page in the database with `.range()`; the two Links views slice a
+  list already in memory, because the whole graph has to be built to know any
+  incoming count at all. The trap, guarded by
+  `apps/admin/__tests__/pagination.test.ts`: the Pages screen paginates its
+  table but its homepage selector and parent picker read `listAllPages`, since a
+  `<select>` narrowed to page one cannot reach most of its own options and does
+  not look broken.
 - Post permalinks are `/blog/<slug>`; pages own the root. Static route segments
   outrank the pages catch-all in Next's matcher, so a page can never shadow the
   blog. `apps/blog/__tests__/route-config.test.ts` guards the related trap:

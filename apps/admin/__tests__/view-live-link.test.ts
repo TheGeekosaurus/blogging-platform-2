@@ -68,11 +68,18 @@ describe('the lists only link to what is actually served', () => {
   });
 
   it('builds both URLs from the site, never by hand', () => {
-    expect(read('app', '(dashboard)', 'posts', 'page.tsx')).toContain(
-      'pageUrl(site, postPath(post.slug))',
+    /*
+     * Matched on the CALL shape rather than an exact string. The invariant is
+     * that the URL comes from pageUrl() over a path helper — never hand-built
+     * from base_url, which is how a trailing slash or the /blog prefix goes
+     * missing. The loop variable's name is not part of that, and pinning it
+     * failed this test on a rename that changed nothing it cares about.
+     */
+    expect(read('app', '(dashboard)', 'posts', 'page.tsx')).toMatch(
+      /pageUrl\(site, postPath\(\w+\.slug\)\)/,
     );
-    expect(read('app', '(dashboard)', 'pages', 'page.tsx')).toContain(
-      'pageUrl(site, pagePath(page.path))',
+    expect(read('app', '(dashboard)', 'pages', 'page.tsx')).toMatch(
+      /pageUrl\(site, pagePath\(\w+\.path\)\)/,
     );
   });
 

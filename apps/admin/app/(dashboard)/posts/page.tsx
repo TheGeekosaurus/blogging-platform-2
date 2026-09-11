@@ -2,9 +2,10 @@ import Link from 'next/link';
 
 import { formatPostDate, isLive, pageUrl, postPath, type PostStatus } from '@blog/core';
 
+import { Pagination, parsePage } from '@/components/pagination';
 import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
-import { listAllTerms, listPosts, POSTS_PER_PAGE } from '@/lib/queries';
+import { ADMIN_PER_PAGE, listAllTerms, listPosts } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,14 +45,14 @@ export default async function PostsPage({
     | 'all';
   const termId = typeof params.term === 'string' ? params.term : undefined;
   const search = typeof params.q === 'string' ? params.q : undefined;
-  const page = Number(typeof params.page === 'string' ? params.page : '1') || 1;
+  const page = parsePage(typeof params.page === 'string' ? params.page : undefined);
 
   const [{ posts, total }, terms] = await Promise.all([
     listPosts(site.id, { status, termId, search, page }),
     listAllTerms(site.id),
   ]);
 
-  const pageCount = Math.max(1, Math.ceil(total / POSTS_PER_PAGE));
+  const pageCount = Math.max(1, Math.ceil(total / ADMIN_PER_PAGE));
   const categories = terms.filter((term) => term.kind === 'category');
 
   return (
@@ -184,27 +185,22 @@ export default async function PostsPage({
         </div>
       )}
 
-      {pageCount > 1 ? (
-        <nav className="mt-6 flex justify-between text-sm">
-          {page > 1 ? (
-            <Link href={`/posts${buildQuery({ status: status === 'all' ? undefined : status, term: termId, q: search, page: String(page - 1) })}`}>
-              ← Newer
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-slate-500">
-            Page {page} of {pageCount}
-          </span>
-          {page < pageCount ? (
-            <Link href={`/posts${buildQuery({ status: status === 'all' ? undefined : status, term: termId, q: search, page: String(page + 1) })}`}>
-              Older →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
-      ) : null}
+      {/* Newer/Older rather than Previous/Next: this table is ordered by edit
+          date, so the reader is moving through time, not through an index. */}
+      <Pagination
+        basePath="/posts"
+        page={page}
+        pageCount={pageCount}
+        total={total}
+        label="post"
+        prevLabel="← Newer"
+        nextLabel="Older →"
+        query={{
+          status: status === 'all' ? undefined : status,
+          term: termId,
+          q: search,
+        }}
+      />
     </>
   );
 }
