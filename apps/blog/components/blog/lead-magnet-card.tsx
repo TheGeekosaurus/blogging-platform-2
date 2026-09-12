@@ -5,22 +5,19 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import { CAPTURE_ENDPOINT, hide, isHidden, readUtm } from '@/lib/lead-magnet';
+import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
 
 /**
- * The lead capture card: an offer, an email field, and a way to make it go away.
+ * The lead capture card: an offer, an email field, and a way out of it.
  *
- * This is the blog's third client component, after the theme control and the
- * contents list. It has to be one — a form that posts and then swaps itself for
+ * PRESENTATIONAL. It owns the submission and nothing else — whether it is on
+ * screen, and what closing it means, belong to the popup that wraps it (see
+ * lead-magnet-popover.tsx). Splitting them is what lets the same card be the
+ * body of an overlay today and of something else later without carrying a
+ * placement's assumptions inside it.
+ *
+ * It has to be a client component: a form that posts and then swaps itself for
  * a download link is interaction, not content.
- *
- * WHAT IT IS NOT: an interstitial. It renders in the layout, in the sidebar
- * rail or the article flow, and it never covers the article. That is a
- * deliberate limit rather than a missing feature. Google treats a popup that
- * obscures content on mobile as an intrusive interstitial and ranks the page
- * down for it, and a blog whose whole traffic model is search should not be
- * spending rankings on a form. The card still gets the sticky rail — the most
- * valuable real estate on the page — for free.
  *
  * The three states are idle, sending and done, and `done` is terminal: there is
  * no path back to the form once an address has been accepted. An error returns
@@ -41,33 +38,27 @@ type Status = 'idle' | 'sending' | 'done';
  */
 export function LeadMagnetCard({
   offer,
+  onClose,
+  onConverted,
   className = '',
 }: {
   offer: LeadMagnetOffer;
+  /** Pressing the cross. What that does is the wrapper's decision, not this one's. */
+  onClose: () => void;
+  /** Fired once an address has been accepted, so the wrapper can remember it. */
+  onConverted: () => void;
   className?: string;
 }) {
   const fieldId = useId();
 
-  /*
-   * Starts visible and is corrected on mount, for the same reason the theme
-   * control starts at 'system': the server cannot know what this reader has
-   * dismissed, and reading localStorage during render is a hydration mismatch.
-   *
-   * Starting visible rather than hidden is the right way round. The card is
-   * part of the prerendered HTML, so it is on the page before React runs
-   * either way; starting hidden would make it appear and then vanish, which
-   * reads as a bug. This way it is briefly present for a reader who dismissed
-   * it, then gone.
-   */
-  const [hidden, setHidden] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [assetUrl, setAssetUrl] = useState<string | null>(null);
 
   /*
-   * Set once the response lands, and checked before every setState after an
-   * await. Without it, a reader who dismisses the card while the request is in
-   * flight gets it re-rendered into the success state on top of them.
+   * Checked before every setState after an await. The wrapper unmounts this
+   * when the popup is minimised, so a reader who closes it mid-submission
+   * would otherwise have the response set state on a component that is gone.
    */
   const live = useRef(true);
   useEffect(() => {
@@ -77,14 +68,6 @@ export function LeadMagnetCard({
     };
   }, []);
 
-  // Corrected on mount, never during render: the server cannot know what this
-  // reader has dismissed, and reading localStorage while rendering is a
-  // hydration mismatch.
-  useEffect(() => {
-    if (isHidden(offer.slug)) setHidden(true);
-  }, [offer.slug]);
-
-  if (hidden) return null;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -131,12 +114,12 @@ export function LeadMagnetCard({
       setStatus('done');
 
       /*
-       * Recorded as a conversion, but the card is NOT removed — `hidden` stays
-       * false and the success state renders in place. Whipping the card away
-       * at the moment it finally has something to give the reader would take
-       * the download link with it. The record only affects the next article.
+       * Reported, not acted on. The card stays exactly where it is and shows
+       * the success state — whipping it away at the moment it finally has
+       * something to give the reader would take the download link with it.
+       * What the wrapper does with this only affects the next article.
        */
-      hide(offer.slug, 'converted');
+      onConverted();
     } catch {
       if (!live.current) return;
       // Network-level failure: no response at all. Distinguished from a 4xx
@@ -167,12 +150,9 @@ export function LeadMagnetCard({
       */}
       <button
         type="button"
-        onClick={() => {
-          hide(offer.slug, 'dismissed');
-          setHidden(true);
-        }}
-        aria-label="Dismiss this offer"
-        title="Dismiss"
+        onClick={onClose}
+        aria-label="Close this offer"
+        title="Close"
         className="absolute right-2 top-2 z-10 rounded-full bg-[var(--color-surface)]/80 p-1.5 text-[var(--color-ink-muted)] backdrop-blur-sm transition-colors hover:text-[var(--color-ink)]"
       >
         <svg

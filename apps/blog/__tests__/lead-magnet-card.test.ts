@@ -33,8 +33,16 @@ const OFFER: LeadMagnetOffer = {
   },
 };
 
+const noop = () => {};
+
 const render = (offer: Partial<LeadMagnetOffer> = {}) =>
-  renderToStaticMarkup(createElement(LeadMagnetCard, { offer: { ...OFFER, ...offer } }));
+  renderToStaticMarkup(
+    createElement(LeadMagnetCard, {
+      offer: { ...OFFER, ...offer },
+      onClose: noop,
+      onConverted: noop,
+    }),
+  );
 
 describe('the dismiss control', () => {
   /*
@@ -70,7 +78,7 @@ describe('the dismiss control', () => {
 
     // Reaching the way out should not mean tabbing through the fields being
     // declined, and DOM order is what decides that.
-    expect(html.indexOf('Dismiss this offer')).toBeLessThan(html.indexOf('<img'));
+    expect(html.indexOf('Close this offer')).toBeLessThan(html.indexOf('<img'));
   });
 
   it('keeps a long headline from running under it', () => {
@@ -80,7 +88,7 @@ describe('the dismiss control', () => {
   it('carries an accessible name, since it is icon-only', () => {
     const html = render();
 
-    expect(html).toContain('aria-label="Dismiss this offer"');
+    expect(html).toContain('aria-label="Close this offer"');
     // The glyph itself says nothing worth announcing twice.
     expect(html).toContain('aria-hidden="true"');
   });
@@ -128,6 +136,6 @@ describe('what the card ships to the browser', () => {
     const html = render({ image: null });
 
     expect(html).not.toContain('<img');
-    expect(html).toContain('Dismiss this offer');
+    expect(html).toContain('Close this offer');
   });
 });

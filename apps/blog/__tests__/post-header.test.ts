@@ -320,7 +320,16 @@ describe('the Figma dividers', () => {
      * stretching, so this cannot be fixed by border placement alone.
      */
     expect(page).not.toContain('lg:self-start');
-    expect(page).toMatch(/lg:border-l[\s\S]{0,200}<aside/);
+
+    /*
+     * Asserted as "the rule is not on the aside, and the aside comes after the
+     * element carrying it" rather than as a character distance between the two.
+     * The distance was a proxy for "the next element", and a comment added
+     * between them broke it while the arrangement was still correct — a test
+     * that fails on prose is a test that gets deleted rather than read.
+     */
+    expect(page).not.toMatch(/<aside[^>]*lg:border-l/);
+    expect(page).toMatch(/lg:border-l[\s\S]*?<aside/);
   });
 
   it('insets the content from the divider without moving the rules off it', () => {
