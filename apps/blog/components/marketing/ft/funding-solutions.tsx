@@ -8,7 +8,7 @@ import {
   EquipmentIcon,
   GrowthIcon,
 } from './icons';
-import { Chip, CONTAINER } from './primitives';
+import { Chip, CONTAINER, SectionHead } from './primitives';
 
 /*
  * /funding-solutions — the loans page.
@@ -19,8 +19,8 @@ import { Chip, CONTAINER } from './primitives';
  * podcast, this gives a funding product — the shapes carry over, the content
  * does not.
  *
- * Hero, then one section per funding product. The rest of the page
- * (requirements, closing CTA) comes section by section.
+ * Hero, then the grey header band over one block per funding product. The
+ * rest of the page (requirements, closing CTA) comes section by section.
  */
 
 /* ---------------------------------------------------------------------------
@@ -110,12 +110,17 @@ function Product({
   const detail = LOAN_PRODUCTS[product.cta.href];
   const Icon = ICONS[detail.icon];
 
-  /* The section's heading is its own label, so the id is derived from the page
+  /* The block's heading is its own label, so the id is derived from the page
      the product links to — unique per product and stable across reordering. */
   const headingId = `ft-loans-${product.cta.href.split('/').pop()}`;
 
   return (
-    <section aria-labelledby={headingId} className="border-b border-[var(--ft-line)]">
+    /*
+      An <article> rather than a <section>: each of these is a self-contained
+      description of one product, and they now sit INSIDE the section the header
+      band labels rather than being siblings of it.
+    */
+    <article aria-labelledby={headingId} className="border-b border-[var(--ft-line)]">
       {/*
         The template's divider runs the full height between the columns, so it
         is a border on the right column rather than a rule between two cards —
@@ -126,12 +131,14 @@ function Product({
           <Icon className="h-10 w-10 text-[var(--ft-accent)]" />
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
-            <h2
+            {/* h3, under the band's h2 — the level follows the grouping, not
+                the size, and the size is unchanged. */}
+            <h3
               id={headingId}
               className="font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.6vw,2rem)] font-medium leading-[1.15] text-[var(--ft-ink)]"
             >
               {product.title}
-            </h2>
+            </h3>
             {featured ? (
               <span className="shrink-0 rounded-full bg-[var(--ft-card-raised)] px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-[var(--ft-accent)]">
                 {LOANS.featuredLabel}
@@ -170,9 +177,9 @@ function Product({
         </div>
 
         <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
-          <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
+          <h4 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
             {detail.lead}
-          </h3>
+          </h4>
           <p className="mt-4 max-w-[62ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
             {product.body}
           </p>
@@ -184,7 +191,7 @@ function Product({
           </dl>
         </div>
       </div>
-    </section>
+    </article>
   );
 }
 
@@ -193,14 +200,28 @@ export function FundingSolutions() {
     <div className="ft-surface">
       <Hero />
 
-      {/*
-        In carousel order, so someone arriving from the homepage meets the
-        products in the order they last saw them. The first is the flagship and
-        is the only one that carries the "Featured" pill.
-      */}
-      {FUNDING_OPTIONS.cards.map((card, index) => (
-        <Product key={card.title} product={card} featured={index === 0} />
-      ))}
+      <section aria-labelledby="ft-loans-options">
+        {/*
+          The homepage's grey header band, reused rather than restyled — it is
+          what separates one band of this design from the next, and without it
+          the hero ran straight into the first product with nothing naming what
+          the list below was.
+        */}
+        <SectionHead
+          id="ft-loans-options"
+          label={LOANS.optionsHead.label}
+          heading={LOANS.optionsHead.heading}
+        />
+
+        {/*
+          In carousel order, so someone arriving from the homepage meets the
+          products in the order they last saw them. The first is the flagship
+          and is the only one that carries the "Featured" pill.
+        */}
+        {FUNDING_OPTIONS.cards.map((card, index) => (
+          <Product key={card.title} product={card} featured={index === 0} />
+        ))}
+      </section>
     </div>
   );
 }

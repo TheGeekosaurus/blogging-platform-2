@@ -398,6 +398,20 @@ export const LOANS = {
       'same day — with approvals from $15,000 to $5,000,000.',
   },
 
+  /*
+   * The grey header band over the product list, the same one the homepage puts
+   * over each of its sections.
+   *
+   * No count in it, for the reason given above the hero: the homepage tile says
+   * six funding types, the nav lists five and there are four sections below
+   * this band. A band reading "Four ways…" would be contradicted by the header
+   * directly above it.
+   */
+  optionsHead: {
+    label: 'Our Funding Options',
+    heading: 'Compare every option we fund.',
+  },
+
   /** The pill on the first product in the list. Only the first one gets it. */
   featuredLabel: 'Featured',
   /** Label above the one-line "what this is good at" on every product. */
