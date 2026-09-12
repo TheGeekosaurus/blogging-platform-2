@@ -398,20 +398,70 @@ export const LOANS = {
       'same day — with approvals from $15,000 to $5,000,000.',
   },
 
-  /*
-   * The flagship product, in the template's featured slot.
-   *
-   * Its title, description and CTA are read from FUNDING_OPTIONS.cards[0] rather
-   * than restated here, so the homepage carousel and this page cannot end up
-   * describing one product two ways.
-   *
-   * The three figures below ARE restated, because the source is prose — that
-   * card's points read "Approvals up to $1,500,000", not a number a component
-   * can format. They have to agree with those points: change one, change both.
-   */
-  featured: {
-    label: 'Featured',
-    bestForLabel: 'Best for',
+  /** The pill on the first product in the list. Only the first one gets it. */
+  featuredLabel: 'Featured',
+  /** Label above the one-line "what this is good at" on every product. */
+  bestForLabel: 'Best for',
+} as const;
+
+/**
+ * The extra copy each funding product needs to fill a section on this page.
+ *
+ * WHAT IS NOT HERE, on purpose: the title, the description and the CTA. Those
+ * are read from the matching FUNDING_OPTIONS card, so the homepage carousel and
+ * this page cannot end up describing one product two different ways.
+ *
+ * WHY THE STATS ARE RESTATED ANYWAY. The source is prose — a card's points read
+ * "Approvals up to $1,500,000" and "Repayment from 12 to 84 months", not
+ * numbers a component can format into a box. Each figure below is condensed
+ * from one specific point of its own card and has to agree with it: change one,
+ * change both. Three per product, and never a figure the section's `lead`
+ * already says, so the row adds facts instead of repeating them.
+ *
+ * The carousel on the homepage shows all six points of each card. This page
+ * shows three figures instead, which is the difference between a teaser and a
+ * reference — if these ever grow into the full six, the two become the same
+ * block in two layouts and one of them should go.
+ *
+ * TERMS FOR EQUIPMENT FINANCING AND WORKING CAPITAL ARE STILL UNVERIFIED, for
+ * the reason set out at length above their cards in FUNDING_OPTIONS: those two
+ * products' figures are industry-standard ranges, not Nanotom's own program
+ * sheets. The stats below inherit that exactly — they are condensations of
+ * unverified numbers, so they are unverified too.
+ *
+ * `icon` keys map to the icons in ./icons via the map in funding-solutions.tsx,
+ * the same indirection HERO.tiles uses, so this file stays free of JSX.
+ */
+type ProductDetail = {
+  icon: 'coins' | 'growth' | 'equipment' | 'cashflow';
+  /** Reworded from the card's `tag` where it has one — see the note below. */
+  bestFor: string;
+  /** The section's own heading, above the card's description. */
+  lead: string;
+  stats: readonly { readonly label: string; readonly value: string }[];
+};
+
+/**
+ * Keyed by the product's own page, not by position.
+ *
+ * The Record's key type is the union of the cards' CTA hrefs, so adding a fifth
+ * card to FUNDING_OPTIONS without writing its section copy is a compile error
+ * rather than a product that silently vanishes from this page. Keying by index
+ * would pair them by list order and mis-pair them the first time someone
+ * reorders the carousel.
+ *
+ * Four entries, where the nav promises five funding types. BUSINESS LOANS is
+ * the missing one: it has no card in FUNDING_OPTIONS, no figures anywhere in
+ * this repo, and nothing on the live GoHighLevel site to take them from. It is
+ * left out rather than written from the category's general shape, because this
+ * page takes live credit applications and an invented term is a term somebody
+ * gets held to. Add the card first, and this map will demand the copy.
+ */
+export const LOAN_PRODUCTS: Readonly<
+  Record<(typeof FUNDING_OPTIONS.cards)[number]['cta']['href'], ProductDetail>
+> = {
+  '/funding-solutions/line-of-credit': {
+    icon: 'coins',
     /*
      * The carousel's tag for this product reads "Great for keeping funds on
      * hand" as a standalone pill. Under a "Best for" label that becomes "Best
@@ -420,17 +470,40 @@ export const LOANS = {
      */
     bestFor: 'Keeping funds on hand',
     lead: 'Draw what you need. Pay down when cash flow allows.',
-    /* The headline figure, in the slot the template gives the artwork. */
-    headline: { label: 'Approval up to', value: '$1,500,000' },
-    /*
-     * Three FURTHER facts, not including the headline figure — showing it twice
-     * on one screen wastes the row and makes the product look thinner than it
-     * is. One per point in the source card: terms, draws, early payoff.
-     */
     stats: [
+      { label: 'Approval up to', value: '$1,500,000' },
       { label: 'Terms', value: 'Up to 36 months' },
-      { label: 'Draws & paydowns', value: 'Unlimited' },
       { label: 'Early payoff', value: 'No fees' },
     ],
   },
-} as const;
+  '/funding-solutions/revenue-based-financing': {
+    icon: 'growth',
+    bestFor: 'Protecting cash flow while you ramp',
+    lead: 'Pay interest only for up to a year, and draw more whenever you need it.',
+    stats: [
+      { label: 'Approval up to', value: '$750,000' },
+      { label: 'Interest-only period', value: 'Up to 52 weeks' },
+      { label: 'Rollover option', value: 'Up to 2 years' },
+    ],
+  },
+  '/funding-solutions/equipment-financing': {
+    icon: 'equipment',
+    bestFor: 'Buying the asset the work depends on',
+    lead: 'The equipment secures the loan, so it earns while you pay for it.',
+    stats: [
+      { label: 'Terms', value: '12 to 84 months' },
+      { label: 'Application only', value: 'Under $250,000' },
+      { label: 'Funding', value: 'Often within two days' },
+    ],
+  },
+  '/funding-solutions/working-capital': {
+    icon: 'cashflow',
+    bestFor: 'Covering payroll, inventory and invoice gaps',
+    lead: 'One lump sum, a fixed payoff, and a payment matched to your cash cycle.',
+    stats: [
+      { label: 'Amounts', value: '$15,000 to $2,000,000' },
+      { label: 'Terms', value: '3 to 36 months' },
+      { label: 'Funding', value: 'Same day' },
+    ],
+  },
+};

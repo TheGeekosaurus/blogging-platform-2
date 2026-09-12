@@ -1,7 +1,13 @@
 import Link from 'next/link';
 
-import { FUNDING_OPTIONS, LOANS } from './content';
-import { ArrowUpRightIcon, CoinsIcon } from './icons';
+import { FUNDING_OPTIONS, LOAN_PRODUCTS, LOANS } from './content';
+import {
+  ArrowUpRightIcon,
+  CashFlowIcon,
+  CoinsIcon,
+  EquipmentIcon,
+  GrowthIcon,
+} from './icons';
 import { Chip, CONTAINER } from './primitives';
 
 /*
@@ -9,11 +15,12 @@ import { Chip, CONTAINER } from './primitives';
  *
  * Built from the "Podcasts Page" frame of the FutureTech Figma template, which
  * is a listing page: an oversized headline paired with a paragraph set against
- * its baseline, then a split feature block. What that template gives a podcast,
- * this gives a funding product — the shapes carry over, the content does not.
+ * its baseline, then a run of split feature blocks. What that template gives a
+ * podcast, this gives a funding product — the shapes carry over, the content
+ * does not.
  *
- * Two sections so far, hero and the featured product. The rest of the page (the
- * full product list, requirements, CTA) comes section by section.
+ * Hero, then one section per funding product. The rest of the page
+ * (requirements, closing CTA) comes section by section.
  */
 
 /* ---------------------------------------------------------------------------
@@ -49,8 +56,16 @@ function Hero() {
 }
 
 /* ---------------------------------------------------------------------------
- * The featured product
+ * The product sections
  * ------------------------------------------------------------------------- */
+
+/** Resolves LOAN_PRODUCTS' `icon` keys, the way the homepage resolves tiles'. */
+const ICONS = {
+  coins: CoinsIcon,
+  growth: GrowthIcon,
+  equipment: EquipmentIcon,
+  cashflow: CashFlowIcon,
+} as const;
 
 /**
  * The template's three boxed figures under the feature's description.
@@ -70,16 +85,37 @@ function StatBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Featured() {
-  /*
-   * Read, not restated: the homepage carousel leads with this same product, and
-   * two hand-written descriptions of one credit line is how they drift apart.
-   */
-  const product = FUNDING_OPTIONS.cards[0];
-  const { featured } = LOANS;
+/**
+ * One funding product, in the template's feature block.
+ *
+ * `product` is the card from FUNDING_OPTIONS — read, not restated, because the
+ * homepage carousel leads with these same four and two hand-written
+ * descriptions of one credit line is how they drift apart. Everything this
+ * layout needs beyond the card comes from LOAN_PRODUCTS, keyed by the product's
+ * own page.
+ *
+ * The template's right column opens with the podcast's artwork. There is no
+ * product photography for a credit line, and the gradient panel that stood in
+ * for it here was an empty box with a number in it — so the column now starts
+ * on the copy, and the number it was carrying moved into the stat row below,
+ * where the other figures are.
+ */
+function Product({
+  product,
+  featured,
+}: {
+  product: (typeof FUNDING_OPTIONS.cards)[number];
+  featured: boolean;
+}) {
+  const detail = LOAN_PRODUCTS[product.cta.href];
+  const Icon = ICONS[detail.icon];
+
+  /* The section's heading is its own label, so the id is derived from the page
+     the product links to — unique per product and stable across reordering. */
+  const headingId = `ft-loans-${product.cta.href.split('/').pop()}`;
 
   return (
-    <section aria-labelledby="ft-loans-featured" className="border-b border-[var(--ft-line)]">
+    <section aria-labelledby={headingId} className="border-b border-[var(--ft-line)]">
       {/*
         The template's divider runs the full height between the columns, so it
         is a border on the right column rather than a rule between two cards —
@@ -87,30 +123,40 @@ function Featured() {
       */}
       <div className={`${CONTAINER} lg:flex lg:gap-0`}>
         <div className="py-14 lg:w-[38%] lg:shrink-0 lg:py-20 lg:pr-12">
-          <CoinsIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+          <Icon className="h-10 w-10 text-[var(--ft-accent)]" />
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             <h2
-              id="ft-loans-featured"
+              id={headingId}
               className="font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.6vw,2rem)] font-medium leading-[1.15] text-[var(--ft-ink)]"
             >
               {product.title}
             </h2>
-            <span className="shrink-0 rounded-full bg-[var(--ft-card-raised)] px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-[var(--ft-accent)]">
-              {featured.label}
-            </span>
+            {featured ? (
+              <span className="shrink-0 rounded-full bg-[var(--ft-card-raised)] px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-[var(--ft-accent)]">
+                {LOANS.featuredLabel}
+              </span>
+            ) : null}
           </div>
 
           {/*
             The template puts a labelled fact and the section's button together
             in one bordered card. Here the fact is what the product is best at,
-            which is the one thing a reader scanning six options needs.
+            which is the one thing a reader scanning the list needs.
           */}
-          <div className="mt-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5">
-            <div>
-              <p className="text-sm text-[var(--ft-muted)]">{featured.bestForLabel}</p>
-              <p className="mt-1 max-w-[22ch] text-[1.0625rem] leading-[1.35] text-[var(--ft-ink)]">
-                {featured.bestFor}
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:flex-nowrap">
+            {/*
+              `min-w-0` is what keeps the button on the same line as the fact.
+              Without it the text block's min-content width is its longest word
+              plus the whole unwrapped phrase, so anything longer than "Keeping
+              funds on hand" shoved the button onto its own row — the featured
+              product kept the template's layout and the other three quietly
+              did not. Now the phrase wraps inside the row instead.
+            */}
+            <div className="min-w-0 flex-1">
+              <p className="text-sm text-[var(--ft-muted)]">{LOANS.bestForLabel}</p>
+              <p className="mt-1 text-[1.0625rem] leading-[1.35] text-[var(--ft-ink)]">
+                {detail.bestFor}
               </p>
             </div>
             <Link
@@ -124,32 +170,15 @@ function Featured() {
         </div>
 
         <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
-          {/*
-            The template opens this column with the podcast's artwork. There is
-            no product photography for a credit line and inventing some would be
-            worse than not having it, so the slot carries the number a borrower
-            actually came to find. Swap it for real artwork when there is any.
-          */}
-          <div className="flex aspect-[16/7] items-center justify-center rounded-2xl border border-[var(--ft-line)] bg-[linear-gradient(140deg,var(--ft-card-raised),var(--ft-card))]">
-            <div className="px-6 text-center">
-              <p className="text-sm uppercase tracking-[0.14em] text-[var(--ft-muted)]">
-                {featured.headline.label}
-              </p>
-              <p className="mt-2 font-[family-name:var(--font-headline)] text-[clamp(2.5rem,6vw,4rem)] font-semibold leading-none text-[var(--ft-accent)]">
-                {featured.headline.value}
-              </p>
-            </div>
-          </div>
-
-          <h3 className="mt-10 font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
-            {featured.lead}
+          <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
+            {detail.lead}
           </h3>
           <p className="mt-4 max-w-[62ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
             {product.body}
           </p>
 
           <dl className="mt-8 grid gap-4 sm:grid-cols-3">
-            {featured.stats.map((stat) => (
+            {detail.stats.map((stat) => (
               <StatBox key={stat.label} label={stat.label} value={stat.value} />
             ))}
           </dl>
@@ -163,7 +192,15 @@ export function FundingSolutions() {
   return (
     <div className="ft-surface">
       <Hero />
-      <Featured />
+
+      {/*
+        In carousel order, so someone arriving from the homepage meets the
+        products in the order they last saw them. The first is the flagship and
+        is the only one that carries the "Featured" pill.
+      */}
+      {FUNDING_OPTIONS.cards.map((card, index) => (
+        <Product key={card.title} product={card} featured={index === 0} />
+      ))}
     </div>
   );
 }

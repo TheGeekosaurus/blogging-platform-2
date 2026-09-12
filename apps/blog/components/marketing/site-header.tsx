@@ -6,20 +6,49 @@ import { HeaderShell } from './header-shell';
 import { LOCAL_IMAGES, NAV, type NavItem } from './brand';
 import { MobileNav } from './mobile-nav';
 
+/**
+ * The parent of a dropdown.
+ *
+ * A LINK when the section has a page of its own, and dead text when it does
+ * not. `/funding-solutions` is a real page, and rendering its nav item as an
+ * unclickable span made the page reachable only from the homepage — the header
+ * offered five children and no way to the parent that lists all of them.
+ *
+ * Being a link does not close the menu off: the dropdown opens on `group-hover`
+ * and `group-focus-within` on the <li>, neither of which cares what the trigger
+ * element is, and a keyboard user now reaches the same submenu by tabbing to a
+ * real focusable control rather than past one.
+ */
+const TRIGGER_CLASS = 'flex items-center gap-1.5 py-6 text-sm font-semibold text-white';
+
 function DesktopItem({ item }: { item: NavItem }) {
   if (item.children) {
+    const chevron = (
+      <svg
+        className="h-3 w-3 text-white/50 transition-transform group-hover:rotate-180"
+        viewBox="0 0 12 12"
+        aria-hidden="true"
+      >
+        <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
+      </svg>
+    );
+
     return (
       <li className="group relative">
-        <span className="flex cursor-default items-center gap-1.5 py-6 text-sm font-semibold text-white">
-          {item.label}
-          <svg
-            className="h-3 w-3 text-white/50 transition-transform group-hover:rotate-180"
-            viewBox="0 0 12 12"
-            aria-hidden="true"
+        {item.href ? (
+          <Link
+            href={item.href}
+            className={`${TRIGGER_CLASS} no-underline hover:text-[var(--color-gold)]`}
           >
-            <path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" />
-          </svg>
-        </span>
+            {item.label}
+            {chevron}
+          </Link>
+        ) : (
+          <span className={`${TRIGGER_CLASS} cursor-default`}>
+            {item.label}
+            {chevron}
+          </span>
+        )}
 
         {/*
           CSS-only dropdown. Keeping this off JavaScript means the whole header
