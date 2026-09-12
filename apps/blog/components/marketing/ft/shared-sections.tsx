@@ -67,6 +67,18 @@ export function HowItWorks() {
 
       <div className={`${CONTAINER} py-14 lg:py-20`}>
         {/*
+          Centred, over the numbered row, the way the reference Denis sent sets
+          it — and the way the "Get Funded" underneath is already set, so the
+          band reads as one centred column with the steps laid across its middle.
+
+          h3: it is under the header band's h2 and the step titles sit under it,
+          so those drop to h4. The level follows the nesting; no size changed.
+        */}
+        <h3 className="mb-12 text-center font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.8vw,2.125rem)] font-semibold leading-[1.2] text-[var(--ft-ink)] lg:mb-16">
+          {HOW_IT_WORKS.stepsHeading}
+        </h3>
+
+        {/*
          * The sweep is staggered purely by `animation-delay`, computed here so
          * the order lives with the markup rather than in five CSS rules: numeral,
          * its rule, the next numeral, and so on, 1.2s apart.
@@ -97,7 +109,7 @@ export function HowItWorks() {
               </div>
 
               <div>
-                <h3 className="text-lg font-medium text-[var(--ft-ink)]">{step.title}</h3>
+                <h4 className="text-lg font-medium text-[var(--ft-ink)]">{step.title}</h4>
                 <p className="mt-2 max-w-[34ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
                   {step.body}
                 </p>

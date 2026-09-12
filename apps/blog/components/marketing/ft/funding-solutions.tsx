@@ -127,9 +127,16 @@ function Product({
         The template's divider runs the full height between the columns, so it
         is a border on the right column rather than a rule between two cards —
         and it only exists at the breakpoint where there are two columns.
+
+        Which is why the columns are centred with `justify-center` on EACH of
+        them rather than `items-center` on the row. Centring the row's items
+        stops them stretching, so that border would shrink to the right
+        column's own height and stop being a full-height rule. Leaving the
+        columns stretched and centring inside each keeps the rule and still
+        sits both blocks on the section's middle.
       */}
       <div className={`${CONTAINER} lg:flex lg:gap-0`}>
-        <div className="py-14 lg:w-[38%] lg:shrink-0 lg:py-20 lg:pr-12">
+        <div className="py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
           <Icon className="h-10 w-10 text-[var(--ft-accent)]" />
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
@@ -178,7 +185,7 @@ function Product({
           </div>
         </div>
 
-        <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
+        <div className="border-t border-[var(--ft-line)] py-14 lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
           <h4 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
             {detail.lead}
           </h4>
