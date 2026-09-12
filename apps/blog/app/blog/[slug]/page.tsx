@@ -20,7 +20,7 @@ import {
 
 import { AuthorBox } from '@/components/blog/author-box';
 import { Breadcrumbs } from '@/components/blog/breadcrumbs';
-import { LeadMagnetCard } from '@/components/blog/lead-magnet-card';
+import { LeadMagnetPopover } from '@/components/blog/lead-magnet-popover';
 import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
 import { SimilarPosts } from '@/components/blog/similar-posts';
@@ -308,27 +308,25 @@ export default async function PostPage({
             cannot be right at every width.
           */}
           <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-line)] lg:py-16 lg:pl-[var(--frame-gutter)]">
-            <aside className="lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
+            {/*
+              `relative` so the offer popup has something to resolve against.
+              It floats over this column rather than sitting in it, and the
+              nearest positioned ancestor is what decides where "over this
+              column" is — without this it would escape to whatever ancestor
+              happened to be positioned, which at `lg` is the page.
+            */}
+            <aside className="relative lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
               {/*
-                First in the rail, above the reading control, and rendered ONCE
-                for both breakpoints.
-
-                Once, because this column is not a desktop-only sidebar: below
-                `lg` the row stops being a flex container and the whole thing
-                stacks under the article, which is where an end-of-post call to
-                action belongs anyway. The contents list needs two renderings
-                because a list of links is useless after the text it indexes;
-                an offer is not.
-
-                Above the reading control rather than below it because this is
-                the one thing on the page with a job. `shrink-0` so a long
-                contents list cannot squeeze it — the list scrolls inside its
-                own box, and giving up the offer to fit more of it would be
-                backwards.
+                The offer, floating above the rail rather than in it, so the
+                reading control and the contents list lay out as though it were
+                not there. Rendered ONCE for both breakpoints: below `lg` this
+                column stops being a flex container and stacks under the
+                article, where an end-of-post call to action belongs anyway, so
+                the popup drops into the flow there. The contents list needs two
+                renderings because a list of links is useless after the text it
+                indexes; an offer is not.
               */}
-              {offer ? (
-                <LeadMagnetCard offer={offer} className="mb-8 shrink-0" />
-              ) : null}
+              {offer ? <LeadMagnetPopover offer={offer} /> : null}
 
               <div className="flex shrink-0 flex-col gap-1.5">
                 {/*

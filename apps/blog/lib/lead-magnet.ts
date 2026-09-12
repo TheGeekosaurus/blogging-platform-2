@@ -1,85 +1,82 @@
 /**
- * Reader-side state for the lead capture card.
+ * Reader-side state for the lead capture popup.
  *
  * Everything here is per-browser and disposable. Nothing about which reader has
- * seen or dismissed which offer is worth a row in Postgres, and putting it
- * there would mean identifying anonymous readers to store it — a cookie and a
- * consent problem in exchange for remembering that someone pressed an X.
+ * seen or closed which offer is worth a row in Postgres, and putting it there
+ * would mean identifying anonymous readers to store it — a cookie and a consent
+ * problem in exchange for remembering that someone pressed an X.
+ *
+ * Note what closing means now: the popup minimises to a tile at the bottom of
+ * the window, it does not go away. So this records which offers open MINIMISED
+ * on the next article, not which ones are suppressed.
  */
 
-/** One key per offer, so retiring one offer does not un-dismiss the others. */
-export function dismissalKey(slug: string): string {
+/** One key per offer, so retiring one offer does not reopen the others. */
+export function closedKey(slug: string): string {
   return `nntm-lm:${slug}`;
 }
 
 /**
- * How long a card stays hidden.
+ * How long an offer keeps opening minimised.
  *
- * Two horizons, because the two gestures mean different things. Dismissing is
- * "not now" and expires — a reader who closes it in March should see it again
- * on a different article in May, which is how these earn anything. Converting
- * is "I have this", and re-offering someone a file they already downloaded is
- * how a site looks like it is not paying attention.
+ * Two horizons, because the two gestures mean different things. Closing is
+ * "not now" and expires — a reader who closes it in March should be offered it
+ * again in May, which is how these earn anything. Converting is "I have this",
+ * and re-opening a panel for a file someone already downloaded is how a site
+ * looks like it is not paying attention.
  *
- * Neither is forever. A year out, the offer has probably been rewritten.
+ * Neither is forever. A year out, the offer has probably been rewritten. And
+ * neither suppresses the offer outright: the tile is always there to reopen.
  */
-export const HIDE_DAYS = {
-  dismissed: 30,
+export const MINIMISED_DAYS = {
+  closed: 30,
   converted: 365,
 } as const;
 
-export type DismissalReason = keyof typeof HIDE_DAYS;
+export type CloseReason = keyof typeof MINIMISED_DAYS;
 
-interface Dismissal {
-  reason: DismissalReason;
+interface ClosedRecord {
+  reason: CloseReason;
   /** Epoch milliseconds. */
   at: number;
 }
 
 const DAY_MS = 86_400_000;
 
-/** Is this offer currently hidden for this reader? */
-export function isHidden(slug: string, now: number = Date.now()): boolean {
+/** Should this offer open minimised for this reader? */
+export function startsMinimised(slug: string, now: number = Date.now()): boolean {
   let raw: string | null = null;
   try {
-    raw = localStorage.getItem(dismissalKey(slug));
+    raw = localStorage.getItem(closedKey(slug));
   } catch {
-    // Storage throws outright when site data is blocked. Show the card.
+    // Storage throws outright when site data is blocked. Open the popup.
     return false;
   }
 
   if (!raw) return false;
 
-  let parsed: Dismissal;
+  let parsed: ClosedRecord;
   try {
-    parsed = JSON.parse(raw) as Dismissal;
+    parsed = JSON.parse(raw) as ClosedRecord;
   } catch {
     // Something else wrote this key, or an older format did. Treat it as
-    // absent rather than hiding the card forever on unparseable data.
+    // absent rather than leaving the offer minimised forever on unparseable
+    // data.
     return false;
   }
 
-  const days = HIDE_DAYS[parsed?.reason as DismissalReason];
+  const days = MINIMISED_DAYS[parsed?.reason as CloseReason];
   if (!days || typeof parsed.at !== 'number') return false;
 
   return now - parsed.at < days * DAY_MS;
 }
 
-/**
- * Record a dismissal.
- *
- * There used to be a window event fired alongside this, so that a second
- * placement of the same offer could hide itself too. There has only ever been
- * one placement — the card is rendered once for both breakpoints, because the
- * rail stacks under the article below `lg` — so the only listener was the
- * instance doing the dispatching, and it hides itself directly anyway. Bring
- * the event back with the second placement, not before it.
- */
-export function hide(slug: string, reason: DismissalReason): void {
-  const record: Dismissal = { reason, at: Date.now() };
+/** Remember that this offer should open minimised from now on. */
+export function rememberClosed(slug: string, reason: CloseReason): void {
+  const record: ClosedRecord = { reason, at: Date.now() };
 
   try {
-    localStorage.setItem(dismissalKey(slug), JSON.stringify(record));
+    localStorage.setItem(closedKey(slug), JSON.stringify(record));
   } catch {
     // Holds for this page view; it just will not persist. Same trade as the
     // theme control makes.
