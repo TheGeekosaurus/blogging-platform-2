@@ -34,12 +34,9 @@ export function GetFunded() {
           </p>
         </div>
 
-        {/*
-          Same white panel as the homepage qualifier, for the same reason: the
-          survey renders its own light surface, and on the dark ground its edges
-          read as a rendering fault without one.
-        */}
-        <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl bg-white">
+        {/* Same ground-coloured panel as the shared qualifier, for the same
+            reason — see the note in ./shared-sections. */}
+        <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl bg-[var(--ft-bg)]">
           <HighLevelForm eager />
         </div>
       </section>
