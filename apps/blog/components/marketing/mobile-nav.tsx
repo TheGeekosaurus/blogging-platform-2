@@ -48,9 +48,24 @@ export function MobileNav() {
             <li key={item.label}>
               {item.children ? (
                 <>
-                  <span className="block py-2 text-sm font-semibold text-white">
-                    {item.label}
-                  </span>
+                  {/*
+                    A link when the section has a page of its own — same reason
+                    as the desktop header: the children were reachable and the
+                    parent that lists all of them was not. There is no dropdown
+                    to protect here, so the submenu below is unaffected.
+                  */}
+                  {item.href ? (
+                    <Link
+                      href={item.href}
+                      className="block py-2 text-sm font-semibold text-white no-underline hover:text-[var(--color-gold)]"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : (
+                    <span className="block py-2 text-sm font-semibold text-white">
+                      {item.label}
+                    </span>
+                  )}
                   <ul className="mb-2 flex flex-col border-l border-white/10 pl-4">
                     {item.children.map((child) => (
                       <li key={child.label}>

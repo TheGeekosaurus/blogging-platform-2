@@ -55,6 +55,17 @@ export function SiteFooter() {
           </p>
           <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
             <li>
+              {/*
+                First in the column: it is the page every product on the site
+                leads to, and it was the one destination the footer did not
+                offer. Above Blog Articles because the order here is what the
+                business wants read, not what the old HighLevel footer listed.
+              */}
+              <Link href="/funding-solutions" className="no-underline hover:text-white">
+                Funding Solutions
+              </Link>
+            </li>
+            <li>
               <Link href={blogIndexPath()} className="no-underline hover:text-white">
                 Blog Articles
               </Link>
