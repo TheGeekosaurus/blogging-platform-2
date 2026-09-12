@@ -6,12 +6,18 @@ import {
   POSTS_PER_PAGE,
   blogPagePath,
   countPublishedPosts,
+  listNonEmptyTerms,
   listPublishedPosts,
 } from '@blog/core';
 
+import { FtBlogArchivePage } from '@/components/marketing/ft/blog-index';
 import { PostCard } from '@/components/post-card';
+import { isNntmCapital } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 import { ReadingColumn } from '@/components/reading-column';
+
+/** Same cap as the index's pill row, so the two pages carry the same filters. */
+const PAGE_CATEGORIES = 6;
 
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -101,6 +107,27 @@ export default async function ArchivePage({
   }
 
   const pageCount = Math.ceil(total / POSTS_PER_PAGE);
+
+  /*
+   * Gated like the index, and for the same reason — but ALSO because the index
+   * links straight here. Leaving these on the reading column would drop a
+   * reader out of the dark marketing design mid-archive, on a click whose whole
+   * promise is "more of the same".
+   */
+  if (isNntmCapital()) {
+    const categories = await listNonEmptyTerms(client, site.id, 'category');
+
+    return (
+      <FtBlogArchivePage
+        posts={posts}
+        categories={categories.slice(0, PAGE_CATEGORIES)}
+        locale={site.locale}
+        heading={`Page ${pageNumber} of ${pageCount}`}
+        newerHref={blogPagePath(pageNumber - 1)}
+        olderHref={pageNumber < pageCount ? blogPagePath(pageNumber + 1) : undefined}
+      />
+    );
+  }
 
   return (
     <ReadingColumn>

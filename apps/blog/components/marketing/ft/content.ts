@@ -68,18 +68,45 @@ export const HERO = {
 export const HOW_IT_WORKS = {
   label: 'How It Works',
   heading: 'Funding that moves at your speed.',
+  /** Sits inside the dark band, over the numbered steps — not in the header. */
+  stepsHeading: 'Three Steps to Funding Your Future',
+  /*
+   * The step bodies say the same three things Fora Financial's do, at the same
+   * level of detail, at Denis's request — he sent their section as the model.
+   * They are NOT their sentences, for the reason already settled for the hero
+   * above: taking a competitor's strategy is fair, retyping their marketing
+   * copy onto a page aimed at their market is not.
+   *
+   * Every claim here is one Nanotom already makes somewhere else on this site,
+   * which is the other reason not to copy: their version promises "approval
+   * status in as little as 4 hours" and a call from "a Capital Specialist".
+   * Neither is ours. Nanotom's own numbers are "in minutes" for the
+   * application and "as soon as the same day" for both the decision and the
+   * money — same-day is the STRONGER claim, so nothing was watered down to
+   * avoid theirs. "In-house loan advisor" is the title USE_CASES already uses.
+   *
+   * If the 4-hour figure or anything like it ever becomes a real service level
+   * here, put it in — a specific number beats "the same day". Until then this
+   * page promises only what the business has already committed to elsewhere.
+   */
   steps: [
     {
       title: 'Complete the application.',
-      body: 'Our streamlined process is designed to be completed in just minutes.',
+      body:
+        'Answer a few questions about your business — it takes minutes — and an in-house ' +
+        'loan advisor will call to talk through what you need.',
     },
     {
       title: 'Get a decision.',
-      body: 'Work with an expert loan advisor to choose the best option for you.',
+      body:
+        'Your advisor comes back with the options you actually qualify for, often the same ' +
+        'day, and helps you weigh them side by side.',
     },
     {
       title: 'Receive your funds.',
-      body: 'Sign your contract and get funds as soon as the same day.',
+      body:
+        'Sign your contract and the money can land as soon as the same day — yours to put ' +
+        'to work at whatever pace the business needs.',
     },
   ],
 } as const;
@@ -521,3 +548,47 @@ export const LOAN_PRODUCTS: Readonly<
     ],
   },
 };
+
+/* ---------------------------------------------------------------------------
+ * /blog — the index
+ *
+ * The template's frame is a news site: an oversized "Today's Headlines" hero, a
+ * featured story, a three-up of recent ones, then the list. Same shapes here,
+ * about funding.
+ *
+ * The heading keeps "Business Funding Insights" from the h1 this replaces. That
+ * phrase was chosen for what the index can actually rank for, and the template's
+ * colon construction adds the benefit half without losing it.
+ * ------------------------------------------------------------------------- */
+
+export const BLOG_INDEX = {
+  eyebrow: 'The Blog',
+  heading: 'Business Funding Insights: Know Before You Borrow',
+  body:
+    'Guides and breakdowns on how business lending actually works — what underwriters ' +
+    'look at, what each product really costs over its term, and how to walk in ready. ' +
+    'Written by the advisors who place these files.',
+  /** Over the featured post. */
+  featuredLabel: 'Latest',
+  /** The labels on the featured post's three facts. */
+  meta: {
+    category: 'Category',
+    date: 'Publication Date',
+    author: 'Author',
+  },
+  readMore: 'Read More',
+  /*
+   * The band over the full list — the homepage's band without its CTA, since
+   * that CTA points here.
+   *
+   * NOT the template's "Welcome to Our News Hub" / "Discover the World of
+   * Headlines". Those are a news site's placeholder words and this file's whole
+   * rule is that the copy is the business's own. What the band has to do is say
+   * what the list under it is, which is every article in date order.
+   */
+  listHead: {
+    label: 'Every Article',
+    heading: 'The full archive, newest first.',
+  },
+  older: 'Older posts',
+} as const;
