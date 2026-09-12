@@ -625,14 +625,15 @@ export const BLOG_INDEX = {
  * "Capital Specialist" is their job title too; ours is "in-house loan advisor",
  * the one USE_CASES already uses.
  *
- * ⚠ ONE CLAIM HERE IS UNVERIFIED AND IS THE RISKIEST STRING IN THIS FILE:
- * "reviewed with a soft credit check, which does not affect your credit score",
- * under `will-applying-affect-my-credit`. It came across with the rest of the
- * paste and nothing in this repo or on the live GoHighLevel site supports it.
- * It is not like the unconfirmed lender terms in FUNDING_OPTIONS: this is a
- * representation about how consumer credit is pulled, made on a page that takes
- * live applications, and it is exactly the kind of statement a borrower relies
- * on. CONFIRM IT WITH THE LENDERS OR CUT THE SENTENCE BEFORE LAUNCH.
+ * The soft-credit-check answer under `will-applying-affect-my-credit` was
+ * flagged here as unverified when it arrived with the paste — nothing in this
+ * repo or on the live GoHighLevel site supported it, and a representation about
+ * how consumer credit is pulled, on a page taking live applications, is exactly
+ * what a borrower relies on. IT IS NOW SOURCED: Denis supplied the funding
+ * disclaimer in site-footer.tsx, which states "Each application is subject to a
+ * soft credit check that will not affect credit scores" as the business's own
+ * position. The two have to agree — if that disclaimer is ever amended, this
+ * answer is the other place the claim is made.
  * ------------------------------------------------------------------------- */
 
 /**
@@ -698,8 +699,8 @@ export const FAQ = {
       id: 'will-applying-affect-my-credit',
       q: 'Will applying affect my credit score?',
       /*
-       * ⚠ THE UNVERIFIED CLAIM. See the warning at the top of this block before
-       * changing anything here, and before this page goes live on the apex.
+       * The claim this repeats is the footer disclaimer's — see the note at the
+       * top of this block. Change one and change the other.
        */
       a: [
         'No. Applications are reviewed with a soft credit check, which does not affect your ' +
