@@ -9,6 +9,7 @@ import {
   GrowthIcon,
 } from './icons';
 import { Chip, CONTAINER, SectionHead } from './primitives';
+import { HowItWorks, Qualifier, UseCases } from './shared-sections';
 
 /*
  * /funding-solutions — the loans page.
@@ -19,8 +20,9 @@ import { Chip, CONTAINER, SectionHead } from './primitives';
  * podcast, this gives a funding product — the shapes carry over, the content
  * does not.
  *
- * Hero, then the grey header band over one block per funding product. The
- * rest of the page (requirements, closing CTA) comes section by section.
+ * Hero, then the grey header band over one block per funding product, then
+ * three sections shared with the homepage: how it works, what the money is
+ * for, and the qualifier survey for anyone still choosing.
  */
 
 /* ---------------------------------------------------------------------------
@@ -222,6 +224,18 @@ export function FundingSolutions() {
           <Product key={card.title} product={card} featured={index === 0} />
         ))}
       </section>
+
+      {/*
+        The homepage's own sections, imported rather than reproduced — see
+        ./shared-sections. In this order because it is the reader's order: they
+        have just compared four products, so what happens after you apply comes
+        first, what the money is for second, and the survey last for anyone who
+        got to the bottom still undecided. The Qualifier is the page's second
+        conversion path, after the "Learn More" on each product.
+      */}
+      <HowItWorks />
+      <UseCases />
+      <Qualifier />
     </div>
   );
 }
