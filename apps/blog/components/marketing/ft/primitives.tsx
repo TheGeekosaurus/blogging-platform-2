@@ -75,11 +75,14 @@ export function GhostButton({
 /**
  * A section's header band: darker ground, label chip, display heading, and an
  * optional action pinned right.
+ *
+ * Heading-only, with no standfirst. It used to take an optional `body`, which
+ * the use-of-funds band was the only caller ever to pass; that line is gone, so
+ * the prop is too rather than sitting here as a parameter nothing supplies.
  */
 export function SectionHead({
   label,
   heading,
-  body,
   cta,
   ctaHref,
   ctaExternal,
@@ -87,8 +90,6 @@ export function SectionHead({
 }: {
   label: string;
   heading: string;
-  /** Only the use-of-funds band carries one; the rest are heading-only. */
-  body?: string;
   cta?: string;
   ctaHref?: string;
   ctaExternal?: boolean;
@@ -107,11 +108,6 @@ export function SectionHead({
           >
             {heading}
           </h2>
-          {body ? (
-            <p className="max-w-[54ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
-              {body}
-            </p>
-          ) : null}
         </div>
         {cta ? (
           <GhostButton href={ctaHref} external={ctaExternal}>

@@ -10,6 +10,19 @@
  * The layouts read every label, heading and body string from here, so
  * re-copywriting a page never means touching its markup.
  *
+ * HEADLINE CAPITALISATION: every word of a section headline takes a capital,
+ * short words included — "Funding Options Built To Work For You." The two
+ * headlines carried over from the live GoHighLevel site ("Get The Capital Your
+ * Business Needs To Grow", "We Can Secure The Capital You Need For Your
+ * Business") are written that way, so it is the business's own style rather
+ * than one imposed here. The rest had drifted into sentence case and were
+ * brought into line.
+ *
+ * This applies to HEADLINES — page h1s, the grey bands' h2s, the FAQ heading.
+ * It does NOT apply to the strings that are sentences: the numbered steps'
+ * titles, the product leads on /funding-solutions, the FAQ questions. Those are
+ * prose and Title Case would make them read as labels.
+ *
  * This is now the single source for that copy. It used to carry a note saying
  * several blocks were duplicated from the older hand-built homepage component
  * deliberately, because that was the live page and this was a draft of its
@@ -67,9 +80,9 @@ export const HERO = {
 
 export const HOW_IT_WORKS = {
   label: 'How It Works',
-  heading: 'Funding that moves at your speed.',
+  heading: 'Funding That Moves At Your Speed.',
   /** Sits inside the dark band, over the numbered steps — not in the header. */
-  stepsHeading: 'Three Steps to Funding Your Future',
+  stepsHeading: 'Three Steps To Funding Your Future',
   /*
    * The step bodies say the same three things Fora Financial's do, at the same
    * level of detail, at Denis's request — he sent their section as the model.
@@ -113,7 +126,7 @@ export const HOW_IT_WORKS = {
 
 export const FUNDING_OPTIONS = {
   label: 'The Nanotom Capital Advantage',
-  heading: 'Funding Options Built to Work for You.',
+  heading: 'Funding Options Built To Work For You.',
   cards: [
     {
       title: 'The Ultimate Revolving Line of Credit',
@@ -245,7 +258,7 @@ export const FUNDING_OPTIONS = {
 
 export const QUALIFIER = {
   label: 'Get Started',
-  heading: 'Not Sure What Is Best for You?',
+  heading: 'Not Sure What Is Best For You?',
   points: [
     'Answer a few simple questions',
     'We will look at your particular situation',
@@ -255,10 +268,7 @@ export const QUALIFIER = {
 
 export const USE_CASES = {
   label: 'Use of Funds',
-  heading: 'What can you do with funding from Nanotom Capital?',
-  body:
-    'No matter your goal, our in-house loan advisors can help you choose a financing ' +
-    'solution — no middleman or delays.',
+  heading: 'What Can You Do With Funding From Nanotom Capital?',
   items: [
     { icon: 'inventory', label: 'Purchase inventory' },
     { icon: 'payroll', label: 'Cover payroll' },
@@ -272,7 +282,7 @@ export const USE_CASES = {
 } as const;
 
 export const REQUIREMENTS = {
-  heading: 'Are we a match? Check our minimum requirements.',
+  heading: 'Are We A Match? Check Our Minimum Requirements.',
   /** Same value/unit split as the hero stats, for the same reason. */
   stats: [
     { lead: 'As little as', value: '30 Days', trail: 'in business' },
@@ -286,7 +296,7 @@ export const REQUIREMENTS = {
    * footnote, which is why it gets its own panel rather than small print.
    */
   callout: {
-    heading: 'Below 551, or under 30 days in business?',
+    heading: 'Below 551, Or Under 30 Days In Business?',
     body:
       'Our DIY programs walk you through credit repair, business credit, and budgeting so ' +
       'you can come back approval-ready.',
@@ -302,7 +312,7 @@ export const TESTIMONIALS = {
 
 export const BLOG_SECTION = {
   label: 'Insights & Guides',
-  heading: 'From the Nanotom Capital Blog',
+  heading: 'From The Nanotom Capital Blog',
   cta: 'View All Blogs',
 } as const;
 
@@ -392,7 +402,7 @@ export const CALCULATOR = {
     'typical small-business finance pricing; your actual terms are set after underwriting with ' +
     'a Nanotom Capital advisor and may differ. Nothing on this page is a commitment to lend.',
   next: {
-    heading: 'Numbers look workable?',
+    heading: 'Numbers Look Workable?',
     body:
       'An advisor can tell you what the file actually prices at. The application is a few ' +
       'questions about the business, and funds can land as soon as the same day once you sign.',
@@ -418,7 +428,7 @@ export const CALCULATOR = {
 export const LOANS = {
   hero: {
     eyebrow: 'Funding Solutions',
-    heading: 'Every way to fund your business. One application.',
+    heading: 'Every Way To Fund Your Business. One Application.',
     body:
       'Compare business loans, lines of credit, revenue-based financing, working capital ' +
       'and equipment finance side by side. Apply once, in minutes, and get a decision the ' +
@@ -436,7 +446,7 @@ export const LOANS = {
    */
   optionsHead: {
     label: 'Our Funding Options',
-    heading: 'Compare every option we fund.',
+    heading: 'Compare Every Option We Fund.',
   },
 
   /** The pill on the first product in the list. Only the first one gets it. */
@@ -588,7 +598,7 @@ export const BLOG_INDEX = {
    */
   listHead: {
     label: 'Every Article',
-    heading: 'The full archive, newest first.',
+    heading: 'The Full Archive, Newest First.',
   },
   older: 'Older posts',
 } as const;
@@ -635,7 +645,7 @@ export const BLOG_INDEX = {
 export type AnswerRun = string | { readonly text: string; readonly href: string };
 
 export const FAQ = {
-  heading: 'Frequently asked questions',
+  heading: 'Frequently Asked Questions',
   body:
     "If your question is not answered here, ask us directly — an advisor will work " +
     'through it with you, and there is nothing to sign to have the conversation.',

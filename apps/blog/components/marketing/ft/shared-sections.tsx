@@ -138,12 +138,7 @@ export function HowItWorks() {
 export function UseCases() {
   return (
     <section aria-labelledby="ft-uses">
-      <SectionHead
-        id="ft-uses"
-        label={USE_CASES.label}
-        heading={USE_CASES.heading}
-        body={USE_CASES.body}
-      />
+      <SectionHead id="ft-uses" label={USE_CASES.label} heading={USE_CASES.heading} />
 
       <div className={`${CONTAINER} py-14 lg:py-20`}>
         <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-4">
