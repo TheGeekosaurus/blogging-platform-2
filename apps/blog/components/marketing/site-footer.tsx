@@ -136,6 +136,34 @@ export function SiteFooter() {
             {'.'}
           </p>
 
+          {/*
+            The funding disclaimer, supplied by Denis. It sits directly under
+            the paragraph naming the operator because the two answer the same
+            reader in order: who runs this site, then who actually lends the
+            money and on what terms.
+
+            Note what it says about the lender. Nanotom Capital is not the
+            funding provider on these products — a network of unaffiliated
+            third parties is, named in the agreement before signing. Nothing
+            elsewhere on the site says otherwise, and nothing should start to:
+            the marketing copy says "we" about placing and advising on a file,
+            never about being the party extending the credit.
+          */}
+          <p>
+            Business loans and revenue advances are issued by a network of unaffiliated
+            third-party funding providers. The provider will be identified in the loan or
+            revenue advance agreement prior to signing. Financing is not guaranteed and is
+            subject to approval based on underwriting criteria which includes, but is not
+            limited to, business &amp; personal credit history, time in business, cash flow,
+            revenue consistency, industry-specific underwriting rules, and in certain
+            financings, approval by third-party funding providers. Eligibility, maximum
+            amounts, funding and approval times vary based on program, provider, and
+            applicant qualifications. All applications require completed documentation and
+            will be reviewed during business hours. Each application is subject to a soft
+            credit check that will not affect credit scores. Terms, conditions, and
+            restrictions may apply.
+          </p>
+
           <p>
             The Company may link to content or refer to content and/or services created by
             or provided by third parties that are not affiliated with the Company. The

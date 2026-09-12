@@ -10,6 +10,19 @@
  * The layouts read every label, heading and body string from here, so
  * re-copywriting a page never means touching its markup.
  *
+ * HEADLINE CAPITALISATION: every word of a section headline takes a capital,
+ * short words included — "Funding Options Built To Work For You." The two
+ * headlines carried over from the live GoHighLevel site ("Get The Capital Your
+ * Business Needs To Grow", "We Can Secure The Capital You Need For Your
+ * Business") are written that way, so it is the business's own style rather
+ * than one imposed here. The rest had drifted into sentence case and were
+ * brought into line.
+ *
+ * This applies to HEADLINES — page h1s, the grey bands' h2s, the FAQ heading.
+ * It does NOT apply to the strings that are sentences: the numbered steps'
+ * titles, the product leads on /funding-solutions, the FAQ questions. Those are
+ * prose and Title Case would make them read as labels.
+ *
  * This is now the single source for that copy. It used to carry a note saying
  * several blocks were duplicated from the older hand-built homepage component
  * deliberately, because that was the live page and this was a draft of its
@@ -67,9 +80,9 @@ export const HERO = {
 
 export const HOW_IT_WORKS = {
   label: 'How It Works',
-  heading: 'Funding that moves at your speed.',
+  heading: 'Funding That Moves At Your Speed.',
   /** Sits inside the dark band, over the numbered steps — not in the header. */
-  stepsHeading: 'Three Steps to Funding Your Future',
+  stepsHeading: 'Three Steps To Funding Your Future',
   /*
    * The step bodies say the same three things Fora Financial's do, at the same
    * level of detail, at Denis's request — he sent their section as the model.
@@ -113,7 +126,7 @@ export const HOW_IT_WORKS = {
 
 export const FUNDING_OPTIONS = {
   label: 'The Nanotom Capital Advantage',
-  heading: 'Funding Options Built to Work for You.',
+  heading: 'Funding Options Built To Work For You.',
   cards: [
     {
       title: 'The Ultimate Revolving Line of Credit',
@@ -245,7 +258,7 @@ export const FUNDING_OPTIONS = {
 
 export const QUALIFIER = {
   label: 'Get Started',
-  heading: 'Not Sure What Is Best for You?',
+  heading: 'Not Sure What Is Best For You?',
   points: [
     'Answer a few simple questions',
     'We will look at your particular situation',
@@ -255,10 +268,7 @@ export const QUALIFIER = {
 
 export const USE_CASES = {
   label: 'Use of Funds',
-  heading: 'What can you do with funding from Nanotom Capital?',
-  body:
-    'No matter your goal, our in-house loan advisors can help you choose a financing ' +
-    'solution — no middleman or delays.',
+  heading: 'What Can You Do With Funding From Nanotom Capital?',
   items: [
     { icon: 'inventory', label: 'Purchase inventory' },
     { icon: 'payroll', label: 'Cover payroll' },
@@ -272,7 +282,7 @@ export const USE_CASES = {
 } as const;
 
 export const REQUIREMENTS = {
-  heading: 'Are we a match? Check our minimum requirements.',
+  heading: 'Are We A Match? Check Our Minimum Requirements.',
   /** Same value/unit split as the hero stats, for the same reason. */
   stats: [
     { lead: 'As little as', value: '30 Days', trail: 'in business' },
@@ -286,7 +296,7 @@ export const REQUIREMENTS = {
    * footnote, which is why it gets its own panel rather than small print.
    */
   callout: {
-    heading: 'Below 551, or under 30 days in business?',
+    heading: 'Below 551, Or Under 30 Days In Business?',
     body:
       'Our DIY programs walk you through credit repair, business credit, and budgeting so ' +
       'you can come back approval-ready.',
@@ -302,7 +312,7 @@ export const TESTIMONIALS = {
 
 export const BLOG_SECTION = {
   label: 'Insights & Guides',
-  heading: 'From the Nanotom Capital Blog',
+  heading: 'From The Nanotom Capital Blog',
   cta: 'View All Blogs',
 } as const;
 
@@ -392,7 +402,7 @@ export const CALCULATOR = {
     'typical small-business finance pricing; your actual terms are set after underwriting with ' +
     'a Nanotom Capital advisor and may differ. Nothing on this page is a commitment to lend.',
   next: {
-    heading: 'Numbers look workable?',
+    heading: 'Numbers Look Workable?',
     body:
       'An advisor can tell you what the file actually prices at. The application is a few ' +
       'questions about the business, and funds can land as soon as the same day once you sign.',
@@ -418,7 +428,7 @@ export const CALCULATOR = {
 export const LOANS = {
   hero: {
     eyebrow: 'Funding Solutions',
-    heading: 'Every way to fund your business. One application.',
+    heading: 'Every Way To Fund Your Business. One Application.',
     body:
       'Compare business loans, lines of credit, revenue-based financing, working capital ' +
       'and equipment finance side by side. Apply once, in minutes, and get a decision the ' +
@@ -436,7 +446,7 @@ export const LOANS = {
    */
   optionsHead: {
     label: 'Our Funding Options',
-    heading: 'Compare every option we fund.',
+    heading: 'Compare Every Option We Fund.',
   },
 
   /** The pill on the first product in the list. Only the first one gets it. */
@@ -588,7 +598,135 @@ export const BLOG_INDEX = {
    */
   listHead: {
     label: 'Every Article',
-    heading: 'The full archive, newest first.',
+    heading: 'The Full Archive, Newest First.',
   },
   older: 'Older posts',
+} as const;
+
+/* ---------------------------------------------------------------------------
+ * The FAQ, on the homepage and /funding-solutions
+ *
+ * SOURCED FROM FORA FINANCIAL'S FAQ, at Denis's request — he sent their block
+ * as the model, as he did for the hero and the three steps. Same treatment as
+ * both of those: the questions and the substance are theirs, the sentences and
+ * every FIGURE are ours. Three things had to change or the page would have been
+ * wrong rather than merely borrowed:
+ *
+ *   - Their copy names "Fora Financial" three times. On Nanotom's own site.
+ *   - It quotes a 570 credit minimum. REQUIREMENTS on this site says 551, and
+ *     the homepage callout invites people BELOW 551 to the DIY programs. A 570
+ *     here would turn away people the rest of the page is courting.
+ *   - It promises a decision "in as little as 4 hours" and funds "as soon as 24
+ *     hours later". Nanotom's own claim, in HOW_IT_WORKS and CALCULATOR, is the
+ *     SAME DAY for both — stronger on funding, vaguer on the decision. Nothing
+ *     was hedged to avoid their wording; if a 4-hour service level is ever real
+ *     here, a specific number beats "the same day" and should go in.
+ *
+ * "Capital Specialist" is their job title too; ours is "in-house loan advisor",
+ * the one USE_CASES already uses.
+ *
+ * The soft-credit-check answer under `will-applying-affect-my-credit` was
+ * flagged here as unverified when it arrived with the paste — nothing in this
+ * repo or on the live GoHighLevel site supported it, and a representation about
+ * how consumer credit is pulled, on a page taking live applications, is exactly
+ * what a borrower relies on. IT IS NOW SOURCED: Denis supplied the funding
+ * disclaimer in site-footer.tsx, which states "Each application is subject to a
+ * soft credit check that will not affect credit scores" as the business's own
+ * position. The two have to agree — if that disclaimer is ever amended, this
+ * answer is the other place the claim is made.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * An answer, as a run of text and links.
+ *
+ * A plain string would do for six of the seven, but the intake answer has to
+ * link out mid-sentence, and splitting it into `before`/`link`/`after` fields
+ * is a shape that only fits one answer. Runs fit any of them.
+ */
+export type AnswerRun = string | { readonly text: string; readonly href: string };
+
+export const FAQ = {
+  heading: 'Frequently Asked Questions',
+  body:
+    "If your question is not answered here, ask us directly — an advisor will work " +
+    'through it with you, and there is nothing to sign to have the conversation.',
+  cta: { label: 'Ask a Question', href: 'tel:+18555989916' },
+  items: [
+    {
+      id: 'what-is-online-business-financing',
+      q: 'What is online business financing?',
+      a: [
+        'Capital your business applies for and receives through a digital lender rather ' +
+          'than a bank branch. It covers structures like small business loans, lines of ' +
+          'credit and revenue advances. The application, the document upload and the ' +
+          'funding all happen online, which is why a decision comes back in hours rather ' +
+          'than weeks.',
+      ],
+    },
+    {
+      id: 'how-does-it-work',
+      q: 'How does online business financing work?',
+      a: [
+        'You submit an online application, an in-house loan advisor reviews your business ' +
+          'and talks through what you actually need, and a decision comes back — often the ' +
+          'same day. Once you accept an offer and sign, funds can land as soon as that same ' +
+          'day. Nanotom Capital looks at your revenue, your time in business and your cash ' +
+          'flow rather than at a credit score alone.',
+      ],
+    },
+    {
+      id: 'how-fast',
+      q: 'How fast can I get funded?',
+      a: [
+        'Decisions often come back the same day once your documentation is in, and funds ' +
+          'can land as soon as the day you sign. Timelines vary by program and by how ' +
+          'quickly you can get documents to us.',
+      ],
+    },
+    {
+      id: 'credit-score',
+      q: 'What credit score do I need?',
+      a: [
+        'Nanotom Capital works with businesses from a 551 personal FICO® score. A stronger ' +
+          'score opens up more options, but credit is only one input — revenue consistency, ' +
+          'time in business and overall cash flow all count, and some programs still work ' +
+          'for businesses with less-than-perfect credit. Below 551, the ',
+        { text: 'DIY programs', href: '/programs' },
+        ' are built to get you back to approval-ready.',
+      ],
+    },
+    {
+      id: 'will-applying-affect-my-credit',
+      q: 'Will applying affect my credit score?',
+      /*
+       * The claim this repeats is the footer disclaimer's — see the note at the
+       * top of this block. Change one and change the other.
+       */
+      a: [
+        'No. Applications are reviewed with a soft credit check, which does not affect your ' +
+          'credit score. There is no cost to apply and no obligation to accept an offer.',
+      ],
+    },
+    {
+      id: 'what-can-i-use-it-for',
+      q: 'What can I use the funds for?',
+      a: [
+        'Essentially any business purpose: payroll, inventory, equipment, renovations, ' +
+          'marketing, expansion, or bridging the gap between invoicing and getting paid. ' +
+          'Nanotom Capital does not restrict how you spread the capital across the business.',
+      ],
+    },
+    {
+      id: 'what-do-i-need-to-apply',
+      q: 'What do I need to apply?',
+      /* Denis's own words for this one, not adapted from anywhere. */
+      a: [
+        'Nothing, to start. The first step is just a form — nothing to gather and nothing ' +
+          'to upload, and it is enough for our team to review. ',
+        { text: 'Start the intake form', href: '/get-funded' },
+        '. For a full application we will need proof of identity, your last three bank ' +
+          'statements, and a signed merchant authorization.',
+      ],
+    },
+  ],
 } as const;

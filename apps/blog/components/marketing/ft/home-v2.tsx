@@ -12,7 +12,7 @@ import { TestimonialWall } from '../testimonial-wall';
 import { FundingCarousel } from './funding-carousel';
 import { Chip, CONTAINER, GhostButton, SectionHead } from './primitives';
 import { CategoryPills, PostRow } from './post-list';
-import { ApplyRow, HowItWorks, Qualifier, UseCases } from './shared-sections';
+import { ApplyRow, Faq, HowItWorks, Qualifier, UseCases } from './shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -496,6 +496,7 @@ export function HomeV2({
       <Requirements />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />
+      <Faq />
     </div>
   );
 }
