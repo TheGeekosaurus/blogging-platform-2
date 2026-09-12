@@ -5,7 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
+import { CAPTURE_ENDPOINT, hide, isHidden, readUtm } from '@/lib/lead-magnet';
 
 /**
  * The lead capture card: an offer, an email field, and a way to make it go away.
@@ -21,12 +21,6 @@ import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
  * down for it, and a blog whose whole traffic model is search should not be
  * spending rankings on a form. The card still gets the sticky rail — the most
  * valuable real estate on the page — for free.
- *
- * IT OWNS NO CHROME. No heading, no border, no way to close it: the panel it
- * sits in supplies all three (see sidebar-panels.tsx), and the offer's headline
- * is the panel's title, so it stays readable while the body is collapsed.
- * Drawing its own box inside that one produced two nested borders, and a second
- * copy of the headline under the first.
  *
  * The three states are idle, sending and done, and `done` is terminal: there is
  * no path back to the form once an address has been accepted. An error returns
@@ -54,15 +48,26 @@ export function LeadMagnetCard({
 }) {
   const fieldId = useId();
 
+  /*
+   * Starts visible and is corrected on mount, for the same reason the theme
+   * control starts at 'system': the server cannot know what this reader has
+   * dismissed, and reading localStorage during render is a hydration mismatch.
+   *
+   * Starting visible rather than hidden is the right way round. The card is
+   * part of the prerendered HTML, so it is on the page before React runs
+   * either way; starting hidden would make it appear and then vanish, which
+   * reads as a bug. This way it is briefly present for a reader who dismissed
+   * it, then gone.
+   */
+  const [hidden, setHidden] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
   const [assetUrl, setAssetUrl] = useState<string | null>(null);
 
   /*
-   * Checked before every setState after an await. The panel this lives in
-   * unmounts its body when it collapses, so a reader who collapses the offer
-   * mid-submission would otherwise have the response try to set state on a
-   * component that is gone.
+   * Set once the response lands, and checked before every setState after an
+   * await. Without it, a reader who dismisses the card while the request is in
+   * flight gets it re-rendered into the success state on top of them.
    */
   const live = useRef(true);
   useEffect(() => {
@@ -71,6 +76,15 @@ export function LeadMagnetCard({
       live.current = false;
     };
   }, []);
+
+  // Corrected on mount, never during render: the server cannot know what this
+  // reader has dismissed, and reading localStorage while rendering is a
+  // hydration mismatch.
+  useEffect(() => {
+    if (isHidden(offer.slug)) setHidden(true);
+  }, [offer.slug]);
+
+  if (hidden) return null;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,6 +129,14 @@ export function LeadMagnetCard({
 
       setAssetUrl(body.assetUrl ?? null);
       setStatus('done');
+
+      /*
+       * Recorded as a conversion, but the card is NOT removed — `hidden` stays
+       * false and the success state renders in place. Whipping the card away
+       * at the moment it finally has something to give the reader would take
+       * the download link with it. The record only affects the next article.
+       */
+      hide(offer.slug, 'converted');
     } catch {
       if (!live.current) return;
       // Network-level failure: no response at all. Distinguished from a 4xx
@@ -125,19 +147,54 @@ export function LeadMagnetCard({
   }
 
   return (
-    <div className={className}>
+    <div
+      className={`relative overflow-hidden rounded-xl border border-[var(--color-line)] bg-[var(--color-surface-muted)] ${className}`}
+    >
       {/*
-        Full-bleed to the panel's edges, which is why the padding is on the
-        block below rather than on this wrapper.
+        Pinned to the card's top-right corner rather than sitting in the heading
+        row, which is where it used to be and where it looked wrong: the image
+        is full-bleed across the top, so a control in the row BELOW it reads as
+        floating in the middle of the card rather than closing it.
+
+        Absolute, so it overlays whatever is at the top — the image, or the
+        heading on an offer with no image — and `pr-8` on the heading keeps a
+        long headline from running under it. The translucent ground is what
+        keeps the glyph legible against an arbitrary image; without it the cross
+        disappears into a light one.
+
+        First in the DOM, so it is also first in the tab order: reaching the way
+        out should not mean tabbing through the fields being declined.
       */}
+      <button
+        type="button"
+        onClick={() => {
+          hide(offer.slug, 'dismissed');
+          setHidden(true);
+        }}
+        aria-label="Dismiss this offer"
+        title="Dismiss"
+        className="absolute right-2 top-2 z-10 rounded-full bg-[var(--color-surface)]/80 p-1.5 text-[var(--color-ink-muted)] backdrop-blur-sm transition-colors hover:text-[var(--color-ink)]"
+      >
+        <svg
+          viewBox="0 0 20 20"
+          aria-hidden="true"
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        >
+          <path d="M5.5 5.5l9 9M14.5 5.5l-9 9" />
+        </svg>
+      </button>
+
       {offer.image ? <OfferImage image={offer.image} /> : null}
 
-      {/*
-        A gap rather than margins on the children. The margins here used to
-        space each block off the headline above it; with the headline gone to
-        the panel, the first of them was spacing itself off the padding.
-      */}
-      <div className="flex flex-col gap-3 px-4 pb-4 pt-3">
+      <div className="p-5">
+        <h2 className="pr-8 font-[family-name:var(--font-headline)] text-base leading-snug text-[var(--color-ink)]">
+          {offer.heading}
+        </h2>
+
         {/*
           The live region, always in the tree and empty until there is something
           to say.
@@ -156,7 +213,7 @@ export function LeadMagnetCard({
         </p>
 
         {status === 'done' ? (
-          <div>
+          <div className="mt-3">
             <p className="text-sm leading-relaxed text-[var(--color-ink-muted)]">
               {offer.successMessage}
             </p>
@@ -181,12 +238,12 @@ export function LeadMagnetCard({
         ) : (
           <>
             {offer.body ? (
-              <p className="text-sm leading-relaxed text-[var(--color-ink-muted)]">
+              <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-muted)]">
                 {offer.body}
               </p>
             ) : null}
 
-            <form onSubmit={onSubmit} className="flex flex-col gap-2">
+            <form onSubmit={onSubmit} className="mt-4 flex flex-col gap-2">
               {offer.collectName ? (
                 <>
                   <label htmlFor={`${fieldId}-name`} className="sr-only">

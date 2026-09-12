@@ -6,11 +6,6 @@ import { describe, expect, it } from 'vitest';
 const APP = join(__dirname, '..', 'app');
 const read = (...parts: string[]) => readFileSync(join(APP, ...parts), 'utf8');
 
-const COMPONENTS = join(__dirname, '..', 'components', 'blog');
-const component = (name: string) => readFileSync(join(COMPONENTS, name), 'utf8');
-
-const panels = component('sidebar-panels.tsx');
-
 /**
  * The marketing rebuild moved the site's reading column out of the root layout so
  * a full-bleed landing page could exist. That is a silent-breakage change: if the
@@ -99,7 +94,11 @@ describe('a full-bleed page is genuinely full-bleed', () => {
  * checked in a browser against a 31-heading fixture.
  */
 describe('the contents rail is bounded and scrolls inside itself', () => {
-  const toc = component('table-of-contents.tsx');
+  const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+  const toc = rf(
+    join(__dirname, '..', 'components', 'blog', 'table-of-contents.tsx'),
+    'utf8',
+  );
   const page = read('blog', '[slug]', 'page.tsx');
 
   it('bounds the sticky aside rather than the scrolling child', () => {
@@ -119,21 +118,14 @@ describe('the contents rail is bounded and scrolls inside itself', () => {
 
   it('lets the list shrink below its content height', () => {
     // Without `min-h-0` a flex child refuses to, and the bound silently fails.
-    // It has to hold at every level between the bounded aside and the
-    // scrolling list — the panel that now sits between them included.
-    expect(panels).toContain('min-h-0');
+    expect(page).toContain('min-h-0');
     expect(toc).toContain('min-h-0 flex-1 overflow-y-auto');
   });
 
   it('keeps the heading outside the scroll container', () => {
-    /*
-     * The contents list used to carry its own heading, positioned outside its
-     * scroll container so that scrolling the list did not scroll its label
-     * away. The panel header replaced it and has to do the same job: a
-     * shrink-0 sibling of the body, never inside it.
-     */
-    expect(panels).toContain('<h2 className="shrink-0">');
-    expect(toc).not.toContain('Table of Contents<');
+    // It used to be inside, so scrolling the list scrolled its own label away
+    // and left an unlabelled column of links.
+    expect(toc).toContain('shrink-0 text-sm font-semibold uppercase');
   });
 
   it('fades whichever edge has more content beyond it', () => {
@@ -149,65 +141,21 @@ describe('the contents rail is bounded and scrolls inside itself', () => {
 
 /*
  * Both contents variants render on every post, hidden at each other's
- * breakpoints, so `display: none` keeps only one in the accessibility tree.
- *
- * They used to be told apart by an `id` prop, because each labelled its own
- * <nav> through `aria-labelledby` and two elements cannot share one id. The
- * rail's heading now belongs to its panel, so it names itself instead — and
- * the id prop is gone, which is what these guard.
+ * breakpoints. `display: none` keeps only one in the accessibility tree, but
+ * that only holds if each carries its own id — two elements sharing one makes
+ * every `aria-labelledby` pointing at it ambiguous.
  */
 describe('the two contents variants stay distinguishable', () => {
   const page = read('blog', '[slug]', 'page.tsx');
-  const toc = component('table-of-contents.tsx');
 
-  it('names the rail without borrowing an id', () => {
-    expect(toc).toContain('aria-label="Table of Contents"');
-    // The attribute, not the word: the file explains in a comment why the
-    // prop it used to need is gone.
-    expect(toc).not.toMatch(/aria-labelledby=/);
-  });
-
-  it('has no toc id left to collide', () => {
-    expect(page).not.toMatch(/id="toc-/);
+  it('gives each variant a distinct id', () => {
+    const ids = [...page.matchAll(/id="(toc-[a-z]+)"/g)].map((m) => m[1]);
+    expect(ids).toHaveLength(2);
+    expect(new Set(ids).size).toBe(2);
   });
 
   it('shows exactly one of them at any width', () => {
-    // The rail lives in its panel now, so the breakpoint gate moved with it.
-    expect(panels).toContain('hidden lg:flex');
+    expect(page).toContain('hidden min-h-0 flex-1 lg:flex');
     expect(page).toContain('lg:hidden');
-  });
-});
-
-/*
- * The accordion is the fix for a rail that ran past the bottom of the
- * viewport. Two panels that can both be open can both be too tall together,
- * which is the state it exists to make unreachable.
- */
-describe('the sidebar panels open one at a time', () => {
-  it('holds which panel is open, not whether each one is', () => {
-    // Two booleans can both be true. One slot cannot.
-    expect(panels).toContain("useState<PanelId | null>");
-    expect(panels).not.toMatch(/useState\(false\)/);
-  });
-
-  it('does not open the contents list by default', () => {
-    expect(panels).toContain("offer ? 'offer' : 'toc'");
-  });
-
-  it('toggles from one control carrying both the title and the icon', () => {
-    // A separate icon button would be a second tab stop announcing nothing
-    // the title does not already say.
-    expect(panels).toContain('aria-expanded={open}');
-    expect(panels).toContain('aria-hidden="true"');
-  });
-
-  it('unmounts a closed body rather than hiding it with a class', () => {
-    /*
-     * `[hidden]` and Tailwind's `flex` are both display declarations at equal
-     * specificity, so a panel hidden that way stays visible or not depending
-     * on stylesheet order.
-     */
-    expect(panels).toContain('{open ? (');
-    expect(panels).not.toMatch(/hidden=\{!open\}/);
   });
 });

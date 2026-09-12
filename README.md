@@ -223,16 +223,8 @@ be replaced before the site serves real traffic.
 ## Lead capture
 
 Post pages can carry an offer — a checklist, a toolkit, whatever the article
-earns — in the sidebar, in exchange for an email address. It is the thing a
-WordPress popup plugin does, minus the popup.
-
-The sidebar holds the reading-theme control and then two collapsible panels,
-the contents list and the offer, with **at most one open at a time**. That
-constraint is the point: between a card with an image and a form and a contents
-list of any length, both standing open ran the rail past the bottom of the
-viewport on ordinary laptop heights, and the contents list — being last — was
-what got pushed out of sight. The offer opens first and the contents list is
-collapsed to its title; an eye icon on either header swaps them.
+earns — in the sidebar above the contents list, in exchange for an email
+address. It is the thing a WordPress popup plugin does, minus the popup.
 
 Set them up under **Lead magnets** in the admin. Each offer carries its own copy,
 an optional image and a set of targeting rules, and a post shows at most one card.
@@ -424,8 +416,8 @@ pnpm wp-import    # WordPress import CLI (--help for options)
   palette values; the same test enforces that, because reading them directly
   renders correctly in dark and near-invisibly in light.
 - Blog post pages are a two-column layout (content, then a sticky sidebar with
-  the theme control and two collapsible panels — see **Lead capture** above)
-  ported from a Figma template. The contents list works by injecting heading ids
+  metadata, a table of contents and the theme control) ported from a Figma
+  template. The contents list works by injecting heading ids
   at render time — `id` is not in the sanitiser's allowlist, so none survives a
   write, and widening it would mean re-deriving every existing post. The dark
   styling is scoped to `.blog-surface` because `.post-body` is shared with
