@@ -59,6 +59,13 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
    * invisible to both consumers this registry serves.
    */
   { path: 'calc', title: 'Loan Calculator', index: true },
+  /*
+   * The loans index. Its five children — business-loans, line-of-credit,
+   * revenue-based-financing, working-capital, equipment-financing — are still
+   * STUB_PAGES and deliberately absent here: a stub is noindex, so listing one
+   * in the sitemap would submit a page that asks not to be indexed.
+   */
+  { path: 'funding-solutions', title: 'Funding Solutions', index: true },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.

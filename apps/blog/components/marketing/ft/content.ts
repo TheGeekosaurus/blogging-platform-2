@@ -371,3 +371,66 @@ export const CALCULATOR = {
       'questions about the business, and funds can land as soon as the same day once you sign.',
   },
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * /funding-solutions — the loans page
+ *
+ * The hero's angle is deliberately borrowed from how Fora Financial frames
+ * theirs, at Denis's request: compare every option in one place, apply once,
+ * hear back fast. The WORDS are ours. Their headline is "Online Business
+ * Financing, Without the Bank Wait", and writing a near-copy of a competitor's
+ * tagline aimed at that competitor's market is not something to do by accident —
+ * so this takes the strategy and leaves the phrasing.
+ *
+ * No count in the headline on purpose. The homepage's funding tile says "6
+ * funding types", the nav lists five, and FUNDING_OPTIONS carries four; a
+ * headline promising a number would be contradicted by the list beneath it
+ * until those three agree.
+ * ------------------------------------------------------------------------- */
+
+export const LOANS = {
+  hero: {
+    eyebrow: 'Funding Solutions',
+    heading: 'Every way to fund your business. One application.',
+    body:
+      'Compare business loans, lines of credit, revenue-based financing, working capital ' +
+      'and equipment finance side by side. Apply once, in minutes, and get a decision the ' +
+      'same day — with approvals from $15,000 to $5,000,000.',
+  },
+
+  /*
+   * The flagship product, in the template's featured slot.
+   *
+   * Its title, description and CTA are read from FUNDING_OPTIONS.cards[0] rather
+   * than restated here, so the homepage carousel and this page cannot end up
+   * describing one product two ways.
+   *
+   * The three figures below ARE restated, because the source is prose — that
+   * card's points read "Approvals up to $1,500,000", not a number a component
+   * can format. They have to agree with those points: change one, change both.
+   */
+  featured: {
+    label: 'Featured',
+    bestForLabel: 'Best for',
+    /*
+     * The carousel's tag for this product reads "Great for keeping funds on
+     * hand" as a standalone pill. Under a "Best for" label that becomes "Best
+     * for: Great for…", so the phrase is reworded here rather than the tag
+     * being changed under the homepage.
+     */
+    bestFor: 'Keeping funds on hand',
+    lead: 'Draw what you need. Pay down when cash flow allows.',
+    /* The headline figure, in the slot the template gives the artwork. */
+    headline: { label: 'Approval up to', value: '$1,500,000' },
+    /*
+     * Three FURTHER facts, not including the headline figure — showing it twice
+     * on one screen wastes the row and makes the product look thinner than it
+     * is. One per point in the source card: terms, draws, early payoff.
+     */
+    stats: [
+      { label: 'Terms', value: 'Up to 36 months' },
+      { label: 'Draws & paydowns', value: 'Unlimited' },
+      { label: 'Early payoff', value: 'No fees' },
+    ],
+  },
+} as const;

@@ -165,7 +165,6 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    */
   programs: 'Programs',
 
-  'funding-solutions': 'Funding Solutions',
   'funding-solutions/business-loans': 'Business Loans',
   'funding-solutions/line-of-credit': 'Line of Credit',
   'funding-solutions/revenue-based-financing': 'Revenue-Based Financing',
