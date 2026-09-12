@@ -548,3 +548,47 @@ export const LOAN_PRODUCTS: Readonly<
     ],
   },
 };
+
+/* ---------------------------------------------------------------------------
+ * /blog — the index
+ *
+ * The template's frame is a news site: an oversized "Today's Headlines" hero, a
+ * featured story, a three-up of recent ones, then the list. Same shapes here,
+ * about funding.
+ *
+ * The heading keeps "Business Funding Insights" from the h1 this replaces. That
+ * phrase was chosen for what the index can actually rank for, and the template's
+ * colon construction adds the benefit half without losing it.
+ * ------------------------------------------------------------------------- */
+
+export const BLOG_INDEX = {
+  eyebrow: 'The Blog',
+  heading: 'Business Funding Insights: Know Before You Borrow',
+  body:
+    'Guides and breakdowns on how business lending actually works — what underwriters ' +
+    'look at, what each product really costs over its term, and how to walk in ready. ' +
+    'Written by the advisors who place these files.',
+  /** Over the featured post. */
+  featuredLabel: 'Latest',
+  /** The labels on the featured post's three facts. */
+  meta: {
+    category: 'Category',
+    date: 'Publication Date',
+    author: 'Author',
+  },
+  readMore: 'Read More',
+  /*
+   * The band over the full list — the homepage's band without its CTA, since
+   * that CTA points here.
+   *
+   * NOT the template's "Welcome to Our News Hub" / "Discover the World of
+   * Headlines". Those are a news site's placeholder words and this file's whole
+   * rule is that the copy is the business's own. What the band has to do is say
+   * what the list under it is, which is every article in date order.
+   */
+  listHead: {
+    label: 'Every Article',
+    heading: 'The full archive, newest first.',
+  },
+  older: 'Older posts',
+} as const;

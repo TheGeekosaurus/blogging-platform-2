@@ -6,13 +6,23 @@ import {
   blogIndexPath,
   blogPagePath,
   countPublishedPosts,
+  listNonEmptyTerms,
   listPublishedPosts,
 } from '@blog/core';
 
+import { FtBlogIndex } from '@/components/marketing/ft/blog-index';
 import { PostCard } from '@/components/post-card';
+import { isNntmCapital } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 import { ReadingColumn } from '@/components/reading-column';
 import { ThemeToggle } from '@/components/blog/theme-toggle';
+
+/**
+ * How many category pills fit on one row at the design's width. Same cap the
+ * homepage uses, and for the same reason — they are ordered by name upstream,
+ * so this is the first few alphabetically rather than an arbitrary slice.
+ */
+const INDEX_CATEGORIES = 6;
 
 // Fully static, and never expires on a timer. Pages change only when a publish
 // triggers on-demand revalidation (phase 5).
@@ -48,6 +58,29 @@ export default async function HomePage() {
   ]);
 
   const hasMore = total > POSTS_PER_PAGE;
+
+  /*
+   * Nanotom Capital gets the marketing design; every other blog keeps the
+   * reading column below. Gated for the same reason /get-funded and /calc are:
+   * `apps/blog` is deployed once per blog from one codebase, so an ungated
+   * layout here would put Capital's chrome on every other blog's archive.
+   *
+   * `listNonEmptyTerms`, not `listTerms` — a pill leading to an empty archive
+   * is a dead end. Fetched only on this branch so the other blogs do not pay
+   * for a query nothing renders.
+   */
+  if (isNntmCapital()) {
+    const categories = await listNonEmptyTerms(client, site.id, 'category');
+
+    return (
+      <FtBlogIndex
+        posts={posts}
+        categories={categories.slice(0, INDEX_CATEGORIES)}
+        locale={site.locale}
+        olderHref={hasMore ? blogPagePath(2) : undefined}
+      />
+    );
+  }
 
   return (
     <ReadingColumn themeToggle={false}>
