@@ -9,7 +9,7 @@ import {
   GrowthIcon,
 } from './icons';
 import { Chip, CONTAINER, SectionHead } from './primitives';
-import { HowItWorks, Qualifier, UseCases } from './shared-sections';
+import { Faq, HowItWorks, Qualifier, UseCases } from './shared-sections';
 
 /*
  * /funding-solutions — the loans page.
@@ -21,8 +21,8 @@ import { HowItWorks, Qualifier, UseCases } from './shared-sections';
  * does not.
  *
  * Hero, then the grey header band over one block per funding product, then
- * three sections shared with the homepage: how it works, what the money is
- * for, and the qualifier survey for anyone still choosing.
+ * four sections shared with the homepage: how it works, what the money is for,
+ * the qualifier survey for anyone still choosing, and the FAQ.
  */
 
 /* ---------------------------------------------------------------------------
@@ -243,6 +243,7 @@ export function FundingSolutions() {
       <HowItWorks />
       <UseCases />
       <Qualifier />
+      <Faq />
     </div>
   );
 }

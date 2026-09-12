@@ -592,3 +592,130 @@ export const BLOG_INDEX = {
   },
   older: 'Older posts',
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * The FAQ, on the homepage and /funding-solutions
+ *
+ * SOURCED FROM FORA FINANCIAL'S FAQ, at Denis's request — he sent their block
+ * as the model, as he did for the hero and the three steps. Same treatment as
+ * both of those: the questions and the substance are theirs, the sentences and
+ * every FIGURE are ours. Three things had to change or the page would have been
+ * wrong rather than merely borrowed:
+ *
+ *   - Their copy names "Fora Financial" three times. On Nanotom's own site.
+ *   - It quotes a 570 credit minimum. REQUIREMENTS on this site says 551, and
+ *     the homepage callout invites people BELOW 551 to the DIY programs. A 570
+ *     here would turn away people the rest of the page is courting.
+ *   - It promises a decision "in as little as 4 hours" and funds "as soon as 24
+ *     hours later". Nanotom's own claim, in HOW_IT_WORKS and CALCULATOR, is the
+ *     SAME DAY for both — stronger on funding, vaguer on the decision. Nothing
+ *     was hedged to avoid their wording; if a 4-hour service level is ever real
+ *     here, a specific number beats "the same day" and should go in.
+ *
+ * "Capital Specialist" is their job title too; ours is "in-house loan advisor",
+ * the one USE_CASES already uses.
+ *
+ * ⚠ ONE CLAIM HERE IS UNVERIFIED AND IS THE RISKIEST STRING IN THIS FILE:
+ * "reviewed with a soft credit check, which does not affect your credit score",
+ * under `will-applying-affect-my-credit`. It came across with the rest of the
+ * paste and nothing in this repo or on the live GoHighLevel site supports it.
+ * It is not like the unconfirmed lender terms in FUNDING_OPTIONS: this is a
+ * representation about how consumer credit is pulled, made on a page that takes
+ * live applications, and it is exactly the kind of statement a borrower relies
+ * on. CONFIRM IT WITH THE LENDERS OR CUT THE SENTENCE BEFORE LAUNCH.
+ * ------------------------------------------------------------------------- */
+
+/**
+ * An answer, as a run of text and links.
+ *
+ * A plain string would do for six of the seven, but the intake answer has to
+ * link out mid-sentence, and splitting it into `before`/`link`/`after` fields
+ * is a shape that only fits one answer. Runs fit any of them.
+ */
+export type AnswerRun = string | { readonly text: string; readonly href: string };
+
+export const FAQ = {
+  heading: 'Frequently asked questions',
+  body:
+    "If your question is not answered here, ask us directly — an advisor will work " +
+    'through it with you, and there is nothing to sign to have the conversation.',
+  cta: { label: 'Ask a Question', href: 'tel:+18555989916' },
+  items: [
+    {
+      id: 'what-is-online-business-financing',
+      q: 'What is online business financing?',
+      a: [
+        'Capital your business applies for and receives through a digital lender rather ' +
+          'than a bank branch. It covers structures like small business loans, lines of ' +
+          'credit and revenue advances. The application, the document upload and the ' +
+          'funding all happen online, which is why a decision comes back in hours rather ' +
+          'than weeks.',
+      ],
+    },
+    {
+      id: 'how-does-it-work',
+      q: 'How does online business financing work?',
+      a: [
+        'You submit an online application, an in-house loan advisor reviews your business ' +
+          'and talks through what you actually need, and a decision comes back — often the ' +
+          'same day. Once you accept an offer and sign, funds can land as soon as that same ' +
+          'day. Nanotom Capital looks at your revenue, your time in business and your cash ' +
+          'flow rather than at a credit score alone.',
+      ],
+    },
+    {
+      id: 'how-fast',
+      q: 'How fast can I get funded?',
+      a: [
+        'Decisions often come back the same day once your documentation is in, and funds ' +
+          'can land as soon as the day you sign. Timelines vary by program and by how ' +
+          'quickly you can get documents to us.',
+      ],
+    },
+    {
+      id: 'credit-score',
+      q: 'What credit score do I need?',
+      a: [
+        'Nanotom Capital works with businesses from a 551 personal FICO® score. A stronger ' +
+          'score opens up more options, but credit is only one input — revenue consistency, ' +
+          'time in business and overall cash flow all count, and some programs still work ' +
+          'for businesses with less-than-perfect credit. Below 551, the ',
+        { text: 'DIY programs', href: '/programs' },
+        ' are built to get you back to approval-ready.',
+      ],
+    },
+    {
+      id: 'will-applying-affect-my-credit',
+      q: 'Will applying affect my credit score?',
+      /*
+       * ⚠ THE UNVERIFIED CLAIM. See the warning at the top of this block before
+       * changing anything here, and before this page goes live on the apex.
+       */
+      a: [
+        'No. Applications are reviewed with a soft credit check, which does not affect your ' +
+          'credit score. There is no cost to apply and no obligation to accept an offer.',
+      ],
+    },
+    {
+      id: 'what-can-i-use-it-for',
+      q: 'What can I use the funds for?',
+      a: [
+        'Essentially any business purpose: payroll, inventory, equipment, renovations, ' +
+          'marketing, expansion, or bridging the gap between invoicing and getting paid. ' +
+          'Nanotom Capital does not restrict how you spread the capital across the business.',
+      ],
+    },
+    {
+      id: 'what-do-i-need-to-apply',
+      q: 'What do I need to apply?',
+      /* Denis's own words for this one, not adapted from anywhere. */
+      a: [
+        'Nothing, to start. The first step is just a form — nothing to gather and nothing ' +
+          'to upload, and it is enough for our team to review. ',
+        { text: 'Start the intake form', href: '/get-funded' },
+        '. For a full application we will need proof of identity, your last three bank ' +
+          'statements, and a signed merchant authorization.',
+      ],
+    },
+  ],
+} as const;

@@ -35,6 +35,26 @@ export function ArrowUpRightIcon({ className }: IconProps) {
   );
 }
 
+/** The mark beside the FAQ heading. */
+export function HelpIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9.25" />
+      <path d="M9.3 9.1a2.8 2.8 0 1 1 3.5 3.2c-.5.2-.8.7-.8 1.3v.6" />
+      <path d="M12 17.2h.01" />
+    </svg>
+  );
+}
+
 export function EyeIcon({ className }: IconProps) {
   return (
     <svg

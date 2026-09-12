@@ -1,11 +1,22 @@
-import { APPLY_LABEL, HOW_IT_WORKS, QUALIFIER, USE_CASES } from './content';
+import Link from 'next/link';
+
+import {
+  APPLY_LABEL,
+  FAQ,
+  HOW_IT_WORKS,
+  QUALIFIER,
+  USE_CASES,
+  type AnswerRun,
+} from './content';
 import { CtaButton } from '../cta-button';
 import { HighLevelForm } from '../highlevel-form';
 import {
+  ArrowUpRightIcon,
   CashFlowIcon,
   ConsolidateIcon,
   EquipmentIcon,
   ExpandIcon,
+  HelpIcon,
   HiringIcon,
   InventoryIcon,
   MarketingIcon,
@@ -218,6 +229,130 @@ export function Qualifier() {
         */}
         <div className="mt-10 overflow-hidden rounded-2xl bg-[var(--ft-bg)]">
           <HighLevelForm />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ---------------------------------------------------------------------------
+ * The FAQ
+ * ------------------------------------------------------------------------- */
+
+/**
+ * One answer's runs: plain text, and the occasional link inside a sentence.
+ *
+ * next/link for the internal ones rather than a bare anchor — `trailingSlash:
+ * true` makes /programs cost a 308 to /programs/ as an <a>, and Link both skips
+ * that hop and prefetches. Same reason GhostButton does it.
+ */
+function Answer({ runs }: { runs: readonly AnswerRun[] }) {
+  return (
+    <p className="max-w-[70ch] text-[1.0625rem] leading-[1.65] text-[var(--ft-muted)]">
+      {runs.map((run, i) =>
+        typeof run === 'string' ? (
+          <span key={i}>{run}</span>
+        ) : (
+          <Link
+            key={i}
+            href={run.href}
+            className="text-[var(--ft-ink)] underline decoration-[var(--ft-accent)] underline-offset-4 hover:text-[var(--ft-accent)]"
+          >
+            {run.text}
+          </Link>
+        ),
+      )}
+    </p>
+  );
+}
+
+/**
+ * The FAQ, shared by the homepage and /funding-solutions.
+ *
+ * Built on <details>/<summary>, not React state — the same choice MobileNav
+ * makes and for the same reasons. It is a native disclosure widget: operable by
+ * keyboard, announced as expanded or collapsed by a screen reader, and
+ * findable by the browser's own in-page search even while shut. Doing it with
+ * `useState` would turn both of these pages into client components and ship a
+ * bundle to run an accordion.
+ *
+ * The first one is `open` because the design shows it that way, and because an
+ * accordion where every row is shut gives a reader nothing to read.
+ *
+ * `name` is deliberately NOT set. It would make the group exclusive — opening
+ * one closes the rest — which looks tidy and is worse: it stops anyone
+ * comparing two answers, and it silently undoes a reader's own expand.
+ */
+export function Faq() {
+  return (
+    <section aria-labelledby="ft-faq" className="border-t border-[var(--ft-line)]">
+      {/* Columns centred against each other, with the divider on the right
+          column — see the long note on the same pattern in funding-solutions. */}
+      <div className={`${CONTAINER} lg:flex lg:gap-0`}>
+        <div className="py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
+          <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+
+          <h2
+            id="ft-faq"
+            className="mt-8 max-w-[14ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.4vw,2.5rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+          >
+            {FAQ.heading}
+          </h2>
+
+          <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+            {FAQ.body}
+          </p>
+
+          {/*
+            A plain anchor, not GhostButton: this is a `tel:` href, and
+            GhostButton routes a non-external href through next/link, which is
+            for in-app navigation and not for handing a URI scheme to the OS.
+          */}
+          <a
+            href={FAQ.cta.href}
+            className="mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+          >
+            {FAQ.cta.label}
+            <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+          </a>
+        </div>
+
+        <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
+          <ul className="flex flex-col gap-4">
+            {FAQ.items.map((item, i) => (
+              <li key={item.id}>
+                <details
+                  open={i === 0}
+                  className="group rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] [&_summary::-webkit-details-marker]:hidden"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-6">
+                    <h3 className="text-[1.0625rem] font-medium leading-[1.35] text-[var(--ft-ink)]">
+                      {item.q}
+                    </h3>
+
+                    {/* One glyph swapped for the other on open, so there is no
+                        rotation to animate and nothing to get stuck halfway. */}
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      className="h-5 w-5 shrink-0 text-[var(--ft-accent)] group-open:text-[var(--ft-muted)]"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 12h16" />
+                      <path className="group-open:hidden" d="M12 4v16" />
+                    </svg>
+                  </summary>
+
+                  <div className="border-t border-[var(--ft-line)] px-6 pb-6 pt-5">
+                    <Answer runs={item.a} />
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>
