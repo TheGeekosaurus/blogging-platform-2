@@ -22,6 +22,29 @@ import { describe, expect, it } from 'vitest';
 const LABS = join(__dirname, '..', 'components', 'marketing', 'labs');
 const read = (file: string) => readFileSync(join(LABS, file), 'utf8');
 
+/**
+ * Rendered markup with HTML entities decoded.
+ *
+ * The copy carries apostrophes, ampersands and em dashes — "Facebook &
+ * Instagram Ads", "a website that\'s built to convert" — and
+ * renderToStaticMarkup escapes them, so asserting against the raw markup fails
+ * for exactly the strings most worth pinning, and fails in a way that looks
+ * like the copy is missing from the page. Decoding makes the assertion mean
+ * what it reads as: is this sentence on the page.
+ *
+ * `&amp;` is decoded LAST, so an escaped entity in the source (`&amp;#x27;`)
+ * does not get unwrapped twice into a character that was never rendered.
+ */
+function decoded(html: string): string {
+  return html
+    .replace(/&#x27;/g, "'")
+    .replace(/&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&amp;/g, '&');
+}
+
 describe('every destination resolves', () => {
   it('gives a nav item an href only when its route exists', async () => {
     const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
@@ -265,7 +288,7 @@ describe('the homepage renders', () => {
   }
 
   it('puts every section on the page', async () => {
-    const html = await render();
+    const html = decoded(await render());
     const { SECTIONS, SERVICES, FAQS, TESTIMONIALS, HERO, CLOSING_CTA } = await import(
       '../components/marketing/labs/content'
     );
@@ -274,7 +297,7 @@ describe('the homepage renders', () => {
     for (const heading of Object.values(SECTIONS)) expect(html).toContain(heading);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
-      expect(html, service.price).toContain(service.price);
+      expect(html, service.projectsTitle).toContain(service.projectsTitle);
     }
     for (const faq of FAQS) expect(html).toContain(faq.question);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
@@ -560,11 +583,11 @@ describe('the Services page', () => {
   });
 
   it('puts every section on the page', async () => {
-    const html = await render();
-    const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS } = await import(
+    const html = decoded(await render());
+    const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS, SERVICES } = await import(
       '../components/marketing/labs/content'
     );
-    const { REASONS, SERVICES_HERO, SERVICES_SECTIONS, SERVICE_CARDS, WORKS } = await import(
+    const { REASONS, SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
       '../components/marketing/labs/services-content'
     );
 
@@ -573,9 +596,9 @@ describe('the Services page', () => {
     for (const heading of Object.values(SERVICES_SECTIONS)) expect(html).toContain(heading);
     expect(html).toContain(SECTIONS.services);
     for (const reason of REASONS) expect(html, reason.title).toContain(reason.title);
-    for (const service of SERVICE_CARDS) {
+    for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
-      expect(html, service.price).toContain(service.price);
+      expect(html, service.body).toContain(service.body);
     }
     for (const work of WORKS) {
       expect(html, work.title).toContain(work.title);

@@ -184,47 +184,41 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <article className="flex flex-col justify-between gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-9">
-        {/*
-          * Two columns, not a wrapping flex row. With `flex-wrap` a long title
-          * like "Mobile App Development" pushed "Book A Call" onto its own line
-          * and the row lost its right edge; as a grid the call is pinned right
-          * and the title wraps within its own column instead.
-          */}
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-14">
-              <Icon className="size-5 lg:size-6" />
-            </span>
-            <h3 className="nl-heading text-xl lg:text-3xl">{service.title}</h3>
-          </div>
-
-          {/* Desktop only: mobile replaces this with the button below. */}
-          <div className="hidden justify-self-end lg:block">
-            <ArrowLink label={LINKS.bookACall} href={ENQUIRY_ANCHOR} />
-          </div>
+        <div className="flex min-w-0 items-center gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-14">
+            <Icon className="size-5 lg:size-6" />
+          </span>
+          <h3 className="nl-heading min-w-0 text-xl break-words lg:text-2xl 2xl:text-3xl">
+            {service.title}
+          </h3>
         </div>
 
-        {/*
-         * Mobile puts the price above the description and desktop below it.
-         * `order` rather than two copies of the markup, so the strings exist
-         * once.
-         */}
-        <p className="order-2 text-sm leading-relaxed text-[var(--nl-body)] lg:order-none lg:text-lg">
+        <p className="text-sm leading-relaxed text-[var(--nl-body)] lg:text-lg">
           {service.body}
         </p>
 
-        <p className="order-1 nl-heading text-lg lg:order-none lg:text-right lg:text-3xl">
-          {service.price}
-        </p>
-
-        <div className="order-3 lg:hidden">
-          <Link
-            href={ENQUIRY_ANCHOR}
-            className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f]"
-          >
-            {LINKS.viewAllProjects}
-          </Link>
+        {/*
+         * The call sits where the price used to, bottom right, rather than up
+         * beside the title. That also frees the header row: it was a two-column
+         * grid purely so a long service name could not push the call onto its
+         * own line, and with the call gone the title has the full width.
+         */}
+        <div className="mt-auto hidden justify-end lg:flex">
+          <ArrowLink label={LINKS.bookACall} href={ENQUIRY_ANCHOR} />
         </div>
+
+        {/*
+         * Mobile gets the same destination as a full-width button, which is the
+         * treatment the mobile artboard gives it. It used to read "View all
+         * Projects" while pointing at the enquiry form — a label that described
+         * neither where it went nor what it did.
+         */}
+        <Link
+          href={ENQUIRY_ANCHOR}
+          className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f] lg:hidden"
+        >
+          {LINKS.bookACall}
+        </Link>
       </article>
 
       {/* The paired gallery, desktop only — the mobile frame has no equivalent. */}

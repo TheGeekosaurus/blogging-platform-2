@@ -13,16 +13,12 @@
  * — stay in ./content.ts and are imported from there, so a wording change
  * reaches both pages in one edit.
  *
- * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. Two blocks below describe
- * engagements that did not happen:
- *   - WORKS: two named client projects, with categories, durations, technology
- *     stacks and five staff portraits each
- *   - SERVICE_CARDS[].price: four price points
- * Published as-is on a real domain the first reads as a portfolio of work
- * Nanotom Labs did not do, and the second commits the business to numbers
- * nobody chose. The stat band and the testimonials this page also renders
- * carry the same problem and the same note in ./content.ts. Replace or remove
- * all of it before the site goes live.
+ * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. WORKS below describes two
+ * named client projects that did not happen — categories, durations, technology
+ * stacks and five staff portraits each — and reads as a portfolio of work
+ * Nanotom Labs did not do. The stat band and the testimonials this page also
+ * renders carry the same problem, and the same note in ./content.ts. Replace or
+ * remove all of it before the site goes live.
  */
 
 export const SERVICES_HERO = {
@@ -78,60 +74,13 @@ export const REASONS: readonly Reason[] = [
   },
 ];
 
-export type ServiceCard = {
-  /** Key into SERVICE_ICONS in ./icons.tsx. */
-  icon: 'web-design' | 'mobile-app' | 'web-development' | 'digital-marketing';
-  title: string;
-  body: string;
-  price: string;
-};
-
-/**
- * The 2x2 service grid.
- *
- * The same four services the homepage lists, in a different presentation: the
- * homepage pairs each with a project gallery in a full-width row, this page
- * shows them as four equal 880x395 cards. Deliberately its own list rather
- * than a re-render of SERVICES, because that type carries `projects` and
- * `projectsTitle` that this layout has nowhere to put — sharing it would mean
- * a shape where half the fields are dead on one of the two pages.
+/*
+ * The four services are NOT here. They live in ./content.ts, because the
+ * homepage renders the same four with a project gallery beside each — the two
+ * pages differ in layout, not in what the services are. They were briefly
+ * duplicated, which meant a copy tweak had to land in two files or the pages
+ * quietly disagreed.
  */
-export const SERVICE_CARDS: readonly ServiceCard[] = [
-  {
-    icon: 'web-design',
-    title: 'Web Design',
-    body:
-      'Our Web Design service is all about creating visually stunning and user-friendly ' +
-      'websites that leave a lasting.',
-    price: 'Starts From $1,500',
-  },
-  {
-    icon: 'mobile-app',
-    title: 'Mobile App Development',
-    body:
-      'With our Mobile App Development service, we harness the power of mobile technology ' +
-      'to create cutting-edge applications that engage your customers on-the-go.',
-    price: 'Starts From $2,500',
-  },
-  {
-    icon: 'web-development',
-    title: 'Web Development',
-    body:
-      'Our Web Development service is focused on turning your website into a powerful ' +
-      'digital asset. We utilize the latest technologies and industry best practices to ' +
-      'build websites.',
-    price: 'Starts From $1,800',
-  },
-  {
-    icon: 'digital-marketing',
-    title: 'Digital Marketing',
-    body:
-      'In the digital age, marketing is a critical aspect of your business’s success. Our ' +
-      'Digital Marketing service employs data-driven strategies to enhance your brand’s ' +
-      'visibility',
-    price: 'Starts From $1,200',
-  },
-];
 
 export type Work = {
   /** Key into WORK_ICONS in ./icons.tsx. */

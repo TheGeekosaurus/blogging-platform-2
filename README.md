@@ -221,11 +221,14 @@ Things worth knowing before editing any of it:
   are no openings to list and the blog is not this site's front door. `/blog`
   still renders, is still in the sitemap, and is still linked from the footer.
 
-The template's testimonials, success stories, prices, stat figures and the two
-"our works" case studies are placeholder copy naming people, companies and
+The four services and the homepage hero are the business's own copy. Everything
+else on both pages is still the template's: the testimonials, the success
+stories, the stat figures, the two "our works" case studies and the eight
+project screenshots beside the services all name people, companies and
 engagements that are not Nanotom Labs'. See the headers of
 `marketing/labs/content.ts` and `marketing/labs/services-content.ts`: they must
-be replaced before the site serves real traffic.
+be replaced before the site serves real traffic. (The four invented price points
+are gone.)
 
 ## Lead capture
 

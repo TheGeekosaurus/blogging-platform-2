@@ -56,7 +56,8 @@ export function Plus({ className }: IconProps) {
   );
 }
 
-function WebDesign({ className }: IconProps) {
+/** Website Design: the pen the template already used, kept. */
+function WebsiteDesign({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
       <path d="m4.5 19.5 3-1 9.9-9.9a2.1 2.1 0 0 0-3-3L4.5 15.5z" {...STROKE} />
@@ -65,29 +66,33 @@ function WebDesign({ className }: IconProps) {
   );
 }
 
-function MobileApp({ className }: IconProps) {
+/** Local SEO/GEO: a map pin, which is what ranking on Maps looks like. */
+function LocalSeo({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <rect x="7" y="3" width="10" height="18" rx="2.5" {...STROKE} />
-      <path d="M11 6h2M12 17.5h.01" {...STROKE} />
+      <path d="M12 21.5s6.5-6 6.5-11a6.5 6.5 0 1 0-13 0c0 5 6.5 11 6.5 11z" {...STROKE} />
+      <circle cx="12" cy="10.5" r="2.5" {...STROKE} />
     </svg>
   );
 }
 
-function WebDevelopment({ className }: IconProps) {
+/** Google Ads: a magnifier, for the customer already searching. */
+function GoogleAds({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="m9 8-4 4 4 4M15 8l4 4-4 4" {...STROKE} />
+      <circle cx="10.5" cy="10.5" r="6" {...STROKE} />
+      <path d="m15 15 5 5" {...STROKE} />
     </svg>
   );
 }
 
-function DigitalMarketing({ className }: IconProps) {
+/** Facebook & Instagram Ads: a megaphone. */
+function SocialAds({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <rect x="3.5" y="12" width="4" height="8" rx="1" {...STROKE} />
-      <rect x="10" y="8" width="4" height="12" rx="1" {...STROKE} />
-      <rect x="16.5" y="4" width="4" height="16" rx="1" {...STROKE} />
+      <path d="M4 10v4a1 1 0 0 0 1 1h2.5L14 19V5L7.5 9H5a1 1 0 0 0-1 1z" {...STROKE} />
+      <path d="M17.5 9a4 4 0 0 1 0 6" {...STROKE} />
+      <path d="M7.5 15v3.5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V17" {...STROKE} />
     </svg>
   );
 }
@@ -183,10 +188,10 @@ function Behance({ className }: IconProps) {
 
 /** Service icons, keyed by `Service['icon']` in ./content.ts. */
 export const SERVICE_ICONS = {
-  'web-design': WebDesign,
-  'mobile-app': MobileApp,
-  'web-development': WebDevelopment,
-  'digital-marketing': DigitalMarketing,
+  'website-design': WebsiteDesign,
+  'local-seo': LocalSeo,
+  'google-ads': GoogleAds,
+  'social-ads': SocialAds,
 } as const;
 
 /** Success-story icons, keyed by `SuccessStory['icon']`. */

@@ -16,10 +16,10 @@
  * people and companies who are not Nanotom Labs' customers:
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
  *   - SUCCESS_STORIES: two client engagements with described outcomes
- *   - SERVICES[].price: four price points
- * Published as-is on a real domain these read as endorsements and case studies
- * that did not happen, and the prices commit the business to numbers nobody
- * chose. Replace or remove them before the site goes live.
+ *   - SERVICES[].projects: eight screenshots presented as this agency's work
+ * Published as-is on a real domain these read as endorsements, case studies and
+ * a portfolio that did not happen. Replace or remove them before the site goes
+ * live. (The four invented price points that used to sit here are gone.)
  *
  * The layouts read every string from here, so re-copywriting never means
  * touching markup.
@@ -40,7 +40,7 @@
  * removing a line here needs no markup change.
  */
 export const HERO = {
-  headingLines: ['More Calls.', 'More Foot Traffic.', 'More Revenue.'],
+  headingLines: ['More Calls', 'More Foot Traffic', 'More Revenue'],
   cta: 'Get Started',
   body:
     'At Nanotom Labs, we help local businesses dominate their market with a high-converting ' +
@@ -102,24 +102,45 @@ export const STATS_CTA = 'Know More';
 
 export type Service = {
   /** Key into the icon map in ./icons.tsx. */
-  icon: 'web-design' | 'mobile-app' | 'web-development' | 'digital-marketing';
+  icon: 'website-design' | 'local-seo' | 'google-ads' | 'social-ads';
   title: string;
   body: string;
-  price: string;
-  /** Heading over the paired gallery, desktop only. */
+  /** Heading over the paired gallery, desktop only. See the note below. */
   projectsTitle: string;
   /** Two per service; paths under /public/nntm-labs. */
   projects: readonly { src: string; alt: string }[];
 };
 
+/**
+ * The four services, and the ONE list of them.
+ *
+ * Both pages read this: the homepage renders each as a row with its project
+ * gallery beside it, /services renders the same four as a 2x2 grid of cards.
+ * They were briefly two lists — the card half was duplicated in
+ * ./services-content.ts — which meant a copy tweak had to be made twice or the
+ * two pages quietly disagreed. The gallery fields are the only thing the
+ * second layout does not use.
+ *
+ * THE COPY IS THE BUSINESS'S OWN, replacing the Figma template's placeholder
+ * services (Web Design / Mobile App Development / Web Development / Digital
+ * Marketing) and the four invented prices that sat under them.
+ *
+ * THE GALLERIES ARE STILL THE TEMPLATE'S, left alone by instruction while the
+ * service copy changed around them. So `projectsTitle` and `projects` below
+ * still describe the OLD services — "Mobile App Development Projects" now sits
+ * beside Local SEO/GEO — and the images are the template's stock screens, not
+ * Nanotom Labs' work. Replace both before this serves real traffic; a
+ * portfolio of work you did not do is the same problem as a testimonial from
+ * someone who is not a customer.
+ */
 export const SERVICES: readonly Service[] = [
   {
-    icon: 'web-design',
-    title: 'Web Design',
+    icon: 'website-design',
+    title: 'Website Design',
     body:
-      'Our Web Design service is all about creating visually stunning and user-friendly ' +
-      'websites that leave a lasting.',
-    price: 'Starts From $1,500',
+      "A fast, professional website that's built to convert. We handle design, copy, mobile " +
+      'optimization, and everything in between — so you look credible and customers feel ' +
+      'confident calling you.',
     projectsTitle: 'Web Design Projects',
     projects: [
       { src: '/nntm-labs/project-web-design-1.webp', alt: 'A fitness brand web design' },
@@ -127,12 +148,11 @@ export const SERVICES: readonly Service[] = [
     ],
   },
   {
-    icon: 'mobile-app',
-    title: 'Mobile App Development',
+    icon: 'local-seo',
+    title: 'Local SEO/GEO',
     body:
-      'With our Mobile App Development service, we harness the power of mobile technology ' +
-      'to create cutting-edge applications that engage your customers on-the-go.',
-    price: 'Starts From $2,500',
+      'We get you ranking on Google Maps and organic search for the keywords your customers ' +
+      'are already typing. More visibility means more traffic without paying for every click.',
     projectsTitle: 'Mobile App Development Projects',
     projects: [
       { src: '/nntm-labs/project-mobile-app-1.webp', alt: 'A mobile app interface' },
@@ -140,13 +160,11 @@ export const SERVICES: readonly Service[] = [
     ],
   },
   {
-    icon: 'web-development',
-    title: 'Web Development',
+    icon: 'google-ads',
+    title: 'Google Ads',
     body:
-      'Our Web Development service is focused on turning your website into a powerful ' +
-      'digital asset. We utilize the latest technologies and industry best practices to ' +
-      'build websites.',
-    price: 'Starts From $1,800',
+      'Reach customers who are actively searching for exactly what you offer. We manage your ' +
+      'campaigns, optimize your budget, and focus on leads — not just clicks.',
     projectsTitle: 'Web Development Projects',
     projects: [
       { src: '/nntm-labs/project-web-development-1.webp', alt: 'A dashboard web application' },
@@ -154,13 +172,11 @@ export const SERVICES: readonly Service[] = [
     ],
   },
   {
-    icon: 'digital-marketing',
-    title: 'Digital Marketing',
+    icon: 'social-ads',
+    title: 'Facebook & Instagram Ads',
     body:
-      "In the digital age, marketing is a critical aspect of your business's success. Our " +
-      "Digital Marketing service employs data-driven strategies to enhance your brand's " +
-      'visibility',
-    price: 'Starts From $1,200',
+      'Build awareness and generate leads in your local area with targeted social ads. Great ' +
+      'for promotions, new customer acquisition, and staying top-of-mind in your community.',
     projectsTitle: 'Digital Marketing Projects',
     projects: [
       { src: '/nntm-labs/project-digital-marketing-1.webp', alt: 'A marketing campaign layout' },
@@ -354,6 +370,4 @@ export const LINKS = {
   bookACall: 'Book A Call',
   openProject: 'Open Project',
   visitWebsite: 'Visit Website',
-  /** Mobile only: replaces the project gallery the desktop layout shows. */
-  viewAllProjects: 'View all Projects',
 } as const;
