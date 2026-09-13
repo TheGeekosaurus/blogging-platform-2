@@ -75,17 +75,18 @@ export type NavItem = {
 };
 
 /**
- * WHY CAREERS AND BLOGS ARE NOT HERE. Both were in the template's bar and both
- * were dropped by decision, not by oversight: there are no openings to list,
- * and the blog is not the front door this site wants. /blog still renders and
- * is still in the sitemap — the footer's Blogs column links into it — so
- * nothing is unreachable; it is only off the primary bar.
+ * WHY CAREERS, BLOGS AND HOME ARE NOT HERE. All three were in the template's
+ * bar and all three were dropped by decision, not by oversight: there are no
+ * openings to list, the blog is not the front door this site wants, and the
+ * wordmark to the left of this bar already links to '/' — a Home item beside it
+ * is a second control for the same destination. /blog still renders and is
+ * still in the sitemap (the footer's Blogs column links into it), so nothing is
+ * unreachable; it is only off the primary bar.
  *
- * That leaves five items where the design has seven, which is also what keeps
+ * That leaves four items where the design has seven, which is also what keeps
  * the desktop bar inside 1024px without wrapping.
  */
 export const NAV: readonly NavItem[] = [
-  { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
   { label: 'Projects' },
   { label: 'About' },

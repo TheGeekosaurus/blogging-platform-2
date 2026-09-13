@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { SERVICES_ENQUIRY_ANCHOR } from './brand';
-import { LINKS, SECTIONS, SERVICE_MARQUEE } from './content';
+import { LINKS, SECTIONS, SERVICES, SERVICE_MARQUEE } from './content';
 import { ArrowRight, SERVICE_ICONS, WORK_ICONS } from './icons';
 import { ArrowLink, DiscLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
 import { ClosingCta, Faq, Stats, Testimonials } from './sections';
@@ -11,7 +11,6 @@ import {
   SERVICES_HERO,
   SERVICES_LINKS,
   SERVICES_SECTIONS,
-  SERVICE_CARDS,
   WORKS,
 } from './services-content';
 
@@ -236,7 +235,7 @@ function ServiceCards() {
       <SectionHeader title={SECTIONS.services} />
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        {SERVICE_CARDS.map((service) => {
+        {SERVICES.map((service) => {
           const Icon = SERVICE_ICONS[service.icon];
 
           return (
@@ -244,36 +243,30 @@ function ServiceCards() {
               key={service.title}
               className="flex flex-col gap-5 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:gap-8 lg:p-10"
             >
-              {/*
-               * Two columns rather than a wrapping flex row, for the reason
-               * the homepage's service rows are: with `flex-wrap` a title as
-               * long as "Mobile App Development" pushes "Book A Call" onto its
-               * own line and the card loses its right edge.
-               */}
-              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-                <div className="flex min-w-0 items-center gap-4">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] border border-[var(--nl-line-strong)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-[66px]">
-                    <Icon className="size-5 lg:size-7" />
-                  </span>
-                  <h3 className="nl-heading min-w-0 text-xl break-words lg:text-2xl 2xl:text-3xl">
-                    {service.title}
-                  </h3>
-                </div>
-
-                <div className="hidden justify-self-end lg:block">
-                  <ArrowLink label={LINKS.bookACall} href={SERVICES_ENQUIRY_ANCHOR} />
-                </div>
+              <div className="flex min-w-0 items-center gap-4">
+                <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] border border-[var(--nl-line-strong)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-[66px]">
+                  <Icon className="size-5 lg:size-7" />
+                </span>
+                <h3 className="nl-heading min-w-0 text-xl break-words lg:text-2xl 2xl:text-3xl">
+                  {service.title}
+                </h3>
               </div>
 
               <p className="text-sm leading-relaxed text-[var(--nl-body)] lg:text-lg">
                 {service.body}
               </p>
 
-              <p className="nl-heading mt-auto text-lg lg:text-right lg:text-3xl">
-                {service.price}
-              </p>
+              {/*
+               * The call sits where the price used to, bottom right, rather
+               * than up beside the title — which also frees the header row from
+               * the two-column grid it needed to keep a long service name from
+               * pushing the call onto its own line.
+               */}
+              <div className="mt-auto hidden justify-end lg:flex">
+                <ArrowLink label={LINKS.bookACall} href={SERVICES_ENQUIRY_ANCHOR} />
+              </div>
 
-              {/* Mobile replaces the header's call with a full-width button. */}
+              {/* Mobile gets the same destination as a full-width button. */}
               <Link
                 href={SERVICES_ENQUIRY_ANCHOR}
                 className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-3.5 text-xs text-[#0f0f0f] lg:hidden"
