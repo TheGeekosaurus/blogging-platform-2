@@ -912,8 +912,8 @@
  * THE ACCENT IS NOT THE TEMPLATE'S. The artwork uses a muted terracotta
  * (#CE7D63); this is the same gold Nanotom Capital runs on, so the two sites
  * read as one company. Everything accented follows the variable, including the
- * hero photograph — it is tinted against the accent with `mix-blend-luminosity`,
- * so it turned from coral to gold with this one line.
+ * team portraits on /services — they are alpha cut-outs over an accent disc, so
+ * they turned from coral to gold with this one line rather than a re-export.
  *
  * Text tones are the design's, with one lifted. Measured against WCAG AA:
  *   --nl-ink    #F9EFEC  16.96:1 on the ground

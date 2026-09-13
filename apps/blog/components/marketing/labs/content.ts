@@ -25,17 +25,36 @@
  * touching markup.
  */
 
+/**
+ * THE HOMEPAGE HERO IS NOT THE TEMPLATE'S COPY. Everything else in this file
+ * still is; this block is the business's own positioning, and it says what
+ * Nanotom Labs sells rather than what the Figma file said.
+ *
+ * THREE LINES, not the template's two. The headline is three parallel clauses
+ * — "More X. More Y. More Z." — and stacking them is both the natural
+ * typographic treatment and the only one that keeps the type large: set as two
+ * lines it needs 1098px beside a 237px call inside a 1111px card, which forces
+ * the headline down to ~46px. Broken in three, the first line is short enough
+ * to sit beside the call at the full size. `headingLines` is read as "the
+ * first line shares its row with the call, the rest stack", so adding or
+ * removing a line here needs no markup change.
+ */
 export const HERO = {
-  headingLines: ['Our Comprehensive', 'Digital Solutions'],
-  cta: 'Start a Project',
+  headingLines: ['More Calls.', 'More Foot Traffic.', 'More Revenue.'],
+  cta: 'Get Started',
   body:
-    'At Nanotom Labs, we offer a comprehensive suite of digital solutions designed to propel ' +
-    'your business to new heights in the digital realm. With a team of skilled ' +
-    'professionals, cutting-edge technologies, and a passion for innovation',
-  /** Overlays on the hero image card. */
-  imageCta: 'View Blog',
-  imageTag: 'Web Development.',
-  imageAlt: 'A robotic hand holding a glowing wireframe sphere',
+    'At Nanotom Labs, we help local businesses dominate their market with a high-converting ' +
+    'website, top Google rankings, and ads that actually bring people through the door.',
+  /**
+   * Overlays on the hero image card.
+   *
+   * The template also put a "Web Development." pill in the opposite corner.
+   * It is gone: it labelled the image as a portfolio thumbnail, and this image
+   * is not one.
+   */
+  imageCta: 'Services',
+  imageAlt:
+    'A glowing map pin standing over a wireframe city, beneath five gold review stars',
 } as const;
 
 /**

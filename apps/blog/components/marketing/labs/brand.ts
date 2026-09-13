@@ -89,7 +89,7 @@ export const NAV: readonly NavItem[] = [
   { label: 'Services', href: '/services' },
   { label: 'Projects' },
   { label: 'About' },
-  { label: 'Contact Us', href: ENQUIRY_ANCHOR, cta: true },
+  { label: 'Get Started', href: ENQUIRY_ANCHOR, cta: true },
 ];
 
 export type FooterLink = {

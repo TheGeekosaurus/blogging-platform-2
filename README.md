@@ -188,8 +188,9 @@ Things worth knowing before editing any of it:
 
 - **The accent is Nanotom's brand gold (#E0A840), not the template's
   terracotta**, so Labs and Capital read as one company. Everything accented
-  follows the variable — including the hero photograph, which is tinted against
-  it with `mix-blend-luminosity` and turned gold with that one line.
+  follows the variable — including the team portraits on `/services`, which are
+  alpha cut-outs over an accent disc and turned gold with that one line rather
+  than a re-export.
 - **The greys are the design's, with one deviation.** Its muted grey (#676665)
   measures 2.88:1 on the raised surface and fails WCAG AA for body text, so
   `--nl-muted` is #878685 instead. `__tests__/labs.test.ts` holds every tone to
@@ -198,10 +199,16 @@ Things worth knowing before editing any of it:
 - **The wordmark is hotlinked, not committed** — same CDN and same reasoning as
   Capital's imagery, with the intrinsic size on the `<img>` so the header
   cannot reflow.
-- **The hero headline is 68px where the artwork says 78.** The design's face
+- **The hero headline is 62px where the artwork says 78.** The design's face
   runs 0.54 em per character and Roboto Flex runs ~0.65, and Google Fonts serves
   the subset with the `wdth` axis pinned, so the gap cannot be closed. The
-  composition is preserved instead of the number.
+  composition is preserved instead of the number. Both hero sizes are clamps
+  measured in the browser against the copy they actually carry — re-measure
+  when the copy changes rather than assuming a number still fits.
+- **The homepage hero copy is the business's own, not the template's.** It is
+  the one block in `marketing/labs/content.ts` that has been rewritten, and its
+  image is the business's own art shown in full colour — the template's tinted
+  stock photograph is gone.
 - **The forms are presentational.** Neither the enquiry form nor the newsletter
   has an endpoint, so both are disabled rather than posting nowhere. The
   enquiry form is the site's only conversion path — it needs a real destination

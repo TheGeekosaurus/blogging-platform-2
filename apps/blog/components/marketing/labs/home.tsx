@@ -51,23 +51,22 @@ function Hero() {
            * difference is the font rather than a judgement call.
            *
            * The design's face runs 0.54 em per character; Roboto Flex at 700
-           * runs about 0.65, so "OUR COMPREHENSIVE" measures 889px against the
-           * artwork's 716px. Roboto Flex's `wdth` axis would close that, but
-           * Google Fonts serves the subset with width pinned at 100 — measured
-           * at wdth 70/80/90/100 and identical each time, not assumed. At 78px
-           * the first line plus the call needs ~1130px inside a 1047px card, so
-           * the call wraps below and the composition the design is built around
-           * breaks.
+           * runs about 0.65. At 78px the first line plus the call overruns the
+           * card, so the call wraps below and the composition the design is
+           * built around breaks. Roboto Flex's `wdth` axis would close the gap,
+           * but Google Fonts serves the subset with width pinned at 100 —
+           * measured at wdth 70/80/90/100 and identical each time, not assumed.
            *
-           * 62px is measured, not picked: the card's inner width is 1047px, the
-           * call is 231px and the gap 24px, which leaves 792px for the phrase
-           * and puts the ceiling at 66px. 62 keeps a margin, because the font
-           * next/font self-hosts is not byte-identical to the subset this was
-           * measured against and a few pixels either way decides whether the
-           * call sits beside the headline or drops beneath it.
+           * 62px is measured against THIS copy, in the browser, with the real
+           * variable font loaded: the card's inner width is 1111px at 1920, the
+           * call is 237px and the gap 32px, which leaves 842px for the first
+           * line. "MORE CALLS." measures 400px there, so 62 is comfortable
+           * rather than marginal — which matters, because the font next/font
+           * self-hosts is not byte-identical to the subset this was measured
+           * against.
            *
-           * The COMPOSITION is what is preserved: two lines, the call anchored
-           * to the right of the first.
+           * The COMPOSITION is what is preserved: the call anchored to the
+           * right of the first line, the rest of the headline stacked beneath.
            *
            * The size is fluid rather than fixed, because a fixed one is only
            * ever right at one viewport — at 1280 this card is 618px wide, where
@@ -75,7 +74,15 @@ function Hero() {
            * is what fits at 1920; below that the headline shrinks with the
            * viewport and the call keeps its place at the right edge.
            */}
-          <h1 className="nl-heading text-[28px] leading-[1.15] lg:text-[clamp(36px,3.3vw,62px)] lg:leading-[1.1]">
+          {/*
+           * Fluid below `lg` too, which the two-line template headline did not
+           * need. "MORE FOOT TRAFFIC." renders 323px at the old fixed 28px
+           * against a 318px card at 390 — measured in the browser with the
+           * real face, not estimated — so it broke after "FOOT". The floor is
+           * what fits at 360 (278px in 288px) and the ceiling is the size the
+           * line reaches before the `lg` clamp takes over.
+           */}
+          <h1 className="nl-heading text-[clamp(24px,6.5vw,30px)] leading-[1.15] lg:text-[clamp(36px,3.3vw,62px)] lg:leading-[1.1]">
             {/*
              * Two columns rather than a flex row, so the call is PINNED to the
              * right edge of the card instead of trailing the headline. In the
@@ -99,7 +106,16 @@ function Hero() {
               </Link>
             </span>
 
-            <span className="block">{HERO.headingLines[1]}</span>
+            {/*
+             * Every line after the first, stacked. Mapped rather than indexed,
+             * so the copy decides how many lines there are — see the note on
+             * HERO in ./content.ts.
+             */}
+            {HERO.headingLines.slice(1).map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
           </h1>
 
           {/* Mobile keeps the same call, stacked under the heading. */}
@@ -126,38 +142,36 @@ function Hero() {
       </div>
 
       {/*
-       * The accent here is a BLEND LAYER, not a backdrop.
+       * NOT TINTED, unlike the image this replaced.
        *
-       * The source photograph is violet — that is what comes out of the Figma
-       * export — but the artwork shows it as a monochrome tint. The card paints
-       * the accent and the image sits on it in `luminosity`: hue and saturation
-       * come from the accent beneath, lightness from the photograph. Drop the
-       * blend and the hero turns violet, which is the one colour nowhere else
-       * on the page.
+       * The template's hero was a violet stock photograph the artwork showed as
+       * a monochrome wash, so it was composited in `luminosity` against the
+       * accent — which is what turned it gold with the rebrand. This image is
+       * the business's own, and its colour IS the message: the map pin carries
+       * Google's four brand colours and the stars are a review rating. Under
+       * `luminosity` all of that collapses into one gold, and the picture stops
+       * saying "Google rankings" at all.
        *
-       * Because it reads the variable, the hero followed the brand: it was
-       * terracotta on the template's accent and is gold on Nanotom's.
-       *
-       * `isolate` on the card matters. Without it the blend composites against
-       * whatever ancestor happens to form a stacking context, so the tint would
-       * change depending on what is behind the hero rather than staying fixed
-       * to the accent directly underneath.
+       * The dark ground behind it is the card tone rather than the accent,
+       * because nothing shows through an opaque square — it only matters while
+       * the bytes are in flight.
        */}
-      <div className="relative isolate min-h-[320px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-accent)] lg:min-h-[520px]">
+      <div className="relative min-h-[320px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] lg:min-h-[520px]">
         <Image
-          src="/nntm-labs/hero-brain.webp"
+          src="/nntm-labs/hero-local-search.webp"
           alt={HERO.imageAlt}
           fill
           priority
           sizes="(min-width: 1024px) 593px, 100vw"
-          className="object-cover mix-blend-luminosity"
+          className="object-cover"
         />
 
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-4 lg:p-6">
-          <ArrowLink label={HERO.imageCta} href="/blog" variant="solid" />
-          <span className="nl-label rounded-[var(--nl-radius-input)] bg-white px-3 py-2 text-[10px] text-[#0f0f0f] lg:text-xs">
-            {HERO.imageTag}
-          </span>
+        {/*
+          One control, not two: the template's "Web Development." pill labelled
+          the image as a portfolio thumbnail and this image is not one.
+        */}
+        <div className="absolute inset-x-0 bottom-0 p-4 lg:p-6">
+          <ArrowLink label={HERO.imageCta} href="/services" variant="solid" />
         </div>
       </div>
     </section>
