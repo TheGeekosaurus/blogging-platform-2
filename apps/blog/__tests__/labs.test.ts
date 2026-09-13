@@ -294,6 +294,30 @@ describe('the homepage renders', () => {
     }
   });
 
+  /*
+   * Every image the page renders resolves to a file that is actually there.
+   *
+   * next/image takes a string and never checks it, so a renamed or deleted
+   * asset is a broken image at runtime and nothing before that — not the
+   * typecheck, not the build, not any other test here. This caught the hero
+   * when its art was replaced: the old file was removed in the same change
+   * that stopped referencing it, and this is what would have failed had only
+   * one of the two happened.
+   */
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+
   it('gives every image alt text, and decorative avatars an empty one', async () => {
     const html = await render();
     const alts = [...html.matchAll(/<img[^>]*\balt="([^"]*)"/g)].map((m) => m[1]);
