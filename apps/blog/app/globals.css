@@ -490,6 +490,19 @@
  * React components — everything here is plain CSS against the tags the
  * sanitiser allows.
  */
+/*
+ * The angle the lead capture popup's border light is rotated to.
+ *
+ * Registered rather than merely used, because an unregistered custom property
+ * is a string as far as animation is concerned and cannot be interpolated. See
+ * `.lm-beam` for the effect this drives.
+ */
+@property --lm-beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @layer components {
   /*
    * The homepage's "Featured On" press-logo marquee. Eight duplicated copies of
@@ -650,6 +663,109 @@
   .toc-scroll:hover::-webkit-scrollbar-thumb,
   .toc-scroll:focus-within::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--color-ink-muted) 45%, transparent);
+  }
+
+  /*
+   * The lead capture popup's border light: two points of brand gold orbiting
+   * the outline, opposite each other.
+   *
+   * WHY IT LIVES HERE AND NOT IN THE COMPONENT. --color-gold is a fixed palette
+   * value, and apps/blog/__tests__/contrast.test.ts forbids blog components
+   * from reading it — for good reason: it measures 2.13:1 on white, so gold
+   * TEXT is unreadable in light mode. This is not text. It is a decorative
+   * stroke a pixel and a half wide whose whole job is to catch the eye, it
+   * carries no information, and nothing is lost if a reader cannot resolve it.
+   * Keeping it in the stylesheet puts the exception where it can be read next
+   * to its reason, rather than sprinkling an escape hatch through the markup.
+   *
+   * HOW IT WORKS. A conic gradient with two gold arcs 180 degrees apart, masked
+   * down to a ring so only the border shows it, and animated by rotating the
+   * gradient's start angle. Rotating the ELEMENT instead — the usual trick —
+   * spins the rounded rectangle itself, which looks right only while the box is
+   * square; the popup is far taller than it is wide.
+   *
+   * Animating an angle needs @property, so that the browser interpolates it as
+   * an angle rather than treating a custom property as an opaque string. Where
+   * that is unsupported the gradient simply holds its initial angle: two gold
+   * arcs sitting still on the border, which reads as deliberate rather than
+   * broken. That is the whole fallback.
+   */
+  @keyframes lm-beam-orbit {
+    to {
+      --lm-beam-angle: 360deg;
+    }
+  }
+
+  .lm-beam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /*
+     * Above the card, which is opaque and would otherwise paint over its own
+     * outline. Masked to the ring, so this covers nothing but the border.
+     */
+    z-index: 1;
+    border-radius: inherit;
+    /* The ring's thickness. Also the mask's inset — see below. */
+    padding: 1.5px;
+    /*
+     * Each point is a short comet: a hard stop into full gold, then a fade out
+     * over ~16 degrees. Wider than this and it stops reading as a travelling
+     * point and starts reading as a gold corner — which is what the first pass
+     * looked like at 42 degrees of spread.
+     *
+     * Degrees map unevenly onto the perimeter of a tall rectangle, so the two
+     * points visibly speed up along the short edges and slow down the long
+     * ones. That is inherent to a conic sweep and is left alone: the
+     * alternative is animating offset-path along a border shape, which is a
+     * great deal of machinery for a decoration nobody is timing.
+     */
+    background: conic-gradient(
+      from var(--lm-beam-angle),
+      transparent 0deg,
+      var(--color-gold) 4deg,
+      transparent 20deg,
+      transparent 180deg,
+      var(--color-gold) 184deg,
+      transparent 200deg,
+      transparent 360deg
+    );
+    /*
+     * Border-only fill: paint the box twice, once clipped to the content box
+     * and once to the whole element, then keep the difference — which is
+     * exactly the padding, i.e. the ring. `xor` is Safari's spelling of
+     * `exclude`; neither prefix covers both engines.
+     */
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    /*
+     * The glow, and the reason these read as light rather than as paint. The
+     * filter runs after the mask, so it blooms the two visible arcs and
+     * nothing else — a blurred copy of the whole gradient would need a second
+     * layer and a stacking context to sit behind the card.
+     */
+    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-gold) 70%, transparent));
+    animation: lm-beam-orbit 6s linear infinite;
+    /* It sits over the card's edge, including over the close button's corner. */
+    pointer-events: none;
+  }
+
+  /*
+   * Continuous peripheral motion is a common vestibular trigger, and unlike a
+   * transition it never ends. Stopped rather than removed: the gradient holds
+   * at its initial angle, so the popup keeps its gold accent and loses only the
+   * travel.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .lm-beam::before {
+      animation: none;
+    }
   }
 
   .post-body {

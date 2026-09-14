@@ -23,6 +23,12 @@ import { rememberClosed, startsMinimised } from '@/lib/lead-magnet';
  * declined once is worth one small strip of screen afterwards; it is not worth
  * disappearing, and it is certainly not worth asking again on the next scroll.
  *
+ * THE BORDER LIGHT is two points of brand gold orbiting the outline, on both
+ * the popup and the tile. It is the one thing here that moves, and it is what
+ * makes a panel in a quiet sidebar register as something to look at. Defined in
+ * globals.css as `.lm-beam` — see there for why the gold lives in the
+ * stylesheet rather than in this file, and for the reduced-motion stop.
+ *
  * NOT A MODAL, deliberately. No backdrop, no focus trap, no inert page behind
  * it. It covers a sidebar, never the article, and it is dismissible in one
  * click — which is what keeps it outside what Google treats as an intrusive
@@ -81,11 +87,15 @@ export function LeadMagnetPopover({ offer }: { offer: LeadMagnetOffer }) {
        * cannot run off a narrow screen. Kept deliberately small — a bottom bar
        * that covers content on a phone is the interstitial this is designed not
        * to be.
+       *
+       * It keeps the border light, which is most of why it is noticeable at
+       * this size. `rounded-full` is what the ring inherits, so the beam runs
+       * round the pill rather than round a rectangle behind it.
        */
       <button
         type="button"
         onClick={() => setMode('open')}
-        className="fixed bottom-4 right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] py-2 pl-4 pr-3 text-left text-sm font-medium text-[var(--color-ink)] shadow-lg transition-colors hover:bg-[var(--color-surface)]"
+        className="lm-beam fixed bottom-4 right-4 z-40 flex max-w-[calc(100vw-2rem)] items-center gap-2 rounded-full border border-[var(--color-line)] bg-[var(--color-surface-muted)] py-2 pl-4 pr-3 text-left text-sm font-medium text-[var(--color-ink)] shadow-lg transition-colors hover:bg-[var(--color-surface)]"
       >
         {/*
           The headline, truncated. It is the only thing identifying the tile, so
@@ -102,31 +112,43 @@ export function LeadMagnetPopover({ offer }: { offer: LeadMagnetOffer }) {
 
   return (
     /*
-      In flow below `lg`, floating above the rail at `lg` and up.
-      `lg:absolute` with `inset-x-0 top-0` pins it over the top of the sidebar;
-      the aside is `relative`, so that is what it resolves against. `z-20` puts
-      it over the contents list without reaching the site header.
+      In flow below `lg`, floating over the rail at `lg` and up.
 
-      Bounded to the rail's own height, and scrolling inside that. Being out of
-      flow means nothing pushes back when the card is taller than the window —
-      it would simply overlap the section below, which on a short viewport is
-      most of the time. The submit button is the element that has to stay
-      reachable, and it is the last one.
+      Anchored to the BOTTOM of the sidebar — `lg:bottom-0`, not `top-0`. The
+      aside is `relative`, so that is the edge it resolves against, and the
+      popup grows upward from there. Bottom-aligned puts it beside the end of
+      the contents list rather than beside its start, which is where a reader
+      deep in an article is looking.
+
+      TWO ELEMENTS, and the nesting is load-bearing. This one carries the
+      position and the border light; the one inside carries the height bound
+      and the scrolling. Putting both on one element makes the ring a child of
+      its own scroll container, so it slides up the card as the reader scrolls
+      it — a light that is supposed to trace the border wandering across the
+      middle of the form.
     */
-    <div className="mb-8 lg:absolute lg:inset-x-0 lg:top-0 lg:z-20 lg:mb-0 lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
-      <LeadMagnetCard
-        offer={offer}
-        onClose={() => {
-          rememberClosed(offer.slug, 'closed');
-          setMode('minimised');
-        }}
-        /*
-         * Recorded, but the popup stays open on the success state so the
-         * download link survives. It only decides how the NEXT article opens.
-         */
-        onConverted={() => rememberClosed(offer.slug, 'converted')}
-        className="shadow-xl lg:shadow-2xl"
-      />
+    <div className="lm-beam relative mb-8 rounded-xl shadow-xl lg:absolute lg:inset-x-0 lg:bottom-0 lg:z-20 lg:mb-0 lg:shadow-2xl">
+      {/*
+        Bounded to the rail's own height, and scrolling inside that. Being out
+        of flow means nothing pushes back when the card is taller than the
+        window — it would simply overlap the section below, which on a short
+        viewport is most of the time. The submit button is the element that has
+        to stay reachable, and it is the last one.
+      */}
+      <div className="rounded-xl lg:max-h-[calc(100vh-11rem)] lg:overflow-y-auto">
+        <LeadMagnetCard
+          offer={offer}
+          onClose={() => {
+            rememberClosed(offer.slug, 'closed');
+            setMode('minimised');
+          }}
+          /*
+           * Recorded, but the popup stays open on the success state so the
+           * download link survives. It only decides how the NEXT article opens.
+           */
+          onConverted={() => rememberClosed(offer.slug, 'converted')}
+        />
+      </div>
     </div>
   );
 }
