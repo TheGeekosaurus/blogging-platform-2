@@ -6,6 +6,7 @@ import {
   categoryPath,
   excerptFor,
   formatPostDate,
+  htmlToPlainText,
   mediaPublicUrl,
   postAuthorName,
   postPath,
@@ -153,9 +154,17 @@ export function SimilarPosts({ posts, locale }: { posts: PostSummary[]; locale: 
                           <p className="truncate text-sm font-semibold text-[var(--color-ink)]">
                             {author}
                           </p>
+                          {/*
+                            Plain text here, unlike the byline and author box.
+                            The whole card is already a link, and a link inside
+                            a link is invalid HTML that browsers resolve by
+                            guessing. Stripping also keeps `truncate` honest —
+                            it measures rendered text, and markup would make a
+                            short role look long.
+                          */}
                           {post.byline?.title ? (
                             <p className="truncate text-xs text-[var(--color-ink-muted)]">
-                              {post.byline.title}
+                              {htmlToPlainText(post.byline.title)}
                             </p>
                           ) : null}
                         </div>

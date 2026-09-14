@@ -7,6 +7,7 @@ import {
   buildAuthorSchemas,
   getAuthorBySlug,
   listAuthorsWithPosts,
+  htmlToPlainText,
   listPostsByAuthor,
   mediaPublicUrl,
   socialLinks,
@@ -53,9 +54,18 @@ export async function generateMetadata({
    * that actually distinguishes one author page from another. Truncated because
    * a bio has no length limit and a meta description does.
    */
-  const description = author.bio
-    ? truncateWords(author.bio, 160)
-    : `Articles by ${author.name}${author.title ? `, ${author.title}` : ''}.`;
+  /*
+   * htmlToPlainText FIRST. Both fields hold markup now, and a meta description
+   * containing <a href="..."> is a description Google shows with the tags in
+   * it — or truncates mid-attribute. Every consumer that wants these as text
+   * rather than as display has to strip them.
+   */
+  const bio = htmlToPlainText(author.bio ?? '');
+  const role = htmlToPlainText(author.title ?? '');
+
+  const description = bio
+    ? truncateWords(bio, 160)
+    : `Articles by ${author.name}${role ? `, ${role}` : ''}.`;
 
   return {
     title: author.name,
@@ -138,15 +148,19 @@ export default async function AuthorPage({
           <div className="min-w-0">
             <h1 className="text-3xl font-bold tracking-tight">{author.name}</h1>
             {author.title ? (
-              <p className="mt-1 text-[var(--color-ink-muted)]">{author.title}</p>
+              <p
+                className="author-prose mt-1 text-[var(--color-ink-muted)]"
+                dangerouslySetInnerHTML={{ __html: author.title }}
+              />
             ) : null}
           </div>
         </div>
 
         {author.bio ? (
-          <p className="mt-5 max-w-2xl leading-[1.7] text-[var(--color-ink-muted)]">
-            {author.bio}
-          </p>
+          <div
+            className="author-prose mt-5 max-w-2xl leading-[1.7] text-[var(--color-ink-muted)]"
+            dangerouslySetInnerHTML={{ __html: author.bio }}
+          />
         ) : null}
 
         {links.length > 0 ? (

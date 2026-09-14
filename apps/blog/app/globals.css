@@ -799,6 +799,34 @@
     margin-top: 0.6em;
   }
 
+  /*
+   * Author title and bio, which may carry inline links.
+   *
+   * They need their own rule because they render inside MUTED containers — the
+   * byline row, the author box, the archive header — and a link that simply
+   * inherits that colour is indistinguishable from the surrounding text. It
+   * has to announce itself without shouting: these sit under a name, not in a
+   * paragraph someone is reading for the links.
+   *
+   * Scoped tight (`a` only) rather than reusing .post-body, whose rules assume
+   * a reading column and would restyle the byline's line height.
+   */
+  .author-prose a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+
+  .author-prose a:hover {
+    text-decoration-color: var(--color-accent);
+  }
+
+  /* A bio is one fragment, not a document — it never carries block spacing. */
+  .author-prose > * + * {
+    margin-top: 0.5em;
+  }
+
   .post-body table {
     width: 100%;
     border-collapse: collapse;

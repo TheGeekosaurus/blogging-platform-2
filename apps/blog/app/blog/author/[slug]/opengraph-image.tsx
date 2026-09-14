@@ -1,4 +1,4 @@
-import { getAuthorBySlug, listAuthorsWithPosts } from '@blog/core';
+import { getAuthorBySlug, htmlToPlainText, listAuthorsWithPosts } from '@blog/core';
 
 import { OG_CONTENT_TYPE, OG_SIZE, ogCard } from '@/lib/og-card';
 import { getClient, getSite } from '@/lib/site';
@@ -36,6 +36,7 @@ export default async function Image({
   return ogCard({
     title: author.name,
     eyebrow: 'Author',
-    footer: [author.title, site.name].filter(Boolean).join(' · '),
+    // Stripped: the card draws text, and author.title may hold markup.
+    footer: [htmlToPlainText(author.title ?? ''), site.name].filter(Boolean).join(' · '),
   });
 }

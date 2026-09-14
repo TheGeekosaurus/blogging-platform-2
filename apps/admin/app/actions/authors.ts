@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { SOCIAL_PLATFORMS, slugify, type SocialLinks } from '@blog/core';
+import { sanitizeAuthorHtml, SOCIAL_PLATFORMS, slugify, type SocialLinks } from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
@@ -72,8 +72,15 @@ export async function saveAuthor(
     site_id: site.id,
     name,
     slug,
-    title: String(formData.get('title') ?? '').trim() || null,
-    bio: String(formData.get('bio') ?? '').trim() || null,
+    /*
+     * Sanitised, not trimmed-and-stored. Both fields now come from a rich text
+     * editor and may carry links, and both are rendered with
+     * dangerouslySetInnerHTML on the public site — so this is a real injection
+     * boundary, not formatting. sanitizeAuthorHtml keeps inline marks, unwraps
+     * block tags and drops everything else.
+     */
+    title: sanitizeAuthorHtml(String(formData.get('title') ?? '')) || null,
+    bio: sanitizeAuthorHtml(String(formData.get('bio') ?? '')) || null,
     // Empty string means "no avatar". The column is a nullable FK, so '' would
     // be rejected as a malformed uuid.
     avatar_id: String(formData.get('avatar_id') ?? '').trim() || null,

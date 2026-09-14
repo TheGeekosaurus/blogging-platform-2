@@ -222,6 +222,59 @@ const PAGE_OPTIONS: sanitizeHtml.IOptions = {
   nonTextTags: ['script', 'textarea', 'option', 'noscript'],
 };
 
+/**
+ * The author-field profile: inline marks and nothing else.
+ *
+ * An author's `title` and `bio` are prose fragments that appear inside other
+ * people's layouts — a one-line role under a byline, a paragraph in a bordered
+ * box, the header of an archive. Denis asked for links in them; this is the
+ * smallest allowance that delivers that.
+ *
+ * It is the NARROWEST of the three profiles on purpose, and narrower than it
+ * strictly has to be:
+ *
+ *   - No block tags. Not because they are dangerous but because they would
+ *     break the layouts these strings sit in — a <div> or an <h2> inside the
+ *     byline row is a wrecked byline row. Disallowed tags UNWRAP here rather
+ *     than taking their contents with them, so pasting a styled paragraph out
+ *     of a CV keeps the words and drops the markup.
+ *   - No images. A bio is a sentence; the avatar is a separate field.
+ *   - No `class`, `id` or `style`. These fragments are rendered inside the
+ *     blog's own components, and an inherited class from somewhere else would
+ *     fight them.
+ *
+ * Links reuse the post profile's external-link transform, so an outbound link
+ * in a bio gets the same target/rel treatment as one in a post body.
+ */
+const AUTHOR_OPTIONS: sanitizeHtml.IOptions = {
+  allowedTags: ['a', 'strong', 'b', 'em', 'i', 'br'],
+  allowedAttributes: {
+    a: ['href', 'target', 'rel', 'title'],
+  },
+  allowedSchemes: [...LINK_SCHEMES],
+  allowedSchemesAppliedToAttributes: ['href'],
+  allowProtocolRelative: false,
+  disallowedTagsMode: 'discard',
+  nonTextTags: ['style', 'script', 'textarea', 'option', 'noscript'],
+  transformTags: {
+    a: OPTIONS.transformTags!.a as sanitizeHtml.Transformer,
+  },
+};
+
+/**
+ * Sanitise an author's title or bio.
+ *
+ * Safe to render with dangerouslySetInnerHTML — but anything that needs these
+ * as TEXT (a meta description, a JSON-LD value, an OG card) must go through
+ * htmlToPlainText first, or it ships markup into a search result.
+ */
+export function sanitizeAuthorHtml(dirty: string): string {
+  if (!dirty) return '';
+  // Trimmed after sanitising: unwrapping a block tag can leave the whitespace
+  // that surrounded it behind.
+  return sanitizeHtml(dirty, AUTHOR_OPTIONS).trim();
+}
+
 /** Sanitise page HTML. See PAGE_OPTIONS for why this differs from posts. */
 export function sanitizePageHtml(dirty: string): string {
   if (!dirty) return '';
