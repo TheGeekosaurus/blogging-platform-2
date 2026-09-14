@@ -6,6 +6,7 @@ import { SOCIAL_PLATFORMS, type SocialPlatform } from '@blog/core';
 
 import { saveAuthor, type AuthorState } from '@/app/actions/authors';
 import { AvatarPicker } from '@/components/editor/avatar-picker';
+import { InlineTextEditor } from '@/components/editor/inline-text-editor';
 import type { MediaOptions } from '@/lib/queries';
 
 const INITIAL: AuthorState = {};
@@ -76,19 +77,20 @@ export function AuthorForm({
       </div>
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium">
+        <label className="block text-sm font-medium">
           Title
         </label>
-        <input
-          id="title"
+        <InlineTextEditor
           name="title"
           defaultValue={values.title}
-          placeholder="Founder, Nanotom Capital"
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          singleLine
+          placeholder="e.g. Founder, Nanotom Capital"
+          describedBy="title-help"
         />
-        <p className="mt-1 text-xs text-slate-500">
-          A short role line, shown under the name on every post. Keep it to one line
-          — the long version belongs in the bio.
+        <p id="title-help" className="mt-1 text-xs text-slate-500">
+          A short role line, shown under the name on every post and in the author box.
+          Links are allowed — a company name can point at its site. Enter is disabled
+          on purpose: a role that wraps to two paragraphs breaks the byline it sits in.
         </p>
       </div>
 
@@ -105,25 +107,25 @@ export function AuthorForm({
           className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Nothing links to this yet — there are no author pages. It is stored now so
-          adding them later does not mean inventing a slug for every author from a
-          name that may have changed by then.
+          The author&rsquo;s archive lives at <code>/blog/author/&lt;slug&gt;</code>, and
+          every byline links to it. Changing this breaks any link already pointing at
+          the old one.
         </p>
       </div>
 
       <div>
-        <label htmlFor="bio" className="block text-sm font-medium">
+        <label className="block text-sm font-medium">
           Bio
         </label>
-        <textarea
-          id="bio"
+        <InlineTextEditor
           name="bio"
-          rows={4}
           defaultValue={values.bio}
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          describedBy="bio-help"
         />
-        <p className="mt-1 text-xs text-slate-500">
-          Stored but not shown yet. It is what the author box will use.
+        <p id="bio-help" className="mt-1 text-xs text-slate-500">
+          Shown in the author box under every post and on the author&rsquo;s archive
+          page. Bold, italic and links only — headings and lists would fight the
+          layouts it renders inside.
         </p>
       </div>
 

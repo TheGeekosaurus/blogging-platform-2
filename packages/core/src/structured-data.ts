@@ -1,5 +1,6 @@
 import type { SchemaNode, SiteRow, TermRow } from './database.types';
 import { postBreadcrumbs } from './breadcrumbs';
+import { htmlToPlainText } from './sanitize';
 import { authorPath, pageUrl, postPath } from './urls';
 
 /**
@@ -556,13 +557,21 @@ export function buildAuthorSchemas({
   postCount,
 }: AuthorSchemaInput): SchemaNode[] {
   const url = pageUrl(site, authorPath(author.slug));
+  const jobTitle = htmlToPlainText(author.title ?? '');
+  const description = htmlToPlainText(author.bio ?? '');
 
   const person: SchemaNode = {
     '@type': 'Person',
     name: author.name,
     url,
-    ...(author.title ? { jobTitle: author.title } : {}),
-    ...(author.bio ? { description: author.bio } : {}),
+    /*
+     * Stripped to text. These fields hold inline markup now (an author may link
+     * their company from their role line), and structured data takes values,
+     * not HTML — a jobTitle of '<a href="...">Founder</a>' is a jobTitle Google
+     * reads literally.
+     */
+    ...(jobTitle ? { jobTitle } : {}),
+    ...(description ? { description } : {}),
     ...(imageUrl ? { image: imageUrl } : {}),
     ...(sameAs && sameAs.length > 0 ? { sameAs } : {}),
     worksFor: { '@type': 'Organization', name: site.name, url: pageUrl(site, '/') },

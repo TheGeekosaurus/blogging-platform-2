@@ -57,8 +57,12 @@ export function PostByline({ post, locale }: { post: PostDetail; locale: string 
               )}
             </p>
             {/* Only a record carries a role; a plain-text byline has none. */}
+            {/* May carry links — sanitised on write. See author-box.tsx. */}
             {byline?.title ? (
-              <p className="mt-0.5 text-sm text-[var(--color-ink-muted)]">{byline.title}</p>
+              <p
+                className="author-prose mt-0.5 text-sm text-[var(--color-ink-muted)]"
+                dangerouslySetInnerHTML={{ __html: byline.title }}
+              />
             ) : null}
           </div>
         </div>

@@ -98,14 +98,24 @@ export function AuthorBox({ byline }: { byline: Byline }) {
             </Link>
           </p>
 
+          {/*
+            dangerouslySetInnerHTML, because the field may contain links now.
+            Safe by construction: sanitizeAuthorHtml runs on WRITE, allows only
+            a/strong/em/b/i/br, and applies the same external-link transform the
+            post body gets. Nothing here is rendered from unsanitised input.
+          */}
           {byline.title ? (
-            <p className="mt-0.5 text-[var(--color-ink)]">{byline.title}</p>
+            <p
+              className="author-prose mt-0.5 text-[var(--color-ink)]"
+              dangerouslySetInnerHTML={{ __html: byline.title }}
+            />
           ) : null}
 
           {byline.bio ? (
-            <p className="mt-3 text-sm leading-[1.7] text-[var(--color-ink-muted)]">
-              {byline.bio}
-            </p>
+            <div
+              className="author-prose mt-3 text-sm leading-[1.7] text-[var(--color-ink-muted)]"
+              dangerouslySetInnerHTML={{ __html: byline.bio }}
+            />
           ) : null}
 
           {socials.length > 0 ? (

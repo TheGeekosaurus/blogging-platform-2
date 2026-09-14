@@ -188,6 +188,15 @@
     pointer-events: none;
   }
 
+  /*
+   * The single-line variant, for an author's role. Enter is already swallowed
+   * in the component; this stops the one paragraph it holds from carrying the
+   * block margin the editor gives every other field.
+   */
+  .inline-field-single p {
+    margin: 0;
+  }
+
   /* Placeholder for an empty document. */
   .prose-editor p.is-editor-empty:first-child::before {
     content: 'Write your post…';

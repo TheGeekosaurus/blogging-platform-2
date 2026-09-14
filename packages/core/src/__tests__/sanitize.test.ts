@@ -5,6 +5,7 @@ import {
   LINK_SCHEMES,
   htmlToPlainText,
   normaliseLinkHref,
+  sanitizeAuthorHtml,
   sanitizePageHtml,
   sanitizePostHtml,
   truncateWords,
@@ -441,5 +442,100 @@ describe('normaliseLinkHref', () => {
       expect(normaliseLinkHref(href).ok, scheme).toBe(true);
       expect(sanitizePostHtml(`<a href="${href}">x</a>`), scheme).toContain('href');
     }
+  });
+});
+
+describe('sanitizeAuthorHtml — links in a title or bio', () => {
+  it('keeps a link and the inline marks around it', () => {
+    const out = sanitizeAuthorHtml(
+      'Founder at <a href="https://nanotom.test">Nanotom</a>, <strong>ex</strong>-<em>banker</em>',
+    );
+
+    expect(out).toContain('<a href="https://nanotom.test"');
+    expect(out).toContain('<strong>ex</strong>');
+    expect(out).toContain('<em>banker</em>');
+  });
+
+  it('gives an external link the same rel treatment a post body gets', () => {
+    const out = sanitizeAuthorHtml('<a href="https://elsewhere.test">x</a>');
+
+    expect(out).toContain('rel="noopener noreferrer"');
+    expect(out).toContain('target="_blank"');
+  });
+
+  it('UNWRAPS the paragraph the editor produces, keeping the words', () => {
+    /*
+     * Tiptap's getHTML always wraps in <p>. These fragments render inside a
+     * byline row and a bordered box, where a block element breaks the layout —
+     * so <p> is disallowed and unwrapped rather than discarded with its text.
+     */
+    expect(sanitizeAuthorHtml('<p>Founder at Nanotom</p>')).toBe('Founder at Nanotom');
+  });
+
+  it('unwraps a whole pasted CV rather than swallowing it', () => {
+    // Pasting styled markup should cost the markup, never the words.
+    const out = sanitizeAuthorHtml(
+      '<div class="cv"><h2>Denis</h2><p>Founder at <a href="/x">Nanotom</a>.</p></div>',
+    );
+
+    expect(out).toContain('Denis');
+    expect(out).toContain('Founder at');
+    expect(out).toContain('href="/x"');
+    expect(out).not.toContain('<div');
+    expect(out).not.toContain('<h2');
+  });
+
+  it('drops block and media tags that would break the layouts it sits in', () => {
+    const out = sanitizeAuthorHtml('<h2>Big</h2><ul><li>one</li></ul><img src="https://x.test/a.png">');
+
+    expect(out).not.toContain('<h2');
+    expect(out).not.toContain('<ul');
+    expect(out).not.toContain('<img');
+    // The text survives; only the structure goes.
+    expect(out).toContain('Big');
+  });
+
+  it('drops class, id and style, which would fight the blog components', () => {
+    const out = sanitizeAuthorHtml('<a href="/x" class="brand" id="a" style="color:red">x</a>');
+
+    expect(out).not.toContain('class');
+    expect(out).not.toContain('style');
+    expect(out).not.toContain('id=');
+    expect(out).toContain('href="/x"');
+  });
+
+  it('refuses a javascript: href — this renders through dangerouslySetInnerHTML', () => {
+    const out = sanitizeAuthorHtml('<a href="javascript:alert(1)">click</a>');
+
+    expect(out).not.toContain('javascript:');
+  });
+
+  it('removes a script outright', () => {
+    const out = sanitizeAuthorHtml('<script>alert(1)</script>Founder');
+
+    expect(out).not.toContain('alert');
+    expect(out).toContain('Founder');
+  });
+
+  it('is narrower than the post profile, which is the point', () => {
+    const heading = '<h2>Heading</h2>';
+    expect(sanitizePostHtml(heading)).toContain('<h2');
+    expect(sanitizeAuthorHtml(heading)).not.toContain('<h2');
+  });
+
+  it('returns an empty string for empty input', () => {
+    expect(sanitizeAuthorHtml('')).toBe('');
+    expect(sanitizeAuthorHtml('<p></p>')).toBe('');
+  });
+
+  it('strips cleanly back to text for the consumers that need it', () => {
+    /*
+     * The meta description, the JSON-LD jobTitle/description and the OG card
+     * all take these as VALUES. A description with <a href> in it is one Google
+     * prints literally, or truncates mid-attribute.
+     */
+    const stored = sanitizeAuthorHtml('Founder at <a href="https://nanotom.test">Nanotom</a>');
+
+    expect(htmlToPlainText(stored)).toBe('Founder at Nanotom');
   });
 });
