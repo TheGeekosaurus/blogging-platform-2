@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import { altTextWarning } from '../content';
 import {
+  LINK_SCHEMES,
   htmlToPlainText,
+  normaliseLinkHref,
   sanitizePageHtml,
   sanitizePostHtml,
   truncateWords,
@@ -364,5 +366,80 @@ describe('altTextWarning', () => {
 
   it('ignores images in other elements and plain text', () => {
     expect(altTextWarning('<p>alt=nothing here</p><figure></figure>')).toBeNull();
+  });
+});
+
+describe('normaliseLinkHref', () => {
+  /*
+   * The editor validates against this so a link is refused while it is being
+   * typed rather than stripped on save. A link the sanitiser rejects is not a
+   * broken link — it is a silently deleted one, and the author sees their text
+   * un-linked with nothing explaining why.
+   */
+  it.each([
+    ['a full https URL', 'https://example.com/page', 'https://example.com/page'],
+    ['a full http URL', 'http://example.com', 'http://example.com'],
+    ['an explicit mailto', 'mailto:a@b.com', 'mailto:a@b.com'],
+    ['a tel link', 'tel:+15551234567', 'tel:+15551234567'],
+    ['a site-relative path', '/blog/a-post/', '/blog/a-post/'],
+    ['an in-page anchor', '#section-two', '#section-two'],
+  ])('keeps %s as it is', (_label, input, expected) => {
+    expect(normaliseLinkHref(input)).toEqual({ ok: true, href: expected });
+  });
+
+  it.each([
+    ['a bare domain', 'example.com', 'https://example.com'],
+    ['a domain with a path', 'example.com/page', 'https://example.com/page'],
+    ['a www host', 'www.example.com', 'https://www.example.com'],
+  ])('adds https to %s', (_label, input, expected) => {
+    // https, not http: defaulting to the insecure one in 2026 would be a choice.
+    expect(normaliseLinkHref(input)).toEqual({ ok: true, href: expected });
+  });
+
+  it('turns a bare email address into a mailto', () => {
+    // The one ambiguous input, and mailto: is what someone typing it means.
+    expect(normaliseLinkHref('hello@example.com')).toEqual({
+      ok: true,
+      href: 'mailto:hello@example.com',
+    });
+  });
+
+  it('trims surrounding whitespace, which a paste brings along', () => {
+    expect(normaliseLinkHref('  https://example.com  ')).toEqual({
+      ok: true,
+      href: 'https://example.com',
+    });
+  });
+
+  it.each([
+    ['javascript', 'javascript:alert(1)'],
+    ['data', 'data:text/html;base64,PHNjcmlwdD4='],
+    ['ftp', 'ftp://files.example.com/a.zip'],
+    ['file', 'file:///etc/passwd'],
+  ])('refuses a %s: URL and says why', (scheme, input) => {
+    const result = normaliseLinkHref(input);
+
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.error).toContain(scheme);
+    // Names what IS allowed, so the message is actionable.
+    expect(result.error).toContain('https');
+  });
+
+  it('refuses an empty value', () => {
+    expect(normaliseLinkHref('   ').ok).toBe(false);
+  });
+
+  it('agrees with the sanitiser about which schemes survive', () => {
+    /*
+     * The whole point of sharing LINK_SCHEMES. If these ever diverge, the
+     * editor accepts a link the sanitiser then deletes — exactly the silent
+     * data loss this pairing exists to prevent.
+     */
+    for (const scheme of LINK_SCHEMES) {
+      const href = `${scheme}:example`;
+      expect(normaliseLinkHref(href).ok, scheme).toBe(true);
+      expect(sanitizePostHtml(`<a href="${href}">x</a>`), scheme).toContain('href');
+    }
   });
 });

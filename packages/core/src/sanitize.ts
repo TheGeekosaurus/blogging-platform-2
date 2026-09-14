@@ -12,6 +12,55 @@ import sanitizeHtml from 'sanitize-html';
  */
 
 /** Embed providers allowed to appear in an <iframe>. */
+/**
+ * URL schemes a link may use.
+ *
+ * Exported because the EDITOR has to agree with it. A link the sanitiser
+ * refuses is not a broken link, it is a silently deleted one: the mark is
+ * stripped on save and the author sees their text un-linked with nothing
+ * explaining why. The admin's link editor validates against this same list, so
+ * the rejection happens while they are typing instead.
+ */
+export const LINK_SCHEMES = ['http', 'https', 'mailto', 'tel'] as const;
+
+/**
+ * Turn what someone typed into a storable href.
+ *
+ * Accepts the shapes people actually paste — a bare domain, a path, an anchor,
+ * an email address — and rejects anything the sanitiser would strip rather than
+ * letting it through to be deleted later.
+ */
+export function normaliseLinkHref(
+  input: string,
+): { ok: true; href: string } | { ok: false; error: string } {
+  const raw = input.trim();
+  if (!raw) return { ok: false, error: 'Enter a URL.' };
+
+  // Relative destinations are legitimate and have no scheme to check: an
+  // internal link, or an anchor within the same post.
+  if (raw.startsWith('/') || raw.startsWith('#')) return { ok: true, href: raw };
+
+  const scheme = raw.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]?.toLowerCase();
+
+  if (scheme) {
+    if ((LINK_SCHEMES as readonly string[]).includes(scheme)) return { ok: true, href: raw };
+    return {
+      ok: false,
+      error:
+        `Links cannot use "${scheme}:". Allowed: ` +
+        `${LINK_SCHEMES.join(', ')} — anything else is removed when the post saves.`,
+    };
+  }
+
+  // An email address with no scheme is the one ambiguous case, and mailto: is
+  // what someone typing one into a link field means.
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw)) return { ok: true, href: `mailto:${raw}` };
+
+  // Everything else with no scheme is a bare domain or domain/path. https,
+  // not http: defaulting to the insecure one in 2026 would be a choice.
+  return { ok: true, href: `https://${raw}` };
+}
+
 const ALLOWED_IFRAME_HOSTNAMES = [
   'www.youtube.com',
   'youtube.com',
@@ -66,7 +115,7 @@ const OPTIONS: sanitizeHtml.IOptions = {
   // javascript: and data: are absent by design. `data:` on <img> is excluded too:
   // WordPress never emits it, and permitting it invites megabyte-scale inline
   // payloads in the content column.
-  allowedSchemes: ['http', 'https', 'mailto', 'tel'],
+  allowedSchemes: [...LINK_SCHEMES],
   allowedSchemesAppliedToAttributes: ['href', 'src', 'cite', 'srcset'],
   // Protocol-relative and root-relative URLs must keep working — internal links
   // rewritten off the old WordPress domain become `/some-post`.
