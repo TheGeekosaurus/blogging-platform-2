@@ -390,9 +390,21 @@ describe('product ranges', () => {
     expect(rbf.maxAmount).toBe(750_000);
   });
 
+  /*
+   * This used to check STUB_PAGES alone, because every funding-solutions child
+   * was a heading-only stub. They are coded pages now, so a path can be real in
+   * either place and checking one list would fail on exactly the pages that got
+   * better. Both are checked, which is also what keeps this honest if a product
+   * page is ever removed without its calculator link going with it.
+   */
   it('points every product at a funding-solutions page that exists', async () => {
     const { STUB_PAGES } = await import('../components/marketing/brand');
-    const paths = new Set(Object.keys(STUB_PAGES).map((path) => `/${path}`));
+    const { codedRoutesFor, NNTM_CAPITAL_SLUG } = await import('@blog/core');
+
+    const paths = new Set([
+      ...Object.keys(STUB_PAGES).map((path) => `/${path}`),
+      ...codedRoutesFor(NNTM_CAPITAL_SLUG).map((route) => `/${route.path}`),
+    ]);
 
     for (const product of PRODUCTS) {
       expect(paths.has(product.href), `${product.name} -> ${product.href}`).toBe(true);

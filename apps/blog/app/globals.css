@@ -1306,3 +1306,57 @@
   --font-headline: var(--font-roboto-flex), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-roboto-flex), ui-sans-serif, system-ui, sans-serif;
 }
+
+/* ---------------------------------------------------------------------------
+ * The product comparison on /funding-solutions/<product>
+ *
+ * A radio group with no JavaScript: every panel is in the DOM and these rules
+ * reveal the one whose radio is checked. Written by hand rather than as
+ * Tailwind variants because the selector has to be built from the product being
+ * compared, and Tailwind generates classes by scanning source text for literals
+ * — `peer-checked/${slug}:grid` interpolated from a variable produces no CSS at
+ * all and fails silently, which on this widget means panels that never appear.
+ *
+ * Indexed 0-3 rather than keyed by slug: there are always exactly four "other"
+ * products, because one of the five is the page you are on. If a sixth product
+ * is ever added, add index 4 here — and note that nothing will fail loudly if
+ * you forget, so check the widget after.
+ *
+ * `~` reaches following siblings only, which is why loan-product.tsx emits all
+ * four radios before the tab row and the panels.
+ * ------------------------------------------------------------------------- */
+
+.ft-compare-panel {
+  display: none;
+}
+
+.ft-compare-radio[data-i='0']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='0'],
+.ft-compare-radio[data-i='1']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='1'],
+.ft-compare-radio[data-i='2']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='2'],
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'] {
+  display: grid;
+}
+
+/* The selected tab. Mirrors the "All" pill on the blog's category row. */
+.ft-compare-radio[data-i='0']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
+.ft-compare-radio[data-i='1']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
+.ft-compare-radio[data-i='2']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+  background: var(--ft-card-raised);
+  color: var(--ft-ink);
+  font-weight: 500;
+  --tw-ring-color: var(--ft-accent);
+  box-shadow: inset 0 0 0 1px var(--ft-accent);
+}
+
+/*
+ * The input is `sr-only`, so the focus ring has to be drawn on its label or a
+ * keyboard user sees nothing move as they arrow through the group.
+ */
+.ft-compare-radio[data-i='0']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
+.ft-compare-radio[data-i='1']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
+.ft-compare-radio[data-i='2']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
+.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+  outline: 2px solid var(--ft-accent);
+  outline-offset: 3px;
+}

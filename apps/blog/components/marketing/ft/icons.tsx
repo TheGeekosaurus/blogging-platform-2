@@ -35,6 +35,41 @@ export function ArrowUpRightIcon({ className }: IconProps) {
   );
 }
 
+/** Pro rows in the product comparison. */
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m4 12.5 5.2 5.2L20 7" />
+    </svg>
+  );
+}
+
+/** Con rows in the product comparison. Not a cross — these are trade-offs. */
+export function MinusIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
 /** The mark beside the FAQ heading. */
 export function HelpIcon({ className }: IconProps) {
   return (
