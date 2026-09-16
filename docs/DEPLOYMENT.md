@@ -35,6 +35,7 @@ Supabase (one project)
    supabase/migrations/0009_drop_media_caption.sql drop an unused column
    supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
    supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
+   supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
    ```
 
    This list had stopped at 0003 while three more migrations were added, which
@@ -248,11 +249,39 @@ The payload is JSON:
 Branch on `magnet` rather than the offer's name or id: the slug is the stable
 public key, and the admin warns before you change one.
 
+### Tracking, on any blog
+
+No environment variable. Each site's Google Tag Manager container is a field on
+its own `sites` row, set in the admin under **Settings → Google Tag Manager
+container**, and it loads on every page of that site.
+
+Leave it empty until the domain is live. An empty field means no tracking at
+all, which is what a preview or a not-yet-launched site wants — there is no way
+for it to report into a real container by accident, because it has none.
+
+Add GA4, the Facebook pixel and every conversion tag as tags *inside* that
+container rather than asking for them in code. Two hardcoded copies of one pixel
+double-count conversions, and the second is invisible to whoever maintains the
+tags.
+
+A change takes effect on save: the admin purges the live site's whole route
+tree, and the tag sits in the root layout. No redeploy.
+
+> **Upgrading an existing deployment?** `0012_gtm_container.sql` drops
+> `analytics_id` and removes `NEXT_PUBLIC_GTM_ID` from the code that read it.
+> Nanotom Capital therefore loads no container between applying that migration
+> and setting `GTM-W5D5NV8X` in the admin. Set it in the same sitting, and
+> delete the now-dead `NEXT_PUBLIC_GTM_ID` variable from that Vercel project so
+> the next person does not trust it.
+
 ### If this is the Nanotom Labs deployment
 
-Set `SITE_SLUG` to `nntm-labs`. Nothing else is needed — the site's pages are
-coded, so it reads no content from the database beyond its `sites` row, and it
-has no third-party embeds and no analytics container of its own.
+Set `SITE_SLUG` to `nntm-labs`. Nothing else is needed in the environment — the
+site's pages are coded, so it reads no content from the database beyond its
+`sites` row, and it has no third-party embeds.
+
+It *can* now have its own GTM container, set the same way as any other site
+above. It had none before, and no way to be given one.
 
 Two things are deliberately not wired yet, and both are visible on the page: the
 enquiry form — one copy at the bottom of the homepage, one at the bottom of
@@ -263,15 +292,17 @@ live.
 
 ### If this is the Nanotom Capital marketing deployment
 
-Set `SITE_SLUG` to `nntm-capital` and add one more variable. It only takes effect
-on that slug — every other blog ignores it.
+Set `SITE_SLUG` to `nntm-capital`. No other environment variable — the container
+this site inherited from HighLevel, `GTM-W5D5NV8X`, goes in the admin under
+Settings, like every other site's. Ad attribution survives the DNS move only if
+it is actually set, so do it before the domain switches: conversions would keep
+happening and quietly stop being reported, which is worse than the script's cost.
 
-| Name | Value |
-| --- | --- |
-| `NEXT_PUBLIC_GTM_ID` | `GTM-W5D5NV8X` — the container the HighLevel site used |
-
-Leave it unset on preview deployments, or previews will report conversions into
-the live container.
+Preview deployments of this project read the same `sites` row and so will load
+the live container. That is the trade for having one place to set it. If a
+preview's traffic ever needs keeping out of the reports, exclude it by hostname
+inside the container — a trigger condition on `Page Hostname`, which is where
+that rule belongs anyway.
 
 The homepage's qualification survey needs no configuration. It is embedded from
 `apps/blog/components/marketing/brand.ts`, because the survey id is public — it
@@ -345,5 +376,7 @@ git diff --quiet HEAD^ HEAD -- apps/blog packages/core
 3. Read its `revalidate_secret`.
 4. New Vercel project, Root Directory `apps/blog`, new `SITE_SLUG` and secret.
 5. Attach the domain.
+6. If it needs tracking, set its GTM container in the admin under Settings —
+   once the domain is live, so the container never reports a staging URL.
 
 No code changes, no migration.

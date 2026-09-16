@@ -3,6 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 
+import { readGtmContainerId } from '@blog/core';
+
 import { requireCurrentSite, SITE_COOKIE } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
 import { readStructuredData } from '@/lib/structured-data';
@@ -43,6 +45,29 @@ export async function saveSettings(
     return { error: 'Base URL must be an origin like https://example.com, with no path.' };
   }
 
+  /*
+   * An empty field means "no tracking on this site", which is a legitimate and
+   * common answer — so only a non-empty value is validated, and a rejected one
+   * stops the save rather than being silently dropped. Silently dropping it is
+   * what the old analytics_id field effectively did: it stored anything and the
+   * site rendered none of it, so a typo and a correct id were indistinguishable
+   * from this screen.
+   *
+   * Mirrors the sites_gtm_container_format constraint, so the author gets a
+   * usable message instead of a raw Postgres error.
+   */
+  const gtmInput = String(formData.get('gtm_container_id') ?? '').trim();
+  const gtm = readGtmContainerId(gtmInput);
+
+  if (gtmInput && !gtm) {
+    return {
+      error:
+        `"${gtmInput}" is not a Google Tag Manager container id. ` +
+        `They look like GTM-XXXXXXX — copy it from the container's own page in ` +
+        `Tag Manager. Leave the field empty to turn tracking off for this site.`,
+    };
+  }
+
   const structured = readStructuredData(formData);
   if ('error' in structured) return { error: structured.error };
 
@@ -53,7 +78,7 @@ export async function saveSettings(
       description: String(formData.get('description') ?? '').trim() || null,
       base_url: baseUrl,
       locale: String(formData.get('locale') ?? 'en').trim() || 'en',
-      analytics_id: String(formData.get('analytics_id') ?? '').trim() || null,
+      gtm_container_id: gtm,
       structured_data: structured.nodes,
     })
     .eq('id', site.id);
