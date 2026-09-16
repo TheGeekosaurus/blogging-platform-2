@@ -4,8 +4,8 @@ import Link from 'next/link';
 
 import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core';
 
+import { Analytics } from '@/components/analytics';
 import { JsonLd } from '@/components/json-ld';
-import { Analytics } from '@/components/marketing/analytics';
 import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
 import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
@@ -249,7 +249,23 @@ export default async function RootLayout({
         <JsonLd nodes={readSnippets(site.structured_data)} />
       </head>
       <body className={BODY_CLASS[coded ?? 'default']}>
-        {marketing ? <Analytics /> : null}
+        {/*
+          Tracking, for every site rather than one of them.
+
+          This used to be `marketing ? <Analytics /> : null` — gated on the
+          Nanotom Capital slug, with the container id coming from
+          NEXT_PUBLIC_GTM_ID. That gate was the reason Labs and every
+          database-driven blog had no analytics and no way to add any: the
+          variable could be set on their Vercel projects and would be read and
+          discarded, because the component was never mounted to read it.
+
+          Ungated now, because the site row decides: a site with no
+          `gtm_container_id` renders nothing, which is the same outcome the
+          slug check produced and is reached by configuration rather than by
+          code. Adding tracking to a new blog is a field in the admin, not a
+          deploy and not an edit here.
+        */}
+        <Analytics containerId={site.gtm_container_id} />
 
         <a
           href="#content"

@@ -67,6 +67,7 @@ supabase/migrations/0008_structured_data.sql    editable schema.org markup
 supabase/migrations/0009_drop_media_caption.sql drop an unused column
 supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
+supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -330,12 +331,33 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET`, optionally `LEAD_WEBHOOK_URL` |
-| Nanotom Capital | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
+| Nanotom Capital | `apps/blog` | the above, with `SITE_SLUG=nntm-capital` |
 | Nanotom Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
 URLs, the sitemap, the feed, and cache refreshes are all built from it.
+
+## Tracking
+
+One Google Tag Manager container per site, set in the admin under **Settings →
+Google Tag Manager container**. It loads on every page of that site, and on no
+other site: the container id is a column on the site's own row, so two
+deployments sharing this codebase never share a container.
+
+Everything else is a tag inside that container — Google Analytics, the Facebook
+pixel, conversion tags. None of them belong in the code. Two hardcoded copies of
+one pixel double-count conversions, and the second copy is invisible to whoever
+maintains the tag setup.
+
+Leave the field empty for no tracking, which is what a site that is not live yet
+wants: an unset container reports nothing rather than reporting into a real one.
+A change takes effect on save — the admin purges the live site's route tree, and
+the tag is in the root layout — so there is no redeploy and no cache flush.
+
+This replaced a `NEXT_PUBLIC_GTM_ID` environment variable that only ever worked
+on `SITE_SLUG=nntm-capital`, and a `sites.analytics_id` column that the admin
+saved and nothing read.
 
 ## Links
 

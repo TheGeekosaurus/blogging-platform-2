@@ -47,7 +47,15 @@ export type SiteRow = {
   logo_url: string | null;
   favicon_url: string | null;
   social: Record<string, string>;
-  analytics_id: string | null;
+  /**
+   * Google Tag Manager container, e.g. `GTM-XXXXXXX`. Null means this site
+   * loads no tracking at all.
+   *
+   * Format-checked in the database (0012_gtm_container.sql) because it is
+   * interpolated into an inline script — read it through `readGtmContainerId`
+   * rather than trusting the string, since a row can also be written by SQL.
+   */
+  gtm_container_id: string | null;
   /** Page served at '/'. Null falls back to the post index. */
   homepage_page_id: string | null;
   /**
@@ -322,7 +330,7 @@ export type Database = {
     Tables: {
       sites: {
         Row: SiteRow;
-        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id' | 'homepage_page_id' | 'structured_data'>;
+        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'gtm_container_id' | 'homepage_page_id' | 'structured_data'>;
         Update: Partial<SiteRow>;
         Relationships: [];
       };
