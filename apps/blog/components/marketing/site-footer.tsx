@@ -3,7 +3,7 @@ import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
-import { CONTACT, LOCAL_IMAGES, POLICY_LINKS } from './brand';
+import { CONTACT, FUNDING_PROGRAMS, LOCAL_IMAGES, POLICY_LINKS } from './brand';
 import { FooterCta } from './footer-cta';
 
 /**
@@ -21,9 +21,24 @@ import { FooterCta } from './footer-cta';
  *     URLs that soft-404. They are dropped rather than shipped broken; add them
  *     back once those pages exist.
  *
- * The 'Blog Articles' link is the one deliberate change of destination: it goes
- * to /blog on this domain instead of blog.nanotomcapital.com. Consolidating the
- * blog onto the apex is the whole reason for this migration.
+ * The 'Blog' link is the one deliberate change of destination: it goes to /blog
+ * on this domain instead of blog.nanotomcapital.com. Consolidating the blog onto
+ * the apex is the whole reason for this migration.
+ *
+ * TWO LINK COLUMNS, at Denis's request: the funding programs and the things a
+ * visitor reads or uses. The 'Give Us A Call' column is gone with them — the
+ * ADDRESS moved to the bottom line under the copyright, and the PHONE NUMBER is
+ * no longer in the footer at all. It has not left the site (the calculator's
+ * two advisor prompts and the FAQ's "Ask a Question" button still dial it), but
+ * this is the second place it has been removed from: the header dropped it
+ * earlier on the argument that it lived in the footer. Nothing now shows a
+ * phone number on the homepage or /funding-solutions. Put a row back here if
+ * that turns out to cost calls.
+ *
+ * The 'Follow Us' column stays gone, as it has been since the migration: its
+ * four links pointed at instagram.com, facebook.com, linkedin.com and
+ * youtube.com — the networks' own home pages rather than this company's
+ * profiles. See the note where SOCIAL used to live in brand.ts.
  */
 export function SiteFooter() {
   const year = new Date().getFullYear();
@@ -33,7 +48,7 @@ export function SiteFooter() {
       {/* Absent on /get-funded, where it would duplicate the h1 — see FooterCta. */}
       <FooterCta />
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1.2fr] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr] lg:px-8">
         <div>
           <Image
             src={LOCAL_IMAGES.logo}
@@ -50,29 +65,42 @@ export function SiteFooter() {
         </div>
 
         <div>
+          {/*
+            The heading is the link to /funding-solutions, which is how that
+            page keeps its place in the footer now the column below it is the
+            five individual programs. The alternative was a sixth list item
+            ("All Funding Solutions") sitting above the five it summarises.
+          */}
+          <Link
+            href="/funding-solutions"
+            className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)] no-underline hover:text-white"
+          >
+            Funding Solutions
+          </Link>
+          <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
+            {FUNDING_PROGRAMS.map((program) => (
+              <li key={program.href}>
+                <Link href={program.href} className="no-underline hover:text-white">
+                  {program.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          {/*
+            "Resources", not "Quick Links". The column next to it is now links
+            too, so "quick" said nothing about what was in this one — these are
+            the things a visitor reads or uses rather than applies for.
+          */}
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
-            Quick Links
+            Resources
           </p>
           <ul className="mt-4 flex flex-col gap-2 text-sm text-white/70">
             <li>
-              {/*
-                First in the column: it is the page every product on the site
-                leads to, and it was the one destination the footer did not
-                offer. Above Blog Articles because the order here is what the
-                business wants read, not what the old HighLevel footer listed.
-              */}
-              <Link href="/funding-solutions" className="no-underline hover:text-white">
-                Funding Solutions
-              </Link>
-            </li>
-            <li>
               <Link href={blogIndexPath()} className="no-underline hover:text-white">
-                Blog Articles
-              </Link>
-            </li>
-            <li>
-              <Link href="/programs" className="no-underline hover:text-white">
-                Programs
+                Blog
               </Link>
             </li>
             <li>
@@ -86,28 +114,12 @@ export function SiteFooter() {
                 Loan Calculator
               </Link>
             </li>
+            <li>
+              <Link href="/programs" className="no-underline hover:text-white">
+                Programs
+              </Link>
+            </li>
           </ul>
-        </div>
-
-        {/*
-          The "Follow Us" column is gone, not fixed. Its four links pointed at
-          instagram.com, facebook.com, linkedin.com and youtube.com — the
-          networks' own home pages rather than this company's profiles. See the
-          note where SOCIAL used to live in brand.ts; restore this block when
-          there are real URLs to put in it.
-        */}
-
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-gold)]">
-            Give Us A Call
-          </p>
-          <a
-            href={CONTACT.phoneHref}
-            className="mt-3 inline-block font-[family-name:var(--font-headline)] text-xl no-underline hover:text-[var(--color-gold)]"
-          >
-            {CONTACT.phone}
-          </a>
-          <p className="mt-4 text-sm leading-[1.6] text-white/70">{CONTACT.address}</p>
         </div>
       </div>
 
@@ -183,6 +195,9 @@ export function SiteFooter() {
           <p className="text-center">
             ©{year} Nanotom Capital. All rights reserved.
           </p>
+
+          {/* The address, which used to head its own column beside the phone. */}
+          <p className="text-center">{CONTACT.address}</p>
         </div>
       </div>
     </footer>

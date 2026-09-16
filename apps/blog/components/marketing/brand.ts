@@ -117,17 +117,31 @@ export type NavItem = {
  * is deliberately left up: retiring it belongs with the other redirects at
  * domain transfer, not here.
  */
+/**
+ * The individual funding programs.
+ *
+ * Its own const because the header's dropdown and the footer's first column are
+ * the same five links, and a footer that quietly falls behind the nav is how a
+ * site ends up advertising a program it no longer offers. Both read this.
+ *
+ * All five are still STUB_PAGES below — they resolve as noindex headings until
+ * someone writes them. Linking them from the footer anyway is deliberate: the
+ * nav has promised them since launch, and a footer that lists four of five
+ * because one has no copy yet is a worse inconsistency than a thin page.
+ */
+export const FUNDING_PROGRAMS: readonly { label: string; href: string }[] = [
+  { label: 'Business Loans', href: '/funding-solutions/business-loans' },
+  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
+  { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
+  { label: 'Working Capital', href: '/funding-solutions/working-capital' },
+  { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
+];
+
 export const NAV: readonly NavItem[] = [
   {
     label: 'Funding Solutions',
     href: '/funding-solutions',
-    children: [
-      { label: 'Business Loans', href: '/funding-solutions/business-loans' },
-      { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
-      { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
-      { label: 'Working Capital', href: '/funding-solutions/working-capital' },
-      { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
-    ],
+    children: FUNDING_PROGRAMS,
   },
   {
     label: 'Industries',
