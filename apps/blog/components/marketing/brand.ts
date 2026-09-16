@@ -179,11 +179,11 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    */
   programs: 'Programs',
 
-  'funding-solutions/business-loans': 'Business Loans',
-  'funding-solutions/line-of-credit': 'Line of Credit',
-  'funding-solutions/revenue-based-financing': 'Revenue-Based Financing',
-  'funding-solutions/working-capital': 'Working Capital',
-  'funding-solutions/equipment-financing': 'Equipment Financing',
+  /*
+   * The five funding products are NOT here any more. They are a coded route
+   * now — app/funding-solutions/[product]/page.tsx — and a static segment beats
+   * the catch-all, so leaving them would have been a map nothing ever read.
+   */
   industries: 'Industries',
   'industries/food-business': 'Food Business',
   'industries/construction-business': 'Construction Business',

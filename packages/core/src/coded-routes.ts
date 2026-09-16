@@ -60,12 +60,21 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
    */
   { path: 'calc', title: 'Loan Calculator', index: true },
   /*
-   * The loans index. Its five children — business-loans, line-of-credit,
-   * revenue-based-financing, working-capital, equipment-financing — are still
-   * STUB_PAGES and deliberately absent here: a stub is noindex, so listing one
-   * in the sitemap would submit a page that asks not to be indexed.
+   * The loans index and its five products. The children were STUB_PAGES and
+   * deliberately absent from this list while they were — a stub is noindex, so
+   * listing one would have submitted a page asking not to be indexed. They are
+   * real pages now, so they belong in the sitemap.
    */
   { path: 'funding-solutions', title: 'Funding Solutions', index: true },
+  { path: 'funding-solutions/business-loans', title: 'Business Loans', index: true },
+  { path: 'funding-solutions/line-of-credit', title: 'Line of Credit', index: true },
+  {
+    path: 'funding-solutions/revenue-based-financing',
+    title: 'Revenue-Based Financing',
+    index: true,
+  },
+  { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
+  { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.

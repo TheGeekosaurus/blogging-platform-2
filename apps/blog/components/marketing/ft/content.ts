@@ -730,3 +730,390 @@ export const FAQ = {
     },
   ],
 } as const;
+
+/* ---------------------------------------------------------------------------
+ * The individual funding product pages, /funding-solutions/<slug>
+ *
+ * Structure follows the brief: hero, "What is X", "Why choose X", "How does X
+ * work", a compare widget, then the three shared bands. Fora Financial's
+ * product pages were the reference for the SHAPE, as they were for the hero and
+ * the three steps. The words are ours.
+ *
+ * ⚠⚠ READ THIS BEFORE TOUCHING ANY NUMBER BELOW. ⚠⚠
+ *
+ * Only TWO of these five products have terms this business has confirmed:
+ *
+ *   line-of-credit            BANKROLL's real terms. Safe.
+ *   revenue-based-financing   The real interest-only program. Safe.
+ *
+ * The other three DO NOT:
+ *
+ *   working-capital       industry-standard ranges, flagged unverified since
+ *   equipment-financing   they were written for FUNDING_OPTIONS above.
+ *   business-loans        NOTHING existed for this one. There is no card in
+ *                         FUNDING_OPTIONS, no figure anywhere in this repo and
+ *                         nothing on the live GoHighLevel site to take one
+ *                         from. Its amounts, terms and schedule below are
+ *                         written to be internally consistent with what the
+ *                         site already claims ("$15,000 to $5,000,000" in the
+ *                         hero, 551 FICO, 30 days in business) and nothing more.
+ *
+ * A carousel card carrying an unverified range is one thing. A DEDICATED
+ * PRODUCT PAGE is the page that ranks, the page a borrower reads before
+ * applying, and the page a term gets quoted from. Three of these five are
+ * currently that page built on figures nobody has checked. Check every number
+ * for working-capital, equipment-financing and business-loans against the real
+ * lender sheets and cut anything that cannot be honoured.
+ * ------------------------------------------------------------------------- */
+
+/** The one qualifying line, shared, so five pages cannot drift apart on it. */
+const ENTRY_REQUIREMENT = 'From 551 FICO® and 30 days in business';
+
+/** The row set the Quick Stats card and the compare widget both read. */
+export type LoanFacts = {
+  readonly amount: string;
+  readonly term: string;
+  readonly repayment: string;
+  readonly fundingTime: string;
+  readonly requirements: string;
+  readonly pros: readonly string[];
+  readonly cons: readonly string[];
+};
+
+export type LoanPage = {
+  /** Path segment under /funding-solutions/. */
+  readonly slug: string;
+  /** Short name, used in the compare tabs and the <title>. */
+  readonly navLabel: string;
+  readonly hero: { readonly eyebrow: string; readonly heading: string; readonly blurb: string };
+  readonly whatIs: { readonly heading: string; readonly body: string };
+  readonly whyChoose: { readonly heading: string; readonly body: string };
+  readonly how: { readonly heading: string; readonly body: string };
+  readonly facts: LoanFacts;
+  /** Feeds <meta name="description">. */
+  readonly description: string;
+};
+
+/** Labels for the Quick Stats rows and the compare columns. */
+export const FACT_LABELS = {
+  amount: 'Amount',
+  term: 'Term',
+  repayment: 'Repayment',
+  fundingTime: 'Funding Time',
+  requirements: 'Requirements',
+  pros: 'Pros',
+  cons: 'Cons',
+} as const;
+
+export const LOAN_PAGE_HEADS = {
+  compare: 'Compare This Against Our Other Options',
+  compareLead:
+    'Pick another program and the two sit side by side — amounts, terms, what each is good at, ' +
+    'and what it costs you to choose it.',
+  compareThis: 'This program',
+  compareAgainst: 'Compare against',
+  quickStats: 'Quick Stats',
+} as const;
+
+export const LOAN_PAGES: readonly LoanPage[] = [
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'business-loans',
+    navLabel: 'Business Loans',
+    description:
+      'A fixed sum up front and a fixed schedule to repay it. Small business loans from ' +
+      '$15,000 to $5,000,000, with a decision often the same day.',
+    hero: {
+      eyebrow: 'Business Loans',
+      heading: 'A Lump Sum Now, On Terms You Can Plan Around.',
+      blurb:
+        'A fixed amount up front and a fixed schedule to repay it. The simplest way to fund ' +
+        'something whose cost you already know — an expansion, a hire, a piece of work you ' +
+        'have priced — with the payment settled before you sign.',
+    },
+    whatIs: {
+      heading: 'What Is a Small Business Loan?',
+      body:
+        'A small business loan is a fixed sum advanced to your business up front and repaid ' +
+        'over an agreed term on a set schedule. The amount, the term and the payment are all ' +
+        'settled before you sign, so the cost is known on day one. It is the right shape when ' +
+        'you know what you are spending and when — unlike a line of credit, which exists for ' +
+        'the costs you cannot schedule.',
+    },
+    whyChoose: {
+      heading: 'Why Choose a Business Loan',
+      body:
+        'Because you can plan against it. The payment does not move, the balance only goes ' +
+        'down, and there is no facility left open to manage. Approval leans on how the ' +
+        'business actually trades rather than on a credit file alone, so a short history or a ' +
+        'thin score does not end the conversation.',
+    },
+    how: {
+      heading: 'How Does a Small Business Loan Work?',
+      body:
+        'You apply with a few details about the business and an advisor reviews your revenue ' +
+        'and time in trading. You receive an offer setting out the amount, the term and the ' +
+        'payment. Accept and sign, and the full amount is disbursed in a single transfer — ' +
+        'often the same day. Repayments run on the agreed schedule to the end of the term, ' +
+        'and paying ahead reduces what you pay overall.',
+    },
+    facts: {
+      amount: '$15,000 to $5,000,000',
+      term: '3 to 60 months',
+      repayment: 'Fixed weekly or monthly',
+      fundingTime: 'As soon as the same day',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'One lump sum, at a cost you know before signing',
+        'Nothing left open to manage once it lands',
+        'Longer terms than most revenue-led options',
+      ],
+      cons: [
+        'The whole balance accrues from day one, spent or not',
+        'A new need means a new application',
+        'Larger amounts ask for more documentation',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'line-of-credit',
+    navLabel: 'Line of Credit',
+    description:
+      "Draw what you need, pay down when cash flow allows, draw again. BANKROLL's revolving " +
+      'business line of credit, with approvals up to $1,500,000.',
+    hero: {
+      eyebrow: 'Line of Credit',
+      heading: 'A Credit Line That Refills As You Repay.',
+      blurb:
+        'Draw what you need, pay down when cash flow allows, and draw again — up to ' +
+        '$1,500,000, with interest charged only on the amount you actually have out.',
+    },
+    whatIs: {
+      heading: 'What Is a Business Line of Credit?',
+      body:
+        'A business line of credit is an approved limit you can draw from, repay, and draw ' +
+        'from again. Where a term loan hands over a lump sum on a fixed schedule, a line of ' +
+        'credit lets you take only what you need when you need it, and you pay interest only ' +
+        'on the amount currently drawn. Repay a draw and that credit is available again, ' +
+        'without reapplying.',
+    },
+    whyChoose: {
+      heading: 'Why Choose the BANKROLL Revolving Line of Credit',
+      body:
+        'Because the money is in place before you need it. Approvals run to $1,500,000, draws ' +
+        'and paydowns of $5,000 or more are unlimited through the one-year revolving period, ' +
+        'payments are fixed weekly so they are predictable, and clearing the balance early ' +
+        'carries no fee. You decide when to borrow, how much to repay, and when to stop.',
+    },
+    how: {
+      heading: 'How Does a Business Line of Credit Work?',
+      body:
+        'You are approved for a maximum limit. When a need arises you draw against it and the ' +
+        'funds transfer to your account. Interest applies to the drawn balance only, not the ' +
+        'full limit, and there are no minimum finance charges on money you have not used. As ' +
+        'you repay, the available credit restores to the original limit and you can draw again ' +
+        'without a new application, over terms up to 36 months.',
+    },
+    facts: {
+      amount: 'Up to $1,500,000',
+      term: 'Up to 36 months',
+      repayment: 'Fixed weekly',
+      fundingTime: 'As soon as the same day',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'Reusable — repaid credit restores to the limit',
+        'Interest only on what you draw, no minimum finance charges',
+        'Unlimited draws and paydowns of $5,000+',
+        'Early payoff any time, without a fee',
+      ],
+      cons: [
+        'An open facility is easier to lean on than a closed one',
+        'Payments are weekly rather than monthly',
+        'An approved limit is not a guarantee every draw clears',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'revenue-based-financing',
+    navLabel: 'Revenue-Based Financing',
+    description:
+      'Up to $750,000 with interest-only payments for as long as 52 weeks, plus a built-in ' +
+      'line of credit. Priced against how your business trades, not your score alone.',
+    hero: {
+      eyebrow: 'Revenue-Based Financing',
+      heading: 'Pay Only The Interest, For Up To A Year.',
+      blurb:
+        'Up to $750,000 with interest-only payments for as long as 52 weeks, and a built-in ' +
+        'credit line you can keep drawing against while the principal waits.',
+    },
+    whatIs: {
+      heading: 'What Is Revenue-Based Financing?',
+      body:
+        'Revenue-based financing is capital priced against how your business actually trades ' +
+        'rather than against a credit score alone. This program takes that further: for up to ' +
+        'a full year the payment covers interest only, so repaying principal is not competing ' +
+        'with cash flow while the money is still doing its work. A built-in line of credit ' +
+        'sits alongside it for whatever comes up in the meantime.',
+    },
+    whyChoose: {
+      heading: 'Why Choose Interest-Only Financing',
+      body:
+        'Because it buys time at the point where time is worth the most. Start from $50,000 ' +
+        'rather than $150,000, pay interest only for up to 52 weeks, and draw a further ' +
+        '$25,000 or more whenever you need it during that period. If the ramp takes longer ' +
+        'than planned, a built-in rollover amortizes the balance over as much as two more ' +
+        'years instead of leaving you to refinance.',
+    },
+    how: {
+      heading: 'How Does Revenue-Based Financing Work?',
+      body:
+        'You are approved for a total amount and take an initial draw, in one transfer or ' +
+        'across several consecutive business days. Your credit line is the difference between ' +
+        'the approval and that first draw, and you pull from it in increments of $25,000 or ' +
+        'more. Through the interest-only period your payment covers interest alone. At the end ' +
+        'of it the balance either clears or rolls into an amortizing term of up to two years.',
+    },
+    facts: {
+      amount: 'Up to $750,000',
+      term: '52 weeks interest-only, rollover to 2 years',
+      repayment: 'Interest-only, then amortizing',
+      fundingTime: 'As soon as the same day',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'Interest-only payments for up to a year',
+        'Built-in credit line for further draws',
+        'Entry point from $50,000',
+        'Rollover option instead of a refinance',
+      ],
+      cons: [
+        'Interest-only means the principal is still there at the end',
+        'Further draws come in $25,000 increments',
+        'Total cost is higher than amortizing from day one',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'working-capital',
+    navLabel: 'Working Capital',
+    description:
+      'A lump sum with a fixed, predictable payoff, built for payroll, inventory and the gap ' +
+      'between invoicing and getting paid. Revenue-led underwriting, same-day funding.',
+    hero: {
+      eyebrow: 'Working Capital',
+      heading: 'Cover The Gap Between Doing The Work And Getting Paid.',
+      blurb:
+        'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory, ' +
+        'and the weeks between sending an invoice and being paid for it.',
+    },
+    whatIs: {
+      heading: 'What Is Working Capital Financing?',
+      body:
+        'Working capital financing covers the day-to-day cost of running the business rather ' +
+        'than a single purchase. It is the money that makes payroll, restocks the shelves and ' +
+        'keeps suppliers current while your own invoices are still outstanding. It is sized ' +
+        'against how you trade rather than against an asset, and the term is short by design: ' +
+        'it is bridging a timing gap, not funding a decade.',
+    },
+    whyChoose: {
+      heading: 'Why Choose Working Capital From Nanotom Capital',
+      body:
+        'Because approval looks at how the business performs rather than only at your credit ' +
+        'file — recent deposits carry more weight than a FICO score. Payments are matched to ' +
+        'your cash cycle, daily, weekly or monthly, and settling ahead of schedule reduces the ' +
+        'interest you pay instead of triggering a penalty.',
+    },
+    how: {
+      heading: 'How Does Working Capital Financing Work?',
+      body:
+        'You apply with a few details and recent bank statements. An advisor sizes the advance ' +
+        'against your deposits and agrees a term and a payment rhythm that fits how money ' +
+        'actually moves through the business. The full amount transfers in one payment, often ' +
+        'the same day your file is complete, and repayments run on that schedule until the ' +
+        'balance clears. Nothing stays open afterwards.',
+    },
+    facts: {
+      amount: '$15,000 to $2,000,000',
+      term: '3 to 36 months',
+      repayment: 'Daily, weekly or monthly',
+      fundingTime: 'Same day once your file is complete',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'Revenue-led underwriting rather than credit-led',
+        'Payment rhythm matched to your cash cycle',
+        'Early payoff reduces the interest you pay',
+        'No open balance left to manage',
+      ],
+      cons: [
+        'Short terms mean larger individual payments',
+        'Daily or weekly schedules need steady receipts',
+        'Sized against deposits, so a slow quarter caps it',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'equipment-financing',
+    navLabel: 'Equipment Financing',
+    description:
+      'Finance the machine, vehicle or system your business runs on. The equipment secures ' +
+      'the loan, most requests under $250,000 are application-only.',
+    hero: {
+      eyebrow: 'Equipment Financing',
+      heading: 'Let The Equipment Pay For Itself.',
+      blurb:
+        'Finance the machine, vehicle or system the business runs on. The equipment secures ' +
+        'the loan, so approval leans on what you are buying rather than on what you already own.',
+    },
+    whatIs: {
+      heading: 'What Is Equipment Financing?',
+      body:
+        'Equipment financing is a loan secured by the thing it buys. Because the asset is the ' +
+        'collateral, there is no blanket lien across the rest of the business, and underwriting ' +
+        'leans on the equipment itself rather than on the balance sheet behind it. The term is ' +
+        'matched to the working life of the asset, so the equipment is earning while you are ' +
+        'still paying for it.',
+    },
+    whyChoose: {
+      heading: 'Why Choose Equipment Financing',
+      body:
+        'Because it leaves the rest of the business unencumbered. The equipment secures the ' +
+        'loan on its own — new or used, from a dealer, a private party or an auction. Most ' +
+        'requests under $250,000 are application-only, with no financial statements to produce, ' +
+        'and most financed equipment qualifies for a Section 179 write-off.',
+    },
+    how: {
+      heading: 'How Does Equipment Financing Work?',
+      body:
+        'You identify the equipment and the seller, and apply with the invoice or quote. ' +
+        'Underwriting looks at the asset and at your trading history; on most requests under ' +
+        '$250,000 no financial statements are needed. Once approved, funds go to the seller and ' +
+        'the equipment is delivered, with the loan secured against it and nothing else. ' +
+        'Repayments run 12 to 84 months, matched to how long the asset will be earning.',
+    },
+    facts: {
+      amount: 'Matched to the invoice',
+      term: '12 to 84 months',
+      repayment: 'Fixed monthly',
+      fundingTime: 'Often within two business days',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'Self-collateralizing — no blanket lien on other assets',
+        'Application-only on most requests under $250,000',
+        'New, used, dealer, private party or auction',
+        'Most financed equipment is Section 179 eligible',
+      ],
+      cons: [
+        'Only pays for equipment, not general spend',
+        'The asset can be repossessed on default',
+        'Terms track the asset’s life rather than your preference',
+      ],
+    },
+  },
+];
