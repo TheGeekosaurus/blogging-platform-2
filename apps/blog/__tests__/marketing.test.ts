@@ -113,15 +113,33 @@ describe('brand constants', () => {
     }
   });
 
-  it('keeps the phone number out of the header and in the footer', async () => {
+  /*
+   * This used to assert the phone was in the footer and not the header, on the
+   * argument that two numbers in the header split the click. Denis has since
+   * had the footer's contact column removed as well, so the number is in
+   * NEITHER piece of site chrome.
+   *
+   * What the test protects is therefore no longer "one place" but "still
+   * reachable somewhere": a phone number that exists in brand.ts and is dialled
+   * from nowhere is a number the business thinks it is publishing and is not.
+   * The calculator's advisor prompts and the FAQ's "Ask a Question" button are
+   * what carry it now, so the assertion follows them.
+   */
+  it('still dials the phone number somewhere, now that no chrome shows it', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const read = (file: string) =>
-      readFileSync(join(__dirname, '..', 'components', 'marketing', file), 'utf8');
+    const marketing = join(__dirname, '..', 'components', 'marketing');
+    const read = (file: string) => readFileSync(join(marketing, file), 'utf8');
 
-    // One phone number, one place. Two in the header split the click.
     expect(read('site-header.tsx')).not.toContain('CONTACT.phone');
-    expect(read('site-footer.tsx')).toContain('CONTACT.phone');
+    expect(read('site-footer.tsx')).not.toContain('CONTACT.phone');
+
+    const { CONTACT } = await import('../components/marketing/brand');
+    const reachable =
+      read(join('ft', 'calculator.tsx')).includes('CONTACT.phoneHref') ||
+      read(join('ft', 'content.ts')).includes(CONTACT.phoneHref);
+
+    expect(reachable, 'CONTACT.phoneHref is dialled from at least one page').toBe(true);
   });
 });
 
