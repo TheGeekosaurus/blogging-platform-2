@@ -4,15 +4,9 @@ import Link from 'next/link';
 import { SERVICES_ENQUIRY_ANCHOR } from './brand';
 import { LINKS, SECTIONS, SERVICES, SERVICE_MARQUEE } from './content';
 import { ArrowRight, SERVICE_ICONS, WORK_ICONS } from './icons';
-import { ArrowLink, DiscLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
+import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
 import { ClosingCta, Faq, Stats, Testimonials } from './sections';
-import {
-  REASONS,
-  SERVICES_HERO,
-  SERVICES_LINKS,
-  SERVICES_SECTIONS,
-  WORKS,
-} from './services-content';
+import { SERVICES_HERO, SERVICES_LINKS, SERVICES_SECTIONS, WORKS } from './services-content';
 
 /**
  * The Nanotom Labs Services page.
@@ -24,7 +18,6 @@ import {
  *
  *   y=161   hero            1207 + 593, split 20
  *   y=771   stat band       six 280x150 tiles          (shared)
- *   y=1081  reasons         four 430x398 cards
  *   y=1815  services        four 880x395 cards, 2x2
  *   y=2963  our works       three 579.3 columns per project
  *   y=4221  testimonials    four 430x404 cards          (shared)
@@ -32,7 +25,9 @@ import {
  *   y=6151  closing call    1821x305 accent band        (shared)
  *
  * The four marked shared are imported from ./sections.tsx, which is where they
- * moved when this page proved they were not the homepage's.
+ * moved when this page proved they were not the homepage's. The artwork's
+ * "reasons to choose" block, which sat at y=1081, is gone from here for the
+ * opposite reason — see REASONS in ./content.ts.
  *
  * NO MOBILE ARTBOARD WAS SUPPLIED for this frame — the homepage had both a
  * 1920 and a 390 export to match. Every breakpoint below `lg` here is
@@ -181,51 +176,6 @@ function Hero() {
         </figcaption>
       </figure>
     </section>
-  );
-}
-
-function Reasons() {
-  return (
-    <Panel className="mt-[var(--nl-section-gap)]">
-      <SectionHeader title={SERVICES_SECTIONS.reasons} />
-
-      {/*
-        * Four across only from `xl`.
-        *
-        * The artwork's four 430px cards are a 1920 layout. Held at four all
-        * the way down, each card is 208px wide at 1024 — narrower than the
-        * word "Technologies" set at the artwork's 30px, which pushed the whole
-        * PAGE into horizontal scroll rather than merely looking tight. Two up
-        * between `sm` and `xl` is the same cards at a readable measure.
-        */}
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {REASONS.map((reason) => (
-          <article
-            key={reason.title}
-            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10"
-          >
-            <div>
-              {/*
-                * The size steps with the column count for the same reason:
-                * 30px is the artwork's figure at 1920, where the card is
-                * 430px. `break-words` is the backstop — a single unbreakable
-                * word longer than its column is the one thing that escapes a
-                * fluid size, and it escapes as page-wide horizontal scroll.
-                */}
-              <h3 className="nl-heading text-xl leading-snug break-words lg:text-2xl 2xl:text-3xl">
-                {reason.title}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6">
-                {reason.body}
-              </p>
-            </div>
-
-            {/* Unlinked: the design gives these four no destination. */}
-            <DiscLink label={SERVICES_LINKS.learnMore} />
-          </article>
-        ))}
-      </div>
-    </Panel>
   );
 }
 
@@ -440,7 +390,6 @@ export function LabsServices() {
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
       <Stats enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
-      <Reasons />
       <ServiceCards />
       <Works />
       <Testimonials />

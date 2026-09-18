@@ -44,6 +44,15 @@ export function ArrowRight({ className }: IconProps) {
   );
 }
 
+/** The stat grid's "Reach Us" tile, which scrolls DOWN the page, not away. */
+export function ArrowDown({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M12 5v13M7 13l5 5 5-5" {...STROKE} />
+    </svg>
+  );
+}
+
 /**
  * The FAQ toggle. One glyph for both states: `.nl-faq details[open]` rotates it
  * 45° so the plus becomes a cross, which is why there is no separate minus.

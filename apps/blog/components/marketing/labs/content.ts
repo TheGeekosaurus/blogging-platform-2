@@ -91,11 +91,22 @@ export type Service = {
   icon: 'website-design' | 'local-seo' | 'google-ads' | 'social-ads';
   title: string;
   body: string;
-  /** Heading over the paired gallery, desktop only. See the note below. */
-  projectsTitle: string;
   /** Two per service; paths under /public/nntm-labs. */
   projects: readonly { src: string; alt: string }[];
 };
+
+/**
+ * The heading over a service's project gallery.
+ *
+ * Derived, not stored. It used to be a `projectsTitle` field, which meant the
+ * galleries kept the OLD service names when the services were rewritten —
+ * "Mobile App Development Projects" sat beside Local SEO/GEO for a while. The
+ * heading is the service's name plus a word; there was never a second fact to
+ * record.
+ */
+export function projectsTitle(service: Service): string {
+  return `${service.title} Projects`;
+}
 
 /**
  * The four services, and the ONE list of them.
@@ -111,13 +122,10 @@ export type Service = {
  * services (Web Design / Mobile App Development / Web Development / Digital
  * Marketing) and the four invented prices that sat under them.
  *
- * THE GALLERIES ARE STILL THE TEMPLATE'S, left alone by instruction while the
- * service copy changed around them. So `projectsTitle` and `projects` below
- * still describe the OLD services — "Mobile App Development Projects" now sits
- * beside Local SEO/GEO — and the images are the template's stock screens, not
- * Nanotom Labs' work. Replace both before this serves real traffic; a
- * portfolio of work you did not do is the same problem as a testimonial from
- * someone who is not a customer.
+ * THE GALLERY IMAGES ARE STILL THE TEMPLATE'S — stock screens, not Nanotom
+ * Labs' work, shown under each service's own name. Replace them before this
+ * serves real traffic; a portfolio of work you did not do is the same problem
+ * as a testimonial from someone who is not a customer.
  */
 export const SERVICES: readonly Service[] = [
   {
@@ -127,7 +135,6 @@ export const SERVICES: readonly Service[] = [
       "A fast, professional website that's built to convert. We handle design, copy, mobile " +
       'optimization, and everything in between — so you look credible and customers feel ' +
       'confident calling you.',
-    projectsTitle: 'Web Design Projects',
     projects: [
       { src: '/nntm-labs/project-web-design-1.webp', alt: 'A fitness brand web design' },
       { src: '/nntm-labs/project-web-design-2.webp', alt: 'A property listing web design' },
@@ -139,7 +146,6 @@ export const SERVICES: readonly Service[] = [
     body:
       'We get you ranking on Google Maps and organic search for the keywords your customers ' +
       'are already typing. More visibility means more traffic without paying for every click.',
-    projectsTitle: 'Mobile App Development Projects',
     projects: [
       { src: '/nntm-labs/project-mobile-app-1.webp', alt: 'A mobile app interface' },
       { src: '/nntm-labs/project-mobile-app-2.webp', alt: 'A mobile commerce interface' },
@@ -151,7 +157,6 @@ export const SERVICES: readonly Service[] = [
     body:
       'Reach customers who are actively searching for exactly what you offer. We manage your ' +
       'campaigns, optimize your budget, and focus on leads — not just clicks.',
-    projectsTitle: 'Web Development Projects',
     projects: [
       { src: '/nntm-labs/project-web-development-1.webp', alt: 'A dashboard web application' },
       { src: '/nntm-labs/project-web-development-2.webp', alt: 'A data-heavy web application' },
@@ -163,7 +168,6 @@ export const SERVICES: readonly Service[] = [
     body:
       'Build awareness and generate leads in your local area with targeted social ads. Great ' +
       'for promotions, new customer acquisition, and staying top-of-mind in your community.',
-    projectsTitle: 'Digital Marketing Projects',
     projects: [
       { src: '/nntm-labs/project-digital-marketing-1.webp', alt: 'A marketing campaign layout' },
       { src: '/nntm-labs/project-digital-marketing-2.webp', alt: 'A campaign analytics layout' },
@@ -363,8 +367,55 @@ export const NEWSLETTER = {
   placeholder: 'Enter your email',
 } as const;
 
+export type Reason = { title: string; body: string };
+
+/**
+ * The four "reasons to choose" cards, on the HOMEPAGE.
+ *
+ * They were the Services page's, from the template's frame, and moved here by
+ * decision: they answer "why you" rather than "what do you sell", which is a
+ * question a visitor asks before the service list, not after it. So they sit
+ * above Our Services rather than below anything.
+ *
+ * Every card ends in a "Learn More" control that has no destination — there is
+ * no page behind any of the four — so it renders unlinked rather than as a
+ * link that 404s. See DiscLink in ./primitives.tsx.
+ *
+ * STILL THE TEMPLATE'S COPY, generic agency claims about expertise and track
+ * record. The heading names the local-business audience now; the four cards
+ * under it do not yet.
+ */
+export const REASONS: readonly Reason[] = [
+  {
+    title: 'Expertise in Cutting-Edge Technologies',
+    body:
+      'Nanotom Labs ensures your projects are powered by state-of-the-art technologies, ' +
+      'guaranteeing innovation and future-proof solutions.',
+  },
+  {
+    title: 'Proven Track Record of Success',
+    body:
+      'Nanotom Labs demonstrates a consistent ability to meet and exceed client ' +
+      'expectations, providing reliable and effective web solutions tailored to diverse ' +
+      'needs.',
+  },
+  {
+    title: 'Client-Centric Approach',
+    body:
+      'At Nanotom Labs, we prioritize understanding our clients\u2019 unique requirements, ' +
+      'fostering transparent communication throughout the development process.',
+  },
+  {
+    title: 'Dedicated Team of Professionals',
+    body:
+      'Our professionals bring a wealth of expertise to the table, ensuring the delivery of ' +
+      'top-notch, scalable, and secure web solutions for your business.',
+  },
+];
+
 /** Section headings, so the page component holds no bare strings. */
 export const SECTIONS = {
+  reasons: 'Reasons to Choose Nanotom Labs for Your Local Business',
   services: 'Our Services',
   successStories: 'Success Stories',
   testimonials: 'Testimonials',
@@ -377,4 +428,5 @@ export const LINKS = {
   bookACall: 'Book A Call',
   openProject: 'Open Project',
   visitWebsite: 'Visit Website',
+  learnMore: 'Learn More',
 } as const;

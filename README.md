@@ -179,14 +179,14 @@ component.
 
 ### Nanotom Labs
 
-Two pages so far — `/` and `/services` — each a replica of a Figma template
-frame, measured out of the PDF export rather than estimated. The homepage had
-1920 desktop and 390 mobile artboards and both are matched; only a desktop
-frame was supplied for `/services`, so its layout below `lg` is an inference
-from the homepage's mobile frame rather than a transcription.
+Three pages so far — `/`, `/services` and `/get-started` — each a replica of a
+Figma template frame, measured out of the PDF export rather than estimated. The
+homepage had 1920 desktop and 390 mobile artboards and both are matched; only a
+desktop frame was supplied for the other two, so their layout below `lg` is an
+inference from the homepage's mobile frame rather than a transcription.
 
-The two pages share a grid and four whole sections — the stat band, the
-testimonial wall, the FAQ and its form, and the closing call — which live in
+The pages share a grid and four whole sections — the stat band, the testimonial
+wall, the FAQ and its form, and the closing call — which live in
 `marketing/labs/sections.tsx`. Each page owns its hero and the sections between.
 Things worth knowing before editing any of it:
 
@@ -213,6 +213,11 @@ Things worth knowing before editing any of it:
   the one block in `marketing/labs/content.ts` that has been rewritten, and its
   image is the business's own art shown in full colour — the template's tinted
   stock photograph is gone.
+- **Nothing on `/get-started` can be contacted yet.** The form has no endpoint
+  and the tabbed contact card carries no addresses, numbers or locations — all
+  deliberately blank rather than invented, because a plausible mailbox nobody
+  reads swallows enquiries in silence. Fill in `CONTACT_CHANNELS` in
+  `marketing/labs/get-started-content.ts` and the entries become real links.
 - **The forms are presentational.** Neither the enquiry form nor the newsletter
   has an endpoint, so both are disabled rather than posting nowhere. The
   enquiry form is the site's only conversion path — it needs a real destination

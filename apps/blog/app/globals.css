@@ -1379,6 +1379,60 @@
   }
 
   /*
+   * A tab group of any size, keyed by POSITION rather than by name.
+   *
+   * `.nl-tabs` above is the success stories', and its rules name `before` and
+   * `after` — fine for two fixed panels, useless for the contact card's three.
+   * CSS cannot express "show the panel whose key matches the checked input",
+   * so the keys have to be written out either way; numbering them keeps the
+   * rules content-agnostic, so the next tab group reuses these instead of
+   * adding its own vocabulary to this file.
+   *
+   * THE DEFAULT IS PLAIN CSS, same as `.nl-tabs`: panel 1 shows and the rest
+   * hide before any `:has()` rule applies, so a browser without `:has()`
+   * renders the first panel rather than an empty card. It simply cannot
+   * switch.
+   *
+   * Four positions is the ceiling, and adding a fifth means adding its two
+   * rules here. A group that outgrows this wants a different mechanism, not a
+   * longer list.
+   */
+  .nl-tabset [data-tabpanel] {
+    display: none;
+  }
+
+  .nl-tabset [data-tabpanel='1'] {
+    display: block;
+  }
+
+  .nl-tabset:has(input[value='2']:checked) [data-tabpanel='1'],
+  .nl-tabset:has(input[value='3']:checked) [data-tabpanel='1'],
+  .nl-tabset:has(input[value='4']:checked) [data-tabpanel='1'] {
+    display: none;
+  }
+
+  .nl-tabset:has(input[value='2']:checked) [data-tabpanel='2'],
+  .nl-tabset:has(input[value='3']:checked) [data-tabpanel='3'],
+  .nl-tabset:has(input[value='4']:checked) [data-tabpanel='4'] {
+    display: block;
+  }
+
+  /* Same layering reason as `.nl-tabs` below — see the note there. */
+  .nl-tabset [data-tab-label] {
+    background-color: var(--nl-raised);
+    color: var(--nl-muted);
+  }
+
+  .nl-tabset [data-tab-label]:hover {
+    color: var(--nl-ink);
+  }
+
+  .nl-tabset input:checked + [data-tab-label] {
+    background-color: var(--nl-accent);
+    color: #0f0f0f;
+  }
+
+  /*
    * The label's RESTING colours live here too, not as Tailwind utilities on
    * the element. Utilities sit in a later layer than components, so a
    * `bg-[var(--nl-raised)]` class would beat the selected rule below and the
