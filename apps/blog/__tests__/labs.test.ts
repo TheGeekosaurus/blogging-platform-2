@@ -128,6 +128,25 @@ describe('every destination resolves', () => {
     }
   });
 
+  /*
+   * The footer shipped pointing at Nanotom CAPITAL's profiles.
+   *
+   * Nothing caught it: the links were absolute, https, and every one of them
+   * resolved to a real live page — they were simply the wrong company's. The
+   * two businesses share an owner and a naming pattern, which is what makes
+   * `nanotomcapital` and `nanotomlabs` so easy to swap, and a working link to
+   * the wrong brand is invisible to every other check here.
+   */
+  it('sends visitors to Labs\' accounts, not Capital\'s', async () => {
+    const { SOCIAL_CARDS } = await import('../components/marketing/labs/brand');
+
+    for (const card of SOCIAL_CARDS) {
+      expect(card.href.toLowerCase(), card.name).not.toContain('nanotomcapital');
+      expect(card.href.toLowerCase(), card.name).not.toContain('nanotom-capital');
+      expect(card.href.toLowerCase(), card.name).toMatch(/nanotom-?labs/);
+    }
+  });
+
   it('keeps the unbuilt nav items unlinked rather than pointing them at 404s', async () => {
     const { NAV } = await import('../components/marketing/labs/brand');
 

@@ -154,10 +154,10 @@ export type SocialCard = {
 /**
  * The four footer cards.
  *
- * THESE ARE NANOTOM CAPITAL'S ACCOUNTS. Supplied as the ones to use, and the
- * two businesses share an owner — but the handles read `nanotomcapital`, so a
- * visitor who came here for a local-marketing agency lands on a funding
- * company's profile. Point them at Labs' own accounts when those exist.
+ * Nanotom Labs' own accounts — every handle reads `nanotomlabs`. Capital's
+ * (`nanotomcapital`) went in first by mistake and were corrected; the two
+ * businesses share an owner, which is exactly what makes the handles easy to
+ * mix up, so check the brand in the URL rather than the shape of it.
  *
  * They replace the template's placeholder Instagram/Twitter/Dribbble/Behance,
  * which had no destinations at all. Every one opens in a new tab — the card is
@@ -173,25 +173,25 @@ export const SOCIAL_CARDS: readonly SocialCard[] = [
     icon: 'linkedin',
     name: 'LinkedIn',
     blurb: 'Company news, and what we are learning about local search.',
-    href: 'https://www.linkedin.com/company/nanotom-capital',
+    href: 'https://www.linkedin.com/company/nanotom-labs/',
   },
   {
     icon: 'facebook',
     name: 'Facebook',
     blurb: 'Updates, offers, and what is working in local marketing right now.',
-    href: 'https://www.facebook.com/nanotomcapital',
+    href: 'https://www.facebook.com/nanotomlabs/',
   },
   {
     icon: 'instagram',
     name: 'Instagram',
     blurb: 'A look at the work, and the people behind it.',
-    href: 'https://www.instagram.com/nanotomcapital/',
+    href: 'https://www.instagram.com/nanotomlabs',
   },
   {
     icon: 'youtube',
     name: 'YouTube',
     blurb: 'Walkthroughs and breakdowns of the tactics we use.',
-    href: 'https://www.youtube.com/@NanotomCapital',
+    href: 'https://www.youtube.com/@NanotomLabs',
   },
 ];
 
