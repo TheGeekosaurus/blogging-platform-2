@@ -1229,6 +1229,20 @@
      */
     --nl-section-gap: 64px;
 
+    /*
+     * The hero's height, shared by every page that has one.
+     *
+     * Each hero used to size itself from whatever it happened to contain, so
+     * the three came out 520, 573 and 379 at 1920 — close enough to look
+     * accidental rather than intentional, and obvious the moment you click
+     * between them and the fold jumps. One number, applied as a MINIMUM: a
+     * hero whose copy outgrows it still grows rather than clipping.
+     *
+     * Only above `lg`. Below that the two columns stack and a shared height
+     * would mean padding one page to match another page's image.
+     */
+    --nl-hero-h: 520px;
+
     background-color: var(--nl-bg);
     color: var(--nl-body);
     font-family: var(--font-nl-body);

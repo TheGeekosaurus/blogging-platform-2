@@ -45,7 +45,7 @@ import { ClosingCta, Faq, Stats, Testimonials } from './sections';
 
 function Hero() {
   return (
-    <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
+    <section className="grid gap-5 lg:min-h-[var(--nl-hero-h)] lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
       <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 pb-4 lg:p-12 lg:pb-5">
         <div>
           {/*
@@ -158,7 +158,13 @@ function Hero() {
        * because nothing shows through an opaque square — it only matters while
        * the bytes are in flight.
        */}
-      <div className="relative min-h-[320px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] lg:min-h-[520px]">
+      {/*
+        * No height of its own above `lg` any more: the section carries
+        * --nl-hero-h and grid items stretch, so this card fills the row. It
+        * used to set 520px here, which is where that number came from — and
+        * which is why the other two heroes did not match it.
+        */}
+      <div className="relative min-h-[320px] min-w-0 overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-card)]">
         <Image
           src="/nntm-labs/hero-local-search.webp"
           alt={HERO.imageAlt}

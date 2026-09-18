@@ -179,8 +179,9 @@ component.
 
 ### Nanotom Labs
 
-Three pages so far — `/`, `/services` and `/get-started` — each a replica of a
-Figma template frame, measured out of the PDF export rather than estimated. The
+Four page types so far — `/`, `/services`, `/get-started` and
+`/projects/<slug>` — each a replica of a Figma template frame, measured out of
+the PDF export rather than estimated. The
 homepage had 1920 desktop and 390 mobile artboards and both are matched; only a
 desktop frame was supplied for the other two, so their layout below `lg` is an
 inference from the homepage's mobile frame rather than a transcription.
@@ -213,6 +214,15 @@ Things worth knowing before editing any of it:
   the one block in `marketing/labs/content.ts` that has been rewritten, and its
   image is the business's own art shown in full colour — the template's tinted
   stock photograph is gone.
+- **The project pages are `noindex` and out of the sitemap, on purpose.** Each
+  one names a real client beside copy that describes nothing that happened, so
+  publishing it would be a claim about somebody else's business. The route's
+  `robots` and the `index:` flag in `CODED_SITES` have to be flipped together —
+  a test fails if they disagree. See the warning at the top of
+  `marketing/labs/projects-content.ts`.
+- **There is no `/projects` index.** Individual project pages exist; the nav's
+  "Projects" item is still unlinked because the page it would point at does not
+  exist. Build the index and give the nav item its href in the same change.
 - **Nothing on `/get-started` can be contacted yet.** The form has no endpoint
   and the tabbed contact card carries no addresses, numbers or locations — all
   deliberately blank rather than invented, because a plausible mailbox nobody

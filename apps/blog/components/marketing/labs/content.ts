@@ -324,6 +324,25 @@ export const TESTIMONIALS: readonly Testimonial[] = [
   },
 ];
 
+export type Work = {
+  /** Key into WORK_ICONS in ./icons.tsx. */
+  icon: 'spark' | 'balloon';
+  title: string;
+  category: string;
+  timeTaken: string;
+  body: string;
+  image: { src: string; alt: string };
+  technologies: readonly string[];
+  /**
+   * Five portraits per project, under /public/nntm-labs.
+   *
+   * They carry no names, in the design or here. Naming them would attach real
+   * faces — these are the template's stock portraits — to a staff list that
+   * does not exist, so they are decorative and take alt="".
+   */
+  team: readonly string[];
+};
+
 export type Faq = { question: string; answer?: string };
 
 /**
@@ -429,4 +448,10 @@ export const LINKS = {
   openProject: 'Open Project',
   visitWebsite: 'Visit Website',
   learnMore: 'Learn More',
+  /* The shared WorkPanel's labels — see ./sections.tsx. */
+  details: 'Details',
+  technologiesUsed: 'Technologies Used',
+  teamMembers: 'Team Members',
+  category: 'Category',
+  timeTaken: 'Time Taken',
 } as const;
