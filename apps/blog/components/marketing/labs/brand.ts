@@ -200,5 +200,14 @@ export const LEGAL_LINKS: readonly FooterLink[] = [
   { label: 'Privacy Policy' },
 ];
 
-/** The year is still the template's — see the note in content.ts. */
-export const COPYRIGHT = '© 2024 Nanotom Labs. All rights reserved.';
+/**
+ * The copyright line, with the year taken from the clock rather than typed.
+ *
+ * It read 2024 — the template's — until someone noticed, which is the whole
+ * problem with writing a year down: it is wrong for eleven months of every
+ * year and nothing complains. Both Labs pages are statically generated, so
+ * this resolves at BUILD time; a deploy in January fixes it, and a site that
+ * has not been deployed since last year shows last year, which is what the
+ * notice means anyway.
+ */
+export const COPYRIGHT = `© ${new Date().getFullYear()} Nanotom Labs. All rights reserved.`;

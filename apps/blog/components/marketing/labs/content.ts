@@ -17,6 +17,7 @@
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
  *   - SUCCESS_STORIES: two client engagements with described outcomes
  *   - SERVICES[].projects: eight screenshots presented as this agency's work
+ * (STATS is no longer among them — those figures are the business's own now.)
  * Published as-is on a real domain these read as endorsements, case studies and
  * a portfolio that did not happen. Replace or remove them before the site goes
  * live. (The four invented price points that used to sit here are gone.)
@@ -65,19 +66,20 @@ export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
  * From the template's HOME frame rather than the Services one this page is
  * built from, so it is an addition to the replica, not a correction to it.
  *
- * EVERY NUMBER HERE IS THE TEMPLATE'S, and they are claims about a business:
- * client counts, a follower count and a satisfaction rate. Like the
- * testimonials below, they have to be replaced with real figures or removed
- * before this serves traffic — a made-up "100%" is the kind of thing that
- * turns into a consumer-protection problem rather than a design one.
+ * THE FIGURES ARE THE BUSINESS'S OWN. They replaced the template's invented
+ * ones, which included a "100% Happy Clients" and a follower count — the kind
+ * of claim that turns into a consumer-protection problem rather than a design
+ * one. These are still public claims about results, so they need to be numbers
+ * the business can evidence; keep them current, and change them here rather
+ * than in either layout.
  */
 export type Stat = { label: string; value: string };
 
 export const STATS: readonly Stat[] = [
-  { label: 'Clients', value: '200+' },
-  { label: 'Projects', value: '280+' },
-  { label: 'Happy Clients', value: '100%' },
-  { label: 'Follower', value: '420K' },
+  { label: 'Clients', value: '150+' },
+  { label: 'Ad Spend', value: '$8M+' },
+  { label: 'Inbound Calls', value: '47K+' },
+  { label: 'Quote Requests', value: '6K+' },
   { label: 'Years Of Experience', value: '10+' },
 ];
 

@@ -185,17 +185,29 @@ export function LabsFooter() {
           </div>
 
           <Newsletter />
-
-          {/* The legal row is its own card in the artwork, not loose text. */}
-          <div className="flex flex-col gap-3 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-5 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-7">
-            <p>{COPYRIGHT}</p>
-            <ul className="flex flex-col gap-3 lg:flex-row lg:gap-10">
-              {LEGAL_LINKS.map((link) => (
-                <FooterLinkItem key={link.label} link={link} />
-              ))}
-            </ul>
-          </div>
         </div>
+      </div>
+
+      {/*
+        * The legal row spans the WHOLE footer, outside the two-column grid.
+        *
+        * The artwork keeps it in the right-hand column, level with the bottom
+        * of the social cards — which works at 1920 and nowhere else: below
+        * `xl` the columns stack, and the notice ends up as a short card hanging
+        * off one side with the copyright squeezed against the links. Running it
+        * edge to edge also matches what a footer's last line is: a statement
+        * about the whole site, not about the column it happens to sit in.
+        *
+        * Still its own card rather than loose text, which is the part of the
+        * artwork worth keeping.
+        */}
+      <div className="mt-5 flex flex-col gap-3 rounded-[var(--nl-radius-card-lg)] bg-[var(--nl-card)] px-5 py-5 text-sm text-[var(--nl-muted)] lg:flex-row lg:items-center lg:justify-between lg:px-7">
+        <p>{COPYRIGHT}</p>
+        <ul className="flex flex-col gap-3 lg:flex-row lg:gap-10">
+          {LEGAL_LINKS.map((link) => (
+            <FooterLinkItem key={link.label} link={link} />
+          ))}
+        </ul>
       </div>
     </footer>
   );
