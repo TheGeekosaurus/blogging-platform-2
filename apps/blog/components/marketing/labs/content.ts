@@ -17,6 +17,7 @@
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
  *   - SUCCESS_STORIES: two client engagements with described outcomes
  *   - SERVICES[].projects: eight screenshots presented as this agency's work
+ * (STATS is no longer among them — those figures are the business's own now.)
  * Published as-is on a real domain these read as endorsements, case studies and
  * a portfolio that did not happen. Replace or remove them before the site goes
  * live. (The four invented price points that used to sit here are gone.)
@@ -57,22 +58,6 @@ export const HERO = {
     'A glowing map pin standing over a wireframe city, beneath five gold review stars',
 } as const;
 
-/**
- * The strip beneath the hero.
- *
- * Rendered twice inside the marquee track so the loop closes seamlessly — see
- * `.nl-marquee` in globals.css. The design shows it mid-scroll, which is why
- * the first and last entries are clipped in the export rather than missing.
- */
-export const SERVICE_MARQUEE: readonly string[] = [
-  'Hosting',
-  'Website Design',
-  'Branding',
-  'Website Development',
-  'Mobile App Development',
-  'Digital Marketing',
-];
-
 export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
 
 /**
@@ -81,19 +66,20 @@ export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
  * From the template's HOME frame rather than the Services one this page is
  * built from, so it is an addition to the replica, not a correction to it.
  *
- * EVERY NUMBER HERE IS THE TEMPLATE'S, and they are claims about a business:
- * client counts, a follower count and a satisfaction rate. Like the
- * testimonials below, they have to be replaced with real figures or removed
- * before this serves traffic — a made-up "100%" is the kind of thing that
- * turns into a consumer-protection problem rather than a design one.
+ * THE FIGURES ARE THE BUSINESS'S OWN. They replaced the template's invented
+ * ones, which included a "100% Happy Clients" and a follower count — the kind
+ * of claim that turns into a consumer-protection problem rather than a design
+ * one. These are still public claims about results, so they need to be numbers
+ * the business can evidence; keep them current, and change them here rather
+ * than in either layout.
  */
 export type Stat = { label: string; value: string };
 
 export const STATS: readonly Stat[] = [
-  { label: 'Clients', value: '200+' },
-  { label: 'Projects', value: '280+' },
-  { label: 'Happy Clients', value: '100%' },
-  { label: 'Follower', value: '420K' },
+  { label: 'Clients', value: '150+' },
+  { label: 'Ad Spend', value: '$8M+' },
+  { label: 'Inbound Calls', value: '47K+' },
+  { label: 'Quote Requests', value: '6K+' },
   { label: 'Years Of Experience', value: '10+' },
 ];
 
@@ -183,6 +169,27 @@ export const SERVICES: readonly Service[] = [
       { src: '/nntm-labs/project-digital-marketing-2.webp', alt: 'A campaign analytics layout' },
     ],
   },
+];
+
+/**
+ * The strip beneath the hero.
+ *
+ * DERIVED FROM SERVICES, not typed out. It used to be its own list and drifted
+ * the moment the services changed: the hero went on advertising Branding,
+ * Hosting and Mobile App Development for a business that sells none of them,
+ * directly above a section listing the four it does. A list that has to agree
+ * with another list will eventually not.
+ *
+ * Repeated so one copy is WIDER THAN THE CARD. `Marquee` renders `items` twice
+ * and travels exactly -50%, which is seamless only if a single copy is at
+ * least as wide as its container — four short labels are about 900px inside an
+ * 1167px card, so the strip would run out and show a gap before the second
+ * copy arrived. Doubling the run is the fix; the duplicate is inside one copy,
+ * so the loop still closes.
+ */
+export const SERVICE_MARQUEE: readonly string[] = [
+  ...SERVICES.map((service) => service.title),
+  ...SERVICES.map((service) => service.title),
 ];
 
 /**
