@@ -83,15 +83,16 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
 /**
  * Nanotom Labs: the agency site.
  *
- * The homepage and /services so far. Projects, about and contact are still to
- * come, and each is a coded route rather than a `pages` row — add them here as
- * they land, or they will not reach the sitemap. `blogs` is deliberately
+ * The homepage, /services and /get-started so far. Projects and about are
+ * still to come, and each is a coded route rather than a `pages` row — add
+ * them here as they land, or they will not reach the sitemap. `blogs` is deliberately
  * absent: it points at the database-driven /blog renderer, which the sitemap
  * already covers from `posts`.
  */
 const NNTM_LABS_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
   { path: 'services', title: 'Services', index: true },
+  { path: 'get-started', title: 'Get Started', index: true },
 ];
 
 /**

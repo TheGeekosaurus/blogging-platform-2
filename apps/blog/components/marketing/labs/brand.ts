@@ -55,6 +55,17 @@ export const LOGO_ORIGIN = 'https://images.leadconnectorhq.com';
 export const ENQUIRY_ANCHOR = '/#ask';
 
 /**
+ * The contact page, and where the header's button goes.
+ *
+ * It pointed at ENQUIRY_ANCHOR until this page existed, which was the right
+ * call while the homepage's form was the only one — a button that scrolls is
+ * better than a button that 404s. Now there is a page built for the job, with
+ * the same form plus the ways to reach the business that an anchor cannot
+ * carry.
+ */
+export const GET_STARTED_PATH = '/get-started';
+
+/**
  * The same form on /services, which carries its own copy of it.
  *
  * A separate constant rather than a bare '#ask': the calls that use it sit on
@@ -90,7 +101,7 @@ export const NAV: readonly NavItem[] = [
   { label: 'Services', href: '/services' },
   { label: 'Projects' },
   { label: 'About' },
-  { label: 'Get Started', href: ENQUIRY_ANCHOR, cta: true },
+  { label: 'Get Started', href: GET_STARTED_PATH, cta: true },
 ];
 
 export type FooterLink = {

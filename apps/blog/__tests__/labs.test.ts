@@ -180,6 +180,10 @@ describe('every destination resolves', () => {
 describe('no form silently discards input', () => {
   it.each([
     ['the enquiry form', 'sections.tsx', 3],
+    // Four, not one per field: the fields are a `.map`, so the source carries
+    // one `disabled` per control TYPE. The rendered-output check below is the
+    // one that actually counts every control.
+    ['the get-started form', 'get-started.tsx', 4],
     ['the newsletter', 'site-footer.tsx', 1],
   ])('%s is disabled until it has an endpoint', (_label, file, controls) => {
     /*
@@ -198,6 +202,40 @@ describe('no form silently discards input', () => {
     // A bare form element would submit to the current URL on Enter and look
     // like it worked. There is deliberately none in either.
     expect(source).not.toMatch(/<form[\s>]/);
+  });
+
+  /*
+   * Counting `disabled` in the SOURCE is a proxy, and a loose one — a field
+   * rendered in a `.map` contributes one occurrence however many fields there
+   * are, so a new enabled input beside a disabled one would not move the
+   * number. This counts the controls the browser actually receives.
+   */
+  it.each([
+    ['the homepage', 'home'],
+    ['the Services page', 'services'],
+    ['the Get Started page', 'get-started'],
+  ])('%s renders no enabled control anywhere', async (_label, page) => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const mod = await import(`../components/marketing/labs/${page}`);
+    const Component = Object.values(mod).find((value) => typeof value === 'function');
+
+    const html = renderToStaticMarkup(
+      React.createElement(Component as React.FunctionComponent),
+    );
+
+    const controls = html.match(/<(input|textarea|button|select)\b[^>]*>/g) ?? [];
+    expect(controls.length).toBeGreaterThan(0);
+
+    for (const control of controls) {
+      /*
+       * The success stories' and contact tabs' radios are the one exception:
+       * they drive a CSS-only switch, take no input from the visitor and post
+       * nowhere, so disabling them would break the tabs for no benefit.
+       */
+      if (control.includes('type="radio"')) continue;
+      expect(control).toContain('disabled');
+    }
   });
 });
 
@@ -297,6 +335,7 @@ describe('the chrome stays server-rendered', () => {
     'site-footer.tsx',
     'home.tsx',
     'services.tsx',
+    'get-started.tsx',
     'sections.tsx',
     'primitives.tsx',
   ])(
@@ -355,11 +394,35 @@ describe('the homepage renders', () => {
     for (const heading of Object.values(SECTIONS)) expect(html).toContain(heading);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
-      expect(html, service.projectsTitle).toContain(service.projectsTitle);
+      expect(html, service.title).toContain(`${service.title} Projects`);
     }
     for (const faq of FAQS) expect(html).toContain(faq.question);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
     expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  /*
+   * "Why you" belongs before "what do you sell", so these four moved off
+   * /services and onto the homepage. Pinned in BOTH directions: a section that
+   * silently renders on both pages is the failure a move like this leaves
+   * behind, and it looks fine on whichever page you happen to open.
+   */
+  it('owns the reasons block, which /services no longer renders', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsServices } = await import('../components/marketing/labs/services');
+    const { REASONS, SECTIONS } = await import('../components/marketing/labs/content');
+
+    const home = decoded(await render());
+    const services = decoded(renderToStaticMarkup(React.createElement(LabsServices)));
+
+    expect(home).toContain(SECTIONS.reasons);
+    expect(services).not.toContain(SECTIONS.reasons);
+
+    for (const reason of REASONS) {
+      expect(home, reason.title).toContain(reason.title);
+      expect(services, reason.title).not.toContain(reason.title);
+    }
   });
 
   it('renders unbuilt nav destinations as text, not anchors', async () => {
@@ -459,13 +522,14 @@ describe('the radius scale matches the artwork', () => {
     const pills = [
       'home.tsx',
       'services.tsx',
+      'get-started.tsx',
       'sections.tsx',
       'primitives.tsx',
       'site-footer.tsx',
       'site-header.tsx',
     ].flatMap((file) => read(file).match(/rounded-full/g) ?? []);
 
-    expect(pills.length).toBeLessThanOrEqual(21);
+    expect(pills.length).toBeLessThanOrEqual(26);
   });
 });
 
@@ -594,7 +658,12 @@ describe('the Nanotom Labs branding', () => {
     const strip = (s: string) =>
       s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
-    for (const file of ['content.ts', 'services-content.ts', 'brand.ts']) {
+    for (const file of [
+      'content.ts',
+      'services-content.ts',
+      'get-started-content.ts',
+      'brand.ts',
+    ]) {
       expect(strip(read(file)), file).not.toMatch(/NexGen|NextGen/);
     }
     expect(read('content.ts')).toContain('Nanotom Labs');
@@ -645,7 +714,7 @@ describe('the Services page', () => {
     const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS, SERVICES } = await import(
       '../components/marketing/labs/content'
     );
-    const { REASONS, SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
+    const { SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
       '../components/marketing/labs/services-content'
     );
 
@@ -653,7 +722,6 @@ describe('the Services page', () => {
     expect(html).toContain(SERVICES_HERO.imageTitle);
     for (const heading of Object.values(SERVICES_SECTIONS)) expect(html).toContain(heading);
     expect(html).toContain(SECTIONS.services);
-    for (const reason of REASONS) expect(html, reason.title).toContain(reason.title);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
       expect(html, service.body).toContain(service.body);
@@ -721,6 +789,123 @@ describe('the Services page', () => {
 
     for (const path of paths) {
       expect(existsSync(join(__dirname, '..', 'public', path)), path).toBe(true);
+    }
+  });
+});
+
+describe('the Get Started page', () => {
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsGetStarted } = await import('../components/marketing/labs/get-started');
+
+    return renderToStaticMarkup(React.createElement(LabsGetStarted));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'get-started');
+
+    expect(route, 'get-started missing from CODED_SITES').toBeTruthy();
+    expect(route?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const file = readFileSync(
+      join(__dirname, '..', 'app', 'get-started', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(file).toContain('isNntmLabs()');
+    expect(file).toContain('notFound()');
+  });
+
+  /*
+   * The header's primary button points here. It pointed at the homepage's form
+   * anchor before this page existed, and a stale constant would leave the
+   * site's main call scrolling to a section instead of opening the page built
+   * for it — which looks deliberate and is not.
+   */
+  it('is where the header button goes', async () => {
+    const { NAV, GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+    const cta = NAV.find((item) => item.cta);
+
+    expect(GET_STARTED_PATH).toBe('/get-started');
+    expect(cta?.href).toBe(GET_STARTED_PATH);
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, STATS } = await import('../components/marketing/labs/content');
+    const { CONTACT_CHANNELS, ENQUIRY_FIELDS, GET_STARTED_HERO, REACH_US } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+
+    for (const line of GET_STARTED_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(GET_STARTED_HERO.body);
+    for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
+    expect(html).toContain(REACH_US);
+    for (const channel of CONTACT_CHANNELS) expect(html, channel.name).toContain(channel.name);
+    for (const field of ENQUIRY_FIELDS) expect(html, field.id).toContain(field.placeholder);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+  });
+
+  /*
+   * The tabs are a radio group switched in CSS, so the page still ships no
+   * JavaScript of its own. What regresses invisibly is the wiring: the panels
+   * are keyed by POSITION, and a panel whose key does not match its input's
+   * value simply never shows — a tab that looks operable and does nothing.
+   */
+  it('switches its contact tabs without JavaScript, keyed by position', async () => {
+    const html = await render();
+    const { CONTACT_CHANNELS } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+    const css = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+    const values = [...html.matchAll(/<input[^>]*name="nl-contact-channel"[^>]*value="(\d+)"/g)]
+      .map((m) => m[1]);
+    const panels = [...html.matchAll(/data-tabpanel="(\d+)"/g)].map((m) => m[1]);
+
+    expect(values).toEqual(CONTACT_CHANNELS.map((_, i) => String(i + 1)));
+    expect(panels).toEqual(values);
+
+    // Exactly one default, and it is the first tab — which is also the panel
+    // the plain-CSS rule shows in a browser without :has().
+    const checked = [...html.matchAll(/<input[^>]*checked[^>]*>/g)];
+    expect(checked).toHaveLength(1);
+    expect(checked[0]?.[0]).toContain('value="1"');
+    expect(css).toMatch(/\.nl-tabset \[data-tabpanel='1'\]\s*\{\s*display: block/);
+
+    // Every position the page renders has a rule to reveal it.
+    for (const value of values.slice(1)) {
+      expect(css, `panel ${value}`).toContain(`:has(input[value='${value}']:checked)`);
+    }
+  });
+
+  /*
+   * A contact page that invents an address is worse than one that admits it
+   * has none: a plausible mailbox nobody reads swallows enquiries in silence,
+   * which is the single failure this page exists to prevent.
+   */
+  it('never renders a contact detail it does not have', async () => {
+    const html = await render();
+    const { CONTACT_CHANNELS, CONTACT_PENDING } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+
+    for (const channel of CONTACT_CHANNELS) {
+      for (const entry of channel.entries) {
+        if (entry.value === null) expect(entry.href, entry.label).toBeUndefined();
+      }
+    }
+
+    const pending = CONTACT_CHANNELS.flatMap((c) => c.entries).filter((e) => e.value === null);
+    if (pending.length > 0) {
+      expect(html).toContain(CONTACT_PENDING);
+      // No mailto:/tel: anywhere while every detail is still a placeholder.
+      expect(html).not.toMatch(/href="(mailto|tel):/);
     }
   });
 });

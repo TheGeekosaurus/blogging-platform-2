@@ -37,42 +37,12 @@ export const SERVICES_HERO = {
   imageTag: 'Web Development.',
 } as const;
 
-export type Reason = { title: string; body: string };
-
-/**
- * The four "reasons to choose" cards.
- *
- * Every one of them ends in a "Learn More" control that the design gives no
- * destination — there is no page behind any of the four — so they render
- * unlinked. See DiscLink in ./primitives.tsx.
+/*
+ * The "reasons to choose" cards are NOT here either. They moved to the
+ * HOMEPAGE — they answer "why you" rather than "what do you sell", which a
+ * visitor asks before the service list rather than after it. See REASONS in
+ * ./content.ts.
  */
-export const REASONS: readonly Reason[] = [
-  {
-    title: 'Expertise in Cutting-Edge Technologies',
-    body:
-      'Nanotom Labs ensures your projects are powered by state-of-the-art technologies, ' +
-      'guaranteeing innovation and future-proof solutions.',
-  },
-  {
-    title: 'Proven Track Record of Success',
-    body:
-      'Nanotom Labs demonstrates a consistent ability to meet and exceed client ' +
-      'expectations, providing reliable and effective web solutions tailored to diverse ' +
-      'needs.',
-  },
-  {
-    title: 'Client-Centric Approach',
-    body:
-      'At Nanotom Labs, we prioritize understanding our clients’ unique requirements, ' +
-      'fostering transparent communication throughout the development process.',
-  },
-  {
-    title: 'Dedicated Team of Professionals',
-    body:
-      'Our professionals bring a wealth of expertise to the table, ensuring the delivery of ' +
-      'top-notch, scalable, and secure web solutions for your business.',
-  },
-];
 
 /*
  * The four services are NOT here. They live in ./content.ts, because the
@@ -148,13 +118,11 @@ export const WORKS: readonly Work[] = [
 
 /** Section headings unique to this page. */
 export const SERVICES_SECTIONS = {
-  reasons: 'Reasons to Choose Nanotom Labs for Your Digital Journey',
   works: 'Our Works',
 } as const;
 
 /** Labels unique to this page. */
 export const SERVICES_LINKS = {
-  learnMore: 'Learn More',
   allWorks: 'ALL Works',
   details: 'Details',
   technologiesUsed: 'Technologies Used',
