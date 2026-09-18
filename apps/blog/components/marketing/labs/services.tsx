@@ -88,7 +88,7 @@ function HeroBadge() {
 
 function Hero() {
   return (
-    <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
+    <section className="grid gap-5 lg:min-h-[var(--nl-hero-h)] lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
       <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 pb-4 lg:p-12 lg:pb-5">
         <div>
           {/*
@@ -156,7 +156,13 @@ function Hero() {
        * thumbnail would misrepresent what was delivered.
        */}
       <figure className="flex min-w-0 flex-col overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-card)]">
-        <div className="relative aspect-[593/465] w-full">
+        {/*
+          * Aspect-locked while the card is full width and stacked; above `lg`
+          * the card fills the hero row instead and the screenshot takes
+          * whatever is left after the caption. Holding 593:465 up there is
+          * what made this hero 573px tall against the homepage's 520.
+          */}
+        <div className="relative aspect-[593/465] w-full lg:aspect-auto lg:flex-1">
           <Image
             src={SERVICES_HERO.image.src}
             alt={SERVICES_HERO.image.alt}

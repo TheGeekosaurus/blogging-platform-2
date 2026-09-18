@@ -42,7 +42,7 @@ const FORM_ANCHOR = '#enquiry';
 
 function Hero() {
   return (
-    <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
+    <section className="grid gap-5 lg:min-h-[var(--nl-hero-h)] lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
       <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 pb-4 lg:p-12 lg:pb-5">
         <div>
           {/*
@@ -111,7 +111,7 @@ function Hero() {
        * the down arrow instead of the up-right one every off-section link
        * uses.
        */}
-      <div className="grid grid-cols-2 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 gap-3 lg:auto-rows-fr lg:gap-4">
         {STATS.map((stat) => (
           <div
             key={stat.label}

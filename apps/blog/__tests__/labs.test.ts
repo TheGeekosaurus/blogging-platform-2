@@ -909,3 +909,36 @@ describe('the Get Started page', () => {
     }
   });
 });
+
+describe('the heroes are one height', () => {
+  /*
+   * The three heroes used to size themselves from whatever they contained —
+   * 520, 573 and 379 at 1920. Close enough to look accidental rather than
+   * intentional, and obvious the moment you click between pages and the fold
+   * jumps.
+   *
+   * Asserting they all name the SAME TOKEN rather than that each equals some
+   * pixel value: the point is that there is one number to change, not three
+   * that happen to agree today. This is the same reasoning as the ground-colour
+   * test in marketing.test.ts.
+   */
+  const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+  it('declares the height once', () => {
+    const declarations = CSS.match(/--nl-hero-h:\s*\d+px/g) ?? [];
+    expect(declarations).toHaveLength(1);
+  });
+
+  it.each(['home.tsx', 'services.tsx', 'get-started.tsx'])('%s reads it', (file) => {
+    const source = read(file);
+    const hero = source.slice(source.indexOf('function Hero()'));
+
+    expect(hero).toContain('lg:min-h-[var(--nl-hero-h)]');
+    /*
+     * And nothing in a hero sets its own height above `lg`. The homepage's
+     * image card carried `lg:min-h-[520px]`, which is where the number came
+     * from and why the other two never matched it.
+     */
+    expect(hero.slice(0, hero.indexOf('\n}'))).not.toMatch(/lg:(min-)?h-\[\d+px\]/);
+  });
+});
