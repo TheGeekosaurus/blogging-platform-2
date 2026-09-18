@@ -57,22 +57,6 @@ export const HERO = {
     'A glowing map pin standing over a wireframe city, beneath five gold review stars',
 } as const;
 
-/**
- * The strip beneath the hero.
- *
- * Rendered twice inside the marquee track so the loop closes seamlessly — see
- * `.nl-marquee` in globals.css. The design shows it mid-scroll, which is why
- * the first and last entries are clipped in the export rather than missing.
- */
-export const SERVICE_MARQUEE: readonly string[] = [
-  'Hosting',
-  'Website Design',
-  'Branding',
-  'Website Development',
-  'Mobile App Development',
-  'Digital Marketing',
-];
-
 export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
 
 /**
@@ -183,6 +167,27 @@ export const SERVICES: readonly Service[] = [
       { src: '/nntm-labs/project-digital-marketing-2.webp', alt: 'A campaign analytics layout' },
     ],
   },
+];
+
+/**
+ * The strip beneath the hero.
+ *
+ * DERIVED FROM SERVICES, not typed out. It used to be its own list and drifted
+ * the moment the services changed: the hero went on advertising Branding,
+ * Hosting and Mobile App Development for a business that sells none of them,
+ * directly above a section listing the four it does. A list that has to agree
+ * with another list will eventually not.
+ *
+ * Repeated so one copy is WIDER THAN THE CARD. `Marquee` renders `items` twice
+ * and travels exactly -50%, which is seamless only if a single copy is at
+ * least as wide as its container — four short labels are about 900px inside an
+ * 1167px card, so the strip would run out and show a gap before the second
+ * copy arrived. Doubling the run is the fix; the duplicate is inside one copy,
+ * so the loop still closes.
+ */
+export const SERVICE_MARQUEE: readonly string[] = [
+  ...SERVICES.map((service) => service.title),
+  ...SERVICES.map((service) => service.title),
 ];
 
 /**

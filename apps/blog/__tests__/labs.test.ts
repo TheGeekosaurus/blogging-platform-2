@@ -75,6 +75,18 @@ describe('every destination resolves', () => {
     for (const item of links) {
       const href = item.href as string;
 
+      /*
+       * Off-site links are checked for SHAPE, not existence. The footer's
+       * social cards point at real profiles this suite cannot reach, so the
+       * invariant worth holding is that they are absolute and https — a
+       * relative one would 404 on this domain, and http would be downgraded or
+       * blocked.
+       */
+      if (/^https?:\/\//.test(href)) {
+        expect(href, item.label).toMatch(/^https:\/\//);
+        continue;
+      }
+
       const resolves =
         coded.has(href) ||
         // The database-driven blog, which the /blog routes serve.
@@ -86,6 +98,33 @@ describe('every destination resolves', () => {
         coded.has(href.split('#')[0] ?? '');
 
       expect(resolves, `${item.label} -> ${href}`).toBe(true);
+    }
+  });
+
+  /*
+   * `target="_blank"` without `rel="noopener"` hands the opened tab a live
+   * `window.opener` reference back to this page — a real, silent
+   * cross-origin hazard on links to profiles nobody here controls. Nothing in
+   * a build or a typecheck notices it missing, and the link works either way.
+   */
+  it('opens every social card off-site, safely', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsFooter } = await import('../components/marketing/labs/site-footer');
+    const { SOCIAL_CARDS } = await import('../components/marketing/labs/brand');
+
+    const html = renderToStaticMarkup(React.createElement(LabsFooter));
+
+    expect(SOCIAL_CARDS.length).toBeGreaterThan(0);
+
+    for (const card of SOCIAL_CARDS) {
+      const anchor = html.match(
+        new RegExp(`<a[^>]*href="${card.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`),
+      )?.[0];
+
+      expect(anchor, `${card.name} renders as a link`).toBeTruthy();
+      expect(anchor, card.name).toContain('target="_blank"');
+      expect(anchor, card.name).toContain('noopener');
     }
   });
 

@@ -157,31 +157,32 @@ function Instagram({ className }: IconProps) {
   );
 }
 
-function Twitter({ className }: IconProps) {
+function Facebook({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
       <path
-        d="M20 6.4a6.4 6.4 0 0 1-1.9.5 3.3 3.3 0 0 0 1.4-1.8 6.6 6.6 0 0 1-2.1.8 3.3 3.3 0 0 0-5.6 3A9.3 9.3 0 0 1 5 5.5a3.3 3.3 0 0 0 1 4.4 3.3 3.3 0 0 1-1.5-.4 3.3 3.3 0 0 0 2.6 3.3 3.3 3.3 0 0 1-1.5.1 3.3 3.3 0 0 0 3.1 2.3A6.6 6.6 0 0 1 4 16.6a9.3 9.3 0 0 0 5 1.5c6 0 9.4-5 9.2-9.6A6.7 6.7 0 0 0 20 6.4z"
-        {...STROKE}
+        d="M13.5 21v-8h2.7l.4-3h-3.1V8.2c0-.9.3-1.5 1.5-1.5H16.7V4c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.3V10H7.3v3H10v8z"
+        fill="currentColor"
       />
     </svg>
   );
 }
 
-function Dribbble({ className }: IconProps) {
+function LinkedIn({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <circle cx="12" cy="12" r="8.5" {...STROKE} />
-      <path d="M5 8.5c5 .6 9.6-.4 12.6-2.4M4.2 13.7c4.6-1.4 9.6-.4 12.6 3.6M8.6 4.3c3.4 3.6 5.6 8.4 6.2 15" {...STROKE} />
+      <rect x="3.5" y="3.5" width="17" height="17" rx="3" {...STROKE} />
+      <path d="M8 10.5v6M8 7.6h.01" {...STROKE} />
+      <path d="M11.8 16.5v-6M11.8 13a2.4 2.4 0 0 1 4.8 0v3.5" {...STROKE} />
     </svg>
   );
 }
 
-function Behance({ className }: IconProps) {
+function YouTube({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M3 6.5h4.4a2.4 2.4 0 0 1 0 4.8H3zM3 11.3h4.9a2.6 2.6 0 0 1 0 5.2H3z" {...STROKE} />
-      <path d="M14 13.4h6.5a3.2 3.2 0 0 0-6.4-.5 3.2 3.2 0 0 0 5.9 2M15 7h4.5" {...STROKE} />
+      <rect x="2.5" y="5.5" width="19" height="13" rx="4" {...STROKE} />
+      <path d="m10.5 9.5 4.5 2.5-4.5 2.5z" {...STROKE} />
     </svg>
   );
 }
@@ -208,8 +209,8 @@ export const WORK_ICONS = {
 
 /** Footer social icons, keyed by `SocialCard['icon']` in ./brand.ts. */
 export const SOCIAL_ICONS = {
+  linkedin: LinkedIn,
+  facebook: Facebook,
   instagram: Instagram,
-  twitter: Twitter,
-  dribbble: Dribbble,
-  behance: Behance,
+  youtube: YouTube,
 } as const;

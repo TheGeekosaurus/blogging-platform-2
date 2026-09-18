@@ -145,39 +145,53 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 
 export type SocialCard = {
   /** Key into the icon map in ./icons.tsx. */
-  icon: 'instagram' | 'twitter' | 'dribbble' | 'behance';
+  icon: 'linkedin' | 'facebook' | 'instagram' | 'youtube';
   name: string;
   blurb: string;
-  href?: string;
+  href: string;
 };
 
 /**
  * The four footer cards.
  *
- * No hrefs: these are the template's placeholder accounts, and linking them
- * would send visitors to profiles that are not Nanotom Labs'. They are dropped
- * entirely below the `lg` breakpoint, matching the mobile frame.
+ * THESE ARE NANOTOM CAPITAL'S ACCOUNTS. Supplied as the ones to use, and the
+ * two businesses share an owner — but the handles read `nanotomcapital`, so a
+ * visitor who came here for a local-marketing agency lands on a funding
+ * company's profile. Point them at Labs' own accounts when those exist.
+ *
+ * They replace the template's placeholder Instagram/Twitter/Dribbble/Behance,
+ * which had no destinations at all. Every one opens in a new tab — the card is
+ * a link off-site, and the design gives it the same up-right arrow it gives
+ * every other outbound control.
+ *
+ * The blurbs are deliberately plain. The template's described a portfolio of
+ * web projects that does not exist yet; these say what the account is for
+ * without claiming anything is already on it.
  */
 export const SOCIAL_CARDS: readonly SocialCard[] = [
   {
+    icon: 'linkedin',
+    name: 'LinkedIn',
+    blurb: 'Company news, and what we are learning about local search.',
+    href: 'https://www.linkedin.com/company/nanotom-capital',
+  },
+  {
+    icon: 'facebook',
+    name: 'Facebook',
+    blurb: 'Updates, offers, and what is working in local marketing right now.',
+    href: 'https://www.facebook.com/nanotomcapital',
+  },
+  {
     icon: 'instagram',
-    name: 'INstagram',
-    blurb: 'Share visually appealing snippets of our latest web projects.',
+    name: 'Instagram',
+    blurb: 'A look at the work, and the people behind it.',
+    href: 'https://www.instagram.com/nanotomcapital/',
   },
   {
-    icon: 'twitter',
-    name: 'Twitter',
-    blurb: "Tweet about interesting coding challenges you've overcome.",
-  },
-  {
-    icon: 'dribbble',
-    name: 'Dribbble',
-    blurb: 'Showcase design elements of our web projects.',
-  },
-  {
-    icon: 'behance',
-    name: 'Behance',
-    blurb: 'Create detailed presentations for our projects.',
+    icon: 'youtube',
+    name: 'YouTube',
+    blurb: 'Walkthroughs and breakdowns of the tactics we use.',
+    href: 'https://www.youtube.com/@NanotomCapital',
   },
 ];
 

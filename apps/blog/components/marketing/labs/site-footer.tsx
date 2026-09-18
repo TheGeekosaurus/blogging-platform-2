@@ -67,9 +67,24 @@ function SocialCards() {
         const Icon = SOCIAL_ICONS[card.icon];
 
         return (
-          <div
+          /*
+           * The WHOLE card is the link, not just the arrow in its corner. The
+           * arrow reads as the control, so a click anywhere else doing nothing
+           * is the kind of thing that feels broken without being reportable —
+           * and a 200x160 target is a great deal easier to hit than a 20px
+           * glyph.
+           *
+           * A plain <a> rather than next/link: every one of these leaves the
+           * site, so there is no route to prefetch. `rel="noopener"` because
+           * `target="_blank"` otherwise hands the opened tab a reference back
+           * to this window.
+           */
+          <a
             key={card.name}
-            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5"
+            href={card.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 transition-colors hover:bg-[var(--nl-raised)]"
           >
             <div className="flex items-start justify-between">
               <span className="grid size-11 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
@@ -84,7 +99,7 @@ function SocialCards() {
                 {card.blurb}
               </p>
             </div>
-          </div>
+          </a>
         );
       })}
     </div>
@@ -131,7 +146,15 @@ export function LabsFooter() {
   return (
     <footer className="px-4 pb-4 lg:px-[50px] lg:pb-6">
       <Marquee
-        items={Array.from({ length: 6 }, () => SOCIAL_MARQUEE)}
+        /*
+         * Eight, not six. `Marquee` travels exactly -50% of a track holding two
+         * copies of `items`, so the loop is seamless only while ONE copy is at
+         * least as wide as its container. Six phrases measure 1740px against an
+         * 1820px strip at 1920 — an 80px gap that opens once per loop, at the
+         * widest layout only, which is exactly the kind of thing that never
+         * shows up in a screenshot. Eight measures ~2320px and clears it.
+         */
+        items={Array.from({ length: 8 }, () => SOCIAL_MARQUEE)}
         durationSeconds={55}
         className="mt-[var(--nl-section-gap)] rounded-[var(--nl-radius-control)] bg-[var(--nl-card)] py-4 lg:py-5"
       />
