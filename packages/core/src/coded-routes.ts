@@ -93,6 +93,25 @@ const NNTM_LABS_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
   { path: 'services', title: 'Services', index: true },
   { path: 'get-started', title: 'Get Started', index: true },
+  /*
+   * One entry per project page. These are generated from a registry in
+   * `apps/blog/components/marketing/labs/projects-content.ts` — which this
+   * package cannot import, because @blog/core is the shared dependency and
+   * importing app code into it would invert that. So the slugs are written
+   * twice, and `__tests__/labs.test.ts` fails if the two lists disagree.
+   */
+  {
+    path: 'projects/golden-scaffold-los-angeles-ca',
+    /*
+     * index: false WHILE THE CASE STUDY IS PLACEHOLDER. The page carries a real
+     * company's name beside copy that describes nothing that happened, and its
+     * route sets `robots: noindex` to match. Listing it here as indexable would
+     * submit a page that asks not to be indexed — the same trap Capital's stub
+     * pages sat in above. Flip both together, once the copy is real.
+     */
+    title: 'Golden Scaffold — Los Angeles, CA',
+    index: false,
+  },
 ];
 
 /**

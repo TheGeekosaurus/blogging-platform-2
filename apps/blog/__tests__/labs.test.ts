@@ -336,6 +336,7 @@ describe('the chrome stays server-rendered', () => {
     'home.tsx',
     'services.tsx',
     'get-started.tsx',
+    'project.tsx',
     'sections.tsx',
     'primitives.tsx',
   ])(
@@ -523,13 +524,14 @@ describe('the radius scale matches the artwork', () => {
       'home.tsx',
       'services.tsx',
       'get-started.tsx',
+      'project.tsx',
       'sections.tsx',
       'primitives.tsx',
       'site-footer.tsx',
       'site-header.tsx',
     ].flatMap((file) => read(file).match(/rounded-full/g) ?? []);
 
-    expect(pills.length).toBeLessThanOrEqual(26);
+    expect(pills.length).toBeLessThanOrEqual(30);
   });
 });
 
@@ -940,5 +942,141 @@ describe('the heroes are one height', () => {
      * from and why the other two never matched it.
      */
     expect(hero.slice(0, hero.indexOf('\n}'))).not.toMatch(/lg:(min-)?h-\[\d+px\]/);
+  });
+});
+
+describe('the project pages', () => {
+  async function render(slug = 'golden-scaffold-los-angeles-ca') {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsProject } = await import('../components/marketing/labs/project');
+    const { projectBySlug } = await import('../components/marketing/labs/projects-content');
+
+    const project = projectBySlug(slug);
+    expect(project, slug).toBeTruthy();
+
+    return renderToStaticMarkup(
+      React.createElement(LabsProject, { project: project! }),
+    );
+  }
+
+  /*
+   * The registry and CODED_SITES are two lists of the same slugs, and they
+   * have to be, because @blog/core is the shared dependency and importing app
+   * code into it would invert that. Two hand-kept lists drift; this is the
+   * only thing that would notice.
+   */
+  it('registers every project in CODED_SITES, and nothing that is not one', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const { PROJECTS } = await import('../components/marketing/labs/projects-content');
+
+    const registered = codedRoutesFor(NNTM_LABS_SLUG)
+      .map((route) => route.path)
+      .filter((path) => path.startsWith('projects/'))
+      .sort();
+
+    expect(registered).toEqual(PROJECTS.map((p) => `projects/${p.slug}`).sort());
+  });
+
+  /*
+   * The page names a real company beside copy that describes nothing that
+   * happened. Submitting that to a search engine publishes a claim about
+   * somebody else's business — so the route sets `robots: noindex` AND the
+   * sitemap entry says index: false, and the two have to agree. Listing a
+   * noindex page in a sitemap is the specific trap Capital's stub pages sat in.
+   */
+  it('keeps a placeholder case study out of the sitemap and out of the index', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    const noindexInRoute = /robots:\s*\{[^}]*index:\s*false/.test(route);
+    const projects = codedRoutesFor(NNTM_LABS_SLUG).filter((r) =>
+      r.path.startsWith('projects/'),
+    );
+
+    expect(projects.length).toBeGreaterThan(0);
+    for (const project of projects) {
+      expect(project.index, `${project.path} sitemap flag must match the route's robots`).toBe(
+        !noindexInRoute,
+      );
+    }
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(route).toContain('isNntmLabs()');
+    expect(route).toContain('notFound()');
+  });
+
+  it('builds one static page per registry entry', async () => {
+    const { PROJECTS } = await import('../components/marketing/labs/projects-content');
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(route).toContain('generateStaticParams');
+    expect(PROJECTS.length).toBeGreaterThan(0);
+    // Slugs are URL segments, so anything that would need encoding is a bug.
+    for (const project of PROJECTS) {
+      expect(project.slug, project.title).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    }
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, CLOSING_CTA, SECTIONS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { GOLDEN_SCAFFOLD } = await import('../components/marketing/labs/projects-content');
+
+    for (const line of GOLDEN_SCAFFOLD.hero.headingLines) expect(html).toContain(line);
+    expect(html).toContain(GOLDEN_SCAFFOLD.hero.body);
+    expect(html).toContain(GOLDEN_SCAFFOLD.hero.tag);
+    expect(html).toContain(GOLDEN_SCAFFOLD.featuresTitle);
+    for (const feature of GOLDEN_SCAFFOLD.features) {
+      expect(html, feature.title).toContain(feature.title);
+    }
+    expect(html).toContain(GOLDEN_SCAFFOLD.showcaseTitle);
+    for (const tech of GOLDEN_SCAFFOLD.showcase.technologies) expect(html).toContain(tech);
+    expect(html).toContain(SECTIONS.testimonials);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+
+  /*
+   * Every call goes to the contact page rather than to the FAQ's form, which
+   * the shared section does bring down the page with it. Pinned because the
+   * other three pages point their calls at '#ask', so copying a hero from one
+   * of them is how this page would quietly stop sending anyone anywhere useful.
+   */
+  it('sends its calls to the contact page, not to the FAQ form below', async () => {
+    const html = await render();
+    const { GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+
+    expect(html).toContain(`href="${GET_STARTED_PATH}"`);
+    expect(html).not.toMatch(/href="[^"]*#ask"/);
   });
 });

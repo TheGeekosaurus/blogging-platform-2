@@ -1,3 +1,5 @@
+import type { Work } from './content';
+
 /**
  * Copy unique to the Nanotom Labs Services page.
  *
@@ -52,25 +54,6 @@ export const SERVICES_HERO = {
  * quietly disagreed.
  */
 
-export type Work = {
-  /** Key into WORK_ICONS in ./icons.tsx. */
-  icon: 'spark' | 'balloon';
-  title: string;
-  category: string;
-  timeTaken: string;
-  body: string;
-  image: { src: string; alt: string };
-  technologies: readonly string[];
-  /**
-   * Five portraits per project, under /public/nntm-labs.
-   *
-   * They carry no names, in the design or here. Naming them would attach real
-   * faces — these are the template's stock portraits — to a staff list that
-   * does not exist, so they are decorative and take alt="".
-   */
-  team: readonly string[];
-};
-
 export const WORKS: readonly Work[] = [
   {
     icon: 'spark',
@@ -121,12 +104,7 @@ export const SERVICES_SECTIONS = {
   works: 'Our Works',
 } as const;
 
-/** Labels unique to this page. */
+/** Labels unique to this page. The WorkPanel's own live in ./content.ts. */
 export const SERVICES_LINKS = {
   allWorks: 'ALL Works',
-  details: 'Details',
-  technologiesUsed: 'Technologies Used',
-  teamMembers: 'Team Members',
-  category: 'Category',
-  timeTaken: 'Time Taken',
 } as const;

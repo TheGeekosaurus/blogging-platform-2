@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import type { Work } from './content';
 import {
   CLOSING_CTA,
   ENQUIRY_FORM,
@@ -11,7 +12,7 @@ import {
   STATS_CTA,
   TESTIMONIALS,
 } from './content';
-import { ArrowRight, Plus } from './icons';
+import { ArrowRight, Plus, WORK_ICONS } from './icons';
 import { ArrowLink, Panel, SectionHeader, SectionLink } from './primitives';
 
 /**
@@ -266,5 +267,142 @@ export function ClosingCta({ enquiryAnchor }: { enquiryAnchor: string }) {
         </Link>
       </div>
     </section>
+  );
+}
+
+/**
+ * One project, in its own panel.
+ *
+ * Shared by /services, which stacks two of them under "Our Works", and by each
+ * project page, which shows the one it is about.
+ *
+ * Three equal columns in the artwork — 579.3px each with 20px gutters inside
+ * an 1822px panel — so `lg:grid-cols-3` rather than fractions. The right
+ * column is itself a stack of three: the technology list, the team strip, and
+ * a full-width call, at the artwork's 225 / 90 / 63 heights.
+ */
+export function WorkPanel({
+  work,
+  enquiryAnchor,
+}: {
+  work: Work;
+  enquiryAnchor: string;
+}) {
+  const Icon = WORK_ICONS[work.icon];
+
+  return (
+    <Panel>
+      <div className="grid gap-5 lg:grid-cols-3">
+        <article className="flex flex-col gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10">
+          {/*
+            * Stacked below `sm`, side by side above it.
+            *
+            * Held side by side at 390 the title column is 112px — narrower
+            * than the word "Ecommerce" set at 18px — so "A-Aura Ecommerce"
+            * broke mid-word. Dropping the control to its own line is what the
+            * mobile frame does with the service cards' "Book A Call" anyway.
+            */}
+          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <div className="flex min-w-0 items-center gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] border border-[var(--nl-line-strong)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-[66px]">
+                <Icon className="size-5 lg:size-7" />
+              </span>
+              <h3 className="nl-heading min-w-0 text-lg break-words lg:text-xl 2xl:text-2xl">
+                {work.title}
+              </h3>
+            </div>
+            <div className="sm:justify-self-end">
+              <ArrowLink label={LINKS.details} />
+            </div>
+          </div>
+
+          <dl className="flex flex-wrap gap-3">
+            {[
+              { term: LINKS.category, value: work.category },
+              { term: LINKS.timeTaken, value: work.timeTaken },
+            ].map((meta) => (
+              <div
+                key={meta.term}
+                className="flex items-center gap-2 rounded-full bg-[var(--nl-raised)] px-4 py-2.5"
+              >
+                <dt className="text-xs text-[var(--nl-muted)] lg:text-sm">{meta.term}</dt>
+                <span className="size-1 rounded-full bg-[var(--nl-accent)]" aria-hidden />
+                <dd className="text-xs text-[var(--nl-ink)] lg:text-sm">{meta.value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="text-sm leading-relaxed text-[var(--nl-body)]">{work.body}</p>
+        </article>
+
+        <div className="relative min-h-[220px] overflow-hidden rounded-[var(--nl-radius-card)] bg-[var(--nl-line-strong)] lg:min-h-0">
+          <Image
+            src={work.image.src}
+            alt={work.image.alt}
+            fill
+            sizes="(min-width: 1024px) 580px, 100vw"
+            className="object-cover"
+          />
+        </div>
+
+        <div className="flex flex-col gap-5">
+          <div className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10">
+            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
+              {LINKS.technologiesUsed}
+            </h4>
+            <ul className="mt-4 flex flex-wrap gap-2 lg:mt-6">
+              {work.technologies.map((technology) => (
+                <li
+                  key={technology}
+                  className="rounded-full bg-[var(--nl-raised)] px-4 py-2 font-[family-name:var(--font-nl-mono)] text-xs text-[var(--nl-body)] lg:text-sm"
+                >
+                  {technology}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-5 py-4 lg:px-10">
+            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
+              {LINKS.teamMembers}
+            </h4>
+
+            {/*
+             * The accent shows THROUGH each portrait: the source files are
+             * cut-outs with an alpha channel, so the disc behind them is what
+             * supplies the colour. That is how the artwork tints them, and it
+             * means they followed the rebrand from terracotta to gold without
+             * a re-export.
+             *
+             * alt="" on every one — they are the template's stock portraits
+             * and name nobody, so announcing them would be noise.
+             */}
+            <ul className="flex items-center gap-2">
+              {work.team.map((portrait, index) => (
+                <li
+                  key={`${portrait}-${index}`}
+                  className="size-10 overflow-hidden rounded-full bg-[var(--nl-accent)] lg:size-[50px]"
+                >
+                  <Image
+                    src={portrait}
+                    alt=""
+                    width={50}
+                    height={50}
+                    className="size-full object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <Link
+            href={enquiryAnchor}
+            className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-4 text-xs text-[#0f0f0f] lg:text-sm"
+          >
+            {LINKS.bookACall}
+          </Link>
+        </div>
+      </div>
+    </Panel>
   );
 }

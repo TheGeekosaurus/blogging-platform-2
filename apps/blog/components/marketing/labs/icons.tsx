@@ -196,6 +196,57 @@ function YouTube({ className }: IconProps) {
   );
 }
 
+/** Strategic Planning: a clipboard of steps. */
+function Planning({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <rect x="4.5" y="4" width="15" height="16.5" rx="2.5" {...STROKE} />
+      <path d="M9 3h6v3H9z" {...STROKE} />
+      <path d="M8.5 11h7M8.5 15h4" {...STROKE} />
+    </svg>
+  );
+}
+
+/** Customized Solutions: a star, for the one-off. */
+function Tailored({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path
+        d="M12 3.2 14.3 9l6.2.5-4.7 4 1.4 6-5.2-3.2L6.8 19.5l1.4-6-4.7-4L9.7 9z"
+        {...STROKE}
+      />
+    </svg>
+  );
+}
+
+/** User-Centric Approach: a person. */
+function UserCentric({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <circle cx="12" cy="8.5" r="3.5" {...STROKE} />
+      <path d="M5 20a7 7 0 0 1 14 0" {...STROKE} />
+    </svg>
+  );
+}
+
+/** Timely Delivery: a clock. */
+function Delivery({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <circle cx="12" cy="12" r="8.5" {...STROKE} />
+      <path d="M12 7v5.3l3.3 2" {...STROKE} />
+    </svg>
+  );
+}
+
+/** Project-page feature icons, keyed by `ProjectFeature['icon']`. */
+export const PROJECT_FEATURE_ICONS = {
+  planning: Planning,
+  tailored: Tailored,
+  'user-centric': UserCentric,
+  delivery: Delivery,
+} as const;
+
 /** Service icons, keyed by `Service['icon']` in ./content.ts. */
 export const SERVICE_ICONS = {
   'website-design': WebsiteDesign,
