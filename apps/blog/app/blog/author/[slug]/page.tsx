@@ -6,6 +6,7 @@ import {
   authorPath,
   buildAuthorSchemas,
   getAuthorBySlug,
+  htmlToPlainText,
   listAuthorsWithPosts,
   listPostsByAuthor,
   mediaPublicUrl,
@@ -53,9 +54,11 @@ export async function generateMetadata({
    * that actually distinguishes one author page from another. Truncated because
    * a bio has no length limit and a meta description does.
    */
-  const description = author.bio
-    ? truncateWords(author.bio, 160)
-    : `Articles by ${author.name}${author.title ? `, ${author.title}` : ''}.`;
+  const bioText = htmlToPlainText(author.bio ?? '');
+  const titleText = htmlToPlainText(author.title ?? '');
+  const description = bioText
+    ? truncateWords(bioText, 160)
+    : `Articles by ${author.name}${titleText ? `, ${titleText}` : ''}.`;
 
   return {
     title: author.name,
@@ -108,6 +111,8 @@ export default async function AuthorPage({
       */}
       <JsonLd
         nodes={buildAuthorSchemas({
+          jobTitle: htmlToPlainText(author.title ?? ''),
+          description: htmlToPlainText(author.bio ?? ''),
           site,
           author,
           sameAs: links.map((link) => link.url),

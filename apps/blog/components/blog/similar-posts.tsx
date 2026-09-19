@@ -9,6 +9,7 @@ import {
   mediaPublicUrl,
   postAuthorName,
   postPath,
+  sanitizeBylineHtml,
   type PostSummary,
 } from '@blog/core';
 
@@ -154,9 +155,12 @@ export function SimilarPosts({ posts, locale }: { posts: PostSummary[]; locale: 
                             {author}
                           </p>
                           {post.byline?.title ? (
-                            <p className="truncate text-xs text-[var(--color-ink-muted)]">
-                              {post.byline.title}
-                            </p>
+                            <p
+                              className="byline-html truncate text-xs text-[var(--color-ink-muted)]"
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeBylineHtml(post.byline.title),
+                              }}
+                            />
                           ) : null}
                         </div>
                       </div>

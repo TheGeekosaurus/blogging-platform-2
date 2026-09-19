@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { authorPath,
+import {
+  authorPath,
   mediaPublicUrl,
+  sanitizeBylineHtml,
   socialLinks,
   type Byline,
   type SocialPlatform,
@@ -99,13 +101,17 @@ export function AuthorBox({ byline }: { byline: Byline }) {
           </p>
 
           {byline.title ? (
-            <p className="mt-0.5 text-[var(--color-ink)]">{byline.title}</p>
+            <p
+              className="byline-html mt-0.5 text-[var(--color-ink)]"
+              dangerouslySetInnerHTML={{ __html: sanitizeBylineHtml(byline.title) }}
+            />
           ) : null}
 
           {byline.bio ? (
-            <p className="mt-3 text-sm leading-[1.7] text-[var(--color-ink-muted)]">
-              {byline.bio}
-            </p>
+            <p
+              className="byline-html mt-3 text-sm leading-[1.7] text-[var(--color-ink-muted)]"
+              dangerouslySetInnerHTML={{ __html: sanitizeBylineHtml(byline.bio) }}
+            />
           ) : null}
 
           {socials.length > 0 ? (

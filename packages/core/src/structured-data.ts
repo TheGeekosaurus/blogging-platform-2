@@ -525,9 +525,24 @@ export interface AuthorSchemaInput {
   author: {
     slug: string;
     name: string;
-    title: string | null;
-    bio: string | null;
   };
+  /**
+   * The author's role and bio AS PLAIN TEXT.
+   *
+   * Handed in stripped rather than read off the row, for the same reason
+   * `sameAs` is handed in filtered: the work belongs to the caller. Both
+   * columns may now hold inline markup — a role line linking to the company, a
+   * bio linking out — and schema.org's jobTitle and description are plain-text
+   * values, so a passed-through "<a href=…>" would publish tags to every
+   * consumer that reads this.
+   *
+   * Stripping here would mean importing the sanitiser, and this module is
+   * deliberately importable from a `'use client'` component (see the header
+   * note). Pulling sanitize-html into four admin client bundles to tidy two
+   * short strings is the wrong trade.
+   */
+  jobTitle?: string;
+  description?: string;
   /** Verified profile URLs, already filtered — see socialLinks(). */
   sameAs?: string[];
   /** Avatar, absolute. A parameter for the same reason as a post's image. */
@@ -551,6 +566,8 @@ export interface AuthorSchemaInput {
 export function buildAuthorSchemas({
   site,
   author,
+  jobTitle,
+  description,
   sameAs,
   imageUrl,
   postCount,
@@ -561,8 +578,8 @@ export function buildAuthorSchemas({
     '@type': 'Person',
     name: author.name,
     url,
-    ...(author.title ? { jobTitle: author.title } : {}),
-    ...(author.bio ? { description: author.bio } : {}),
+    ...(jobTitle ? { jobTitle } : {}),
+    ...(description ? { description } : {}),
     ...(imageUrl ? { image: imageUrl } : {}),
     ...(sameAs && sameAs.length > 0 ? { sameAs } : {}),
     worksFor: { '@type': 'Organization', name: site.name, url: pageUrl(site, '/') },

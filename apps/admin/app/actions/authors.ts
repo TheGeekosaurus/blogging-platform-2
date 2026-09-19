@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { SOCIAL_PLATFORMS, slugify, type SocialLinks } from '@blog/core';
+import { SOCIAL_PLATFORMS, sanitizeBylineHtml, slugify, type SocialLinks } from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
@@ -72,8 +72,18 @@ export async function saveAuthor(
     site_id: site.id,
     name,
     slug,
-    title: String(formData.get('title') ?? '').trim() || null,
-    bio: String(formData.get('bio') ?? '').trim() || null,
+    /*
+     * Both accept inline markup — a role line that links to the company, a bio
+     * that links out — so both are sanitised here, the way post and page bodies
+     * are. The allowlist is inline-only: a <div> or an <h2> in a role line does
+     * not just look wrong, it breaks the card it renders inside.
+     *
+     * The blog sanitises these again on read, which covers rows written before
+     * bylines accepted markup. This side keeps what is STORED clean, so the
+     * admin's own list screens and any future export are not carrying junk.
+     */
+    title: sanitizeBylineHtml(String(formData.get('title') ?? '').trim()) || null,
+    bio: sanitizeBylineHtml(String(formData.get('bio') ?? '').trim()) || null,
     // Empty string means "no avatar". The column is a nullable FK, so '' would
     // be rejected as a malformed uuid.
     avatar_id: String(formData.get('avatar_id') ?? '').trim() || null,

@@ -9,6 +9,7 @@ import {
   mediaPublicUrl,
   postAuthorName,
   postPath,
+  sanitizeBylineHtml,
   type PostSummary,
   type TermRow,
 } from '@blog/core';
@@ -208,8 +209,13 @@ export function PostRow({ post, locale }: { post: PostSummary; locale: string })
               <div className="leading-tight">
                 <p className="font-medium text-[var(--ft-ink)]">{author}</p>
                 {/* Only an author record carries a role; a plain-text byline has none. */}
+                {/* Inline HTML — a role line may carry a link. Sanitised to an
+                    inline-only allowlist; see sanitizeBylineHtml. */}
                 {post.byline?.title ? (
-                  <p className="mt-0.5 text-sm text-[var(--ft-muted)]">{post.byline.title}</p>
+                  <p
+                    className="byline-html mt-0.5 text-sm text-[var(--ft-muted)]"
+                    dangerouslySetInnerHTML={{ __html: sanitizeBylineHtml(post.byline.title) }}
+                  />
                 ) : null}
               </div>
             </div>

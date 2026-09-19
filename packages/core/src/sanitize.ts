@@ -173,6 +173,61 @@ const PAGE_OPTIONS: sanitizeHtml.IOptions = {
   nonTextTags: ['script', 'textarea', 'option', 'noscript'],
 };
 
+/**
+ * BYLINE sanitisation — an author's `title` and `bio`.
+ *
+ * Inline only, and that is the point. Both fields render INSIDE a paragraph on
+ * post cards, the byline row and the author box, so the allowlist is limited to
+ * what is legal and sane in running text. A <div>, an <h2> or an <img> in a
+ * role line does not just look wrong, it breaks the row it sits in — and a bio
+ * is edited in a plain textarea by someone who is thinking about words, not
+ * about markup.
+ *
+ * `br` is deliberately absent too: these are one-line and one-paragraph fields,
+ * and a manual line break in a byline reflows badly at every other width.
+ *
+ * Everything else in OPTIONS still applies — script, on* handlers and
+ * javascript: URLs are stripped, and external links pick up
+ * rel="noopener noreferrer" through the shared transformTags.
+ */
+const BYLINE_OPTIONS: sanitizeHtml.IOptions = {
+  ...OPTIONS,
+  allowedTags: [
+    'a', 'em', 'strong', 'b', 'i', 'u', 's', 'span', 'abbr', 'small', 'sub', 'sup', 'code',
+  ],
+  allowedAttributes: {
+    a: ['href', 'target', 'rel', 'title'],
+    abbr: ['title'],
+    '*': ['class', 'lang', 'dir'],
+  },
+  // No iframes are reachable from this allowlist, so the shells filter cannot
+  // fire; an <a> that lost its href to a bad scheme SHOULD still show its text.
+  exclusiveFilter: undefined,
+};
+
+/**
+ * Sanitise an author's title or bio. Safe to render with
+ * dangerouslySetInnerHTML.
+ *
+ * Applied on READ as well as on write, which is a deliberate departure from
+ * this module's usual write-only rule. Two reasons, both specific to these
+ * fields:
+ *
+ *   - Rows written before bylines accepted markup are already in the database.
+ *     Read-side sanitisation makes them safe on the next deploy instead of
+ *     needing a backfill nobody can run against production from a branch.
+ *   - The blog is force-static, so "on read" is at build or revalidation time,
+ *     not per request. On a post body that argument would not hold; on a
+ *     two-line string it costs nothing measurable.
+ *
+ * It is idempotent, so sanitising on both sides is not a correctness problem —
+ * the write side just keeps the stored data clean.
+ */
+export function sanitizeBylineHtml(dirty: string | null | undefined): string {
+  if (!dirty) return '';
+  return sanitizeHtml(dirty, BYLINE_OPTIONS);
+}
+
 /** Sanitise page HTML. See PAGE_OPTIONS for why this differs from posts. */
 export function sanitizePageHtml(dirty: string): string {
   if (!dirty) return '';

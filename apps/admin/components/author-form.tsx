@@ -88,7 +88,9 @@ export function AuthorForm({
         />
         <p className="mt-1 text-xs text-slate-500">
           A short role line, shown under the name on every post. Keep it to one line
-          — the long version belongs in the bio.
+          — the long version belongs in the bio. Inline HTML is allowed, so{' '}
+          <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code> and <code>&lt;em&gt;</code>{' '}
+          work; block tags and images are stripped on save.
         </p>
       </div>
 
@@ -123,7 +125,9 @@ export function AuthorForm({
           className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
         />
         <p className="mt-1 text-xs text-slate-500">
-          Stored but not shown yet. It is what the author box will use.
+          Shown in the author box under a post and on the author archive. Inline HTML is
+          allowed — links, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code> — and
+          anything block-level is stripped on save. One paragraph.
         </p>
       </div>
 

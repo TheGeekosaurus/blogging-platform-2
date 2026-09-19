@@ -1360,3 +1360,49 @@
   outline: 2px solid var(--ft-accent);
   outline-offset: 3px;
 }
+
+/* ---------------------------------------------------------------------------
+ * Author role lines and bios
+ *
+ * `authors.title` and `authors.bio` accept inline markup, so a role line can
+ * link to the company and a bio can link out. Those links need to LOOK like
+ * links: they render inside a muted paragraph, inheriting its colour, so
+ * without a rule they are indistinguishable from the words around them.
+ *
+ * Underline rather than a colour swap, because these sit on three different
+ * grounds — the marketing list, the blog byline row, the author box — and an
+ * underline reads as a link on all of them. The accent is kept for hover, where
+ * each surface supplies its own token.
+ *
+ * Scoped to `.byline-html` rather than styling every `a`: the surrounding card
+ * is itself a link to the post, and it must not pick this up.
+ * ------------------------------------------------------------------------- */
+
+.byline-html a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+.byline-html a:hover {
+  text-decoration-color: currentColor;
+}
+
+.ft-surface .byline-html a:hover {
+  color: var(--ft-accent);
+}
+
+.blog-surface .byline-html a:hover {
+  color: var(--color-accent);
+}
+
+/* A bio may hold <strong>; it should read as emphasis, not as a heading. */
+.byline-html strong {
+  font-weight: 600;
+  color: inherit;
+}

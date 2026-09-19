@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { altTextWarning } from '../content';
-import {
-  htmlToPlainText,
-  sanitizePageHtml,
-  sanitizePostHtml,
-  truncateWords,
-} from '../sanitize';
+import { htmlToPlainText, sanitizeBylineHtml, sanitizePageHtml, sanitizePostHtml, truncateWords } from '../sanitize';
 
 /**
  * These are the tests that matter most in the whole project: `content_html` is
@@ -364,5 +359,56 @@ describe('altTextWarning', () => {
 
   it('ignores images in other elements and plain text', () => {
     expect(altTextWarning('<p>alt=nothing here</p><figure></figure>')).toBeNull();
+  });
+});
+
+describe('sanitizeBylineHtml', () => {
+  /* The exact value that broke the blog list: raw markup rendered as text. */
+  const REAL = 'Founder &amp; CEO @ <a target="_blank" rel="noopener noreferrer" ' +
+    'href="https://nanotomcapital.com">Nanotom Capital</a> and <a target="_blank" ' +
+    'rel="noopener noreferrer" href="https://nanotomlabs.com">Nanotom Labs</a>';
+
+  it('keeps the links and the entity in a real byline', () => {
+    const out = sanitizeBylineHtml(REAL);
+
+    expect(out).toContain('href="https://nanotomcapital.com"');
+    expect(out).toContain('>Nanotom Labs</a>');
+    // The ampersand stays encoded; rendering as HTML is what turns it into "&".
+    expect(out).toContain('&amp;');
+  });
+
+  it('is idempotent, because it runs on both write and read', () => {
+    expect(sanitizeBylineHtml(sanitizeBylineHtml(REAL))).toBe(sanitizeBylineHtml(REAL));
+  });
+
+  it('drops block tags that would break the row it renders inside', () => {
+    const out = sanitizeBylineHtml('<div>a</div><h2>b</h2><img src="/x.png"><p>c</p>');
+
+    expect(out).not.toMatch(/<(div|h2|img|p)\b/);
+    // The TEXT survives — only the structure goes.
+    expect(out).toContain('a');
+    expect(out).toContain('c');
+  });
+
+  it('strips script, handlers and javascript: URLs', () => {
+    expect(sanitizeBylineHtml('<script>alert(1)</script>')).not.toContain('script');
+    expect(sanitizeBylineHtml('<a href="javascript:alert(1)">x</a>')).not.toContain('javascript:');
+    expect(sanitizeBylineHtml('<span onclick="alert(1)">x</span>')).not.toContain('onclick');
+  });
+
+  it('still marks external links noopener, via the shared transform', () => {
+    const out = sanitizeBylineHtml('<a href="https://example.com">x</a>');
+    expect(out).toContain('rel="noopener noreferrer"');
+  });
+
+  it('keeps the text of a link whose scheme was rejected', () => {
+    // exclusiveFilter is off for bylines: an <a> stripped of a bad href should
+    // still show its words rather than vanishing mid-sentence.
+    expect(sanitizeBylineHtml('<a href="javascript:x">Nanotom</a>')).toContain('Nanotom');
+  });
+
+  it('returns empty for null and undefined, so callers need no guard', () => {
+    expect(sanitizeBylineHtml(null)).toBe('');
+    expect(sanitizeBylineHtml(undefined)).toBe('');
   });
 });

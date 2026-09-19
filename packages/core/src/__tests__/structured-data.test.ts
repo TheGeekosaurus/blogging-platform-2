@@ -353,14 +353,20 @@ describe('SCHEMA_TEMPLATES', () => {
 });
 
 describe('buildAuthorSchemas', () => {
-  const author = {
-    slug: 'denis-beaulieu',
-    name: 'Denis Beaulieu',
-    title: 'Founder, Nanotom Capital',
-    bio: 'Writes about how small businesses actually get funded.',
-  };
+  const author = { slug: 'denis-beaulieu', name: 'Denis Beaulieu' };
 
-  const [profile] = buildAuthorSchemas({ site, author, postCount: 12 });
+  /*
+   * jobTitle and description arrive as plain text rather than being read off
+   * the row: both columns can hold inline markup now, and schema.org wants
+   * plain values. The caller strips them — see the note on AuthorSchemaInput.
+   */
+  const [profile] = buildAuthorSchemas({
+    site,
+    author,
+    jobTitle: 'Founder, Nanotom Capital',
+    description: 'Writes about how small businesses actually get funded.',
+    postCount: 12,
+  });
 
   it('wraps the Person in a ProfilePage', () => {
     /*
@@ -417,7 +423,7 @@ describe('buildAuthorSchemas', () => {
   it('drops empty optional fields', () => {
     const [bare] = buildAuthorSchemas({
       site,
-      author: { slug: 'x', name: 'X', title: null, bio: null },
+      author: { slug: 'x', name: 'X' },
     });
     const person = bare!.mainEntity as SchemaNode;
 
@@ -430,7 +436,7 @@ describe('buildAuthorSchemas', () => {
   it('serialises through the same escaper as everything else', () => {
     const [hostile] = buildAuthorSchemas({
       site,
-      author: { slug: 'x', name: 'X </script>', title: null, bio: null },
+      author: { slug: 'x', name: 'X </script>' },
     });
     const out = serializeJsonLd(hostile!);
 

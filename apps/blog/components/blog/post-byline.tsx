@@ -1,7 +1,14 @@
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { authorPath, formatPostDate, mediaPublicUrl, postAuthorName, type PostDetail } from '@blog/core';
+import {
+  authorPath,
+  formatPostDate,
+  mediaPublicUrl,
+  postAuthorName,
+  sanitizeBylineHtml,
+  type PostDetail,
+} from '@blog/core';
 
 /**
  * The author and timing row under a post title.
@@ -58,7 +65,10 @@ export function PostByline({ post, locale }: { post: PostDetail; locale: string 
             </p>
             {/* Only a record carries a role; a plain-text byline has none. */}
             {byline?.title ? (
-              <p className="mt-0.5 text-sm text-[var(--color-ink-muted)]">{byline.title}</p>
+              <p
+                className="byline-html mt-0.5 text-sm text-[var(--color-ink-muted)]"
+                dangerouslySetInnerHTML={{ __html: sanitizeBylineHtml(byline.title) }}
+              />
             ) : null}
           </div>
         </div>
