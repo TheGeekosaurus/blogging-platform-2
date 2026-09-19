@@ -943,6 +943,27 @@
     margin-top: 0.5em;
   }
 
+  /*
+   * The same links on the MARKETING ground, which is a different palette.
+   *
+   * `.blog-surface` redefines --color-accent to brand gold precisely because
+   * the :root value is a light-theme blue; `.ft-surface` never did, so an
+   * author link in the marketing blog list came out #1f5fd0 on #141414 —
+   * measured at 3.2:1, under AA for text this size, and off-brand besides.
+   *
+   * Pointing at --ft-accent rather than setting --color-accent on .ft-surface:
+   * that token is read by other rules inside this surface, and widening one
+   * link colour into a palette change is how a fix becomes a regression.
+   */
+  .ft-surface .author-prose a {
+    color: var(--ft-accent);
+    text-decoration-color: color-mix(in srgb, var(--ft-accent) 45%, transparent);
+  }
+
+  .ft-surface .author-prose a:hover {
+    text-decoration-color: var(--ft-accent);
+  }
+
   .post-body table {
     width: 100%;
     border-collapse: collapse;
