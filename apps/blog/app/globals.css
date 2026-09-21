@@ -1593,3 +1593,104 @@
   outline: 2px solid var(--ft-accent);
   outline-offset: 3px;
 }
+
+/* ===========================================================================
+ * THE LIGHT PALETTE — A TEST, OFF BY DEFAULT.
+ *
+ * Switched on by `ft-light` on <body>, which app/layout.tsx adds from the
+ * FT_LIGHT_TEST flag. With the flag off not one selector below matches, so the
+ * dark site is byte-identical; deleting this block and that flag removes the
+ * experiment completely.
+ *
+ * Two colours, both Denis's:
+ *   the sections that were near-black #141414  ->  #2D3748
+ *   the banner bands that were grey    #1A1A1A  ->  #FFFFFF
+ *
+ * The gold is untouched on the ground, so every CTA stays the brand colour.
+ *
+ * WHY THIS BLOCK IS UNLAYERED. Everything else here lives in @layer components,
+ * which Tailwind's `utilities` layer outranks — the header's scrolled-state
+ * background is a utility, and a layered rule could not win against it without
+ * !important. Unlayered declarations beat every layer, so one plain block
+ * overrides both the tokens and that utility with no specificity games.
+ *
+ * ---------------------------------------------------------------------------
+ * CONTRAST, measured rather than guessed. On the #2D3748 ground:
+ *   --ft-ink    #FFFFFF  11.88:1
+ *   --ft-muted  #B3BCCB   6.21:1   (the dark theme's muted is 6.33:1)
+ *   --ft-subtle #A1ACBD   5.18:1 on the ground, 4.62:1 on the cards
+ *   --ft-accent #E0A840   5.82:1
+ * On the white bands, where the tones invert:
+ *   --ft-ink    #16202E  16.4:1
+ *   --ft-muted  #4C5765   7.35:1
+ *   --ft-accent #96670C   4.95:1
+ *
+ * THE BAND ACCENT IS THE ONE VALUE THAT HAD TO CHANGE. Brand gold on white is
+ * 2.04:1 — unreadable, and unfixable by any amount of weight. #96670C is the
+ * same hue taken down until it clears AA. It applies ONLY inside a band, and
+ * only ever to gold *text* and icons: nothing inside a band is gold-filled, so
+ * no button changes colour. Check that before putting a gold CTA in a band.
+ * =========================================================================== */
+
+/*
+ * The shared near-black, re-pointed once. The site header, the site footer and
+ * --ft-bg all read this token, so they move together rather than each carrying
+ * its own copy of the new value.
+ */
+.ft-light {
+  --color-ground: #2d3748;
+
+  /*
+   * The header's dropdown panels and the mobile nav sheet, which hang off a
+   * header that has just moved. Left alone they stay the old near-black and
+   * read as a second, unexplained palette the moment a menu opens.
+   */
+  --color-brand-raised: #374255;
+}
+
+.ft-light .ft-surface {
+  --ft-band: #ffffff;
+  --ft-card: #353f51;
+  --ft-card-raised: #414d62;
+  --ft-line: #414d62;
+
+  --ft-muted: #b3bccb;
+  --ft-subtle: #a1acbd;
+}
+
+/*
+ * A white band, with the tones turned over.
+ *
+ * `ft-band` marks the element that paints --ft-band. It is a marker, not a
+ * style — the background still comes from the utility beside it — and it earns
+ * its place here: a band is the one place on the page whose text has to invert,
+ * and the alternative is targeting Tailwind's escaped arbitrary-value class.
+ */
+.ft-light .ft-band {
+  --ft-ink: #16202e;
+  --ft-muted: #4c5765;
+  --ft-subtle: #5e6a78;
+  --ft-card: #f2f4f7;
+  --ft-card-raised: #e7ebf0;
+  --ft-line: #dde3ea;
+  --ft-accent: #96670c;
+
+  color: var(--ft-ink);
+}
+
+/*
+ * The header's scrolled state, whose translucent near-black is written inline
+ * as a utility and so cannot follow --color-ground. Same alpha, same idea.
+ */
+.ft-light header[data-scrolled='true'] {
+  background-color: rgba(38, 48, 65, 0.72);
+}
+
+/*
+ * The fallback artwork on a post with no featured image: a two-stop gradient
+ * with the old ground baked into it, which would otherwise be the one near-black
+ * rectangle left on the page.
+ */
+.ft-light .ft-surface .ft-image-slot {
+  background-image: linear-gradient(135deg, #3b4759, #2d3748 60%);
+}

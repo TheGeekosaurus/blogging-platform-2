@@ -143,7 +143,7 @@ function FeaturedOn() {
   const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
-    <div className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
+    <div className="ft-band border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
       <div className={CONTAINER}>
         <Chip>Featured On</Chip>
       </div>
