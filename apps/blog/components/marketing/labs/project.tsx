@@ -31,8 +31,9 @@ import { ClosingCta, Faq, Testimonials, WorkPanel } from './sections';
  * clicked "Get Started", and the contact page offers the ways to reach the
  * business that a bare form does not.
  *
- * ⚠️ THE CONTENT IS PLACEHOLDER AND THE PROJECT NAMES A REAL COMPANY. See the
- * warning at the top of ./projects-content.ts before this page is linked to.
+ * ⚠️ THE CONTENT IS PLACEHOLDER AND THE PROJECT NAMES A REAL COMPANY, and the
+ * homepage galleries link here now. See the warning at the top of
+ * ./projects-content.ts.
  */
 export function LabsProject({ project }: { project: Project }) {
   return (

@@ -106,10 +106,16 @@ function SocialAds({ className }: IconProps) {
   );
 }
 
-function Klothink({ className }: IconProps) {
+/**
+ * Golden Scaffold's mark: two standards, two ledgers and a diagonal brace.
+ *
+ * It replaced the template's t-shirt glyph, which belonged to Klothink — the
+ * invented clothing brand that used to hold this success-story slot.
+ */
+function Scaffold({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M9 4 5 6.5V10l2 .5V20h10v-9.5l2-.5V6.5L15 4a3 3 0 0 1-6 0z" {...STROKE} />
+      <path d="M5 4v16M19 4v16M4 8.5h16M4 15.5h16M5 8.5l14 7" {...STROKE} />
     </svg>
   );
 }
@@ -257,7 +263,7 @@ export const SERVICE_ICONS = {
 
 /** Success-story icons, keyed by `SuccessStory['icon']`. */
 export const STORY_ICONS = {
-  klothink: Klothink,
+  scaffold: Scaffold,
   fitness: Fitness,
 } as const;
 

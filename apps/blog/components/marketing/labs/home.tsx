@@ -251,8 +251,29 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
                 sizes="392px"
                 className="object-cover"
               />
+              {/*
+                * A scrim under the label, because the label is white and the
+                * artwork underneath is whatever the work looked like.
+                *
+                * The template's eight screenshots were all dark, so white type
+                * sat on them unaided; the first real one is a collage of a
+                * mostly-white website and "OPEN PROJECT" all but disappeared
+                * into it. A gradient is the fix rather than a darker label:
+                * the next real screenshot could as easily be dark, and this
+                * holds either way.
+                */}
+              <div
+                className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/95 via-black/75 to-transparent"
+                aria-hidden
+              />
+
+              {/*
+                * Linked only where there is a case study to open — see the
+                * note on `href` in ./content.ts. The rest render as a span,
+                * which is what ArrowLink does without one.
+                */}
               <div className="absolute inset-x-0 bottom-0 p-4">
-                <ArrowLink label={LINKS.openProject} variant="solid" />
+                <ArrowLink label={LINKS.openProject} href={project.href} variant="solid" />
               </div>
             </div>
           ))}
