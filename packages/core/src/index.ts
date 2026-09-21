@@ -13,3 +13,4 @@ export * from './breadcrumbs';
 export * from './lead-magnets';
 export * from './structured-data';
 export * from './analytics';
+export * from './seo';
