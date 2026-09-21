@@ -42,17 +42,30 @@ import { GOLDEN_SCAFFOLD, projectPath } from './projects-content';
  * still is; this block is the business's own positioning, and it says what
  * Nanotom Labs sells rather than what the Figma file said.
  *
- * THREE LINES, not the template's two. The headline is three parallel clauses
- * — "More X. More Y. More Z." — and stacking them is both the natural
- * typographic treatment and the only one that keeps the type large: set as two
- * lines it needs 1098px beside a 237px call inside a 1111px card, which forces
- * the headline down to ~46px. Broken in three, the first line is short enough
- * to sit beside the call at the full size. `headingLines` is read as "the
- * first line shares its row with the call, the rest stack", so adding or
- * removing a line here needs no markup change.
+ * TWO LINES, AND THE FIRST ONE ROLLS. It was three static clauses — More
+ * Calls / More Foot Traffic / More Revenue — and the outcomes a local business
+ * actually wants are four, not two. Rolling them through one slot says all
+ * four in the space of one line and buys the type the size the third line was
+ * costing it.
+ *
+ * `lead` + `rolling` is the first line, `headingLines` everything under it.
+ * The roll is CSS, so the words are all in the markup at once — see
+ * `RollingOutcome` in ./home.tsx and `.nl-roll` in app/globals.css.
+ *
+ * ADDING A WORD IS FREE; A LONG ONE IS NOT. The slot reserves the width of the
+ * longest word so the call beside it cannot shift as the roll runs, and the
+ * hero's type size is set by what fits beside that. "Quote Requests" is the
+ * longest today; anything longer means re-measuring the clamp on the h1.
  */
 export const HERO = {
-  headingLines: ['More Calls', 'More Foot Traffic', 'More Revenue'],
+  lead: 'More',
+  /*
+   * Plural throughout, including "Quote Requests" — the line reads "More
+   * <word>", and "More Quote Request" does not.
+   */
+  rolling: ['Calls', 'Foot Traffic', 'Quote Requests', 'Contracts'],
+  /** Under the roll, and deliberately fixed: the outcome all four lead to. */
+  headingLines: ['More Revenue'],
   cta: 'Get Started',
   body:
     'At Nanotom Labs, we help local businesses dominate their market with a high-converting ' +

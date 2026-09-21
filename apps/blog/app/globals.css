@@ -1362,6 +1362,95 @@
   }
 
   /*
+   * The hero headline's rolling word: "More [Calls / Foot Traffic / Quote
+   * Requests / Contracts]".
+   *
+   * A window one line tall over a column of words, translated a word at a
+   * time. No JavaScript, for the reason every other moving part of this site
+   * has none — a four-word animation is not worth a client bundle on the
+   * landing page — and no layout thrash either: `transform` and nothing else,
+   * so it runs on the compositor and never reflows the headline beside it.
+   *
+   * THE COLUMN CARRIES THE FIRST WORD TWICE, at the end. Five children, moved
+   * in five steps of -20%: the last step lands on the duplicate, which is the
+   * same frame the animation restarts on, so the loop closes invisibly.
+   * Without it the roll would either snap backwards through three words or
+   * end on blank space.
+   *
+   * EVERY HEIGHT IS IN `em` and derives from --nl-roll-line, so the whole
+   * mechanism scales with the h1's fluid clamp — there is no pixel here to
+   * keep in sync with a font size. The h1 sets that variable to its own
+   * leading; a window taller or shorter than the words shows two at once or
+   * clips the one it shows.
+   */
+  .nl-roll {
+    --nl-roll-line: 1.1em;
+    display: inline-block;
+    height: var(--nl-roll-line);
+    overflow: hidden;
+    /*
+     * The words sit in a flex row with the lead word, bottom-aligned. Their
+     * line boxes are the same height and set in the same face, so aligning the
+     * bottoms aligns the baselines — which aligning on `baseline` would not:
+     * an overflow-hidden box reports its bottom edge as its baseline, and the
+     * word would ride high by a descender's worth.
+     */
+    vertical-align: bottom;
+  }
+
+  .nl-roll-track {
+    display: flex;
+    flex-direction: column;
+    animation: nl-roll 12s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+  }
+
+  .nl-roll-track > * {
+    height: var(--nl-roll-line);
+    line-height: var(--nl-roll-line);
+  }
+
+  /*
+   * Each word holds for 21% of the cycle and takes 4% to travel. The first
+   * word's hold is split across the two ends — 10.5% before the first move and
+   * 10.5% after the last — so it is on screen exactly as long as the other
+   * three rather than for twice as long.
+   */
+  @keyframes nl-roll {
+    0%,
+    10.5% {
+      transform: translate3d(0, 0, 0);
+    }
+    14.5%,
+    35.5% {
+      transform: translate3d(0, -20%, 0);
+    }
+    39.5%,
+    60.5% {
+      transform: translate3d(0, -40%, 0);
+    }
+    64.5%,
+    85.5% {
+      transform: translate3d(0, -60%, 0);
+    }
+    89.5%,
+    100% {
+      transform: translate3d(0, -80%, 0);
+    }
+  }
+
+  /*
+   * Stopped, not hidden, like the marquees: the first word is a real part of
+   * the headline and has to read when the motion does not run. The other three
+   * are still in the markup for a screen reader and for a crawler — see the
+   * visually-hidden list beside the window in labs/home.tsx.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nl-roll-track {
+      animation: none;
+    }
+  }
+
+  /*
    * The success stories' Before / After tabs — interactive, with no JavaScript.
    *
    * A radio group drives it: one visually-hidden input per panel, labels
