@@ -46,28 +46,29 @@ import { ClosingCta, Faq, Stats, Testimonials } from './sections';
 /**
  * The headline's first line: "More" and then a word that rolls.
  *
- * FOUR OUTCOMES IN ONE LINE'S WORTH OF SPACE. The headline used to state two
- * of them and stop; a local business wants calls, foot traffic, quote requests
- * and signed work, and naming all four as stacked lines would have cost the
- * type the size that makes the hero land.
+ * EVERY OUTCOME A LOCAL BUSINESS BUYS, IN ONE LINE'S WORTH OF SPACE. The
+ * headline used to name two of them and stop. Fourteen now roll through a
+ * single slot at two seconds each, so the hero says calls AND bookings AND
+ * quote requests AND repeat business without spending a line on any of them.
  *
- * ALL FOUR WORDS ARE IN THE MARKUP AT ONCE, which is the whole reason this can
+ * THE WHOLE LIST IS IN THE MARKUP AT ONCE, which is the whole reason this can
  * be a server component: the motion is a CSS translate over a one-line window
  * (`.nl-roll` in app/globals.css), so nothing here needs state, an effect, or
- * a client bundle — and a crawler sees four outcomes rather than one.
+ * a client bundle — and a crawler sees fourteen outcomes rather than one.
  *
  * THE SLOT IS AS WIDE AS THE LONGEST WORD, because the column sizes to its
- * widest child and the window sizes to the column. Nothing moves horizontally
- * as the roll runs: the call pinned to the right of this line would otherwise
- * jump four times a cycle, which is the failure mode of every hand-rolled
- * version of this effect. It does mean a trailing gap after the short words —
- * the alternative is animating width, which reflows the headline 60 times a
- * second and still jumps.
+ * widest child and the window sizes to the column. That is what keeps the
+ * headline from twitching sideways fourteen times a cycle, and it is also what
+ * makes a long entry expensive — see the note on `rolling` in ./content.ts.
+ * The visible cost is a trailing gap after the short ones; nothing sits to the
+ * right of this line, so the gap is empty card rather than a hole in the
+ * layout. The alternative is animating width, which reflows the headline 60
+ * times a second and still twitches.
  *
  * THE WINDOW IS HIDDEN FROM ASSISTIVE TECH and replaced by a plain list of the
- * four words. Left exposed, a screen reader reads the column top to bottom
- * including the duplicate — "More Calls Foot Traffic Quote Requests Contracts
- * Calls" — and the duplicate is a mechanism, not copy.
+ * words. Left exposed, a screen reader reads the column top to bottom
+ * including the duplicate, ending "...Repeat Business Contracts Calls" — and
+ * the duplicate is a mechanism, not copy.
  */
 function RollingOutcome() {
   const words = HERO.rolling;
@@ -92,7 +93,14 @@ function RollingOutcome() {
          * lands on it, and that is the frame the loop restarts from. See the
          * keyframes.
          */}
-        <span className="nl-roll-track">
+        {/*
+         * The count, so the CSS can make the cycle two seconds a word rather
+         * than running the same loop faster every time one is added.
+         */}
+        <span
+          className="nl-roll-track"
+          style={{ ['--nl-roll-words' as string]: words.length }}
+        >
           {[...words, words[0]].map((word, index) => (
             <span key={`${word}-${index}`} className="block whitespace-nowrap">
               {word}
@@ -120,31 +128,32 @@ function Hero() {
            * identical each time, not assumed.
            *
            * Measured in the browser with the real variable font loaded: "MORE"
-           * plus the roll's slot is 13.26em wide, the slot being as wide as
-           * "QUOTE REQUESTS" whichever word is showing. One number for all four
-           * states, because the slot never resizes.
+           * plus the roll's slot is 14.83em wide, the slot being as wide as
+           * "ESTIMATE REQUESTS" whichever word is showing. One number for all
+           * fourteen states, because the slot never resizes.
            *
-           * So the line fits when the card's inner width is at least 13.26 x
+           * So the line fits when the card's inner width is at least 14.83 x
            * the font size, and that inner width is what changes with the
            * viewport: 510px at 1024, 1111px at 1920. The ceilings those imply
-           * are 38px and 83px — a ratio the old `3.3vw` could not express,
-           * since a bare ratio is a line through the ORIGIN and this one is
-           * not. `4.2vw - 6px` is the line through both points, backed off far
-           * enough to keep 4-11% in hand at every width in between (measured at
-           * 15 of them, not interpolated).
+           * are 34px and 75px — a ratio no bare `vw` can express, since a bare
+           * ratio is a line through the ORIGIN and this one is not. `4vw - 9px`
+           * is the line through both points, backed off far enough to keep
+           * 7-10% in hand at every width in between (measured at 16 of them,
+           * not interpolated).
            *
-           * WHICH IS WHY THE HEADLINE GOT BIGGER, from 62px at 1920 to 74.6px,
-           * near the 78px the artwork asked for: the same measurement, against
-           * two lines instead of three and against a line that no longer shares
-           * its row with the call.
+           * THE LONGEST WORD IS WHAT THE HEADLINE COSTS. Three lines of static
+           * copy at 62px became two lines and a roll at 74.6px; adding
+           * "Estimate Requests" to the list took it back to 67.8px, because
+           * 14.83em has to fit where 13.26em did. Shorten that entry and every
+           * word grows again.
            */}
           {/*
            * Fluid below `lg` too, and tighter: at 360 the card's inner width is
-           * 288px and this line wants 277 of them. Below about 340 it stops
-           * fitting at any size worth setting, and wraps rather than shrinking
-           * — see the note on the flex row in RollingOutcome.
+           * 288px and this line wants 267 of them. If a longer entry ever makes
+           * it stop fitting, it wraps rather than shrinking — see the note on
+           * the flex row in RollingOutcome.
            */}
-          <h1 className="nl-heading text-[clamp(20px,5.8vw,34px)] leading-[1.1] lg:text-[clamp(34px,calc(4.2vw_-_6px),76px)]">
+          <h1 className="nl-heading text-[clamp(16px,5vw,34px)] leading-[1.1] lg:text-[clamp(30px,calc(4vw_-_9px),76px)]">
             <RollingOutcome />
 
             {/*

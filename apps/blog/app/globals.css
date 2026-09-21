@@ -1398,10 +1398,17 @@
     vertical-align: bottom;
   }
 
+  /*
+   * TWO SECONDS A WORD, and the cycle is that times however many there are —
+   * the component passes the count in as --nl-roll-words, so adding an outcome
+   * lengthens the loop instead of speeding the others up. 1.6s of that is the
+   * word sitting still and 0.4s is the travel, which the keyframes below set.
+   */
   .nl-roll-track {
     display: flex;
     flex-direction: column;
-    animation: nl-roll 12s cubic-bezier(0.76, 0, 0.24, 1) infinite;
+    animation: nl-roll calc(var(--nl-roll-words, 4) * 2s) cubic-bezier(0.76, 0, 0.24, 1)
+      infinite;
   }
 
   .nl-roll-track > * {
@@ -1410,32 +1417,35 @@
   }
 
   /*
-   * Each word holds for 21% of the cycle and takes 4% to travel. The first
-   * word's hold is split across the two ends — 10.5% before the first move and
-   * 10.5% after the last — so it is on screen exactly as long as the other
-   * three rather than for twice as long.
+   * ONE STOP PER WORD, AND THE NUMBERS ARE ARITHMETIC, not taste. For W words
+   * in a column of W+1 rows: each word owns 100/W% of the cycle and sits still
+   * for all but the last 0.4s of it, then the column moves 100/(W+1)% — one
+   * row — to the next. The final stop is the repeated first word at 100%,
+   * which is the frame 0% already shows, so the loop closes on itself.
+   *
+   * Written out because CSS cannot loop, and one rule per line because fifteen
+   * of them in the expanded style is a screenful of braces. `labs.test.ts`
+   * recomputes every number here from HERO.rolling.length and fails if they
+   * disagree — which is the real guard, since adding a word to the copy and
+   * forgetting this block leaves every word half-shown.
    */
+  /* prettier-ignore */
   @keyframes nl-roll {
-    0%,
-    10.5% {
-      transform: translate3d(0, 0, 0);
-    }
-    14.5%,
-    35.5% {
-      transform: translate3d(0, -20%, 0);
-    }
-    39.5%,
-    60.5% {
-      transform: translate3d(0, -40%, 0);
-    }
-    64.5%,
-    85.5% {
-      transform: translate3d(0, -60%, 0);
-    }
-    89.5%,
-    100% {
-      transform: translate3d(0, -80%, 0);
-    }
+    0%, 5.7143% { transform: translate3d(0, 0, 0); }
+    7.1429%, 12.8571% { transform: translate3d(0, -6.6667%, 0); }
+    14.2857%, 20% { transform: translate3d(0, -13.3333%, 0); }
+    21.4286%, 27.1429% { transform: translate3d(0, -20%, 0); }
+    28.5714%, 34.2857% { transform: translate3d(0, -26.6667%, 0); }
+    35.7143%, 41.4286% { transform: translate3d(0, -33.3333%, 0); }
+    42.8571%, 48.5714% { transform: translate3d(0, -40%, 0); }
+    50%, 55.7143% { transform: translate3d(0, -46.6667%, 0); }
+    57.1429%, 62.8571% { transform: translate3d(0, -53.3333%, 0); }
+    64.2857%, 70% { transform: translate3d(0, -60%, 0); }
+    71.4286%, 77.1429% { transform: translate3d(0, -66.6667%, 0); }
+    78.5714%, 84.2857% { transform: translate3d(0, -73.3333%, 0); }
+    85.7143%, 91.4286% { transform: translate3d(0, -80%, 0); }
+    92.8571%, 98.5714% { transform: translate3d(0, -86.6667%, 0); }
+    100% { transform: translate3d(0, -93.3333%, 0); }
   }
 
   /*
