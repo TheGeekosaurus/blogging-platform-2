@@ -6,7 +6,7 @@ import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core
 
 import { Analytics } from '@/components/analytics';
 import { JsonLd } from '@/components/json-ld';
-import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
+import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
 import { LabsHeader } from '@/components/marketing/labs/site-header';
@@ -154,7 +154,7 @@ function iconsFor(site: { favicon_url: string | null }): Metadata['icons'] {
  * Typed `boolean` rather than inferred: the literal type would narrow the
  * ternary to one branch and the other would read as dead code.
  */
-const FT_LIGHT_TEST: boolean = true;
+const FT_LIGHT_TEST: boolean = false;
 
 const BODY_CLASS: Record<'nntm-capital' | 'nntm-labs' | 'default', string | undefined> = {
   'nntm-capital': 'marketing-root',
@@ -238,7 +238,6 @@ export default async function RootLayout({
           same origin, so its handshake is worth overlapping with HTML parsing
           too. No crossOrigin: unlike the image CDN these are not CORS fetches.
         */}
-        {marketing ? <link rel="preconnect" href={REVIEWS.origin} /> : null}
 
         {/*
           Resolves the reader's blog theme before the first paint, so there is no
