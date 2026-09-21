@@ -52,18 +52,45 @@ import { GOLDEN_SCAFFOLD, projectPath } from './projects-content';
  * The roll is CSS, so the words are all in the markup at once — see
  * `RollingOutcome` in ./home.tsx and `.nl-roll` in app/globals.css.
  *
- * ADDING A WORD IS FREE; A LONG ONE IS NOT. The slot reserves the width of the
- * longest word so the call beside it cannot shift as the roll runs, and the
- * hero's type size is set by what fits beside that. "Quote Requests" is the
- * longest today; anything longer means re-measuring the clamp on the h1.
+ * ADDING A WORD IS FREE; A LONG ONE IS NOT, AND IT COSTS EVERY OTHER WORD.
+ * The slot is as wide as the longest entry whichever word is showing, so the
+ * headline's type size is set by the longest line the roll can make — and that
+ * size applies to the whole headline, all the time. Measured in the browser:
+ * "More Estimate Requests" is 14.83em against "More Calls" at 6.90em, and it
+ * is the 14.83 that holds the h1 to 67.8px at 1920 rather than the 83.7px the
+ * card could otherwise take. Shorten the longest entry and every word gets
+ * bigger; add a longer one and every word shrinks. Re-measure the clamp on the
+ * h1 in ./home.tsx either way.
  */
 export const HERO = {
   lead: 'More',
   /*
-   * Plural throughout, including "Quote Requests" — the line reads "More
-   * <word>", and "More Quote Request" does not.
+   * Plural throughout — the line reads "More <word>", and "More Quote Request"
+   * does not.
+   *
+   * ORDERED SO THE SIMILAR ONES ARE NOT NEIGHBOURS. Three of these end in
+   * "Requests" and four are about a booking; run consecutively they read as a
+   * stutter rather than a list. "Calls" opens because it is the shortest and
+   * the most concrete, and it is also the word the roll rests on wherever the
+   * animation does not run — a reduced-motion setting, or a browser that never
+   * starts it.
    */
-  rolling: ['Calls', 'Foot Traffic', 'Quote Requests', 'Contracts'],
+  rolling: [
+    'Calls',
+    'Leads',
+    'Store Visits',
+    'Bookings',
+    'Quote Requests',
+    'Customers',
+    'Appointments',
+    'Reviews',
+    'Estimate Requests',
+    'Online Orders',
+    'Reservations',
+    'Service Requests',
+    'Repeat Business',
+    'Contracts',
+  ],
   /** Under the roll, and deliberately fixed: the outcome all four lead to. */
   headingLines: ['More Revenue'],
   cta: 'Get Started',

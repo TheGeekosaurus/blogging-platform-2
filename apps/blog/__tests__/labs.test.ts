@@ -446,8 +446,9 @@ describe('the homepage renders', () => {
      * the last word's own `</span>` put back — the split eats it, and without
      * a closing bracket after it the final word does not match.
      */
-    const start = html.indexOf('class="nl-roll-track">');
-    expect(start, 'the roll track is gone').toBeGreaterThan(-1);
+    const opens = html.indexOf('class="nl-roll-track"');
+    expect(opens, 'the roll track is gone').toBeGreaterThan(-1);
+    const start = html.indexOf('>', opens); // past the element's own attributes
     const track = `${html.slice(start).split('</span></span>')[0]}</span>`;
     const words = [...track.matchAll(/>([^<>]+)</g)].map((m) => m[1]);
 
@@ -473,11 +474,16 @@ describe('the homepage renders', () => {
   /*
    * THE KEYFRAMES HARD-CODE THE WORD COUNT, and nothing else does.
    *
-   * Four words plus the repeat is a five-row column, so each step travels
-   * -20%. Add a fifth outcome to ./content.ts and the column becomes six rows
-   * while the animation keeps moving in fifths: every word after the first
-   * lands part-way, showing two half-words for two seconds each. It looks like
-   * a rendering bug and nothing in a build or a typecheck sees it.
+   * CSS cannot loop, so every stop in `@keyframes nl-roll` is written out by
+   * hand against however many words ./content.ts happens to hold. Add one and
+   * the column grows a row while the animation keeps moving in the old
+   * fraction: from the second word on, every one lands part-way and sits there
+   * half-shown for two seconds. It looks like a rendering bug, and a build, a
+   * typecheck and every other test here pass.
+   *
+   * So this recomputes the whole block — positions AND times — from the copy.
+   * The failure it is really guarding is a copy edit, which is the kind of
+   * change nobody opens a browser for.
    */
   it('keeps the roll keyframes in step with the number of words', async () => {
     const { HERO } = await import('../components/marketing/labs/content');
@@ -487,16 +493,44 @@ describe('the homepage renders', () => {
     expect(start, '@keyframes nl-roll is gone').toBeGreaterThan(-1);
     const block = CSS.slice(start, CSS.indexOf('\n  }', CSS.indexOf('{', start)));
 
-    const rows = HERO.rolling.length + 1; // the words, plus the repeated first
-    const step = 100 / rows;
+    const words = HERO.rolling.length;
+    const rows = words + 1; // the words, plus the repeated first
+    const step = 100 / rows; // one word's share of the column's height
+    const slot = 100 / words; // one word's share of the cycle
+    /*
+     * 0.4s of travel, as a percentage of a cycle that runs two seconds a word
+     * — the same two seconds `.nl-roll-track` multiplies by --nl-roll-words.
+     */
+    const travel = (100 * 0.4) / (words * 2);
 
-    for (let k = 0; k < rows; k += 1) {
-      const offset = k === 0 ? '0' : `-${+(k * step).toFixed(4)}%`;
-      expect(block, `step ${k}`).toContain(`translate3d(0, ${offset}, 0)`);
-    }
+    const stops = [...block.matchAll(/([\d.%,\s]+)\{\s*transform:\s*translate3d\(0,\s*(-?[\d.]+)%?,\s*0\)/g)];
+    expect(stops, 'one rule per word, plus the closing frame').toHaveLength(rows);
 
-    // And no sixth position left over from a word that was removed.
-    expect([...block.matchAll(/translate3d\(/g)]).toHaveLength(rows);
+    const near = (actual: number, want: number, what: string) =>
+      expect(Math.abs(actual - want), `${what}: ${actual} vs ${want}`).toBeLessThan(0.01);
+
+    stops.forEach((stop, k) => {
+      const times = (stop[1] as string)
+        .split(',')
+        .map((t) => Number.parseFloat(t))
+        .filter((t) => !Number.isNaN(t));
+
+      near(Number.parseFloat(stop[2] as string), -k * step, `row ${k} offset`);
+
+      if (k === words) {
+        // The closing frame: the repeated first word, arriving exactly at 100%.
+        expect(times).toEqual([100]);
+        return;
+      }
+
+      // Every other word: still from its slot's start until 0.4s before the end.
+      expect(times, `row ${k} needs a rest and a hold`).toHaveLength(2);
+      near(times[0] as number, k * slot, `row ${k} starts`);
+      near(times[1] as number, (k + 1) * slot - travel, `row ${k} holds until`);
+    });
+
+    // And the cycle itself is the count times those two seconds.
+    expect(CSS).toContain('animation: nl-roll calc(var(--nl-roll-words, 4) * 2s)');
   });
 
   /*
