@@ -304,10 +304,90 @@ export const REQUIREMENTS = {
   },
 } as const;
 
+/**
+ * A customer review, as it is displayed.
+ *
+ * `score` is out of five and is rendered as stars, so a four is drawn as four
+ * filled and one empty rather than rounded up — the one four-star review here
+ * says the funding took four days instead of two, and rounding that away is how
+ * a review section stops being believed.
+ */
+export type Review = {
+  name: string;
+  company: string;
+  /** Only some reviewers gave one. Rendered before the company when present. */
+  title?: string;
+  score: 1 | 2 | 3 | 4 | 5;
+  quote: string;
+};
+
 export const TESTIMONIALS = {
   label: 'Testimonials',
   heading: 'What Others Are Saying',
   cta: 'View All Testimonials',
+
+  /*
+   * THESE ARE REAL REVIEWS AND THEY ARE QUOTED EXACTLY.
+   *
+   * Copied out of the SocialJuice wall this section used to embed
+   * (embed.socialjuice.io/wall/9690), which stays the collection point and is
+   * still where the section's link goes — the widget is gone, the account is
+   * not. Every string below is the reviewer's own, typos and all: "reccomend"
+   * and "straight forward" are how they were written. DO NOT TIDY THEM. A
+   * corrected customer review is no longer a customer review, and the small
+   * roughness is most of why a real one reads as real.
+   *
+   * ADDING ONE means copying it from the wall, not writing it. The layout puts
+   * three across and centres a short last row, so any count sits properly.
+   */
+  reviews: [
+    {
+      name: 'Imran A.',
+      company: 'Apex Logistics Group',
+      score: 5,
+      quote:
+        'Our experience was positive. We appreciated the transparency on costs and the ' +
+        'no-collateral requirement. Overall, they delivered on what they promised. Got ' +
+        '$75k in less than a week.',
+    },
+    {
+      name: 'Shelly R.',
+      company: 'Midtown Craft Coffee',
+      score: 4,
+      quote:
+        'Application process was easy and the rep (I think her name was Morgan?) was super ' +
+        'helpful. Took a bit longer than I expected to finalize (4 days instead of 2), but ' +
+        'in the end it worked out. Might try again if terms improve.',
+    },
+    {
+      name: 'Jared P.',
+      company: 'JP Woodworks',
+      score: 5,
+      quote:
+        'Fast, no BS. Got funded in like 36 hrs. Helped me cover payroll during a slow ' +
+        'week. Would reccomend.',
+    },
+    {
+      name: 'Carlos D.',
+      company: 'Fenix Automotive Services',
+      title: 'Co-founder',
+      score: 5,
+      quote:
+        'At first I was a bit skeptical\u2014too many funding companies out there making big ' +
+        'promises. But these guys actually delivered. The rate was a little higher than I ' +
+        'hoped but no hidden fees and very straight forward process.',
+    },
+    {
+      name: 'Tina M.',
+      company: 'Bayleaf Boutique',
+      title: 'Owner',
+      score: 5,
+      quote:
+        'Honestly, didn\u2019t know what to expect but this company came thru in a big way. We ' +
+        'were short on cashflow before a big inventory push and they got us approved fast. ' +
+        'Funds hit the next morning. Super grateful and def using them again.',
+    },
+  ] satisfies readonly Review[],
 } as const;
 
 export const BLOG_SECTION = {

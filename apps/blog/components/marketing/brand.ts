@@ -215,26 +215,19 @@ export const CTA_HREF = '/get-funded';
  * placeholder state that reads as a bug rather than as missing config.
  */
 /**
- * The SocialJuice review wall, embedded on the homepage.
+ * SocialJuice, which still collects the reviews but no longer displays them.
  *
- * Identifiers live here rather than inline in the component, for the same reason
- * SURVEY does: they are account-specific values that two pages now share, and a
- * wall id buried in JSX is one nobody finds when it changes.
+ * The homepage used to embed this account's wall in an iframe. It renders our
+ * own markup over our own copy now — see TESTIMONIALS in ft/content.ts, where
+ * the reviews are quoted exactly — so all that survives here is the address of
+ * the public wall, which "View All Testimonials" links to and which is where a
+ * customer leaves a new one.
  *
- * Public by nature — the wall is a public page and these strings are in the HTML
- * of the live site — so committed rather than made configuration.
+ * The embed url, the resizer script, its origin and the reserved height went
+ * with the component. They are in git history if the widget ever comes back.
  */
 export const REVIEWS = {
-  wallUrl: 'https://embed.socialjuice.io/wall/9690?s=nntm-capital',
-  resizerSrc: 'https://embed.socialjuice.io/js/iframeResizer.min.js',
-  /** Preconnected in the root layout, like IMAGE_ORIGIN above. */
-  origin: 'https://embed.socialjuice.io',
-  /**
-   * Reserved until the resizer reports the wall's real height, so the sections
-   * below it do not jump. iframeResizer overwrites it via inline style.
-   */
-  initialHeight: 575,
-  /** Where "View All Testimonials" goes — the public wall, not the embed. */
+  /** Where "View All Testimonials" goes — the public wall, not an embed. */
   collectUrl: 'https://collect.socialjuice.io/p/nntm-capital/wall',
 } as const;
 
