@@ -74,7 +74,7 @@ export function LoanCalculator() {
       {/* The three published minimums, in the same words as the homepage. */}
       <section
         aria-labelledby="ft-calc-requirements"
-        className="border-y border-[var(--ft-line)] bg-[var(--ft-band)]"
+        className="ft-band border-y border-[var(--ft-line)] bg-[var(--ft-band)]"
       >
         <div className={`${CONTAINER} py-16 lg:py-20`}>
           <h2

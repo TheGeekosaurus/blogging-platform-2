@@ -282,12 +282,28 @@ describe('the page ground is one colour', () => {
   const read = (...parts: string[]) =>
     readFileSync(join(__dirname, '..', ...parts), 'utf8');
 
-  it('declares the ground once', () => {
+  it('declares the ground once, and re-points it only for the light theme', () => {
     const css = read('app', 'globals.css');
-    const declarations = css.match(/--color-ground:\s*#[0-9a-fA-F]{6}/g) ?? [];
 
-    expect(declarations).toHaveLength(1);
-    expect(declarations[0]).toContain('#141414');
+    /*
+     * The selector sits on the line carrying that rule's opening brace — every
+     * rule in this file is written that way, so reading it back is enough to
+     * tell a theme override apart from the drift this test exists to catch.
+     */
+    const declarations = [...css.matchAll(/--color-ground:\s*(#[0-9a-fA-F]{6})/g)].map((match) => {
+      const open = css.lastIndexOf('{', match.index);
+      return { selector: css.slice(0, open).split('\n').pop()!.trim(), hex: match[1] };
+    });
+
+    /*
+     * `.ft-light` is the light palette at the bottom of the file, which moves
+     * the ground for the whole document on purpose. Every OTHER declaration is
+     * still held to one: a second value anywhere else is the header and footer
+     * drifting apart again, which is what this test was written for.
+     */
+    const base = declarations.filter((one) => one.selector !== '.ft-light');
+
+    expect(base.map((one) => one.hex)).toEqual(['#141414']);
   });
 
   it.each([

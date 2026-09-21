@@ -107,7 +107,7 @@ function RayBurst({ className }: { className?: string }) {
 export function ImageSlot({ className }: { className?: string }) {
   return (
     <div
-      className={`relative isolate flex items-center justify-center overflow-hidden rounded-xl border border-[var(--ft-line)] bg-[linear-gradient(135deg,#1f1f22,#141414_60%)] ${className ?? ''}`}
+      className={`ft-image-slot relative isolate flex items-center justify-center overflow-hidden rounded-xl border border-[var(--ft-line)] bg-[linear-gradient(135deg,#1f1f22,#141414_60%)] ${className ?? ''}`}
     >
       <RayBurst className="absolute inset-0 h-full w-full opacity-[0.18]" />
       <GrowthIcon className="relative h-16 w-16 text-[var(--ft-accent)] opacity-30" />

@@ -96,7 +96,7 @@ export function SectionHead({
   id?: string;
 }) {
   return (
-    <div className="border-y border-[var(--ft-line)] bg-[var(--ft-band)]">
+    <div className="ft-band border-y border-[var(--ft-line)] bg-[var(--ft-band)]">
       <div
         className={`${CONTAINER} flex flex-col gap-8 py-10 md:flex-row md:items-center md:justify-between md:gap-16 lg:py-14`}
       >

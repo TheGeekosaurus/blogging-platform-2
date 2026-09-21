@@ -79,7 +79,7 @@ function Prose({
   return (
     <section
       aria-labelledby={id}
-      className={`border-b border-[var(--ft-line)] ${raised ? 'bg-[var(--ft-band)]' : ''}`}
+      className={`border-b border-[var(--ft-line)] ${raised ? 'ft-band bg-[var(--ft-band)]' : ''}`}
     >
       <div className={`${CONTAINER} py-14 lg:py-20`}>
         <h2

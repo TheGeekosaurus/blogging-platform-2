@@ -137,6 +137,25 @@ function iconsFor(site: { favicon_url: string | null }): Metadata['icons'] {
  * Capital out of the reader's dark-mode preference; `nl-surface` carries NNTM
  * Labs' whole dark palette — see globals.css for both.
  */
+/**
+ * THE LIGHT PALETTE — a test, and the only switch that turns it on.
+ *
+ * `true` paints Capital in the light theme at the bottom of globals.css: the
+ * near-black sections become #2D3748 and the grey banner bands become white,
+ * with the gold left alone so every CTA keeps the brand colour. `false` and
+ * nothing below matches, so the dark site renders exactly as before.
+ *
+ * It goes on <html> rather than on <body> with the rest of the surface classes,
+ * because it re-points --color-ground and testimonial-wall.tsx reads that token
+ * off document.documentElement to colour the review iframe. On <body> the token
+ * would still cascade to every element that paints with it, and that one script
+ * would read the old near-black and paint the wall a colour nothing else uses.
+ *
+ * Typed `boolean` rather than inferred: the literal type would narrow the
+ * ternary to one branch and the other would read as dead code.
+ */
+const FT_LIGHT_TEST: boolean = true;
+
 const BODY_CLASS: Record<'nntm-capital' | 'nntm-labs' | 'default', string | undefined> = {
   'nntm-capital': 'marketing-root',
   'nntm-labs': 'nl-surface',
@@ -198,7 +217,7 @@ export default async function RootLayout({
     : `${lato.variable} ${poppins.variable}`;
 
   return (
-    <html lang={site.locale} className={fonts}>
+    <html lang={site.locale} className={`${fonts}${marketing && FT_LIGHT_TEST ? ' ft-light' : ''}`}>
       <head>
         {/*
           Marketing images are hotlinked from HighLevel's CDN by decision, so the
