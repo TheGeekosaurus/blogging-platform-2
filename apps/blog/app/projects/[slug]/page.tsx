@@ -21,10 +21,11 @@ import { isNntmLabs } from '@/lib/marketing';
  * publishing appeared to work. An unknown slug here still 404s, via the
  * `notFound()` below; it is simply decided per request rather than at build.
  *
- * NOTE THERE IS NO /projects INDEX yet. The nav's "Projects" item is therefore
- * still unlinked, which is deliberate: a link to a page that does not exist is
- * the failure `labs.test.ts` guards against. Build the index and give the nav
- * item its href in the same change.
+ * NOTE THERE IS NO /projects INDEX yet. These pages are reached from the
+ * homepage's service galleries; the nav's "Projects" item is still unlinked,
+ * which is deliberate: a link to a page that does not exist is the failure
+ * `labs.test.ts` guards against. Build the index and give the nav item its
+ * href in the same change.
  *
  * Gated on SITE_SLUG like the other coded routes: `apps/blog` is deployed once
  * per blog from one codebase, so an ungated static route would serve these

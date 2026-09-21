@@ -15,8 +15,10 @@
  * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. Three blocks below name
  * people and companies who are not Nanotom Labs' customers:
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
- *   - SUCCESS_STORIES: two client engagements with described outcomes
- *   - SERVICES[].projects: eight screenshots presented as this agency's work
+ *   - SUCCESS_STORIES: the second story is still a template engagement; the
+ *     first names a real client and says nothing about the work yet
+ *   - SERVICES[].projects: the five remaining template screenshots, presented
+ *     as this agency's work
  * (STATS is no longer among them — those figures are the business's own now.)
  * Published as-is on a real domain these read as endorsements, case studies and
  * a portfolio that did not happen. Replace or remove them before the site goes
@@ -24,6 +26,15 @@
  *
  * The layouts read every string from here, so re-copywriting never means
  * touching markup.
+ */
+
+import { GOLDEN_SCAFFOLD, projectPath } from './projects-content';
+
+/*
+ * That import goes one way only. ./projects-content.ts imports `Work` back out
+ * of this file, but as `import type`, which the compiler erases — so there is
+ * no cycle at runtime. Keep it that way: if that file ever needs a VALUE from
+ * here, move the shared piece into a third module rather than closing the loop.
  */
 
 /**
@@ -92,7 +103,17 @@ export type Service = {
   title: string;
   body: string;
   /** Two per service; paths under /public/nntm-labs. */
-  projects: readonly { src: string; alt: string }[];
+  projects: readonly {
+    src: string;
+    alt: string;
+    /**
+     * Where the tile's "Open Project" goes. Optional, and absent on every
+     * tile that has no case study behind it — those render the control
+     * unlinked rather than as an <a> to nowhere (see ArrowLink in
+     * ./primitives.tsx).
+     */
+    href?: string;
+  }[];
 };
 
 /**
@@ -122,10 +143,16 @@ export function projectsTitle(service: Service): string {
  * services (Web Design / Mobile App Development / Web Development / Digital
  * Marketing) and the four invented prices that sat under them.
  *
- * THE GALLERY IMAGES ARE STILL THE TEMPLATE'S — stock screens, not Nanotom
- * Labs' work, shown under each service's own name. Replace them before this
- * serves real traffic; a portfolio of work you did not do is the same problem
- * as a testimonial from someone who is not a customer.
+ * THE FIRST TILE OF THE FIRST THREE GALLERIES IS REAL — the Golden Scaffold
+ * site, and the only image here that shows work this agency did. It is the same
+ * picture in all three because it is the same engagement: that client bought
+ * the website, the local search and the ads. It is also the only tile with a
+ * destination, the case study at ./projects-content.ts.
+ *
+ * THE OTHER FIVE ARE STILL THE TEMPLATE'S — stock screens, not Nanotom Labs'
+ * work, shown under each service's own name. Replace them before this serves
+ * real traffic; a portfolio of work you did not do is the same problem as a
+ * testimonial from someone who is not a customer.
  */
 export const SERVICES: readonly Service[] = [
   {
@@ -136,7 +163,11 @@ export const SERVICES: readonly Service[] = [
       'optimization, and everything in between — so you look credible and customers feel ' +
       'confident calling you.',
     projects: [
-      { src: '/nntm-labs/project-web-design-1.webp', alt: 'A fitness brand web design' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-web-design-2.webp', alt: 'A property listing web design' },
     ],
   },
@@ -147,7 +178,11 @@ export const SERVICES: readonly Service[] = [
       'We get you ranking on Google Maps and organic search for the keywords your customers ' +
       'are already typing. More visibility means more traffic without paying for every click.',
     projects: [
-      { src: '/nntm-labs/project-mobile-app-1.webp', alt: 'A mobile app interface' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-mobile-app-2.webp', alt: 'A mobile commerce interface' },
     ],
   },
@@ -158,7 +193,11 @@ export const SERVICES: readonly Service[] = [
       'Reach customers who are actively searching for exactly what you offer. We manage your ' +
       'campaigns, optimize your budget, and focus on leads — not just clicks.',
     projects: [
-      { src: '/nntm-labs/project-web-development-1.webp', alt: 'A dashboard web application' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-web-development-2.webp', alt: 'A data-heavy web application' },
     ],
   },
@@ -216,7 +255,7 @@ export type StoryPanel = { heading: string; body: string };
 
 export type SuccessStory = {
   /** Key into the icon map in ./icons.tsx. */
-  icon: 'klothink' | 'fitness';
+  icon: 'scaffold' | 'fitness';
   client: string;
   industry: string;
   service: string;
@@ -225,17 +264,31 @@ export type SuccessStory = {
 };
 
 export const SUCCESS_STORIES: readonly SuccessStory[] = [
+  /*
+   * A REAL CLIENT, WITH NOTHING SAID ABOUT THE WORK YET.
+   *
+   * This slot held Klothink, the template's invented e-commerce engagement. The
+   * client is now Golden Scaffold, which is a real company — so the template's
+   * "after" prose could not come with it. That copy described a checkout
+   * redesign for a clothing shop; attached to a named scaffolding contractor it
+   * would not be placeholder text, it would be a false account of an engagement
+   * that has a real other party to contradict it.
+   *
+   * So both panels are visibly unwritten, and the ⚠️ warning at the top of
+   * ./projects-content.ts applies here word for word. Fill them with the real
+   * before-and-after — the figures the business can evidence — or drop the
+   * story until they exist.
+   */
   {
-    icon: 'klothink',
-    client: 'Klothink',
-    industry: 'E-commerce',
-    service: 'Design & Development',
+    icon: 'scaffold',
+    client: 'Golden Scaffold',
+    industry: 'Scaffolding',
+    /*
+     * All three services, which is why the same project heads the Website
+     * Design, Local SEO/GEO and Google Ads galleries above.
+     */
+    service: 'Website, Local SEO, Google Ads',
     panels: {
-      /*
-       * PLACEHOLDER, and written to look like one. The template has no
-       * "before" copy at all, and inventing a starting position for a named
-       * client would be fabricating a case study. Stats replace this.
-       */
       before: {
         heading: 'Before',
         body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
@@ -243,10 +296,8 @@ export const SUCCESS_STORIES: readonly SuccessStory[] = [
       after: {
         heading: 'After',
         body:
-          'Our team conducted a thorough analysis of their target audience and business ' +
-          'objectives. We designed a modern and intuitive website with seamless navigation ' +
-          'and a mobile-responsive layout. Additionally, we integrated an efficient checkout ' +
-          'process and optimized the site for search engines.',
+          'What the website, the local search work and the ad campaigns changed goes here, ' +
+          'once the results are written up.',
       },
     },
   },

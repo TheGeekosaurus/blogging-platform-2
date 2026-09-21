@@ -426,6 +426,101 @@ describe('the homepage renders', () => {
     }
   });
 
+  /*
+   * A gallery tile that opens a case study has to SHOW that case study.
+   *
+   * The tile is a picture with an "Open Project" control over it, so the
+   * picture is the promise: click a shot of the Golden Scaffold site and you
+   * expect the Golden Scaffold page. That pairing lives in two files — the tile
+   * in labs/content.ts, the page's own art in labs/projects-content.ts — and
+   * nothing but this test notices when they drift. It nearly shipped drifted:
+   * the case study's hero was still the template's A-AURA artwork when the
+   * first tile started pointing at it.
+   */
+  it('shows a project its own artwork on the tile that opens it', async () => {
+    const { SERVICES } = await import('../components/marketing/labs/content');
+    const { projectBySlug } = await import('../components/marketing/labs/projects-content');
+
+    const linked = SERVICES.flatMap((service) => service.projects).filter(
+      (project) => project.href,
+    );
+    expect(linked.length).toBeGreaterThan(0);
+
+    for (const tile of linked) {
+      const href = tile.href as string;
+      const study = projectBySlug(href.replace(/^\/projects\//, ''));
+
+      // The destination is a real page, not a slug that was renamed elsewhere.
+      expect(study, href).toBeTruthy();
+      expect(tile.src, href).toBe(study?.hero.image.src);
+      expect(tile.alt, href).toBe(study?.hero.image.alt);
+    }
+  });
+
+  /*
+   * The other tiles stay text. Six of the eight are still the template's stock
+   * screens with nothing behind them, and an "Open Project" that looks operable
+   * and goes nowhere is worse than a label — see the note on ArrowLink.
+   */
+  it('renders one anchor per linked tile and leaves the rest as text', async () => {
+    const html = await render();
+    const { SERVICES, LINKS } = await import('../components/marketing/labs/content');
+
+    const tiles = SERVICES.flatMap((service) => service.projects);
+    const labels = [...html.matchAll(new RegExp(`>${LINKS.openProject}<`, 'g'))];
+    expect(labels).toHaveLength(tiles.length);
+
+    for (const href of new Set(tiles.map((tile) => tile.href).filter(Boolean))) {
+      const anchors = [...html.matchAll(new RegExp(`<a[^>]*href="${href}"`, 'g'))];
+      expect(
+        anchors.length,
+        href as string,
+      ).toBe(tiles.filter((tile) => tile.href === href).length);
+    }
+  });
+
+  /*
+   * White type over artwork nobody here controls needs a scrim under it.
+   *
+   * Measured rather than guessed, in a browser with the real font: over the
+   * Golden Scaffold collage the "Open Project" label came out at 2.07:1 — a
+   * white label on a white screenshot — and the gradient takes it to between
+   * 6:1 and 10.5:1 across 1280-1920, where the crop moves and the artwork under
+   * the label changes with it. AA wants 4.5:1.
+   *
+   * A source assertion, because the number cannot be computed here: it depends
+   * on the pixels of an image and on how `object-cover` crops it at each
+   * viewport. So this pins the scrim's presence, and the note above records the
+   * measurement it came from.
+   */
+  it('keeps a scrim under the label on every gallery tile', () => {
+    const source = read('home.tsx');
+    const scrim = /bg-gradient-to-t from-black\/(\d+)/.exec(source);
+
+    expect(scrim, 'the tile overlay lost its gradient').toBeTruthy();
+    expect(Number(scrim?.[1])).toBeGreaterThanOrEqual(85);
+    // Decorative and non-blocking: it must never eat the click on the link.
+    expect(source).toMatch(/pointer-events-none[^"]*bg-gradient-to-t/);
+  });
+
+  /*
+   * The story and the galleries are about the same engagement, so they name the
+   * same client. Stored twice — a success story is not a project entry — and
+   * the two would otherwise part company the first time one is renamed.
+   */
+  it('heads the success stories with the client the galleries link to', async () => {
+    const { SUCCESS_STORIES } = await import('../components/marketing/labs/content');
+    const { GOLDEN_SCAFFOLD } = await import('../components/marketing/labs/projects-content');
+
+    const story = SUCCESS_STORIES[0];
+    expect(story?.client).toBe(GOLDEN_SCAFFOLD.showcase.title);
+
+    const html = decoded(await render());
+    expect(html).toContain(story?.client);
+    expect(html).toContain(story?.industry);
+    expect(html).toContain(story?.service);
+  });
+
   it('renders unbuilt nav destinations as text, not anchors', async () => {
     const html = await render();
     const { NAV } = await import('../components/marketing/labs/brand');

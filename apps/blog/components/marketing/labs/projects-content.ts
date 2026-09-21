@@ -15,11 +15,17 @@ import type { Work } from './content';
  * the most general terms available, the feature cards describe how Nanotom
  * Labs works rather than what this project achieved, and there are no metrics
  * at all — no percentage lifts, no call counts, no revenue. Fill every field
- * marked below with what actually happened before this page is linked to or
- * submitted anywhere.
+ * marked below with what actually happened.
  *
- * The showcase panel's `technologies`, `team` and `image` are the Figma
- * template's, reused so the layout renders. They describe nothing real.
+ * THIS PAGE IS NOW REACHABLE. The homepage's project galleries link to it, by
+ * decision — so the placeholder copy is in front of visitors rather than
+ * waiting behind an unlinked URL. It stays `noindex` (see the metadata in
+ * app/projects/[slug]/page.tsx) and out of the sitemap until the case study is
+ * written, and that is the only thing still holding it back from search.
+ *
+ * The hero image is the real one. The showcase panel's `technologies`, `team`
+ * and `image` are still the Figma template's, reused so the layout renders.
+ * They describe nothing real.
  *
  * WHY A REGISTRY rather than a file per project: the page is one layout with
  * different content, so a second project should be a row here and nothing
@@ -127,13 +133,18 @@ export const GOLDEN_SCAFFOLD: Project = {
       'A scaffolding contractor serving the Los Angeles area. This page will carry the ' +
       'brief, the work and the outcome once they are written up.',
     /*
-     * ⚠️ PLACEHOLDER image, borrowed from the Figma template. It shows a
-     * different product entirely and has to be replaced with the real site or
-     * listing before this page is shown to anyone.
+     * REAL, unlike almost everything else in this entry: a collage of pages
+     * from the site that was built. It is also the tile that heads three of
+     * the homepage galleries — one file, referenced from ../content.ts.
+     *
+     * Replaced the template's a-aura artwork, which showed a different
+     * product entirely. That mattered more here than elsewhere: the homepage
+     * tiles now link to this page, so a visitor who clicks a picture of the
+     * Golden Scaffold site would have landed on somebody else's.
      */
     image: {
-      src: '/nntm-labs/work-a-aura.webp',
-      alt: 'Placeholder artwork standing in for the Golden Scaffold project',
+      src: '/nntm-labs/project-golden-scaffold.webp',
+      alt: 'Pages from the Golden Scaffold website, a Los Angeles scaffolding contractor',
     },
     tag: 'Local SEO/GEO',
   },
