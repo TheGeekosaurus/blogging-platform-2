@@ -427,6 +427,79 @@ describe('the homepage renders', () => {
   });
 
   /*
+   * The headline's rolling word, and the three things about it that break
+   * quietly.
+   *
+   * It looks like an animation, so it reads like something only a human with
+   * the page open can check. Two thirds of it are not: what is in the markup,
+   * and what a screen reader is handed, are both static facts.
+   */
+  it('puts every outcome in the markup, with the first one twice', async () => {
+    const html = decoded(await render());
+    const { HERO } = await import('../components/marketing/labs/content');
+
+    expect(html).toContain(HERO.lead);
+    for (const word of HERO.rolling) expect(html, word).toContain(word);
+
+    /*
+     * Everything between the track opening and the close that ends it, with
+     * the last word's own `</span>` put back — the split eats it, and without
+     * a closing bracket after it the final word does not match.
+     */
+    const start = html.indexOf('class="nl-roll-track">');
+    expect(start, 'the roll track is gone').toBeGreaterThan(-1);
+    const track = `${html.slice(start).split('</span></span>')[0]}</span>`;
+    const words = [...track.matchAll(/>([^<>]+)</g)].map((m) => m[1]);
+
+    /*
+     * The column carries the first word again at the end. The animation's last
+     * step lands on that copy, which is the frame it restarts from — drop it
+     * and the roll either snaps backwards through the whole list or ends on
+     * blank space. See the keyframes in globals.css.
+     */
+    expect(words).toEqual([...HERO.rolling, HERO.rolling[0]]);
+  });
+
+  it('hides the moving column from a screen reader and states the words plainly', async () => {
+    const html = decoded(await render());
+    const { HERO } = await import('../components/marketing/labs/content');
+
+    // The window is the mechanism: read aloud it says the first word twice.
+    expect(html).toMatch(/class="nl-roll[^"]*"\s+aria-hidden="true"/);
+    // What replaces it is the same four outcomes as one plain phrase.
+    expect(html).toContain(`>${HERO.rolling.join(', ')}<`);
+  });
+
+  /*
+   * THE KEYFRAMES HARD-CODE THE WORD COUNT, and nothing else does.
+   *
+   * Four words plus the repeat is a five-row column, so each step travels
+   * -20%. Add a fifth outcome to ./content.ts and the column becomes six rows
+   * while the animation keeps moving in fifths: every word after the first
+   * lands part-way, showing two half-words for two seconds each. It looks like
+   * a rendering bug and nothing in a build or a typecheck sees it.
+   */
+  it('keeps the roll keyframes in step with the number of words', async () => {
+    const { HERO } = await import('../components/marketing/labs/content');
+    const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+    const start = CSS.indexOf('@keyframes nl-roll');
+    expect(start, '@keyframes nl-roll is gone').toBeGreaterThan(-1);
+    const block = CSS.slice(start, CSS.indexOf('\n  }', CSS.indexOf('{', start)));
+
+    const rows = HERO.rolling.length + 1; // the words, plus the repeated first
+    const step = 100 / rows;
+
+    for (let k = 0; k < rows; k += 1) {
+      const offset = k === 0 ? '0' : `-${+(k * step).toFixed(4)}%`;
+      expect(block, `step ${k}`).toContain(`translate3d(0, ${offset}, 0)`);
+    }
+
+    // And no sixth position left over from a word that was removed.
+    expect([...block.matchAll(/translate3d\(/g)]).toHaveLength(rows);
+  });
+
+  /*
    * A gallery tile that opens a case study has to SHOW that case study.
    *
    * The tile is a picture with an "Open Project" control over it, so the
