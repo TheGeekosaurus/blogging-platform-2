@@ -22,6 +22,11 @@ project per blog** plus a single shared admin deployment.
 Feature-complete for a single-author blog. Write and publish from the browser;
 the live site updates within seconds with no redeploy.
 
+The admin also carries the SEO planning screens — **Keywords**, the research
+grouped topic → page → keyword, and **Roadmap**, the same tree filtered to pages
+that have been briefed. Both are read-only; the rows are written by whatever
+does the research.
+
 Not built, because they were not needed: scheduled publishing, and any UI for
 inviting additional writers. Roles (`owner`/`admin`/`editor`/`author`) and the
 `scheduled` post status already exist in the schema, so either can be added later
@@ -68,6 +73,7 @@ supabase/migrations/0009_drop_media_caption.sql drop an unused column
 supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
 supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
+supabase/migrations/0013_seo.sql                keyword research and the roadmap
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email

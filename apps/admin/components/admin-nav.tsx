@@ -107,6 +107,27 @@ const SECTIONS: NavSection[] = [
       </Icon>
     ),
   },
+  /*
+   * One SEO section with two children, sitting above Media because it is
+   * upstream of everything below it: the research decides what gets written,
+   * and the roadmap says where each page has got to. Keywords first — a page
+   * exists there before it reaches the roadmap, and the rail reads in that
+   * order.
+   */
+  {
+    href: '/keywords',
+    label: 'SEO',
+    icon: (
+      <Icon>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-3.5-3.5" />
+      </Icon>
+    ),
+    children: [
+      { href: '/keywords', label: 'Keywords' },
+      { href: '/roadmap', label: 'Roadmap' },
+    ],
+  },
   {
     href: '/media',
     label: 'Media',
