@@ -83,7 +83,7 @@ describe('a full-bleed page is genuinely full-bleed', () => {
 });
 
 /*
- * The contents rail is bounded and scrolls inside itself.
+ * The sidebar panel is bounded and scrolls inside itself.
  *
  * This regresses silently: the layout looks right at every width until a post
  * is long enough, which no screenshot of a short fixture reveals. The first
@@ -92,40 +92,57 @@ describe('a full-bleed page is genuinely full-bleed', () => {
  * bottom of the viewport, because the fixture had 16 entries and never
  * overflowed. These assert the structure that makes it work; the behaviour is
  * checked in a browser against a 31-heading fixture.
+ *
+ * The panel has raised the stakes since: the contents list is now one of four
+ * rows and the only one that flexes, so a bound that fails does not merely
+ * overflow — it pushes the call to action off the bottom of the screen.
  */
-describe('the contents rail is bounded and scrolls inside itself', () => {
+describe('the sidebar panel is bounded and scrolls inside itself', () => {
   const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
-  const toc = rf(
-    join(__dirname, '..', 'components', 'blog', 'table-of-contents.tsx'),
-    'utf8',
-  );
+  const component = (name: string) =>
+    rf(join(__dirname, '..', 'components', 'blog', name), 'utf8');
+
+  const aside = component('post-aside.tsx');
+  const toc = component('table-of-contents.tsx');
   const page = read('blog', '[slug]', 'page.tsx');
 
-  it('bounds the sticky aside rather than the scrolling child', () => {
+  it('bounds the sticky panel rather than the scrolling child', () => {
     // `overflow` on an ancestor breaks `position: sticky` for its descendants,
-    // so one element cannot be both. The aside sticks; the list scrolls.
-    expect(page).toContain('lg:sticky');
-    expect(page).toContain('lg:max-h-[calc(100vh-11rem)]');
+    // so one element cannot be both. The panel sticks; the list scrolls.
+    expect(aside).toContain('lg:sticky');
+    expect(aside).toContain('lg:h-[calc(100vh-11rem)]');
   });
 
-  it('sizes that height for the rail before it sticks, not after', () => {
+  it('sizes that height for the panel before it sticks, not after', () => {
     // 8rem was computed for the stuck position (96px from the top) while the
-    // rail actually starts ~137px down at 1280 and ~153px at 1024 — so the box
+    // panel actually starts ~137px down at 1280 and ~153px at 1024 — so the box
     // ran past the viewport bottom until you scrolled.
-    expect(page).not.toContain('max-h-[calc(100vh-8rem)]');
-    expect(page).not.toContain('max-h-[calc(100vh-9rem)]');
+    expect(aside).not.toContain('h-[calc(100vh-8rem)]');
+    expect(aside).not.toContain('h-[calc(100vh-9rem)]');
+  });
+
+  it('keeps the panel inside its column on a short post', () => {
+    // A definite height is what lets the list flex and the offer's cap
+    // resolve. On a post with three headings it would otherwise hang past the
+    // bottom of the section it belongs to.
+    expect(aside).toContain('lg:max-h-full');
   });
 
   it('lets the list shrink below its content height', () => {
     // Without `min-h-0` a flex child refuses to, and the bound silently fails.
-    expect(page).toContain('min-h-0');
+    expect(aside).toContain('min-h-0 flex-1');
     expect(toc).toContain('min-h-0 flex-1 overflow-y-auto');
   });
 
-  it('keeps the heading outside the scroll container', () => {
-    // It used to be inside, so scrolling the list scrolled its own label away
-    // and left an unlabelled column of links.
-    expect(toc).toContain('shrink-0 text-sm font-semibold uppercase');
+  it('makes the contents list the only row that can give up height', () => {
+    /*
+     * The other three are fixed. If the offer or the call to action could
+     * shrink instead, a long post would take the height out of the button
+     * rather than out of the list — which is the arrangement this panel
+     * replaced.
+     */
+    expect(component('lead-magnet-block.tsx')).toContain('shrink-0');
+    expect(aside).toMatch(/mt-auto flex shrink-0 flex-col/);
   });
 
   it('fades whichever edge has more content beyond it', () => {
@@ -141,21 +158,38 @@ describe('the contents rail is bounded and scrolls inside itself', () => {
 
 /*
  * Both contents variants render on every post, hidden at each other's
- * breakpoints. `display: none` keeps only one in the accessibility tree, but
- * that only holds if each carries its own id — two elements sharing one makes
- * every `aria-labelledby` pointing at it ambiguous.
+ * breakpoints. `display: none` keeps only one in the accessibility tree.
+ *
+ * They name themselves differently now, and that is the thing to hold on to:
+ * the panel variant has no heading of its own — the panel's header row is its
+ * label — so it points at an id the panel owns, while the disclosure names
+ * itself from its summary. A `panel` rendered without that id is a nav with no
+ * accessible name, which is why the prop is required by the type rather than
+ * merely documented.
  */
 describe('the two contents variants stay distinguishable', () => {
+  const { readFileSync: rf } = require('node:fs') as typeof import('node:fs');
+  const aside = rf(
+    join(__dirname, '..', 'components', 'blog', 'post-aside.tsx'),
+    'utf8',
+  );
   const page = read('blog', '[slug]', 'page.tsx');
 
-  it('gives each variant a distinct id', () => {
-    const ids = [...page.matchAll(/id="(toc-[a-z]+)"/g)].map((m) => m[1]);
-    expect(ids).toHaveLength(2);
-    expect(new Set(ids).size).toBe(2);
+  it('labels the panel list from the panel header, exactly once', () => {
+    const ids = [...aside.matchAll(/LABEL_ID/g)];
+    // The declaration, the heading's id, and the list's labelledBy.
+    expect(ids).toHaveLength(3);
+    expect(aside).toContain('labelledBy={LABEL_ID}');
+    expect(aside).toContain('id={LABEL_ID}');
+  });
+
+  it('leaves the disclosure to name itself', () => {
+    expect(page).toContain('variant="disclosure"');
+    expect(page).not.toContain('labelledBy');
   });
 
   it('shows exactly one of them at any width', () => {
-    expect(page).toContain('hidden min-h-0 flex-1 lg:flex');
+    expect(aside).toContain('hidden min-h-0 flex-1 px-4 py-4 lg:flex');
     expect(page).toContain('lg:hidden');
   });
 });

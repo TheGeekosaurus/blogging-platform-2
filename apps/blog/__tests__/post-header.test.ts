@@ -232,8 +232,24 @@ describe('the Figma dividers', () => {
     expect(css).not.toMatch(/\.post-body h2:nth-of-type/);
   });
 
-  it('puts the vertical rule on the sidebar', () => {
-    expect(page).toContain('lg:border-l');
+  it('draws no vertical rule, now that the sidebar is a bordered panel', () => {
+    /*
+     * The frame used to close on the left with a full-height column rule. The
+     * sidebar carries its own outline since it became one panel, and a panel
+     * border a gutter away from a divider reads as a mistake rather than as a
+     * frame — so the rule went and the bottom stroke closes it instead.
+     *
+     * Asserted as an absence because the failure mode is re-introduction:
+     * "put the divider back" is a one-word change, and the doubled line it
+     * produces is the kind of thing only a screenshot catches.
+     */
+    expect(page).not.toContain('lg:border-l');
+    expect(page).not.toContain('lg:border-r');
+
+    // The panel's own outline, which is what replaced it.
+    expect(read('components', 'blog', 'post-aside.tsx')).toContain(
+      'border border-[var(--color-line)]',
+    );
   });
 
   it('closes the frame at the bottom on the section itself', () => {
@@ -269,7 +285,6 @@ describe('the Figma dividers', () => {
      */
     expect(page).toContain('post-frame border-b border-[var(--color-line)]');
     expect(page).toContain('border-y border-[var(--color-line)]');
-    expect(page).toContain('lg:border-l lg:border-[var(--color-line)]');
     // Static borders only. `hover:border-[var(--color-accent)]` on the tag
     // pills stays: a border that turns gold under the cursor is feedback, and
     // it is the resting state that was making the page look boxy.
@@ -311,54 +326,47 @@ describe('the Figma dividers', () => {
     expect(similar).not.toContain('News');
   });
 
-  it('carries the vertical rule on a stretching wrapper, not the sticky box', () => {
+  it('puts the sidebar on the left without moving it up the markup', () => {
     /*
-     * The rule used to sit on the <aside>, which is sticky, `self-start` and
-     * `max-h`-bounded — all three of which mean "as tall as my own content".
-     * So it was as long as the contents list and no longer, whatever the
-     * section's height. `self-start` in particular is an explicit opt-out of
-     * stretching, so this cannot be fixed by border placement alone.
+     * Visual order only. The article stays FIRST in the DOM, which is what
+     * decides the stacked order below `lg`, the reading order for a screen
+     * reader, and what a crawler sees first — none of which should be spent on
+     * moving a contents list and two buttons 350px to the left.
      */
-    expect(page).not.toContain('lg:self-start');
-
-    /*
-     * Asserted as "the rule is not on the aside, and the aside comes after the
-     * element carrying it" rather than as a character distance between the two.
-     * The distance was a proxy for "the next element", and a comment added
-     * between them broke it while the arrangement was still correct — a test
-     * that fails on prose is a test that gets deleted rather than read.
-     */
-    expect(page).not.toMatch(/<aside[^>]*lg:border-l/);
-    expect(page).toMatch(/lg:border-l[\s\S]*?<aside/);
+    expect(page).toContain('lg:flex-row-reverse');
+    expect(page).toMatch(/<div className="min-w-0 flex-1[\s\S]*?<PostAside/);
   });
 
-  it('insets the content from the divider without moving the rules off it', () => {
+  it('separates the columns with one gutter, on the article', () => {
     /*
-     * Two things that pull in opposite directions. The article's content needs
-     * air — flush against the rule, the read time and the thumbnail looked
-     * broken. The STROKES still have to land on it, or there is no frame.
+     * One rather than two. The old arrangement paid --frame-gutter twice — the
+     * article's right padding and the rail's left padding, with the column rule
+     * between them. With no rule to hold clear of, the sidebar sits flush in
+     * its column and only the article pads itself.
      *
-     * So both columns pad themselves by --frame-gutter and the rules bleed back
-     * out over that padding. A `gap` on the row cannot do this: it holds the
-     * whole box away, strokes included.
+     * A `gap` on the row would do the same job here, and is still not used:
+     * the horizontal rules below bleed back out over this padding, which a gap
+     * holds them away from.
      */
     expect(page).not.toContain('lg:gap-12');
-    expect(page).toContain('lg:pr-[var(--frame-gutter)]');
     expect(page).toContain('lg:pl-[var(--frame-gutter)]');
+    expect(page).not.toContain('lg:pr-[var(--frame-gutter)]');
     expect(css).toContain('margin-right: calc(-1 * var(--rule-bleed-end))');
   });
 
-  it('drives both gutters and the bleed from one value', () => {
+  it('stops the rules at the article column rather than under the panel', () => {
     /*
-     * The padding and the bleed have to agree exactly. If they drift, the rule
-     * stops short of the divider — the precise defect the frame was built to
-     * fix, and invisible to anything but a measurement. One declaration of
-     * --frame-gutter, read in three places, is what makes drift impossible.
+     * The two ends stopped agreeing when the sidebar changed sides. The right
+     * still runs to the screen edge; the left has to stop dead at the column,
+     * or a byline rule runs 350px across the panel beside it.
+     *
+     * Two variables rather than one is the point: a single --page-bleed on both
+     * ends would have made that a silent stroke across the panel instead of a
+     * declaration someone has to change.
      */
     expect(css).toContain('--frame-gutter: 3rem');
-    expect(css).toContain('--rule-bleed-end: var(--frame-gutter)');
-    // Stacked, there is no divider to stop at, so the right end goes to the
-    // screen edge like the left one.
+    expect(css).toContain('--rule-bleed-start: var(--page-bleed)');
+    expect(css).toContain('--rule-bleed-start: 0px');
     expect(css).toContain('--rule-bleed-end: var(--page-bleed)');
     // A literal would be a second source of truth for the same distance.
     expect(page).not.toContain('lg:pl-12');
@@ -370,10 +378,10 @@ describe('the Figma dividers', () => {
     expect(page).toContain('min-w-0 flex-1 py-12 lg:py-16');
   });
 
-  it('runs the horizontal rules out to the left screen edge', () => {
+  it('runs the horizontal rules out to the screen edge', () => {
     expect(page).toContain('post-rule mt-6 border-y');
     expect(css).toContain('.post-rule,');
-    expect(css).toContain('margin-left: calc(-1 * var(--page-bleed))');
+    expect(css).toContain('margin-left: calc(-1 * var(--rule-bleed-start))');
   });
 
   it('measures the container for that break-out, not the element', () => {

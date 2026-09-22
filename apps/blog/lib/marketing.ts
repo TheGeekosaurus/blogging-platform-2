@@ -42,3 +42,33 @@ export function isNntmCapital(): boolean {
 export function isNntmLabs(): boolean {
   return siteSlug() === NNTM_LABS_SLUG;
 }
+
+/** A destination for the sidebar's standing call to action. */
+export type SidebarCta = {
+  label: string;
+  /** A coded route on this same deployment, so it is always a real page. */
+  href: string;
+};
+
+/**
+ * The button pinned to the bottom of a post's sidebar panel.
+ *
+ * Per site, and null for a database-driven blog — which is the case that makes
+ * this a function rather than a constant. `apps/blog` is one codebase deployed
+ * once per blog, so a hard-coded "Get Funded" would follow Capital's copy onto
+ * every future client's domain.
+ *
+ * The href is deliberately a route from the coded-route registry above rather
+ * than a free-text URL: a CTA pointing at a page this deployment does not serve
+ * is a 404 at the end of every article, and nothing would fail to say so.
+ */
+export function sidebarCta(): SidebarCta | null {
+  switch (codedSite()) {
+    case NNTM_CAPITAL_SLUG:
+      return { label: 'Get Funded', href: '/get-funded' };
+    case NNTM_LABS_SLUG:
+      return { label: 'Get Started', href: '/get-started' };
+    default:
+      return null;
+  }
+}

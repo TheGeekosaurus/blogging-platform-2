@@ -1,14 +1,19 @@
 /**
- * Reader-side state for the lead capture popup.
+ * Reader-side state for the lead capture block.
  *
  * Everything here is per-browser and disposable. Nothing about which reader has
  * seen or closed which offer is worth a row in Postgres, and putting it there
  * would mean identifying anonymous readers to store it — a cookie and a consent
  * problem in exchange for remembering that someone pressed an X.
  *
- * Note what closing means now: the popup minimises to a tile at the bottom of
- * the window, it does not go away. So this records which offers open MINIMISED
- * on the next article, not which ones are suppressed.
+ * Note what closing means: the block folds to a one-line button above the
+ * sidebar's own call to action, it does not go away. So this records which
+ * offers open COLLAPSED on the next article, not which ones are suppressed.
+
+ * The names here still say "minimised". That is deliberate rather than stale —
+ * the stored records are keyed by it and written to real browsers, so renaming
+ * the concept would mean either migrating what is out there or quietly
+ * reopening every offer someone has already closed.
  */
 
 /** One key per offer, so retiring one offer does not reopen the others. */
@@ -17,7 +22,7 @@ export function closedKey(slug: string): string {
 }
 
 /**
- * How long an offer keeps opening minimised.
+ * How long an offer keeps opening collapsed.
  *
  * Two horizons, because the two gestures mean different things. Closing is
  * "not now" and expires — a reader who closes it in March should be offered it
@@ -26,7 +31,7 @@ export function closedKey(slug: string): string {
  * looks like it is not paying attention.
  *
  * Neither is forever. A year out, the offer has probably been rewritten. And
- * neither suppresses the offer outright: the tile is always there to reopen.
+ * neither suppresses the offer outright: the strip is always there to reopen.
  */
 export const MINIMISED_DAYS = {
   closed: 30,
@@ -43,13 +48,13 @@ interface ClosedRecord {
 
 const DAY_MS = 86_400_000;
 
-/** Should this offer open minimised for this reader? */
+/** Should this offer open collapsed for this reader? */
 export function startsMinimised(slug: string, now: number = Date.now()): boolean {
   let raw: string | null = null;
   try {
     raw = localStorage.getItem(closedKey(slug));
   } catch {
-    // Storage throws outright when site data is blocked. Open the popup.
+    // Storage throws outright when site data is blocked. Open the offer.
     return false;
   }
 
@@ -60,7 +65,7 @@ export function startsMinimised(slug: string, now: number = Date.now()): boolean
     parsed = JSON.parse(raw) as ClosedRecord;
   } catch {
     // Something else wrote this key, or an older format did. Treat it as
-    // absent rather than leaving the offer minimised forever on unparseable
+    // absent rather than leaving the offer collapsed forever on unparseable
     // data.
     return false;
   }
@@ -71,7 +76,7 @@ export function startsMinimised(slug: string, now: number = Date.now()): boolean
   return now - parsed.at < days * DAY_MS;
 }
 
-/** Remember that this offer should open minimised from now on. */
+/** Remember that this offer should open collapsed from now on. */
 export function rememberClosed(slug: string, reason: CloseReason): void {
   const record: ClosedRecord = { reason, at: Date.now() };
 

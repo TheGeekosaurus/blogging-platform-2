@@ -696,6 +696,23 @@
     }
   }
 
+  /*
+   * The positioning context for the ring below, declared HERE rather than left
+   * to a `relative` utility on whatever element carries the class.
+   *
+   * It WAS the caller's job, for exactly one revision. When the offer moved
+   * from an overlay into the sidebar panel the class came across and the
+   * `relative` did not, so `inset: 0` resolved against the nearest positioned
+   * ancestor instead — and the two gold points drew themselves down the edge
+   * of the panel, a few hundred pixels from the box they belong to. It looked
+   * like a rendering artefact rather than like a mistake, which is the kind
+   * that survives review. A decoration that can silently attach itself to
+   * someone else's box should not depend on a caller remembering a class.
+   */
+  .lm-beam {
+    position: relative;
+  }
+
   .lm-beam::before {
     content: '';
     position: absolute;
@@ -1101,28 +1118,31 @@
   .post-frame {
     --page-bleed: calc(1.25rem + max(0px, (100vw - 80rem) / 2));
 
-    /*
-     * The air on either side of the vertical rule. Read in THREE places — the
-     * article column's right padding, the sidebar's left padding, and the
-     * right-hand bleed below — which is exactly why it is a variable. If the
-     * bleed and the padding ever disagreed the result would be a rule stopping
-     * short of the divider: the precise gap this frame was built to close, and
-     * nothing but a measurement would catch it.
-     */
+    /* The air between the sidebar panel and the article's text. */
     --frame-gutter: 3rem;
 
     /*
-     * Where a horizontal rule's right end goes. Stacked, there is no divider to
-     * meet, so it runs to the screen edge like the left end.
+     * How far a horizontal rule grows past each end of the article column.
+     *
+     * Stacked, the article IS the page, so both ends run to the screen edge.
+     * Side by side, the sidebar occupies everything left of the article, so the
+     * start end must stop dead at the column: bleeding it would run the stroke
+     * under the panel. The right end has nothing beside it either way.
+     *
+     * These are two variables rather than one because the two ends stopped
+     * agreeing the moment the sidebar changed sides — and a single one would
+     * have made that a silent 400px stroke across the panel rather than a
+     * declaration to change.
      */
+    --rule-bleed-start: var(--page-bleed);
     --rule-bleed-end: var(--page-bleed);
   }
 
   @media (min-width: 64rem) {
     .post-frame {
       --page-bleed: calc(2rem + max(0px, (100vw - 80rem) / 2));
-      /* Two columns: the divider is exactly one gutter past the content edge. */
-      --rule-bleed-end: var(--frame-gutter);
+      /* Two columns: the panel is immediately left of the article's padding. */
+      --rule-bleed-start: 0px;
     }
   }
 
@@ -1131,14 +1151,15 @@
    * Applied to the byline row in the markup, and to the intro rule below — that
    * h2 comes out of a sanitised HTML string and cannot carry a class.
    *
-   * The right end is what lets the article column hold its content a gutter
-   * clear of the divider while the STROKES still land on it. Padding the column
-   * alone would pull these rules 48px short and unmake the frame.
+   * Both ends read a variable rather than --page-bleed directly, because at
+   * `lg` they no longer do the same thing: the right still runs to the screen
+   * edge, the left stops at the article column so the sidebar panel keeps its
+   * gutter clear.
    */
   .post-rule,
   .post-frame .post-body > h2:nth-of-type(2) {
-    margin-left: calc(-1 * var(--page-bleed));
-    padding-left: var(--page-bleed);
+    margin-left: calc(-1 * var(--rule-bleed-start));
+    padding-left: var(--rule-bleed-start);
     margin-right: calc(-1 * var(--rule-bleed-end));
     padding-right: var(--rule-bleed-end);
   }

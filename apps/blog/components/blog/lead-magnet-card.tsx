@@ -11,10 +11,10 @@ import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
  * The lead capture card: an offer, an email field, and a way out of it.
  *
  * PRESENTATIONAL. It owns the submission and nothing else — whether it is on
- * screen, and what closing it means, belong to the popup that wraps it (see
- * lead-magnet-popover.tsx). Splitting them is what lets the same card be the
- * body of an overlay today and of something else later without carrying a
- * placement's assumptions inside it.
+ * screen, and what closing it means, belong to the block that wraps it (see
+ * lead-magnet-block.tsx). Splitting them is what has let the same card be the
+ * body of a rail block, then of an overlay, and now of a row in the sidebar
+ * panel, without any of those placements leaving assumptions in here.
  *
  * It has to be a client component: a form that posts and then swaps itself for
  * a download link is interaction, not content.
@@ -57,7 +57,7 @@ export function LeadMagnetCard({
 
   /*
    * Checked before every setState after an await. The wrapper unmounts this
-   * when the popup is minimised, so a reader who closes it mid-submission
+   * when the block is collapsed, so a reader who closes it mid-submission
    * would otherwise have the response set state on a component that is gone.
    */
   const live = useRef(true);
