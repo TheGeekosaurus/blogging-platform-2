@@ -16,19 +16,23 @@ import type { SidebarCta } from '@/lib/marketing';
  * offer ended up as an overlay with a bottom-right tile, and why the column
  * read as a stack of leftovers rather than as part of the page.
  *
- * FOUR ROWS, and only one of them flexes:
+ * FOUR ROWS, which give up height in a fixed ORDER:
  *
- *   header    the label and the reading-theme control   fixed
- *   contents  the list                                  FLEXIBLE, scrolls
- *   offer     the lead capture block                    fixed
- *   action    the site's standing call to action        fixed
+ *   header    the label and the reading-theme control   never
+ *   contents  the list                                  first, down to nothing
+ *   offer     the lead capture block                    only after that
+ *   action    the site's standing call to action        never
  *
- * That is the whole layout idea. The contents list is the only row that can
- * give up height, so the call to action is reachable without scrolling no
- * matter how many headings a post has, and opening the offer costs the list
- * some visible entries rather than pushing the button off the screen. Every
- * other arrangement of these four ends with something important below the fold
- * — which is exactly what the previous three versions each discovered.
+ * That order is the whole layout idea. The call to action is reachable without
+ * scrolling however many headings a post has and however tall an offer is,
+ * because everything above it yields before it does. Every other arrangement
+ * of these four ends with something important below the fold — which is what
+ * the previous three versions of this column each discovered in turn.
+ *
+ * The order is not written anywhere as a rule; it falls out of two class
+ * choices, and both are commented where they are made. The list is `flex-1`,
+ * i.e. basis zero, so it is already at its floor when the panel runs short.
+ * The foot can shrink, so it is what absorbs the rest.
  *
  * It is a SERVER component. All four rows are decided at build time; three of
  * the children are client components because they are interactive, but nothing
@@ -105,7 +109,7 @@ export function PostAside({
         groups={groups}
         variant="panel"
         labelledBy={LABEL_ID}
-        className="hidden min-h-0 flex-1 px-4 py-4 lg:flex"
+        className="hidden min-h-0 flex-1 lg:flex"
       />
 
       {/*
@@ -117,15 +121,25 @@ export function PostAside({
         `mt-auto` below `lg`, where there is no flexible row above to push this
         down — without it the two buttons would sit directly under the reading
         control with the panel's whole height empty beneath them.
+
+        `min-h-0` and NOT `shrink-0`, which is the opposite of what it looks
+        like it should be. The contents list above is `flex: 1 1 0%`, so it is
+        already at its minimum when the panel runs short and cannot absorb any
+        more — meaning this row is what overflows. Refusing to shrink here does
+        not make more room; it pushes the button below the panel's edge, where
+        `overflow-hidden` clips it off the screen entirely. Shrinking lets the
+        offer scroll the last hundred pixels instead, and the button stays
+        where it is. The button itself keeps `shrink-0` for the same reason it
+        is here at all.
       */}
       {offer || cta ? (
-        <div className="mt-auto flex shrink-0 flex-col gap-3 border-t border-[var(--color-line)] p-4">
+        <div className="mt-auto flex min-h-0 flex-col gap-3 border-t border-[var(--color-line)] p-4">
           {offer ? <LeadMagnetBlock offer={offer} /> : null}
 
           {cta ? (
             <Link
               href={cta.href}
-              className="block w-full rounded-lg bg-[var(--color-accent)] px-4 py-3 text-center text-sm font-semibold !text-[var(--color-surface)] no-underline transition-opacity hover:opacity-90"
+              className="block w-full shrink-0 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-center text-sm font-semibold !text-[var(--color-surface)] no-underline transition-opacity hover:opacity-90"
             >
               {cta.label}
             </Link>

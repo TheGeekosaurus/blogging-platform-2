@@ -168,9 +168,21 @@ export function LeadMagnetCard({
         </svg>
       </button>
 
-      {offer.image ? <OfferImage image={offer.image} /> : null}
+      {offer.image ? (
+        /*
+          Inset rather than full-bleed. It ran edge to edge across the top for
+          two revisions, which was right while the card was an overlay with the
+          whole rail to itself; in the sidebar panel the offer shares a fixed
+          height with the contents list and the call to action, and a 4:3 mockup
+          at the column's full width was single-handedly deciding whether the
+          rest fitted. See OfferImage for the cap.
+        */
+        <div className="px-5 pt-5">
+          <OfferImage image={offer.image} />
+        </div>
+      ) : null}
 
-      <div className="p-5">
+      <div className={offer.image ? 'px-5 pb-5 pt-4' : 'p-5'}>
         <h2 className="pr-8 font-[family-name:var(--font-headline)] text-base leading-snug text-[var(--color-ink)]">
           {offer.heading}
         </h2>
@@ -309,13 +321,23 @@ export function LeadMagnetCard({
 }
 
 /**
- * The offer's picture, full-bleed across the top of the card.
+ * The offer's picture, across the top of the card.
  *
- * Full width and natural height, never cropped. These are designed graphics —
- * a mockup with the product's name set into it — so an `object-cover` box at a
- * fixed ratio would cut the words off the artwork, and which words depends on
- * the image. The card grows to fit instead; the author controls the height by
- * choosing the image.
+ * NEVER CROPPED, and bounded by HEIGHT rather than width. These are designed
+ * graphics — a mockup with the product's name set into it — so an
+ * `object-cover` box at a fixed ratio would cut the words off the artwork, and
+ * which words depends on the image.
+ *
+ * So the cap is `max-h-40` with `w-auto`: the picture keeps its aspect ratio
+ * and simply renders smaller, up to 160px tall, whatever shape the author
+ * uploaded. A `max-w` would not do the same job — a portrait mockup constrained
+ * by width is still tall — and `object-contain` inside a fixed box would leave
+ * the element claiming height the picture is not using.
+ *
+ * 160px is the number that makes the rest of the panel fit on a laptop. The
+ * card has no scroll region any more, deliberately (see lead-magnet-block.tsx),
+ * so its natural height is the whole budget: heading, copy, field, button and
+ * this. At the column's full width a 4:3 mockup alone was 240px of it.
  *
  * TWO PATHS, and the branch is real rather than defensive. next/image needs
  * intrinsic dimensions to reserve space, and it is worth having: the rail is
@@ -334,6 +356,14 @@ function OfferImage({ image }: { image: NonNullable<LeadMagnetOffer['image']> })
    */
   const alt = image.alt ?? '';
 
+  /*
+   * `mx-auto` because a picture narrower than the card would otherwise sit
+   * against its left edge. Most are wider than 160px tall and fill the width
+   * anyway; a portrait one does not, and centred is the only placement that
+   * looks deliberate.
+   */
+  const className = 'mx-auto h-auto max-h-40 w-auto max-w-full';
+
   if (image.width && image.height) {
     return (
       <Image
@@ -341,14 +371,14 @@ function OfferImage({ image }: { image: NonNullable<LeadMagnetOffer['image']> })
         alt={alt}
         width={image.width}
         height={image.height}
-        className="h-auto w-full"
-        /* Its rendered width is the rail, which is fixed at lg and full-bleed
-           in the stacked layout below it. */
-        sizes="(min-width: 1024px) 352px, 100vw"
+        className={className}
+        /* Its rendered width is the panel's, less the card's padding — fixed at
+           lg, and the full column in the stacked layout below it. */
+        sizes="(min-width: 1024px) 312px, 100vw"
       />
     );
   }
 
   /* eslint-disable-next-line @next/next/no-img-element */
-  return <img src={image.url} alt={alt} className="h-auto w-full" />;
+  return <img src={image.url} alt={alt} className={className} />;
 }
