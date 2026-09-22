@@ -37,6 +37,15 @@ const HEADING_SELECTOR = '.post-body :is(h2, h3)[id]';
  */
 type OpenState = Record<string, 'user' | 'auto' | undefined>;
 
+/**
+ * The disclosure marker, at the TRAILING edge of a row rather than the leading
+ * one.
+ *
+ * It led for one revision, and the cost was paid by every row WITHOUT
+ * sub-headings: those had to carry an invisible spacer of exactly this width to
+ * keep their titles lined up with the rows that had a marker. Trailing, the
+ * titles all start at the column edge on their own and the spacer is gone.
+ */
 function Chevron({ open, className = '' }: { open: boolean; className?: string }) {
   return (
     <svg
@@ -100,18 +109,12 @@ function Group({
   if (children.length === 0) {
     return (
       /*
-        Mirrors the summary's flex row below, spacer and all, so a section with
-        no sub-headings lines up with the ones that have chevrons. Rendering the
-        link bare instead left these sitting a chevron's width to the left of
-        their neighbours.
+        No spacer. With the marker on the trailing edge there is nothing to line
+        up against — this row simply has no marker, and its title starts where
+        every other title starts.
       */
-      <li className="flex items-start gap-2">
-        <span aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
-        <Entry
-          heading={heading}
-          active={activeId === heading.id}
-          className="min-w-0 flex-1"
-        />
+      <li>
+        <Entry heading={heading} active={activeId === heading.id} />
       </li>
     );
   }
@@ -133,14 +136,6 @@ function Group({
         onToggle={(event) => onToggle(event.currentTarget.open)}
       >
         <summary className="flex cursor-pointer list-none items-start gap-2 [&::-webkit-details-marker]:hidden">
-          <span
-            className={`mt-[0.2rem] transition-colors ${
-              withinSection ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'
-            }`}
-          >
-            <Chevron open={open} />
-          </span>
-
           {/*
             The title is a link inside the summary, because a reader needs both
             to jump to a section and to expand it. `stopPropagation` keeps the
@@ -156,9 +151,17 @@ function Group({
             onNavigate={(event) => event.stopPropagation()}
             className="min-w-0 flex-1"
           />
+
+          <span
+            className={`mt-[0.2rem] transition-colors ${
+              withinSection ? 'text-[var(--color-accent)]' : 'text-[var(--color-ink-muted)]'
+            }`}
+          >
+            <Chevron open={open} />
+          </span>
         </summary>
 
-        <ol className="mt-2 flex list-none flex-col gap-2 border-l border-[var(--color-line)] pl-3 ml-[0.42rem]">
+        <ol className="mt-2 ml-0 flex list-none flex-col gap-2 border-l border-[var(--color-line)] pl-3">
           {children.map((child) => (
             <li key={child.id}>
               <Entry heading={child} active={activeId === child.id} />
@@ -279,61 +282,47 @@ export function TableOfContents({
 
   if (groups.length === 0) return null;
 
-  const flat = groups.flatMap((group) => [group.heading, ...group.children]);
-  const reached = activeId ? flat.findIndex((heading) => heading.id === activeId) + 1 : 0;
-  const progress = (reached / flat.length) * 100;
-
+  /*
+   * No progress rail. There was a hairline track down the left of the list with
+   * a gold fill marking how far through the post the reader was — removed on
+   * Denis's call, and worth saying why rather than leaving it to be rediscovered
+   * as a gap: inside the panel it became a second vertical line a few pixels
+   * from the panel's own border, and a full-height stroke beside a short list
+   * reads as an unfinished element rather than as a gauge. The highlighted
+   * entry already answers "where am I", which is the question that matters in a
+   * list you can see all of.
+   */
   const list = (
-    <div className="relative">
-      {/*
-        Progress rail. The track is the full height of the list and the fill
-        stops at the current entry, so the gold band answers "how much of this
-        post is behind me" at a glance rather than only "where am I".
-      */}
-      <span
-        aria-hidden="true"
-        data-toc-track=""
-        className="absolute left-0 top-0 w-px bg-[var(--color-line)]"
-        style={{ height: '100%' }}
-      />
-      <span
-        aria-hidden="true"
-        data-toc-progress=""
-        className="absolute left-0 top-0 w-px bg-[var(--color-accent)] transition-[height] duration-200"
-        style={{ height: `${progress}%` }}
-      />
+    <ol className="flex list-none flex-col gap-3">
+      {groups.map((group) => (
+        <Group
+          key={group.heading.id}
+          group={group}
+          activeId={activeId}
+          open={Boolean(open[group.heading.id])}
+          onToggle={(isOpen) =>
+            setOpen((current) => {
+              /*
+               * `onToggle` fires for BOTH a reader clicking and React driving
+               * the `open` prop, and the two are indistinguishable from the
+               * event alone. Recording every one of them tagged the automatic
+               * opens as deliberate, which exempted them from being closed
+               * again — so sections accumulated until the entire list was
+               * open and collapsing had bought nothing.
+               *
+               * State leads a programmatic change and trails a click, so a
+               * toggle that merely agrees with state is our own echo.
+               */
+              if (Boolean(current[group.heading.id]) === isOpen) return current;
 
-      <ol className="flex list-none flex-col gap-3 pl-4">
-        {groups.map((group) => (
-          <Group
-            key={group.heading.id}
-            group={group}
-            activeId={activeId}
-            open={Boolean(open[group.heading.id])}
-            onToggle={(isOpen) =>
-              setOpen((current) => {
-                /*
-                 * `onToggle` fires for BOTH a reader clicking and React driving
-                 * the `open` prop, and the two are indistinguishable from the
-                 * event alone. Recording every one of them tagged the automatic
-                 * opens as deliberate, which exempted them from being closed
-                 * again — so sections accumulated until the entire list was
-                 * open and collapsing had bought nothing.
-                 *
-                 * State leads a programmatic change and trails a click, so a
-                 * toggle that merely agrees with state is our own echo.
-                 */
-                if (Boolean(current[group.heading.id]) === isOpen) return current;
-
-                // A deliberate open outranks the automatic one and survives
-                // scrolling away; a deliberate close clears the entry outright.
-                return { ...current, [group.heading.id]: isOpen ? 'user' : undefined };
-              })
-            }
-          />
-        ))}
-      </ol>
-    </div>
+              // A deliberate open outranks the automatic one and survives
+              // scrolling away; a deliberate close clears the entry outright.
+              return { ...current, [group.heading.id]: isOpen ? 'user' : undefined };
+            })
+          }
+        />
+      ))}
+    </ol>
   );
 
   if (variant === 'disclosure') {
@@ -349,7 +338,16 @@ export function TableOfContents({
   }
 
   return (
-    <nav aria-labelledby={labelledBy} className={`flex min-h-0 flex-col ${className}`}>
+    /*
+      `overflow-hidden` so that a zero-height list is actually invisible. The
+      panel squeezes this row to nothing when an offer is open on a short
+      window, and without this its scrolling child — which has padding, and so a
+      floor of 32px — went on showing an empty strip under the header.
+    */
+    <nav
+      aria-labelledby={labelledBy}
+      className={`flex min-h-0 flex-col overflow-hidden ${className}`}
+    >
       {/*
         Only the list scrolls. `min-h-0` is what makes it shrink below its
         content height — a flex child refuses to without it, which is how a
@@ -365,7 +363,12 @@ export function TableOfContents({
         ref={scrollRef}
         data-fade={fade}
         onScroll={updateFade}
-        className="toc-scroll min-h-0 flex-1 overflow-y-auto"
+        /*
+          The padding lives HERE rather than on the nav, so that it disappears
+          along with the list when the row is squeezed to zero — padding on the
+          container survives a zero content height and leaves a visible band.
+        */
+        className="toc-scroll min-h-0 flex-1 overflow-y-auto px-4 py-4"
       >
         {list}
       </div>

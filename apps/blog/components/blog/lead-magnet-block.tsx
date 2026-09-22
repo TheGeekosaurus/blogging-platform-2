@@ -15,8 +15,10 @@ import { rememberClosed, startsMinimised } from '@/lib/lead-magnet';
  * there; now it is the panel's second-to-last row, directly above the standing
  * call to action, and it takes its height from the contents list above it. That
  * is the arrangement asked for and it is a real trade: opening the offer makes
- * the contents list shorter. It is affordable because the list scrolls, so
- * "shorter" costs visible entries rather than reachable ones.
+ * the contents list shorter, and on a short viewport it can take nearly all of
+ * it. That is the intended priority — someone who has just opened an offer is
+ * not reading the contents list — and it is affordable because the list scrolls,
+ * so what it loses is visible entries rather than reachable ones.
  *
  * COLLAPSED IS A CALL TO ACTION, not a dismissal and not a bottom-right tile.
  * Closed, this is a second button stacked above the panel's own — one line of
@@ -98,25 +100,46 @@ export function LeadMagnetBlock({ offer }: { offer: LeadMagnetOffer }) {
 
   return (
     /*
-      TWO ELEMENTS, and the nesting is load-bearing. This one carries the border
-      light; the one inside carries the height cap and the scrolling. Putting
-      both on one element makes the ring a child of its own scroll container, so
-      it slides up the card as the reader scrolls it — a light that is supposed
-      to trace the border wandering across the middle of the form.
+      FULL HEIGHT WHEREVER IT FITS. This had a flat `max-h-[26rem]` for one
+      revision, which meant a scrollbar inside the opt-in form on every screen
+      — a form split across a scroll region reads as a broken embed and puts
+      the submit button behind a gesture. There is no cap now. On any normal
+      window the card deploys to its whole height and nothing here scrolls.
 
-      `shrink-0` because the contents list above is the flexible row. Without it
-      a flex container short of room would take the height out of both, and the
-      submit button is not something to shave pixels off.
+      THE SHRINK ORDER is what makes that safe, and it is worth being precise
+      about because it is not obvious from the classes. The contents list above
+      is `flex-1`, which is `flex: 1 1 0%` — basis zero, so in a panel short of
+      room it is already at its minimum and contributes nothing to shrinking.
+      It therefore gives up ALL of its height first, down to nothing, which is
+      exactly the priority asked for: someone who has just opened an offer is
+      not reading the contents list.
+
+      Only once the list is at zero does this block start to shrink, and
+      `min-h-0` plus the scroll below is what it does then instead of pushing
+      the call to action out of the panel — which `overflow-hidden` up there
+      would clip rather than reveal. Measured: on a 1366x768 laptop with a
+      picture, a heading, four lines of copy and the form, the panel is about
+      100px short, and without this the Get Funded button is simply not on the
+      screen. So the scrollbar is not gone, it is conditional — it appears on
+      the screens where the alternative is an unreachable button, and on
+      nothing else.
+
+      The other half of keeping it conditional is the image cap in
+      LeadMagnetCard. The card's natural height is the whole budget now.
     */
-    <div className="lm-beam shrink-0 rounded-xl">
+    <div className="lm-beam min-h-0 rounded-xl">
       {/*
-        Capped rather than unbounded. An offer with a tall image could otherwise
-        claim the whole panel and leave the contents list at zero height —
-        `flex-1 min-h-0` above will shrink to nothing without complaining. The
-        cap is generous enough for an image, a line of copy and the form, and
-        anything past it scrolls.
+        TWO ELEMENTS, and the nesting is load-bearing. The outer one carries the
+        border light, this one the scrolling. On a single element the ring
+        becomes a child of its own scroll container and slides up the card as
+        the reader scrolls it — a light that is supposed to trace the border
+        wandering across the middle of the form.
+
+        `h-full` rather than a max-height: the height is whatever the flex
+        shrink above left the wrapper, so this follows it instead of naming a
+        number that would be wrong at most window sizes.
       */}
-      <div className="max-h-[26rem] overflow-y-auto rounded-xl">
+      <div className="h-full overflow-y-auto rounded-xl">
         <LeadMagnetCard
           offer={offer}
           onClose={() => {

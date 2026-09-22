@@ -38,6 +38,21 @@ const OFFER: LeadMagnetOffer = {
 
 const html = () => renderToStaticMarkup(createElement(LeadMagnetBlock, { offer: OFFER }));
 
+const withImage = () =>
+  renderToStaticMarkup(
+    createElement(LeadMagnetBlock, {
+      offer: {
+        ...OFFER,
+        image: {
+          url: 'https://project.supabase.co/storage/v1/object/public/media/toolkit.png',
+          alt: null,
+          width: 1400,
+          height: 1050,
+        },
+      },
+    }),
+  );
+
 describe('the offer block', () => {
   it('is served open, with the card inside it', () => {
     const out = html();
@@ -65,24 +80,39 @@ describe('the offer block', () => {
   });
 
   /*
-   * The contents list above is the flexible row; this one is not. Without
-   * `shrink-0` a panel short of height takes it out of both, and the field and
-   * submit button are not what should be losing pixels.
+   * NOT `shrink-0`, which is the counter-intuitive half of the shrink order.
+   *
+   * The contents list above is `flex-1` — basis zero — so it is already at its
+   * floor when the panel runs short and cannot absorb any more. That makes this
+   * block the one that overflows, and refusing to shrink here does not conjure
+   * space: it pushes the call to action past the panel's edge, where
+   * `overflow-hidden` clips it off the screen. `min-h-0` plus the scroll below
+   * is what it does instead.
    */
-  it('holds its height, so the contents list is what gives way', () => {
-    expect(html()).toMatch(/class="[^"]*\bshrink-0\b/);
+  it('shrinks only after the contents list has given up everything', () => {
+    const root = html().match(/^<div class="([^"]*)"/);
+
+    expect(root?.[1]).toContain('min-h-0');
+    expect(root?.[1]).not.toMatch(/\bshrink-0\b/);
   });
 
   /*
-   * An offer with a tall image would otherwise claim the whole panel and leave
-   * the contents list at zero height — `flex-1 min-h-0` shrinks to nothing
-   * without complaining.
+   * It HAD a flat `max-h-[26rem]`, which meant a scrollbar inside the opt-in
+   * form on every screen — a form split across a scroll region reads as a
+   * broken embed and puts the submit button behind a gesture. There is no cap
+   * now: the card deploys to its whole height wherever it fits, and only
+   * scrolls on a window too short to hold it, which is strictly better than an
+   * unreachable Get Funded button.
+   *
+   * So the assertion is about the CAP, not the overflow. A `max-h` on this
+   * block is the thing that must not come back.
    */
-  it('is capped, and scrolls past the cap', () => {
+  it('scrolls only when it has to, never at a fixed height', () => {
     const out = html();
 
-    expect(out).toMatch(/class="[^"]*max-h-\[26rem\]/);
-    expect(out).toMatch(/class="[^"]*overflow-y-auto/);
+    expect(out).not.toMatch(/class="[^"]*max-h-\[/);
+    // Bounded by whatever the flex shrink above left it, not by a number.
+    expect(out).toMatch(/class="[^"]*h-full[^"]*overflow-y-auto/);
   });
 
   /*
@@ -95,6 +125,20 @@ describe('the offer block', () => {
 
     expect(beam, 'no element carries the beam').not.toBeNull();
     expect(beam?.[1]).not.toContain('overflow-y-auto');
+  });
+
+  /*
+   * The card's natural height is now the whole budget, so the picture is the
+   * one part of it an author can make arbitrarily large. Capped by HEIGHT, not
+   * width: a portrait mockup constrained by width is still tall.
+   */
+  it('bounds the picture rather than the card', () => {
+    const out = withImage();
+
+    expect(out).toMatch(/class="[^"]*max-h-40/);
+    // Height-capped and aspect-preserving, so nothing is ever cropped.
+    expect(out).toMatch(/class="[^"]*w-auto/);
+    expect(out).not.toMatch(/class="[^"]*object-cover/);
   });
 
   it('carries the border light', () => {

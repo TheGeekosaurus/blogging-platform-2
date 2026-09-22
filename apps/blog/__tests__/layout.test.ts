@@ -134,15 +134,21 @@ describe('the sidebar panel is bounded and scrolls inside itself', () => {
     expect(toc).toContain('min-h-0 flex-1 overflow-y-auto');
   });
 
-  it('makes the contents list the only row that can give up height', () => {
+  it('gives up height in order: the list first, the offer next, the button never', () => {
     /*
-     * The other three are fixed. If the offer or the call to action could
-     * shrink instead, a long post would take the height out of the button
-     * rather than out of the list — which is the arrangement this panel
-     * replaced.
+     * Three classes decide this between them, and none of them says so on its
+     * own — which is exactly why it is asserted here rather than left to be
+     * re-derived.
+     *
+     * The list is `flex-1`, i.e. basis zero, so it is already at its floor when
+     * the panel runs short and yields everything first. The foot can shrink, so
+     * it absorbs what is left rather than overflowing a panel that would clip
+     * it. The button inside the foot cannot, so what actually gives is the
+     * offer's scroll, not the call to action.
      */
-    expect(component('lead-magnet-block.tsx')).toContain('shrink-0');
-    expect(aside).toMatch(/mt-auto flex shrink-0 flex-col/);
+    expect(aside).toContain('min-h-0 flex-1');
+    expect(aside).toMatch(/mt-auto flex min-h-0 flex-col/);
+    expect(aside).toMatch(/className="block w-full shrink-0 rounded-lg/);
   });
 
   it('fades whichever edge has more content beyond it', () => {
@@ -189,7 +195,7 @@ describe('the two contents variants stay distinguishable', () => {
   });
 
   it('shows exactly one of them at any width', () => {
-    expect(aside).toContain('hidden min-h-0 flex-1 px-4 py-4 lg:flex');
+    expect(aside).toContain('hidden min-h-0 flex-1 lg:flex');
     expect(page).toContain('lg:hidden');
   });
 });
