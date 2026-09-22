@@ -255,8 +255,14 @@ are gone.)
 ## Lead capture
 
 Post pages can carry an offer — a checklist, a toolkit, whatever the article
-earns — in the sidebar above the contents list, in exchange for an email
-address. It is the thing a WordPress popup plugin does, minus the popup.
+earns — in exchange for an email address. It is the thing a WordPress popup
+plugin does, minus the popup.
+
+It lives in the sidebar panel beside the article, in the row directly above the
+site's own call to action, and it is the reader's to close: closed, it folds to
+a single-line button above that call to action, which reopens it. Closing gives
+its height back to the contents list rather than to nothing, and is remembered
+per browser for a month — a year if the reader actually took the offer.
 
 Set them up under **Lead magnets** in the admin. Each offer carries its own copy,
 an optional image and a set of targeting rules, and a post shows at most one card.
@@ -264,7 +270,8 @@ an optional image and a set of targeting rules, and a post shows at most one car
 The image is picked from the media library, the same grid the post editor uses,
 and runs full width across the top of the card. It is never cropped — the card
 grows to fit, so a tall image makes a tall card. Upload something around 700px
-wide; the sidebar renders it at about 350.
+wide; the sidebar renders it at about 320. Past roughly 26rem the card scrolls
+rather than squeezing the contents list out.
 
 | Aimed at | Matches |
 | --- | --- |
@@ -314,9 +321,10 @@ capture is working — it is not a CRM and should not grow into one.
 ### What it deliberately does not do
 
 - **It is not an interstitial.** The card renders in the layout and never covers
-  the article. Google ranks down a mobile popup that obscures content, and a
-  blog whose traffic is search should not spend rankings on a form. It still
-  gets the sticky rail, which is the best real estate on the page.
+  the article — it is one row of a panel, in flow, with the contents list above
+  it and a button below. Google ranks down a mobile popup that obscures content,
+  and a blog whose traffic is search should not spend rankings on a form. It
+  still gets the sticky panel, which is the best real estate on the page.
 - **There is no IP rate limiting.** Abuse is bounded by a honeypot field, an
   email format check in both TypeScript and SQL, and a unique index that turns a
   resubmission into an `UPDATE` rather than a new row — so a flood costs rows

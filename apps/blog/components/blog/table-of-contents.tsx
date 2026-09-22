@@ -173,23 +173,35 @@ function Group({
 export function TableOfContents({
   groups,
   variant,
-  id,
+  labelledBy,
   className = '',
 }: {
   groups: HeadingGroup[];
-  /**
-   * `rail` is the standing left column; `disclosure` is the collapsed block that
-   * takes its place when there is no room for a third column.
-   *
-   * Both are rendered on every post and hidden at the other's breakpoints.
-   * `display: none` takes a subtree out of the accessibility tree, so only one
-   * is ever exposed — but each needs its own `id`, since two elements sharing
-   * one would make `aria-labelledby` ambiguous.
-   */
-  variant: 'rail' | 'disclosure';
-  id: string;
   className?: string;
-}) {
+} & (
+  | {
+      /**
+       * The row inside the post's sidebar panel: a bare scrolling list.
+       *
+       * It does NOT render its own heading — the panel's header row already
+       * says "Contents", and a second heading immediately under it would
+       * announce the list twice. So the caller owns the label, and the union
+       * here is what makes passing its id mandatory rather than merely
+       * advisable: a `panel` with no `labelledBy` is a nav with no accessible
+       * name, which nothing else in the build would catch.
+       */
+      variant: 'panel';
+      labelledBy: string;
+    }
+  | {
+      /**
+       * The collapsed block that takes the panel's place below `lg`, where
+       * there is no second column. It names itself from its own summary.
+       */
+      variant: 'disclosure';
+      labelledBy?: never;
+    }
+)) {
   const activeId = useActiveHeading(HEADING_SELECTOR);
   const [open, setOpen] = useState<OpenState>({});
 
@@ -337,19 +349,7 @@ export function TableOfContents({
   }
 
   return (
-    <nav aria-labelledby={id} className={`flex min-h-0 flex-col ${className}`}>
-      {/*
-        Outside the scroll container on purpose. It used to be inside, so
-        scrolling the list scrolled its own label away and left an unlabelled
-        column of links.
-      */}
-      <h2
-        id={id}
-        className="mb-4 shrink-0 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-ink-muted)]"
-      >
-        Table of Contents
-      </h2>
-
+    <nav aria-labelledby={labelledBy} className={`flex min-h-0 flex-col ${className}`}>
       {/*
         Only the list scrolls. `min-h-0` is what makes it shrink below its
         content height — a flex child refuses to without it, which is how a

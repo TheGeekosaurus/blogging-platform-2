@@ -7,18 +7,21 @@ import { describe, expect, it } from 'vitest';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import { LeadMagnetPopover } from '@/components/blog/lead-magnet-popover';
+import { LeadMagnetBlock } from '@/components/blog/lead-magnet-block';
 
 /**
- * The offer floats over the sidebar instead of sitting in it.
+ * The offer is a row of the sidebar panel, not something floating over it.
  *
- * That is the property worth pinning. In flow, the card and the contents list
- * competed for one column's height and whichever came second lost — which is
- * what produced first a contents list below the fold and then an accordion.
- * Out of flow, the rail lays out as though the offer were not there.
+ * That is the property worth pinning, and it is the reverse of what this file
+ * asserted a version ago. The offer was an overlay precisely so the contents
+ * list could lay out as though it were not there; in the panel it is in flow
+ * again, directly above the standing call to action, and the list is the row
+ * that gives way. The tests below are what stop it drifting back out of flow —
+ * an absolutely positioned row inside a flex panel would overlap the button
+ * under it rather than push it.
  *
  * Static markup only: there is no DOM here, so this covers the state a reader
- * is served. The minimised tile is reached by a click and by localStorage, and
+ * is served. The collapsed strip is reached by a click and by localStorage, and
  * asserting a useState toggle would be testing React.
  */
 
@@ -33,10 +36,9 @@ const OFFER: LeadMagnetOffer = {
   image: null,
 };
 
-const html = () =>
-  renderToStaticMarkup(createElement(LeadMagnetPopover, { offer: OFFER }));
+const html = () => renderToStaticMarkup(createElement(LeadMagnetBlock, { offer: OFFER }));
 
-describe('the offer popup', () => {
+describe('the offer block', () => {
   it('is served open, with the card inside it', () => {
     const out = html();
 
@@ -45,53 +47,42 @@ describe('the offer popup', () => {
   });
 
   /*
-   * Out of flow at `lg` and up, which is the whole point: the contents list
-   * below it is laid out as though the offer were not there, so closing the
-   * popup gives back nothing because it never took anything.
+   * In flow. Out of flow it would sit on top of the call to action below it
+   * rather than above it, which is the one arrangement the panel exists to
+   * prevent.
    */
-  it('floats over the rail rather than occupying it', () => {
-    expect(html()).toMatch(/class="[^"]*lg:absolute/);
+  it('occupies the panel rather than floating over it', () => {
+    /*
+     * The OUTERMOST element only. Positioned boxes inside the card are fine and
+     * necessary — the close control is pinned to its corner and the honeypot
+     * sits off-screen — so a whole-document search for `absolute` would fail on
+     * two things that are not this.
+     */
+    const root = html().match(/^<div class="([^"]*)"/);
+
+    expect(root, 'the block does not start with a classed div').not.toBeNull();
+    expect(root?.[1]).not.toMatch(/\b(lg:)?(absolute|fixed)\b/);
   });
 
   /*
-   * Anchored to the bottom of the sidebar, not the top. A reader deep in an
-   * article is looking at the end of the contents list, not its start.
+   * The contents list above is the flexible row; this one is not. Without
+   * `shrink-0` a panel short of height takes it out of both, and the field and
+   * submit button are not what should be losing pixels.
    */
-  it('is anchored to the bottom of the rail', () => {
-    const out = html();
-
-    expect(out).toMatch(/class="[^"]*lg:bottom-0/);
-    expect(out).not.toMatch(/class="[^"]*lg:top-0/);
-  });
-
-  it('stacks over the contents list', () => {
-    expect(html()).toMatch(/class="[^"]*lg:z-20/);
+  it('holds its height, so the contents list is what gives way', () => {
+    expect(html()).toMatch(/class="[^"]*\bshrink-0\b/);
   });
 
   /*
-   * Below `lg` there is no second column to float over — the rail stacks under
-   * the article — so the overlay is desktop-only and the card sits in the flow
-   * with a margin, where an end-of-post call to action belongs.
+   * An offer with a tall image would otherwise claim the whole panel and leave
+   * the contents list at zero height — `flex-1 min-h-0` shrinks to nothing
+   * without complaining.
    */
-  it('drops into the flow below the desktop breakpoint', () => {
+  it('is capped, and scrolls past the cap', () => {
     const out = html();
 
-    // Matched as a class among others rather than at the start of the
-    // attribute: what matters is that the margin is there and cancelled at
-    // `lg`, not what order Tailwind's classes happen to be written in.
-    expect(out).toMatch(/class="[^"]*\bmb-8\b/);
-    expect(out).toMatch(/class="[^"]*\blg:mb-0\b/);
-  });
-
-  /*
-   * Out of flow means nothing pushes back when the card is taller than the
-   * window: it would overlap the section below instead of being bounded by it.
-   */
-  it('is bounded to the rail height and scrolls inside it', () => {
-    const out = html();
-
-    expect(out).toMatch(/class="[^"]*lg:max-h-\[calc\(100vh-11rem\)\]/);
-    expect(out).toMatch(/class="[^"]*lg:overflow-y-auto/);
+    expect(out).toMatch(/class="[^"]*max-h-\[26rem\]/);
+    expect(out).toMatch(/class="[^"]*overflow-y-auto/);
   });
 
   /*
@@ -100,9 +91,8 @@ describe('the offer popup', () => {
    * outline drifting across the middle of the form instead.
    */
   it('keeps the border light off the scrolling box', () => {
-    const out = html();
+    const beam = html().match(/class="([^"]*lm-beam[^"]*)"/);
 
-    const beam = out.match(/class="([^"]*lm-beam[^"]*)"/);
     expect(beam, 'no element carries the beam').not.toBeNull();
     expect(beam?.[1]).not.toContain('overflow-y-auto');
   });
@@ -111,13 +101,18 @@ describe('the offer popup', () => {
     expect(html()).toMatch(/class="[^"]*lm-beam/);
   });
 
+  /*
+   * Closing collapses it to a strip above the call to action; it does not
+   * dismiss it. The control is the card's, so this only checks it survived
+   * the move into the panel.
+   */
   it('offers a way to close it', () => {
     expect(html()).toContain('Close this offer');
   });
 
   /*
    * Not a modal. A backdrop over the article is the thing Google treats as an
-   * intrusive interstitial, and this covers a sidebar in one corner instead.
+   * intrusive interstitial, and this is a row in a sidebar instead.
    */
   it('puts no backdrop over the page', () => {
     const out = html();
@@ -137,6 +132,17 @@ describe('the border light', () => {
     join(__dirname, '..', 'app', 'globals.css'),
     'utf8',
   );
+
+  it('owns its own positioning context', () => {
+    /*
+     * The ring is `position: absolute; inset: 0`, so without this it resolves
+     * against the nearest positioned ancestor and draws itself somewhere else
+     * entirely. That is not hypothetical: moving the offer from an overlay into
+     * the panel dropped the `relative` utility the class used to rely on, and
+     * the two points ended up running down the edge of the sidebar.
+     */
+    expect(css).toMatch(/\.lm-beam \{\s*position: relative/);
+  });
 
   it('rotates the gradient rather than the element', () => {
     /*
