@@ -8,7 +8,6 @@ import {
   DEFAULT_STORY_TAB,
   HERO,
   LINKS,
-  REASONS,
   SECTIONS,
   SERVICES,
   SERVICE_MARQUEE,
@@ -17,8 +16,8 @@ import {
   projectsTitle,
 } from './content';
 import { ArrowRight, SERVICE_ICONS, STORY_ICONS } from './icons';
-import { ArrowLink, DiscLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
-import { ClosingCta, Faq, Stats, Testimonials } from './sections';
+import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
+import { ClosingCta, Faq, Reasons, Stats, Testimonials } from './sections';
 
 /**
  * The Nanotom Labs homepage.
@@ -480,50 +479,6 @@ function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
         })}
       </div>
     </div>
-  );
-}
-
-/**
- * Why this agency, above what it sells.
- *
- * Four across only from `xl`: the artwork's four 430px cards are a 1920
- * layout, and held at four all the way down each is 208px wide at 1024 —
- * narrower than the word "Technologies" set at the artwork's 30px, which
- * pushed the whole PAGE into horizontal scroll rather than merely looking
- * tight. Two up between `sm` and `xl` is the same cards at a readable measure.
- */
-function Reasons() {
-  return (
-    <Panel className="mt-[var(--nl-section-gap)]">
-      <SectionHeader title={SECTIONS.reasons} />
-
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {REASONS.map((reason) => (
-          <article
-            key={reason.title}
-            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10"
-          >
-            <div>
-              {/*
-                * The size steps with the column count for the same reason.
-                * `break-words` is the backstop — a single unbreakable word
-                * longer than its column is the one thing that escapes a fluid
-                * size, and it escapes as page-wide horizontal scroll.
-                */}
-              <h3 className="nl-heading text-xl leading-snug break-words lg:text-2xl 2xl:text-3xl">
-                {reason.title}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6">
-                {reason.body}
-              </p>
-            </div>
-
-            {/* Unlinked: the design gives these four no destination. */}
-            <DiscLink label={LINKS.learnMore} />
-          </article>
-        ))}
-      </div>
-    </Panel>
   );
 }
 

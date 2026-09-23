@@ -1262,6 +1262,147 @@ describe('the About page', () => {
   });
 });
 
+describe('the Industries page', () => {
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsIndustries } = await import('../components/marketing/labs/industries');
+
+    return renderToStaticMarkup(React.createElement(LabsIndustries));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'industries');
+
+    expect(route, 'industries missing from CODED_SITES').toBeTruthy();
+    expect(route?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const file = readFileSync(join(__dirname, '..', 'app', 'industries', 'page.tsx'), 'utf8');
+
+    expect(file).toContain('isNntmLabs()');
+    expect(file).toContain('notFound()');
+  });
+
+  it('is in the header bar', async () => {
+    const { NAV, INDUSTRIES_PATH } = await import('../components/marketing/labs/brand');
+
+    expect(INDUSTRIES_PATH).toBe('/industries');
+    expect(NAV.find((item) => item.label === 'Industries')?.href).toBe(INDUSTRIES_PATH);
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, CLOSING_CTA, REASONS, SECTIONS, STATS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { INDUSTRIES, INDUSTRIES_HERO, INDUSTRIES_SECTIONS, INDUSTRIES_STATS_CTA } =
+      await import('../components/marketing/labs/industries-content');
+
+    for (const line of INDUSTRIES_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(INDUSTRIES_HERO.body);
+    for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
+    expect(html).toContain(INDUSTRIES_STATS_CTA);
+
+    expect(html).toContain(INDUSTRIES_SECTIONS.industries);
+    for (const industry of INDUSTRIES) {
+      expect(html, industry.title).toContain(industry.title);
+      expect(html, industry.title).toContain(industry.body);
+    }
+
+    // The reasons block, which this page shares with the homepage.
+    expect(html).toContain(SECTIONS.reasons);
+    for (const reason of REASONS) expect(html, reason.title).toContain(reason.title);
+
+    expect(html).toContain(SECTIONS.testimonials);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  /*
+   * The reasons block is ONE component now, rendered by two pages.
+   *
+   * It lived in home.tsx until this page wanted it, and the failure worth
+   * pinning is the one a copy-paste would have caused: two blocks that agree
+   * today and diverge the first time the copy is edited on one page.
+   */
+  it('renders the same reasons block as the homepage, from one component', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+
+    const home = decoded(renderToStaticMarkup(React.createElement(LabsHome)));
+    const industries = decoded(await render());
+    const { REASONS } = await import('../components/marketing/labs/content');
+
+    for (const reason of REASONS) {
+      expect(home, reason.title).toContain(reason.body);
+      expect(industries, reason.title).toContain(reason.body);
+    }
+
+    // And neither page hand-rolls it: the markup lives in the shared file.
+    expect(read('sections.tsx')).toContain('export function Reasons()');
+    for (const file of ['home.tsx', 'industries.tsx']) {
+      expect(read(file), file).not.toMatch(/REASONS\.map/);
+    }
+  });
+
+  /*
+   * NO STOCK PHOTOGRAPHS, and no dead calls.
+   *
+   * The frame puts a photo on every card and a "Read Full Blog" under it.
+   * There are no photographs of this agency's work in these trades — a stock
+   * one would be the same fiction as the /about team portraits — and no trade
+   * has a page of its own yet, so both are opt-in per entry. This pins that
+   * the fallback renders instead of an empty box, and that no card claims a
+   * destination it does not have.
+   */
+  it('falls back to a mark where there is no photograph, and links nothing unbuilt', async () => {
+    const html = await render();
+    const { INDUSTRIES } = await import('../components/marketing/labs/industries-content');
+
+    const withPhotos = INDUSTRIES.filter((industry) => industry.image);
+    for (const industry of withPhotos) {
+      expect(html, industry.title).toContain(
+        encodeURIComponent(industry.image?.src as string),
+      );
+    }
+
+    /*
+     * One mark per industry that has no photograph of its own. Counted on the
+     * svg rather than on the absence of an <img>, because the shared
+     * testimonials below render four avatars of their own — an image count
+     * taken across the page would be measuring those.
+     */
+    const marks = [...html.matchAll(/<svg[^>]*class="size-20/g)];
+    expect(marks).toHaveLength(INDUSTRIES.length - withPhotos.length);
+
+    const linked = INDUSTRIES.filter((industry) => industry.href);
+    for (const industry of INDUSTRIES) {
+      if (industry.href) expect(html).toContain(`href="${industry.href}"`);
+    }
+    // The card call appears for linked trades only — today, for none.
+    const calls = [...html.matchAll(/>Read More</g)];
+    expect(calls).toHaveLength(linked.length);
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+});
+
 describe('the heroes are one height', () => {
   /*
    * The three heroes used to size themselves from whatever they contained —
@@ -1281,7 +1422,9 @@ describe('the heroes are one height', () => {
     expect(declarations).toHaveLength(1);
   });
 
-  it.each(['home.tsx', 'services.tsx', 'get-started.tsx', 'about.tsx'])('%s reads it', (file) => {
+  it.each(['home.tsx', 'services.tsx', 'get-started.tsx', 'about.tsx', 'industries.tsx'])(
+    '%s reads it',
+    (file) => {
     const source = read(file);
     const hero = source.slice(source.indexOf('function Hero()'));
 
@@ -1291,8 +1434,9 @@ describe('the heroes are one height', () => {
      * image card carried `lg:min-h-[520px]`, which is where the number came
      * from and why the other two never matched it.
      */
-    expect(hero.slice(0, hero.indexOf('\n}'))).not.toMatch(/lg:(min-)?h-\[\d+px\]/);
-  });
+      expect(hero.slice(0, hero.indexOf('\n}'))).not.toMatch(/lg:(min-)?h-\[\d+px\]/);
+    },
+  );
 });
 
 describe('the project pages', () => {

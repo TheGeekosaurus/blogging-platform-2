@@ -77,8 +77,18 @@ export const GET_STARTED_PATH = '/get-started';
  */
 export const SERVICES_ENQUIRY_ANCHOR = '/services#ask';
 
-/** The About page. Linked from the nav, and from nothing else. */
+/** The About page. Linked from the nav, and from the footer's "About Us". */
 export const ABOUT_PATH = '/about';
+
+/**
+ * The Industries page, and the Services page it points at.
+ *
+ * SERVICES_PATH exists because '/services' was written in four places once
+ * /industries started linking to it as well — the nav item, the homepage's
+ * hero overlay, and both halves of that page's section link.
+ */
+export const INDUSTRIES_PATH = '/industries';
+export const SERVICES_PATH = '/services';
 
 export type NavItem = {
   label: string;
@@ -97,8 +107,10 @@ export type NavItem = {
  * still in the sitemap (the footer's Blogs column links into it), so nothing is
  * unreachable; it is only off the primary bar.
  *
- * That leaves four items where the design has seven, which is also what keeps
- * the desktop bar inside 1024px without wrapping.
+ * That leaves five items where the design has seven. The bar only appears at
+ * `xl` — below that it is the MENU disclosure — and the five measure 647px
+ * inside a 1178px bar at 1280, so there is room for a sixth but not for the
+ * template's seven.
  *
  * PROJECTS IS STILL UNLINKED. Individual project pages exist, but there is no
  * index for this item to point at, and a nav link to a page that does not
@@ -107,7 +119,8 @@ export type NavItem = {
  * index is.
  */
 export const NAV: readonly NavItem[] = [
-  { label: 'Services', href: '/services' },
+  { label: 'Services', href: SERVICES_PATH },
+  { label: 'Industries', href: INDUSTRIES_PATH },
   { label: 'Projects' },
   { label: 'About', href: ABOUT_PATH },
   { label: 'Get Started', href: GET_STARTED_PATH, cta: true },
