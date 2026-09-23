@@ -35,6 +35,58 @@ export function ArrowUpRightIcon({ className }: IconProps) {
   );
 }
 
+/**
+ * One review star.
+ *
+ * FILLED, not stroked — the only solid mark in this file, because the template
+ * draws its stars solid and a 1.6-stroke outline at 16px reads as a smudge. It
+ * still takes its colour from `text-*` like the rest: `fill="currentColor"`
+ * rather than a hardcoded gold, so an empty star is the same path in a dimmer
+ * class and the two always line up exactly.
+ */
+export function StarIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
+      <path d="M12 2.6l2.9 5.88 6.49.95-4.7 4.58 1.11 6.46L12 17.42l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.95L12 2.6z" />
+    </svg>
+  );
+}
+
+/** Pro rows in the product comparison. */
+export function CheckIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="m4 12.5 5.2 5.2L20 7" />
+    </svg>
+  );
+}
+
+/** Con rows in the product comparison. Not a cross — these are trade-offs. */
+export function MinusIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
 /** The mark beside the FAQ heading. */
 export function HelpIcon({ className }: IconProps) {
   return (

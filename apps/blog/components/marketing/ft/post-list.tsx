@@ -107,7 +107,7 @@ function RayBurst({ className }: { className?: string }) {
 export function ImageSlot({ className }: { className?: string }) {
   return (
     <div
-      className={`relative isolate flex items-center justify-center overflow-hidden rounded-xl border border-[var(--ft-line)] bg-[linear-gradient(135deg,#1f1f22,#141414_60%)] ${className ?? ''}`}
+      className={`ft-image-slot relative isolate flex items-center justify-center overflow-hidden rounded-xl border border-[var(--ft-line)] bg-[linear-gradient(135deg,#1f1f22,#141414_60%)] ${className ?? ''}`}
     >
       <RayBurst className="absolute inset-0 h-full w-full opacity-[0.18]" />
       <GrowthIcon className="relative h-16 w-16 text-[var(--ft-accent)] opacity-30" />
@@ -208,8 +208,18 @@ export function PostRow({ post, locale }: { post: PostSummary; locale: string })
               <div className="leading-tight">
                 <p className="font-medium text-[var(--ft-ink)]">{author}</p>
                 {/* Only an author record carries a role; a plain-text byline has none. */}
+                {/*
+                  May carry links — sanitised on write by sanitizeAuthorHtml, and
+                  rendered as HTML here for the same reason as in post-byline.tsx
+                  and author-box.tsx. This row was the one render site still
+                  printing that markup as text: it did not exist when the others
+                  were converted, so that change had nothing here to find.
+                */}
                 {post.byline?.title ? (
-                  <p className="mt-0.5 text-sm text-[var(--ft-muted)]">{post.byline.title}</p>
+                  <p
+                    className="author-prose mt-0.5 text-sm text-[var(--ft-muted)]"
+                    dangerouslySetInnerHTML={{ __html: post.byline.title }}
+                  />
                 ) : null}
               </div>
             </div>

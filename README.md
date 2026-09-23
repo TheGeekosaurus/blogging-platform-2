@@ -22,6 +22,11 @@ project per blog** plus a single shared admin deployment.
 Feature-complete for a single-author blog. Write and publish from the browser;
 the live site updates within seconds with no redeploy.
 
+The admin also carries the SEO planning screens — **Keywords**, the research
+grouped topic → page → keyword, and **Roadmap**, the same tree filtered to pages
+that have been briefed. Both are read-only; the rows are written by whatever
+does the research.
+
 Not built, because they were not needed: scheduled publishing, and any UI for
 inviting additional writers. Roles (`owner`/`admin`/`editor`/`author`) and the
 `scheduled` post status already exist in the schema, so either can be added later
@@ -67,6 +72,8 @@ supabase/migrations/0008_structured_data.sql    editable schema.org markup
 supabase/migrations/0009_drop_media_caption.sql drop an unused column
 supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
+supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
+supabase/migrations/0013_seo.sql                keyword research and the roadmap
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email
@@ -178,14 +185,15 @@ component.
 
 ### Nanotom Labs
 
-Two pages so far — `/` and `/services` — each a replica of a Figma template
-frame, measured out of the PDF export rather than estimated. The homepage had
-1920 desktop and 390 mobile artboards and both are matched; only a desktop
-frame was supplied for `/services`, so its layout below `lg` is an inference
-from the homepage's mobile frame rather than a transcription.
+Four page types so far — `/`, `/services`, `/get-started` and
+`/projects/<slug>` — each a replica of a Figma template frame, measured out of
+the PDF export rather than estimated. The
+homepage had 1920 desktop and 390 mobile artboards and both are matched; only a
+desktop frame was supplied for the other two, so their layout below `lg` is an
+inference from the homepage's mobile frame rather than a transcription.
 
-The two pages share a grid and four whole sections — the stat band, the
-testimonial wall, the FAQ and its form, and the closing call — which live in
+The pages share a grid and four whole sections — the stat band, the testimonial
+wall, the FAQ and its form, and the closing call — which live in
 `marketing/labs/sections.tsx`. Each page owns its hero and the sections between.
 Things worth knowing before editing any of it:
 
@@ -212,6 +220,20 @@ Things worth knowing before editing any of it:
   the one block in `marketing/labs/content.ts` that has been rewritten, and its
   image is the business's own art shown in full colour — the template's tinted
   stock photograph is gone.
+- **The project pages are `noindex` and out of the sitemap, on purpose.** Each
+  one names a real client beside copy that describes nothing that happened, so
+  publishing it would be a claim about somebody else's business. The route's
+  `robots` and the `index:` flag in `CODED_SITES` have to be flipped together —
+  a test fails if they disagree. See the warning at the top of
+  `marketing/labs/projects-content.ts`.
+- **There is no `/projects` index.** Individual project pages exist; the nav's
+  "Projects" item is still unlinked because the page it would point at does not
+  exist. Build the index and give the nav item its href in the same change.
+- **Nothing on `/get-started` can be contacted yet.** The form has no endpoint
+  and the tabbed contact card carries no addresses, numbers or locations — all
+  deliberately blank rather than invented, because a plausible mailbox nobody
+  reads swallows enquiries in silence. Fill in `CONTACT_CHANNELS` in
+  `marketing/labs/get-started-content.ts` and the entries become real links.
 - **The forms are presentational.** Neither the enquiry form nor the newsletter
   has an endpoint, so both are disabled rather than posting nowhere. The
   enquiry form is the site's only conversion path — it needs a real destination
@@ -233,8 +255,14 @@ are gone.)
 ## Lead capture
 
 Post pages can carry an offer — a checklist, a toolkit, whatever the article
-earns — in the sidebar above the contents list, in exchange for an email
-address. It is the thing a WordPress popup plugin does, minus the popup.
+earns — in exchange for an email address. It is the thing a WordPress popup
+plugin does, minus the popup.
+
+It lives in the sidebar panel beside the article, in the row directly above the
+site's own call to action, and it is the reader's to close: closed, it folds to
+a single-line button above that call to action, which reopens it. Closing gives
+its height back to the contents list rather than to nothing, and is remembered
+per browser for a month — a year if the reader actually took the offer.
 
 Set them up under **Lead magnets** in the admin. Each offer carries its own copy,
 an optional image and a set of targeting rules, and a post shows at most one card.
@@ -242,7 +270,8 @@ an optional image and a set of targeting rules, and a post shows at most one car
 The image is picked from the media library, the same grid the post editor uses,
 and runs full width across the top of the card. It is never cropped — the card
 grows to fit, so a tall image makes a tall card. Upload something around 700px
-wide; the sidebar renders it at about 350.
+wide; the sidebar renders it at about 320. Past roughly 26rem the card scrolls
+rather than squeezing the contents list out.
 
 | Aimed at | Matches |
 | --- | --- |
@@ -292,9 +321,10 @@ capture is working — it is not a CRM and should not grow into one.
 ### What it deliberately does not do
 
 - **It is not an interstitial.** The card renders in the layout and never covers
-  the article. Google ranks down a mobile popup that obscures content, and a
-  blog whose traffic is search should not spend rankings on a form. It still
-  gets the sticky rail, which is the best real estate on the page.
+  the article — it is one row of a panel, in flow, with the contents list above
+  it and a button below. Google ranks down a mobile popup that obscures content,
+  and a blog whose traffic is search should not spend rankings on a form. It
+  still gets the sticky panel, which is the best real estate on the page.
 - **There is no IP rate limiting.** Abuse is bounded by a honeypot field, an
   email format check in both TypeScript and SQL, and a unique index that turns a
   resubmission into an `UPDATE` rather than a new row — so a flood costs rows
@@ -330,12 +360,33 @@ Full runbook: **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. In outline:
 | Project | Root Directory | Environment |
 | --- | --- | --- |
 | One per blog | `apps/blog` | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SITE_SLUG`, `REVALIDATE_SECRET`, optionally `LEAD_WEBHOOK_URL` |
-| Nanotom Capital | `apps/blog` | the above, plus `NEXT_PUBLIC_GTM_ID` |
+| Nanotom Capital | `apps/blog` | the above, with `SITE_SLUG=nntm-capital` |
 | Nanotom Labs | `apps/blog` | the above, with `SITE_SLUG=nntm-labs` |
 | Admin (one) | `apps/admin` | `SUPABASE_URL`, `SUPABASE_ANON_KEY` |
 
 Each blog's `sites` row needs a `base_url` matching its real origin — canonical
 URLs, the sitemap, the feed, and cache refreshes are all built from it.
+
+## Tracking
+
+One Google Tag Manager container per site, set in the admin under **Settings →
+Google Tag Manager container**. It loads on every page of that site, and on no
+other site: the container id is a column on the site's own row, so two
+deployments sharing this codebase never share a container.
+
+Everything else is a tag inside that container — Google Analytics, the Facebook
+pixel, conversion tags. None of them belong in the code. Two hardcoded copies of
+one pixel double-count conversions, and the second copy is invisible to whoever
+maintains the tag setup.
+
+Leave the field empty for no tracking, which is what a site that is not live yet
+wants: an unset container reports nothing rather than reporting into a real one.
+A change takes effect on save — the admin purges the live site's route tree, and
+the tag is in the root layout — so there is no redeploy and no cache flush.
+
+This replaced a `NEXT_PUBLIC_GTM_ID` environment variable that only ever worked
+on `SITE_SLUG=nntm-capital`, and a `sites.analytics_id` column that the admin
+saved and nothing read.
 
 ## Links
 

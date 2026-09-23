@@ -55,6 +55,17 @@ export const LOGO_ORIGIN = 'https://images.leadconnectorhq.com';
 export const ENQUIRY_ANCHOR = '/#ask';
 
 /**
+ * The contact page, and where the header's button goes.
+ *
+ * It pointed at ENQUIRY_ANCHOR until this page existed, which was the right
+ * call while the homepage's form was the only one — a button that scrolls is
+ * better than a button that 404s. Now there is a page built for the job, with
+ * the same form plus the ways to reach the business that an anchor cannot
+ * carry.
+ */
+export const GET_STARTED_PATH = '/get-started';
+
+/**
  * The same form on /services, which carries its own copy of it.
  *
  * A separate constant rather than a bare '#ask': the calls that use it sit on
@@ -65,6 +76,9 @@ export const ENQUIRY_ANCHOR = '/#ask';
  * has no single page to stay on.
  */
 export const SERVICES_ENQUIRY_ANCHOR = '/services#ask';
+
+/** The About page. Linked from the nav, and from nothing else. */
+export const ABOUT_PATH = '/about';
 
 export type NavItem = {
   label: string;
@@ -85,12 +99,18 @@ export type NavItem = {
  *
  * That leaves four items where the design has seven, which is also what keeps
  * the desktop bar inside 1024px without wrapping.
+ *
+ * PROJECTS IS STILL UNLINKED. Individual project pages exist, but there is no
+ * index for this item to point at, and a nav link to a page that does not
+ * exist is the failure `labs.test.ts` guards against. About lost its own
+ * `href`-less entry when /about was built; Projects loses its when a /projects
+ * index is.
  */
 export const NAV: readonly NavItem[] = [
   { label: 'Services', href: '/services' },
   { label: 'Projects' },
-  { label: 'About' },
-  { label: 'Get Started', href: ENQUIRY_ANCHOR, cta: true },
+  { label: 'About', href: ABOUT_PATH },
+  { label: 'Get Started', href: GET_STARTED_PATH, cta: true },
 ];
 
 export type FooterLink = {
@@ -110,7 +130,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: 'Home',
     links: [
       { label: 'Why Us' },
-      { label: 'About Us' },
+      { label: 'About Us', href: ABOUT_PATH },
       { label: 'Testimonials', href: '/#testimonials' },
       { label: 'FAQˇs', href: '/#faq' },
     ],
@@ -145,39 +165,53 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 
 export type SocialCard = {
   /** Key into the icon map in ./icons.tsx. */
-  icon: 'instagram' | 'twitter' | 'dribbble' | 'behance';
+  icon: 'linkedin' | 'facebook' | 'instagram' | 'youtube';
   name: string;
   blurb: string;
-  href?: string;
+  href: string;
 };
 
 /**
  * The four footer cards.
  *
- * No hrefs: these are the template's placeholder accounts, and linking them
- * would send visitors to profiles that are not Nanotom Labs'. They are dropped
- * entirely below the `lg` breakpoint, matching the mobile frame.
+ * Nanotom Labs' own accounts — every handle reads `nanotomlabs`. Capital's
+ * (`nanotomcapital`) went in first by mistake and were corrected; the two
+ * businesses share an owner, which is exactly what makes the handles easy to
+ * mix up, so check the brand in the URL rather than the shape of it.
+ *
+ * They replace the template's placeholder Instagram/Twitter/Dribbble/Behance,
+ * which had no destinations at all. Every one opens in a new tab — the card is
+ * a link off-site, and the design gives it the same up-right arrow it gives
+ * every other outbound control.
+ *
+ * The blurbs are deliberately plain. The template's described a portfolio of
+ * web projects that does not exist yet; these say what the account is for
+ * without claiming anything is already on it.
  */
 export const SOCIAL_CARDS: readonly SocialCard[] = [
   {
+    icon: 'linkedin',
+    name: 'LinkedIn',
+    blurb: 'Company news, and what we are learning about local search.',
+    href: 'https://www.linkedin.com/company/nanotom-labs/',
+  },
+  {
+    icon: 'facebook',
+    name: 'Facebook',
+    blurb: 'Updates, offers, and what is working in local marketing right now.',
+    href: 'https://www.facebook.com/nanotomlabs/',
+  },
+  {
     icon: 'instagram',
-    name: 'INstagram',
-    blurb: 'Share visually appealing snippets of our latest web projects.',
+    name: 'Instagram',
+    blurb: 'A look at the work, and the people behind it.',
+    href: 'https://www.instagram.com/nanotomlabs',
   },
   {
-    icon: 'twitter',
-    name: 'Twitter',
-    blurb: "Tweet about interesting coding challenges you've overcome.",
-  },
-  {
-    icon: 'dribbble',
-    name: 'Dribbble',
-    blurb: 'Showcase design elements of our web projects.',
-  },
-  {
-    icon: 'behance',
-    name: 'Behance',
-    blurb: 'Create detailed presentations for our projects.',
+    icon: 'youtube',
+    name: 'YouTube',
+    blurb: 'Walkthroughs and breakdowns of the tactics we use.',
+    href: 'https://www.youtube.com/@NanotomLabs',
   },
 ];
 
@@ -186,5 +220,14 @@ export const LEGAL_LINKS: readonly FooterLink[] = [
   { label: 'Privacy Policy' },
 ];
 
-/** The year is still the template's — see the note in content.ts. */
-export const COPYRIGHT = '© 2024 Nanotom Labs. All rights reserved.';
+/**
+ * The copyright line, with the year taken from the clock rather than typed.
+ *
+ * It read 2024 — the template's — until someone noticed, which is the whole
+ * problem with writing a year down: it is wrong for eleven months of every
+ * year and nothing complains. Both Labs pages are statically generated, so
+ * this resolves at BUILD time; a deploy in January fixes it, and a site that
+ * has not been deployed since last year shows last year, which is what the
+ * notice means anyway.
+ */
+export const COPYRIGHT = `© ${new Date().getFullYear()} Nanotom Labs. All rights reserved.`;

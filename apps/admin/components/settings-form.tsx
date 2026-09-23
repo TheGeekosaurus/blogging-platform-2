@@ -100,16 +100,30 @@ export function SettingsForm({
           />
         </div>
 
+        {/*
+          This replaced an "Analytics ID" field that was saved on every submit
+          and read by nothing — filling it in produced no tracking and no
+          error. The name is specific now because the value is: one GTM
+          container, loaded on every page of this site.
+        */}
         <div>
-          <label htmlFor="analytics_id" className="block text-sm font-medium">
-            Analytics ID
+          <label htmlFor="gtm_container_id" className="block text-sm font-medium">
+            Google Tag Manager container
           </label>
           <input
-            id="analytics_id"
-            name="analytics_id"
-            defaultValue={site.analytics_id ?? ''}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+            id="gtm_container_id"
+            name="gtm_container_id"
+            defaultValue={site.gtm_container_id ?? ''}
+            placeholder="GTM-XXXXXXX"
+            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
           />
+          <p className="mt-1 text-xs text-slate-500">
+            Loads on every page of this site. Leave empty for no tracking — which is what
+            you want on a site that is not live yet, so it does not report into a real
+            container. Add Google Analytics, the Facebook pixel and any conversion tags
+            as tags <strong>inside</strong> this container rather than asking for them to
+            be added to the code: two copies of one pixel double-count conversions.
+          </p>
         </div>
 
         <StructuredDataPanel variant="site" defaultSnippets={snippets} />

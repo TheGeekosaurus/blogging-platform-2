@@ -490,6 +490,19 @@
  * React components — everything here is plain CSS against the tags the
  * sanitiser allows.
  */
+/*
+ * The angle the lead capture popup's border light is rotated to.
+ *
+ * Registered rather than merely used, because an unregistered custom property
+ * is a string as far as animation is concerned and cannot be interpolated. See
+ * `.lm-beam` for the effect this drives.
+ */
+@property --lm-beam-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @layer components {
   /*
    * The homepage's "Featured On" press-logo marquee. Eight duplicated copies of
@@ -650,6 +663,126 @@
   .toc-scroll:hover::-webkit-scrollbar-thumb,
   .toc-scroll:focus-within::-webkit-scrollbar-thumb {
     background: color-mix(in srgb, var(--color-ink-muted) 45%, transparent);
+  }
+
+  /*
+   * The lead capture popup's border light: two points of brand gold orbiting
+   * the outline, opposite each other.
+   *
+   * WHY IT LIVES HERE AND NOT IN THE COMPONENT. --color-gold is a fixed palette
+   * value, and apps/blog/__tests__/contrast.test.ts forbids blog components
+   * from reading it — for good reason: it measures 2.13:1 on white, so gold
+   * TEXT is unreadable in light mode. This is not text. It is a decorative
+   * stroke a pixel and a half wide whose whole job is to catch the eye, it
+   * carries no information, and nothing is lost if a reader cannot resolve it.
+   * Keeping it in the stylesheet puts the exception where it can be read next
+   * to its reason, rather than sprinkling an escape hatch through the markup.
+   *
+   * HOW IT WORKS. A conic gradient with two gold arcs 180 degrees apart, masked
+   * down to a ring so only the border shows it, and animated by rotating the
+   * gradient's start angle. Rotating the ELEMENT instead — the usual trick —
+   * spins the rounded rectangle itself, which looks right only while the box is
+   * square; the popup is far taller than it is wide.
+   *
+   * Animating an angle needs @property, so that the browser interpolates it as
+   * an angle rather than treating a custom property as an opaque string. Where
+   * that is unsupported the gradient simply holds its initial angle: two gold
+   * arcs sitting still on the border, which reads as deliberate rather than
+   * broken. That is the whole fallback.
+   */
+  @keyframes lm-beam-orbit {
+    to {
+      --lm-beam-angle: 360deg;
+    }
+  }
+
+  /*
+   * The positioning context for the ring below, declared HERE rather than left
+   * to a `relative` utility on whatever element carries the class.
+   *
+   * It WAS the caller's job, for exactly one revision. When the offer moved
+   * from an overlay into the sidebar panel the class came across and the
+   * `relative` did not, so `inset: 0` resolved against the nearest positioned
+   * ancestor instead — and the two gold points drew themselves down the edge
+   * of the panel, a few hundred pixels from the box they belong to. It looked
+   * like a rendering artefact rather than like a mistake, which is the kind
+   * that survives review. A decoration that can silently attach itself to
+   * someone else's box should not depend on a caller remembering a class.
+   */
+  .lm-beam {
+    position: relative;
+  }
+
+  .lm-beam::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    /*
+     * Above the card, which is opaque and would otherwise paint over its own
+     * outline. Masked to the ring, so this covers nothing but the border.
+     */
+    z-index: 1;
+    border-radius: inherit;
+    /* The ring's thickness. Also the mask's inset — see below. */
+    padding: 1.5px;
+    /*
+     * Each point is a short comet: a hard stop into full gold, then a fade out
+     * over ~16 degrees. Wider than this and it stops reading as a travelling
+     * point and starts reading as a gold corner — which is what the first pass
+     * looked like at 42 degrees of spread.
+     *
+     * Degrees map unevenly onto the perimeter of a tall rectangle, so the two
+     * points visibly speed up along the short edges and slow down the long
+     * ones. That is inherent to a conic sweep and is left alone: the
+     * alternative is animating offset-path along a border shape, which is a
+     * great deal of machinery for a decoration nobody is timing.
+     */
+    background: conic-gradient(
+      from var(--lm-beam-angle),
+      transparent 0deg,
+      var(--color-gold) 4deg,
+      transparent 20deg,
+      transparent 180deg,
+      var(--color-gold) 184deg,
+      transparent 200deg,
+      transparent 360deg
+    );
+    /*
+     * Border-only fill: paint the box twice, once clipped to the content box
+     * and once to the whole element, then keep the difference — which is
+     * exactly the padding, i.e. the ring. `xor` is Safari's spelling of
+     * `exclude`; neither prefix covers both engines.
+     */
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    /*
+     * The glow, and the reason these read as light rather than as paint. The
+     * filter runs after the mask, so it blooms the two visible arcs and
+     * nothing else — a blurred copy of the whole gradient would need a second
+     * layer and a stacking context to sit behind the card.
+     */
+    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--color-gold) 70%, transparent));
+    animation: lm-beam-orbit 6s linear infinite;
+    /* It sits over the card's edge, including over the close button's corner. */
+    pointer-events: none;
+  }
+
+  /*
+   * Continuous peripheral motion is a common vestibular trigger, and unlike a
+   * transition it never ends. Stopped rather than removed: the gradient holds
+   * at its initial angle, so the popup keeps its gold accent and loses only the
+   * travel.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .lm-beam::before {
+      animation: none;
+    }
   }
 
   .post-body {
@@ -827,6 +960,27 @@
     margin-top: 0.5em;
   }
 
+  /*
+   * The same links on the MARKETING ground, which is a different palette.
+   *
+   * `.blog-surface` redefines --color-accent to brand gold precisely because
+   * the :root value is a light-theme blue; `.ft-surface` never did, so an
+   * author link in the marketing blog list came out #1f5fd0 on #141414 —
+   * measured at 3.2:1, under AA for text this size, and off-brand besides.
+   *
+   * Pointing at --ft-accent rather than setting --color-accent on .ft-surface:
+   * that token is read by other rules inside this surface, and widening one
+   * link colour into a palette change is how a fix becomes a regression.
+   */
+  .ft-surface .author-prose a {
+    color: var(--ft-accent);
+    text-decoration-color: color-mix(in srgb, var(--ft-accent) 45%, transparent);
+  }
+
+  .ft-surface .author-prose a:hover {
+    text-decoration-color: var(--ft-accent);
+  }
+
   .post-body table {
     width: 100%;
     border-collapse: collapse;
@@ -964,28 +1118,31 @@
   .post-frame {
     --page-bleed: calc(1.25rem + max(0px, (100vw - 80rem) / 2));
 
-    /*
-     * The air on either side of the vertical rule. Read in THREE places — the
-     * article column's right padding, the sidebar's left padding, and the
-     * right-hand bleed below — which is exactly why it is a variable. If the
-     * bleed and the padding ever disagreed the result would be a rule stopping
-     * short of the divider: the precise gap this frame was built to close, and
-     * nothing but a measurement would catch it.
-     */
+    /* The air between the sidebar panel and the article's text. */
     --frame-gutter: 3rem;
 
     /*
-     * Where a horizontal rule's right end goes. Stacked, there is no divider to
-     * meet, so it runs to the screen edge like the left end.
+     * How far a horizontal rule grows past each end of the article column.
+     *
+     * Stacked, the article IS the page, so both ends run to the screen edge.
+     * Side by side, the sidebar occupies everything left of the article, so the
+     * start end must stop dead at the column: bleeding it would run the stroke
+     * under the panel. The right end has nothing beside it either way.
+     *
+     * These are two variables rather than one because the two ends stopped
+     * agreeing the moment the sidebar changed sides — and a single one would
+     * have made that a silent 400px stroke across the panel rather than a
+     * declaration to change.
      */
+    --rule-bleed-start: var(--page-bleed);
     --rule-bleed-end: var(--page-bleed);
   }
 
   @media (min-width: 64rem) {
     .post-frame {
       --page-bleed: calc(2rem + max(0px, (100vw - 80rem) / 2));
-      /* Two columns: the divider is exactly one gutter past the content edge. */
-      --rule-bleed-end: var(--frame-gutter);
+      /* Two columns: the panel is immediately left of the article's padding. */
+      --rule-bleed-start: 0px;
     }
   }
 
@@ -994,14 +1151,15 @@
    * Applied to the byline row in the markup, and to the intro rule below — that
    * h2 comes out of a sanitised HTML string and cannot carry a class.
    *
-   * The right end is what lets the article column hold its content a gutter
-   * clear of the divider while the STROKES still land on it. Padding the column
-   * alone would pull these rules 48px short and unmake the frame.
+   * Both ends read a variable rather than --page-bleed directly, because at
+   * `lg` they no longer do the same thing: the right still runs to the screen
+   * edge, the left stops at the article column so the sidebar panel keeps its
+   * gutter clear.
    */
   .post-rule,
   .post-frame .post-body > h2:nth-of-type(2) {
-    margin-left: calc(-1 * var(--page-bleed));
-    padding-left: var(--page-bleed);
+    margin-left: calc(-1 * var(--rule-bleed-start));
+    padding-left: var(--rule-bleed-start);
     margin-right: calc(-1 * var(--rule-bleed-end));
     padding-right: var(--rule-bleed-end);
   }
@@ -1112,6 +1270,20 @@
      * together and reads the space between sections as a break.
      */
     --nl-section-gap: 64px;
+
+    /*
+     * The hero's height, shared by every page that has one.
+     *
+     * Each hero used to size itself from whatever it happened to contain, so
+     * the three came out 520, 573 and 379 at 1920 — close enough to look
+     * accidental rather than intentional, and obvious the moment you click
+     * between them and the fold jumps. One number, applied as a MINIMUM: a
+     * hero whose copy outgrows it still grows rather than clipping.
+     *
+     * Only above `lg`. Below that the two columns stack and a shared height
+     * would mean padding one page to match another page's image.
+     */
+    --nl-hero-h: 520px;
 
     background-color: var(--nl-bg);
     color: var(--nl-body);
@@ -1232,6 +1404,105 @@
   }
 
   /*
+   * The hero headline's rolling word: "More [Calls / Foot Traffic / Quote
+   * Requests / Contracts]".
+   *
+   * A window one line tall over a column of words, translated a word at a
+   * time. No JavaScript, for the reason every other moving part of this site
+   * has none — a four-word animation is not worth a client bundle on the
+   * landing page — and no layout thrash either: `transform` and nothing else,
+   * so it runs on the compositor and never reflows the headline beside it.
+   *
+   * THE COLUMN CARRIES THE FIRST WORD TWICE, at the end. Five children, moved
+   * in five steps of -20%: the last step lands on the duplicate, which is the
+   * same frame the animation restarts on, so the loop closes invisibly.
+   * Without it the roll would either snap backwards through three words or
+   * end on blank space.
+   *
+   * EVERY HEIGHT IS IN `em` and derives from --nl-roll-line, so the whole
+   * mechanism scales with the h1's fluid clamp — there is no pixel here to
+   * keep in sync with a font size. The h1 sets that variable to its own
+   * leading; a window taller or shorter than the words shows two at once or
+   * clips the one it shows.
+   */
+  .nl-roll {
+    --nl-roll-line: 1.1em;
+    display: inline-block;
+    height: var(--nl-roll-line);
+    overflow: hidden;
+    /*
+     * The words sit in a flex row with the lead word, bottom-aligned. Their
+     * line boxes are the same height and set in the same face, so aligning the
+     * bottoms aligns the baselines — which aligning on `baseline` would not:
+     * an overflow-hidden box reports its bottom edge as its baseline, and the
+     * word would ride high by a descender's worth.
+     */
+    vertical-align: bottom;
+  }
+
+  /*
+   * TWO SECONDS A WORD, and the cycle is that times however many there are —
+   * the component passes the count in as --nl-roll-words, so adding an outcome
+   * lengthens the loop instead of speeding the others up. 1.6s of that is the
+   * word sitting still and 0.4s is the travel, which the keyframes below set.
+   */
+  .nl-roll-track {
+    display: flex;
+    flex-direction: column;
+    animation: nl-roll calc(var(--nl-roll-words, 4) * 2s) cubic-bezier(0.76, 0, 0.24, 1)
+      infinite;
+  }
+
+  .nl-roll-track > * {
+    height: var(--nl-roll-line);
+    line-height: var(--nl-roll-line);
+  }
+
+  /*
+   * ONE STOP PER WORD, AND THE NUMBERS ARE ARITHMETIC, not taste. For W words
+   * in a column of W+1 rows: each word owns 100/W% of the cycle and sits still
+   * for all but the last 0.4s of it, then the column moves 100/(W+1)% — one
+   * row — to the next. The final stop is the repeated first word at 100%,
+   * which is the frame 0% already shows, so the loop closes on itself.
+   *
+   * Written out because CSS cannot loop, and one rule per line because fifteen
+   * of them in the expanded style is a screenful of braces. `labs.test.ts`
+   * recomputes every number here from HERO.rolling.length and fails if they
+   * disagree — which is the real guard, since adding a word to the copy and
+   * forgetting this block leaves every word half-shown.
+   */
+  /* prettier-ignore */
+  @keyframes nl-roll {
+    0%, 5.7143% { transform: translate3d(0, 0, 0); }
+    7.1429%, 12.8571% { transform: translate3d(0, -6.6667%, 0); }
+    14.2857%, 20% { transform: translate3d(0, -13.3333%, 0); }
+    21.4286%, 27.1429% { transform: translate3d(0, -20%, 0); }
+    28.5714%, 34.2857% { transform: translate3d(0, -26.6667%, 0); }
+    35.7143%, 41.4286% { transform: translate3d(0, -33.3333%, 0); }
+    42.8571%, 48.5714% { transform: translate3d(0, -40%, 0); }
+    50%, 55.7143% { transform: translate3d(0, -46.6667%, 0); }
+    57.1429%, 62.8571% { transform: translate3d(0, -53.3333%, 0); }
+    64.2857%, 70% { transform: translate3d(0, -60%, 0); }
+    71.4286%, 77.1429% { transform: translate3d(0, -66.6667%, 0); }
+    78.5714%, 84.2857% { transform: translate3d(0, -73.3333%, 0); }
+    85.7143%, 91.4286% { transform: translate3d(0, -80%, 0); }
+    92.8571%, 98.5714% { transform: translate3d(0, -86.6667%, 0); }
+    100% { transform: translate3d(0, -93.3333%, 0); }
+  }
+
+  /*
+   * Stopped, not hidden, like the marquees: the first word is a real part of
+   * the headline and has to read when the motion does not run. The other three
+   * are still in the markup for a screen reader and for a crawler — see the
+   * visually-hidden list beside the window in labs/home.tsx.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .nl-roll-track {
+      animation: none;
+    }
+  }
+
+  /*
    * The success stories' Before / After tabs — interactive, with no JavaScript.
    *
    * A radio group drives it: one visually-hidden input per panel, labels
@@ -1260,6 +1531,60 @@
 
   .nl-tabs:has(input[value='before']:checked) .nl-tab-panel[data-tab='after'] {
     display: none;
+  }
+
+  /*
+   * A tab group of any size, keyed by POSITION rather than by name.
+   *
+   * `.nl-tabs` above is the success stories', and its rules name `before` and
+   * `after` — fine for two fixed panels, useless for the contact card's three.
+   * CSS cannot express "show the panel whose key matches the checked input",
+   * so the keys have to be written out either way; numbering them keeps the
+   * rules content-agnostic, so the next tab group reuses these instead of
+   * adding its own vocabulary to this file.
+   *
+   * THE DEFAULT IS PLAIN CSS, same as `.nl-tabs`: panel 1 shows and the rest
+   * hide before any `:has()` rule applies, so a browser without `:has()`
+   * renders the first panel rather than an empty card. It simply cannot
+   * switch.
+   *
+   * Four positions is the ceiling, and adding a fifth means adding its two
+   * rules here. A group that outgrows this wants a different mechanism, not a
+   * longer list.
+   */
+  .nl-tabset [data-tabpanel] {
+    display: none;
+  }
+
+  .nl-tabset [data-tabpanel='1'] {
+    display: block;
+  }
+
+  .nl-tabset:has(input[value='2']:checked) [data-tabpanel='1'],
+  .nl-tabset:has(input[value='3']:checked) [data-tabpanel='1'],
+  .nl-tabset:has(input[value='4']:checked) [data-tabpanel='1'] {
+    display: none;
+  }
+
+  .nl-tabset:has(input[value='2']:checked) [data-tabpanel='2'],
+  .nl-tabset:has(input[value='3']:checked) [data-tabpanel='3'],
+  .nl-tabset:has(input[value='4']:checked) [data-tabpanel='4'] {
+    display: block;
+  }
+
+  /* Same layering reason as `.nl-tabs` below — see the note there. */
+  .nl-tabset [data-tab-label] {
+    background-color: var(--nl-raised);
+    color: var(--nl-muted);
+  }
+
+  .nl-tabset [data-tab-label]:hover {
+    color: var(--nl-ink);
+  }
+
+  .nl-tabset input:checked + [data-tab-label] {
+    background-color: var(--nl-accent);
+    color: #0f0f0f;
   }
 
   /*
@@ -1333,4 +1658,159 @@
 .nl-fonts {
   --font-headline: var(--font-roboto-flex), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-roboto-flex), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* ---------------------------------------------------------------------------
+ * The product comparison on /funding-solutions/<product>
+ *
+ * A radio group with no JavaScript: every panel is in the DOM and these rules
+ * reveal the one whose radio is checked. Written by hand rather than as
+ * Tailwind variants because the selector has to be built from the product being
+ * compared, and Tailwind generates classes by scanning source text for literals
+ * — `peer-checked/${slug}:grid` interpolated from a variable produces no CSS at
+ * all and fails silently, which on this widget means panels that never appear.
+ *
+ * Indexed 0-3 rather than keyed by slug: there are always exactly four "other"
+ * products, because one of the five is the page you are on. If a sixth product
+ * is ever added, add index 4 here — and note that nothing will fail loudly if
+ * you forget, so check the widget after.
+ *
+ * `~` reaches following siblings only, which is why loan-product.tsx emits all
+ * four radios before the tab row and the panels.
+ * ------------------------------------------------------------------------- */
+
+.ft-compare-panel {
+  display: none;
+}
+
+.ft-compare-radio[data-i='0']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='0'],
+.ft-compare-radio[data-i='1']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='1'],
+.ft-compare-radio[data-i='2']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='2'],
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'] {
+  display: grid;
+}
+
+/* The selected tab. Mirrors the "All" pill on the blog's category row. */
+.ft-compare-radio[data-i='0']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
+.ft-compare-radio[data-i='1']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
+.ft-compare-radio[data-i='2']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+  background: var(--ft-card-raised);
+  color: var(--ft-ink);
+  font-weight: 500;
+  --tw-ring-color: var(--ft-accent);
+  box-shadow: inset 0 0 0 1px var(--ft-accent);
+}
+
+/*
+ * The input is `sr-only`, so the focus ring has to be drawn on its label or a
+ * keyboard user sees nothing move as they arrow through the group.
+ */
+.ft-compare-radio[data-i='0']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
+.ft-compare-radio[data-i='1']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
+.ft-compare-radio[data-i='2']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
+.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+  outline: 2px solid var(--ft-accent);
+  outline-offset: 3px;
+}
+
+/* ===========================================================================
+ * THE LIGHT PALETTE — A TEST, OFF BY DEFAULT.
+ *
+ * Switched on by `ft-light` on <body>, which app/layout.tsx adds from the
+ * FT_LIGHT_TEST flag. With the flag off not one selector below matches, so the
+ * dark site is byte-identical; deleting this block and that flag removes the
+ * experiment completely.
+ *
+ * Two colours, both Denis's:
+ *   the sections that were near-black #141414  ->  #2D3748
+ *   the banner bands that were grey    #1A1A1A  ->  #FFFFFF
+ *
+ * The gold is untouched on the ground, so every CTA stays the brand colour.
+ *
+ * WHY THIS BLOCK IS UNLAYERED. Everything else here lives in @layer components,
+ * which Tailwind's `utilities` layer outranks — the header's scrolled-state
+ * background is a utility, and a layered rule could not win against it without
+ * !important. Unlayered declarations beat every layer, so one plain block
+ * overrides both the tokens and that utility with no specificity games.
+ *
+ * ---------------------------------------------------------------------------
+ * CONTRAST, measured rather than guessed. On the #2D3748 ground:
+ *   --ft-ink    #FFFFFF  11.88:1
+ *   --ft-muted  #B3BCCB   6.21:1   (the dark theme's muted is 6.33:1)
+ *   --ft-subtle #A1ACBD   5.18:1 on the ground, 4.62:1 on the cards
+ *   --ft-accent #E0A840   5.82:1
+ * On the white bands, where the tones invert:
+ *   --ft-ink    #16202E  16.4:1
+ *   --ft-muted  #4C5765   7.35:1
+ *   --ft-accent #96670C   4.95:1
+ *
+ * THE BAND ACCENT IS THE ONE VALUE THAT HAD TO CHANGE. Brand gold on white is
+ * 2.04:1 — unreadable, and unfixable by any amount of weight. #96670C is the
+ * same hue taken down until it clears AA. It applies ONLY inside a band, and
+ * only ever to gold *text* and icons: nothing inside a band is gold-filled, so
+ * no button changes colour. Check that before putting a gold CTA in a band.
+ * =========================================================================== */
+
+/*
+ * The shared near-black, re-pointed once. The site header, the site footer and
+ * --ft-bg all read this token, so they move together rather than each carrying
+ * its own copy of the new value.
+ */
+.ft-light {
+  --color-ground: #2d3748;
+
+  /*
+   * The header's dropdown panels and the mobile nav sheet, which hang off a
+   * header that has just moved. Left alone they stay the old near-black and
+   * read as a second, unexplained palette the moment a menu opens.
+   */
+  --color-brand-raised: #374255;
+}
+
+.ft-light .ft-surface {
+  --ft-band: #ffffff;
+  --ft-card: #353f51;
+  --ft-card-raised: #414d62;
+  --ft-line: #414d62;
+
+  --ft-muted: #b3bccb;
+  --ft-subtle: #a1acbd;
+}
+
+/*
+ * A white band, with the tones turned over.
+ *
+ * `ft-band` marks the element that paints --ft-band. It is a marker, not a
+ * style — the background still comes from the utility beside it — and it earns
+ * its place here: a band is the one place on the page whose text has to invert,
+ * and the alternative is targeting Tailwind's escaped arbitrary-value class.
+ */
+.ft-light .ft-band {
+  --ft-ink: #16202e;
+  --ft-muted: #4c5765;
+  --ft-subtle: #5e6a78;
+  --ft-card: #f2f4f7;
+  --ft-card-raised: #e7ebf0;
+  --ft-line: #dde3ea;
+  --ft-accent: #96670c;
+
+  color: var(--ft-ink);
+}
+
+/*
+ * The header's scrolled state, whose translucent near-black is written inline
+ * as a utility and so cannot follow --color-ground. Same alpha, same idea.
+ */
+.ft-light header[data-scrolled='true'] {
+  background-color: rgba(38, 48, 65, 0.72);
+}
+
+/*
+ * The fallback artwork on a post with no featured image: a two-stop gradient
+ * with the old ground baked into it, which would otherwise be the one near-black
+ * rectangle left on the page.
+ */
+.ft-light .ft-surface .ft-image-slot {
+  background-image: linear-gradient(135deg, #3b4759, #2d3748 60%);
 }

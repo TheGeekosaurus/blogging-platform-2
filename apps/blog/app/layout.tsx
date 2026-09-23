@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core';
 
+import { Analytics } from '@/components/analytics';
 import { JsonLd } from '@/components/json-ld';
-import { Analytics } from '@/components/marketing/analytics';
-import { IMAGE_ORIGIN, REVIEWS } from '@/components/marketing/brand';
+import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
 import { LabsHeader } from '@/components/marketing/labs/site-header';
@@ -137,6 +137,25 @@ function iconsFor(site: { favicon_url: string | null }): Metadata['icons'] {
  * Capital out of the reader's dark-mode preference; `nl-surface` carries NNTM
  * Labs' whole dark palette — see globals.css for both.
  */
+/**
+ * THE LIGHT PALETTE — a test, and the only switch that turns it on.
+ *
+ * `true` paints Capital in the light theme at the bottom of globals.css: the
+ * near-black sections become #2D3748 and the grey banner bands become white,
+ * with the gold left alone so every CTA keeps the brand colour. `false` and
+ * nothing below matches, so the dark site renders exactly as before.
+ *
+ * It goes on <html> rather than on <body> with the rest of the surface classes,
+ * because it re-points --color-ground and testimonial-wall.tsx reads that token
+ * off document.documentElement to colour the review iframe. On <body> the token
+ * would still cascade to every element that paints with it, and that one script
+ * would read the old near-black and paint the wall a colour nothing else uses.
+ *
+ * Typed `boolean` rather than inferred: the literal type would narrow the
+ * ternary to one branch and the other would read as dead code.
+ */
+const FT_LIGHT_TEST: boolean = false;
+
 const BODY_CLASS: Record<'nntm-capital' | 'nntm-labs' | 'default', string | undefined> = {
   'nntm-capital': 'marketing-root',
   'nntm-labs': 'nl-surface',
@@ -198,7 +217,7 @@ export default async function RootLayout({
     : `${lato.variable} ${poppins.variable}`;
 
   return (
-    <html lang={site.locale} className={fonts}>
+    <html lang={site.locale} className={`${fonts}${marketing && FT_LIGHT_TEST ? ' ft-light' : ''}`}>
       <head>
         {/*
           Marketing images are hotlinked from HighLevel's CDN by decision, so the
@@ -219,7 +238,6 @@ export default async function RootLayout({
           same origin, so its handshake is worth overlapping with HTML parsing
           too. No crossOrigin: unlike the image CDN these are not CORS fetches.
         */}
-        {marketing ? <link rel="preconnect" href={REVIEWS.origin} /> : null}
 
         {/*
           Resolves the reader's blog theme before the first paint, so there is no
@@ -249,7 +267,23 @@ export default async function RootLayout({
         <JsonLd nodes={readSnippets(site.structured_data)} />
       </head>
       <body className={BODY_CLASS[coded ?? 'default']}>
-        {marketing ? <Analytics /> : null}
+        {/*
+          Tracking, for every site rather than one of them.
+
+          This used to be `marketing ? <Analytics /> : null` — gated on the
+          Nanotom Capital slug, with the container id coming from
+          NEXT_PUBLIC_GTM_ID. That gate was the reason Labs and every
+          database-driven blog had no analytics and no way to add any: the
+          variable could be set on their Vercel projects and would be read and
+          discarded, because the component was never mounted to read it.
+
+          Ungated now, because the site row decides: a site with no
+          `gtm_container_id` renders nothing, which is the same outcome the
+          slug check produced and is reached by configuration rather than by
+          code. Adding tracking to a new blog is a field in the admin, not a
+          deploy and not an edit here.
+        */}
+        <Analytics containerId={site.gtm_container_id} />
 
         <a
           href="#content"

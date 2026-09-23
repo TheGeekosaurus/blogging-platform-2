@@ -3,16 +3,10 @@ import Link from 'next/link';
 
 import { SERVICES_ENQUIRY_ANCHOR } from './brand';
 import { LINKS, SECTIONS, SERVICES, SERVICE_MARQUEE } from './content';
-import { ArrowRight, SERVICE_ICONS, WORK_ICONS } from './icons';
-import { ArrowLink, DiscLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
-import { ClosingCta, Faq, Stats, Testimonials } from './sections';
-import {
-  REASONS,
-  SERVICES_HERO,
-  SERVICES_LINKS,
-  SERVICES_SECTIONS,
-  WORKS,
-} from './services-content';
+import { ArrowRight, SERVICE_ICONS } from './icons';
+import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
+import { ClosingCta, Faq, Stats, Testimonials, WorkPanel } from './sections';
+import { SERVICES_HERO, SERVICES_LINKS, SERVICES_SECTIONS, WORKS } from './services-content';
 
 /**
  * The Nanotom Labs Services page.
@@ -24,7 +18,6 @@ import {
  *
  *   y=161   hero            1207 + 593, split 20
  *   y=771   stat band       six 280x150 tiles          (shared)
- *   y=1081  reasons         four 430x398 cards
  *   y=1815  services        four 880x395 cards, 2x2
  *   y=2963  our works       three 579.3 columns per project
  *   y=4221  testimonials    four 430x404 cards          (shared)
@@ -32,7 +25,9 @@ import {
  *   y=6151  closing call    1821x305 accent band        (shared)
  *
  * The four marked shared are imported from ./sections.tsx, which is where they
- * moved when this page proved they were not the homepage's.
+ * moved when this page proved they were not the homepage's. The artwork's
+ * "reasons to choose" block, which sat at y=1081, is gone from here for the
+ * opposite reason — see REASONS in ./content.ts.
  *
  * NO MOBILE ARTBOARD WAS SUPPLIED for this frame — the homepage had both a
  * 1920 and a 390 export to match. Every breakpoint below `lg` here is
@@ -93,7 +88,7 @@ function HeroBadge() {
 
 function Hero() {
   return (
-    <section className="grid gap-5 lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
+    <section className="grid gap-5 lg:min-h-[var(--nl-hero-h)] lg:grid-cols-[minmax(0,1207fr)_minmax(0,593fr)]">
       <div className="flex min-w-0 flex-col justify-between gap-8 rounded-[var(--nl-radius-block)] bg-[var(--nl-card)] p-5 pb-4 lg:p-12 lg:pb-5">
         <div>
           {/*
@@ -161,7 +156,13 @@ function Hero() {
        * thumbnail would misrepresent what was delivered.
        */}
       <figure className="flex min-w-0 flex-col overflow-hidden rounded-[var(--nl-radius-block)] bg-[var(--nl-card)]">
-        <div className="relative aspect-[593/465] w-full">
+        {/*
+          * Aspect-locked while the card is full width and stacked; above `lg`
+          * the card fills the hero row instead and the screenshot takes
+          * whatever is left after the caption. Holding 593:465 up there is
+          * what made this hero 573px tall against the homepage's 520.
+          */}
+        <div className="relative aspect-[593/465] w-full lg:aspect-auto lg:flex-1">
           <Image
             src={SERVICES_HERO.image.src}
             alt={SERVICES_HERO.image.alt}
@@ -181,51 +182,6 @@ function Hero() {
         </figcaption>
       </figure>
     </section>
-  );
-}
-
-function Reasons() {
-  return (
-    <Panel className="mt-[var(--nl-section-gap)]">
-      <SectionHeader title={SERVICES_SECTIONS.reasons} />
-
-      {/*
-        * Four across only from `xl`.
-        *
-        * The artwork's four 430px cards are a 1920 layout. Held at four all
-        * the way down, each card is 208px wide at 1024 — narrower than the
-        * word "Technologies" set at the artwork's 30px, which pushed the whole
-        * PAGE into horizontal scroll rather than merely looking tight. Two up
-        * between `sm` and `xl` is the same cards at a readable measure.
-        */}
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
-        {REASONS.map((reason) => (
-          <article
-            key={reason.title}
-            className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10"
-          >
-            <div>
-              {/*
-                * The size steps with the column count for the same reason:
-                * 30px is the artwork's figure at 1920, where the card is
-                * 430px. `break-words` is the backstop — a single unbreakable
-                * word longer than its column is the one thing that escapes a
-                * fluid size, and it escapes as page-wide horizontal scroll.
-                */}
-              <h3 className="nl-heading text-xl leading-snug break-words lg:text-2xl 2xl:text-3xl">
-                {reason.title}
-              </h3>
-              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6">
-                {reason.body}
-              </p>
-            </div>
-
-            {/* Unlinked: the design gives these four no destination. */}
-            <DiscLink label={SERVICES_LINKS.learnMore} />
-          </article>
-        ))}
-      </div>
-    </Panel>
   );
 }
 
@@ -282,134 +238,6 @@ function ServiceCards() {
 }
 
 /**
- * One project, in its own panel.
- *
- * Three equal columns in the artwork — 579.3px each with 20px gutters inside
- * an 1822px panel — so `lg:grid-cols-3` rather than fractions. The right
- * column is itself a stack of three: the technology list, the team strip, and
- * a full-width call, at the artwork's 225 / 90 / 63 heights.
- */
-function WorkPanel({ work }: { work: (typeof WORKS)[number] }) {
-  const Icon = WORK_ICONS[work.icon];
-
-  return (
-    <Panel>
-      <div className="grid gap-5 lg:grid-cols-3">
-        <article className="flex flex-col gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10">
-          {/*
-            * Stacked below `sm`, side by side above it.
-            *
-            * Held side by side at 390 the title column is 112px — narrower
-            * than the word "Ecommerce" set at 18px — so "A-Aura Ecommerce"
-            * broke mid-word. Dropping the control to its own line is what the
-            * mobile frame does with the service cards' "Book A Call" anyway.
-            */}
-          <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-            <div className="flex min-w-0 items-center gap-4">
-              <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] border border-[var(--nl-line-strong)] bg-[var(--nl-raised)] text-[var(--nl-accent)] lg:size-[66px]">
-                <Icon className="size-5 lg:size-7" />
-              </span>
-              <h3 className="nl-heading min-w-0 text-lg break-words lg:text-xl 2xl:text-2xl">
-                {work.title}
-              </h3>
-            </div>
-            <div className="sm:justify-self-end">
-              <ArrowLink label={SERVICES_LINKS.details} />
-            </div>
-          </div>
-
-          <dl className="flex flex-wrap gap-3">
-            {[
-              { term: SERVICES_LINKS.category, value: work.category },
-              { term: SERVICES_LINKS.timeTaken, value: work.timeTaken },
-            ].map((meta) => (
-              <div
-                key={meta.term}
-                className="flex items-center gap-2 rounded-full bg-[var(--nl-raised)] px-4 py-2.5"
-              >
-                <dt className="text-xs text-[var(--nl-muted)] lg:text-sm">{meta.term}</dt>
-                <span className="size-1 rounded-full bg-[var(--nl-accent)]" aria-hidden />
-                <dd className="text-xs text-[var(--nl-ink)] lg:text-sm">{meta.value}</dd>
-              </div>
-            ))}
-          </dl>
-
-          <p className="text-sm leading-relaxed text-[var(--nl-body)]">{work.body}</p>
-        </article>
-
-        <div className="relative min-h-[220px] overflow-hidden rounded-[var(--nl-radius-card)] bg-[var(--nl-line-strong)] lg:min-h-0">
-          <Image
-            src={work.image.src}
-            alt={work.image.alt}
-            fill
-            sizes="(min-width: 1024px) 580px, 100vw"
-            className="object-cover"
-          />
-        </div>
-
-        <div className="flex flex-col gap-5">
-          <div className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10">
-            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
-              {SERVICES_LINKS.technologiesUsed}
-            </h4>
-            <ul className="mt-4 flex flex-wrap gap-2 lg:mt-6">
-              {work.technologies.map((technology) => (
-                <li
-                  key={technology}
-                  className="rounded-full bg-[var(--nl-raised)] px-4 py-2 font-[family-name:var(--font-nl-mono)] text-xs text-[var(--nl-body)] lg:text-sm"
-                >
-                  {technology}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-5 py-4 lg:px-10">
-            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
-              {SERVICES_LINKS.teamMembers}
-            </h4>
-
-            {/*
-             * The accent shows THROUGH each portrait: the source files are
-             * cut-outs with an alpha channel, so the disc behind them is what
-             * supplies the colour. That is how the artwork tints them, and it
-             * means they followed the rebrand from terracotta to gold without
-             * a re-export.
-             *
-             * alt="" on every one — they are the template's stock portraits
-             * and name nobody, so announcing them would be noise.
-             */}
-            <ul className="flex items-center gap-2">
-              {work.team.map((portrait, index) => (
-                <li
-                  key={`${portrait}-${index}`}
-                  className="size-10 overflow-hidden rounded-full bg-[var(--nl-accent)] lg:size-[50px]"
-                >
-                  <Image
-                    src={portrait}
-                    alt=""
-                    width={50}
-                    height={50}
-                    className="size-full object-cover"
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <Link
-            href={SERVICES_ENQUIRY_ANCHOR}
-            className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-4 text-xs text-[#0f0f0f] lg:text-sm"
-          >
-            {LINKS.bookACall}
-          </Link>
-        </div>
-      </div>
-    </Panel>
-  );
-}
-
-/**
  * Our Works, laid out like the homepage's Success Stories: the heading card
  * sits on the page ground and EACH PROJECT gets its own panel, because the
  * artwork has two 1822x470 panels rather than one tall one. Wrapping them
@@ -426,7 +254,7 @@ function Works() {
 
       <div className="mt-5 flex flex-col gap-5">
         {WORKS.map((work) => (
-          <WorkPanel key={work.title} work={work} />
+          <WorkPanel key={work.title} work={work} enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
         ))}
       </div>
 
@@ -440,7 +268,6 @@ export function LabsServices() {
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
       <Stats enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
-      <Reasons />
       <ServiceCards />
       <Works />
       <Testimonials />

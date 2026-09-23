@@ -15,8 +15,11 @@
  * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. Three blocks below name
  * people and companies who are not Nanotom Labs' customers:
  *   - TESTIMONIALS: four named individuals with job titles and stock portraits
- *   - SUCCESS_STORIES: two client engagements with described outcomes
- *   - SERVICES[].projects: eight screenshots presented as this agency's work
+ *   - SUCCESS_STORIES: the second story is still a template engagement; the
+ *     first names a real client and says nothing about the work yet
+ *   - SERVICES[].projects: the five remaining template screenshots, presented
+ *     as this agency's work
+ * (STATS is no longer among them — those figures are the business's own now.)
  * Published as-is on a real domain these read as endorsements, case studies and
  * a portfolio that did not happen. Replace or remove them before the site goes
  * live. (The four invented price points that used to sit here are gone.)
@@ -25,22 +28,79 @@
  * touching markup.
  */
 
+import { GOLDEN_SCAFFOLD, projectPath } from './projects-content';
+
+/*
+ * That import goes one way only. ./projects-content.ts imports `Work` back out
+ * of this file, but as `import type`, which the compiler erases — so there is
+ * no cycle at runtime. Keep it that way: if that file ever needs a VALUE from
+ * here, move the shared piece into a third module rather than closing the loop.
+ */
+
 /**
  * THE HOMEPAGE HERO IS NOT THE TEMPLATE'S COPY. Everything else in this file
  * still is; this block is the business's own positioning, and it says what
  * Nanotom Labs sells rather than what the Figma file said.
  *
- * THREE LINES, not the template's two. The headline is three parallel clauses
- * — "More X. More Y. More Z." — and stacking them is both the natural
- * typographic treatment and the only one that keeps the type large: set as two
- * lines it needs 1098px beside a 237px call inside a 1111px card, which forces
- * the headline down to ~46px. Broken in three, the first line is short enough
- * to sit beside the call at the full size. `headingLines` is read as "the
- * first line shares its row with the call, the rest stack", so adding or
- * removing a line here needs no markup change.
+ * THREE LINES, AND THE FIRST ONE ROLLS. It was three static clauses — More
+ * Calls / More Foot Traffic / More Revenue — which named two outcomes and
+ * stopped. The rolling slot names fourteen in the space of one line, and the
+ * two lines under it are the ones that do not change: sales, then revenue.
+ *
+ * READ AS A LADDER, WHICH IS THE POINT OF THE ORDER. The rolling word is the
+ * thing a marketing spend actually produces — a call, a booking, a quote
+ * request — and the two fixed lines are what those turn into. Whichever word
+ * is showing, the headline ends in the same place.
+ *
+ * `lead` + `rolling` is the first line, `headingLines` everything under it.
+ * The roll is CSS, so the words are all in the markup at once — see
+ * `RollingOutcome` in ./home.tsx and `.nl-roll` in app/globals.css.
+ *
+ * ADDING A WORD IS FREE; A LONG ONE IS NOT, AND IT COSTS EVERY OTHER WORD.
+ * The slot is as wide as the longest entry whichever word is showing, so the
+ * headline's type size is set by the longest line the roll can make — and that
+ * size applies to the whole headline, all the time. Measured in the browser:
+ * "More Estimate Requests" is 14.83em against "More Calls" at 6.90em, and it
+ * is the 14.83 that holds the h1 to 67.8px at 1920 rather than the 83.7px the
+ * card could otherwise take. Shorten the longest entry and every word gets
+ * bigger; add a longer one and every word shrinks. Re-measure the clamp on the
+ * h1 in ./home.tsx either way.
  */
 export const HERO = {
-  headingLines: ['More Calls', 'More Foot Traffic', 'More Revenue'],
+  lead: 'More',
+  /*
+   * Plural throughout — the line reads "More <word>", and "More Quote Request"
+   * does not.
+   *
+   * ORDERED SO THE SIMILAR ONES ARE NOT NEIGHBOURS. Three of these end in
+   * "Requests" and four are about a booking; run consecutively they read as a
+   * stutter rather than a list. "Calls" opens because it is the shortest and
+   * the most concrete, and it is also the word the roll rests on wherever the
+   * animation does not run — a reduced-motion setting, or a browser that never
+   * starts it.
+   */
+  rolling: [
+    'Calls',
+    'Leads',
+    'Store Visits',
+    'Bookings',
+    'Quote Requests',
+    'Customers',
+    'Appointments',
+    'Reviews',
+    'Estimate Requests',
+    'Online Orders',
+    'Reservations',
+    'Service Requests',
+    'Repeat Business',
+    'Contracts',
+  ],
+  /**
+   * Under the roll, and deliberately fixed: what every one of those outcomes
+   * turns into. The call rides the LAST of these — see ./home.tsx — so adding
+   * a line here moves it down with them.
+   */
+  headingLines: ['More Sales', 'More Revenue'],
   cta: 'Get Started',
   body:
     'At Nanotom Labs, we help local businesses dominate their market with a high-converting ' +
@@ -57,22 +117,6 @@ export const HERO = {
     'A glowing map pin standing over a wireframe city, beneath five gold review stars',
 } as const;
 
-/**
- * The strip beneath the hero.
- *
- * Rendered twice inside the marquee track so the loop closes seamlessly — see
- * `.nl-marquee` in globals.css. The design shows it mid-scroll, which is why
- * the first and last entries are clipped in the export rather than missing.
- */
-export const SERVICE_MARQUEE: readonly string[] = [
-  'Hosting',
-  'Website Design',
-  'Branding',
-  'Website Development',
-  'Mobile App Development',
-  'Digital Marketing',
-];
-
 export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
 
 /**
@@ -81,19 +125,20 @@ export const SOCIAL_MARQUEE = 'Follow Us on Social Media';
  * From the template's HOME frame rather than the Services one this page is
  * built from, so it is an addition to the replica, not a correction to it.
  *
- * EVERY NUMBER HERE IS THE TEMPLATE'S, and they are claims about a business:
- * client counts, a follower count and a satisfaction rate. Like the
- * testimonials below, they have to be replaced with real figures or removed
- * before this serves traffic — a made-up "100%" is the kind of thing that
- * turns into a consumer-protection problem rather than a design one.
+ * THE FIGURES ARE THE BUSINESS'S OWN. They replaced the template's invented
+ * ones, which included a "100% Happy Clients" and a follower count — the kind
+ * of claim that turns into a consumer-protection problem rather than a design
+ * one. These are still public claims about results, so they need to be numbers
+ * the business can evidence; keep them current, and change them here rather
+ * than in either layout.
  */
 export type Stat = { label: string; value: string };
 
 export const STATS: readonly Stat[] = [
-  { label: 'Clients', value: '200+' },
-  { label: 'Projects', value: '280+' },
-  { label: 'Happy Clients', value: '100%' },
-  { label: 'Follower', value: '420K' },
+  { label: 'Clients', value: '150+' },
+  { label: 'Ad Spend', value: '$8M+' },
+  { label: 'Inbound Calls', value: '47K+' },
+  { label: 'Quote Requests', value: '6K+' },
   { label: 'Years Of Experience', value: '10+' },
 ];
 
@@ -105,11 +150,32 @@ export type Service = {
   icon: 'website-design' | 'local-seo' | 'google-ads' | 'social-ads';
   title: string;
   body: string;
-  /** Heading over the paired gallery, desktop only. See the note below. */
-  projectsTitle: string;
   /** Two per service; paths under /public/nntm-labs. */
-  projects: readonly { src: string; alt: string }[];
+  projects: readonly {
+    src: string;
+    alt: string;
+    /**
+     * Where the tile's "Open Project" goes. Optional, and absent on every
+     * tile that has no case study behind it — those render the control
+     * unlinked rather than as an <a> to nowhere (see ArrowLink in
+     * ./primitives.tsx).
+     */
+    href?: string;
+  }[];
 };
+
+/**
+ * The heading over a service's project gallery.
+ *
+ * Derived, not stored. It used to be a `projectsTitle` field, which meant the
+ * galleries kept the OLD service names when the services were rewritten —
+ * "Mobile App Development Projects" sat beside Local SEO/GEO for a while. The
+ * heading is the service's name plus a word; there was never a second fact to
+ * record.
+ */
+export function projectsTitle(service: Service): string {
+  return `${service.title} Projects`;
+}
 
 /**
  * The four services, and the ONE list of them.
@@ -125,13 +191,16 @@ export type Service = {
  * services (Web Design / Mobile App Development / Web Development / Digital
  * Marketing) and the four invented prices that sat under them.
  *
- * THE GALLERIES ARE STILL THE TEMPLATE'S, left alone by instruction while the
- * service copy changed around them. So `projectsTitle` and `projects` below
- * still describe the OLD services — "Mobile App Development Projects" now sits
- * beside Local SEO/GEO — and the images are the template's stock screens, not
- * Nanotom Labs' work. Replace both before this serves real traffic; a
- * portfolio of work you did not do is the same problem as a testimonial from
- * someone who is not a customer.
+ * THE FIRST TILE OF THE FIRST THREE GALLERIES IS REAL — the Golden Scaffold
+ * site, and the only image here that shows work this agency did. It is the same
+ * picture in all three because it is the same engagement: that client bought
+ * the website, the local search and the ads. It is also the only tile with a
+ * destination, the case study at ./projects-content.ts.
+ *
+ * THE OTHER FIVE ARE STILL THE TEMPLATE'S — stock screens, not Nanotom Labs'
+ * work, shown under each service's own name. Replace them before this serves
+ * real traffic; a portfolio of work you did not do is the same problem as a
+ * testimonial from someone who is not a customer.
  */
 export const SERVICES: readonly Service[] = [
   {
@@ -141,9 +210,12 @@ export const SERVICES: readonly Service[] = [
       "A fast, professional website that's built to convert. We handle design, copy, mobile " +
       'optimization, and everything in between — so you look credible and customers feel ' +
       'confident calling you.',
-    projectsTitle: 'Web Design Projects',
     projects: [
-      { src: '/nntm-labs/project-web-design-1.webp', alt: 'A fitness brand web design' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-web-design-2.webp', alt: 'A property listing web design' },
     ],
   },
@@ -153,9 +225,12 @@ export const SERVICES: readonly Service[] = [
     body:
       'We get you ranking on Google Maps and organic search for the keywords your customers ' +
       'are already typing. More visibility means more traffic without paying for every click.',
-    projectsTitle: 'Mobile App Development Projects',
     projects: [
-      { src: '/nntm-labs/project-mobile-app-1.webp', alt: 'A mobile app interface' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-mobile-app-2.webp', alt: 'A mobile commerce interface' },
     ],
   },
@@ -165,9 +240,12 @@ export const SERVICES: readonly Service[] = [
     body:
       'Reach customers who are actively searching for exactly what you offer. We manage your ' +
       'campaigns, optimize your budget, and focus on leads — not just clicks.',
-    projectsTitle: 'Web Development Projects',
     projects: [
-      { src: '/nntm-labs/project-web-development-1.webp', alt: 'A dashboard web application' },
+      {
+        src: '/nntm-labs/project-golden-scaffold.webp',
+        alt: GOLDEN_SCAFFOLD.hero.image.alt,
+        href: projectPath(GOLDEN_SCAFFOLD),
+      },
       { src: '/nntm-labs/project-web-development-2.webp', alt: 'A data-heavy web application' },
     ],
   },
@@ -177,12 +255,32 @@ export const SERVICES: readonly Service[] = [
     body:
       'Build awareness and generate leads in your local area with targeted social ads. Great ' +
       'for promotions, new customer acquisition, and staying top-of-mind in your community.',
-    projectsTitle: 'Digital Marketing Projects',
     projects: [
       { src: '/nntm-labs/project-digital-marketing-1.webp', alt: 'A marketing campaign layout' },
       { src: '/nntm-labs/project-digital-marketing-2.webp', alt: 'A campaign analytics layout' },
     ],
   },
+];
+
+/**
+ * The strip beneath the hero.
+ *
+ * DERIVED FROM SERVICES, not typed out. It used to be its own list and drifted
+ * the moment the services changed: the hero went on advertising Branding,
+ * Hosting and Mobile App Development for a business that sells none of them,
+ * directly above a section listing the four it does. A list that has to agree
+ * with another list will eventually not.
+ *
+ * Repeated so one copy is WIDER THAN THE CARD. `Marquee` renders `items` twice
+ * and travels exactly -50%, which is seamless only if a single copy is at
+ * least as wide as its container — four short labels are about 900px inside an
+ * 1167px card, so the strip would run out and show a gap before the second
+ * copy arrived. Doubling the run is the fix; the duplicate is inside one copy,
+ * so the loop still closes.
+ */
+export const SERVICE_MARQUEE: readonly string[] = [
+  ...SERVICES.map((service) => service.title),
+  ...SERVICES.map((service) => service.title),
 ];
 
 /**
@@ -205,7 +303,7 @@ export type StoryPanel = { heading: string; body: string };
 
 export type SuccessStory = {
   /** Key into the icon map in ./icons.tsx. */
-  icon: 'klothink' | 'fitness';
+  icon: 'scaffold' | 'fitness';
   client: string;
   industry: string;
   service: string;
@@ -214,17 +312,31 @@ export type SuccessStory = {
 };
 
 export const SUCCESS_STORIES: readonly SuccessStory[] = [
+  /*
+   * A REAL CLIENT, WITH NOTHING SAID ABOUT THE WORK YET.
+   *
+   * This slot held Klothink, the template's invented e-commerce engagement. The
+   * client is now Golden Scaffold, which is a real company — so the template's
+   * "after" prose could not come with it. That copy described a checkout
+   * redesign for a clothing shop; attached to a named scaffolding contractor it
+   * would not be placeholder text, it would be a false account of an engagement
+   * that has a real other party to contradict it.
+   *
+   * So both panels are visibly unwritten, and the ⚠️ warning at the top of
+   * ./projects-content.ts applies here word for word. Fill them with the real
+   * before-and-after — the figures the business can evidence — or drop the
+   * story until they exist.
+   */
   {
-    icon: 'klothink',
-    client: 'Klothink',
-    industry: 'E-commerce',
-    service: 'Design & Development',
+    icon: 'scaffold',
+    client: 'Golden Scaffold',
+    industry: 'Scaffolding',
+    /*
+     * All three services, which is why the same project heads the Website
+     * Design, Local SEO/GEO and Google Ads galleries above.
+     */
+    service: 'Website, Local SEO, Google Ads',
     panels: {
-      /*
-       * PLACEHOLDER, and written to look like one. The template has no
-       * "before" copy at all, and inventing a starting position for a named
-       * client would be fabricating a case study. Stats replace this.
-       */
       before: {
         heading: 'Before',
         body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
@@ -232,10 +344,8 @@ export const SUCCESS_STORIES: readonly SuccessStory[] = [
       after: {
         heading: 'After',
         body:
-          'Our team conducted a thorough analysis of their target audience and business ' +
-          'objectives. We designed a modern and intuitive website with seamless navigation ' +
-          'and a mobile-responsive layout. Additionally, we integrated an efficient checkout ' +
-          'process and optimized the site for search engines.',
+          'What the website, the local search work and the ad campaigns changed goes here, ' +
+          'once the results are written up.',
       },
     },
   },
@@ -313,6 +423,25 @@ export const TESTIMONIALS: readonly Testimonial[] = [
   },
 ];
 
+export type Work = {
+  /** Key into WORK_ICONS in ./icons.tsx. */
+  icon: 'spark' | 'balloon';
+  title: string;
+  category: string;
+  timeTaken: string;
+  body: string;
+  image: { src: string; alt: string };
+  technologies: readonly string[];
+  /**
+   * Five portraits per project, under /public/nntm-labs.
+   *
+   * They carry no names, in the design or here. Naming them would attach real
+   * faces — these are the template's stock portraits — to a staff list that
+   * does not exist, so they are decorative and take alt="".
+   */
+  team: readonly string[];
+};
+
 export type Faq = { question: string; answer?: string };
 
 /**
@@ -356,8 +485,55 @@ export const NEWSLETTER = {
   placeholder: 'Enter your email',
 } as const;
 
+export type Reason = { title: string; body: string };
+
+/**
+ * The four "reasons to choose" cards, on the HOMEPAGE.
+ *
+ * They were the Services page's, from the template's frame, and moved here by
+ * decision: they answer "why you" rather than "what do you sell", which is a
+ * question a visitor asks before the service list, not after it. So they sit
+ * above Our Services rather than below anything.
+ *
+ * Every card ends in a "Learn More" control that has no destination — there is
+ * no page behind any of the four — so it renders unlinked rather than as a
+ * link that 404s. See DiscLink in ./primitives.tsx.
+ *
+ * STILL THE TEMPLATE'S COPY, generic agency claims about expertise and track
+ * record. The heading names the local-business audience now; the four cards
+ * under it do not yet.
+ */
+export const REASONS: readonly Reason[] = [
+  {
+    title: 'Expertise in Cutting-Edge Technologies',
+    body:
+      'Nanotom Labs ensures your projects are powered by state-of-the-art technologies, ' +
+      'guaranteeing innovation and future-proof solutions.',
+  },
+  {
+    title: 'Proven Track Record of Success',
+    body:
+      'Nanotom Labs demonstrates a consistent ability to meet and exceed client ' +
+      'expectations, providing reliable and effective web solutions tailored to diverse ' +
+      'needs.',
+  },
+  {
+    title: 'Client-Centric Approach',
+    body:
+      'At Nanotom Labs, we prioritize understanding our clients\u2019 unique requirements, ' +
+      'fostering transparent communication throughout the development process.',
+  },
+  {
+    title: 'Dedicated Team of Professionals',
+    body:
+      'Our professionals bring a wealth of expertise to the table, ensuring the delivery of ' +
+      'top-notch, scalable, and secure web solutions for your business.',
+  },
+];
+
 /** Section headings, so the page component holds no bare strings. */
 export const SECTIONS = {
+  reasons: 'Reasons to Choose Nanotom Labs for Your Local Business',
   services: 'Our Services',
   successStories: 'Success Stories',
   testimonials: 'Testimonials',
@@ -370,4 +546,11 @@ export const LINKS = {
   bookACall: 'Book A Call',
   openProject: 'Open Project',
   visitWebsite: 'Visit Website',
+  learnMore: 'Learn More',
+  /* The shared WorkPanel's labels — see ./sections.tsx. */
+  details: 'Details',
+  technologiesUsed: 'Technologies Used',
+  teamMembers: 'Team Members',
+  category: 'Category',
+  timeTaken: 'Time Taken',
 } as const;

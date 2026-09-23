@@ -75,6 +75,18 @@ describe('every destination resolves', () => {
     for (const item of links) {
       const href = item.href as string;
 
+      /*
+       * Off-site links are checked for SHAPE, not existence. The footer's
+       * social cards point at real profiles this suite cannot reach, so the
+       * invariant worth holding is that they are absolute and https — a
+       * relative one would 404 on this domain, and http would be downgraded or
+       * blocked.
+       */
+      if (/^https?:\/\//.test(href)) {
+        expect(href, item.label).toMatch(/^https:\/\//);
+        continue;
+      }
+
       const resolves =
         coded.has(href) ||
         // The database-driven blog, which the /blog routes serve.
@@ -89,14 +101,61 @@ describe('every destination resolves', () => {
     }
   });
 
+  /*
+   * `target="_blank"` without `rel="noopener"` hands the opened tab a live
+   * `window.opener` reference back to this page — a real, silent
+   * cross-origin hazard on links to profiles nobody here controls. Nothing in
+   * a build or a typecheck notices it missing, and the link works either way.
+   */
+  it('opens every social card off-site, safely', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsFooter } = await import('../components/marketing/labs/site-footer');
+    const { SOCIAL_CARDS } = await import('../components/marketing/labs/brand');
+
+    const html = renderToStaticMarkup(React.createElement(LabsFooter));
+
+    expect(SOCIAL_CARDS.length).toBeGreaterThan(0);
+
+    for (const card of SOCIAL_CARDS) {
+      const anchor = html.match(
+        new RegExp(`<a[^>]*href="${card.href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"[^>]*>`),
+      )?.[0];
+
+      expect(anchor, `${card.name} renders as a link`).toBeTruthy();
+      expect(anchor, card.name).toContain('target="_blank"');
+      expect(anchor, card.name).toContain('noopener');
+    }
+  });
+
+  /*
+   * The footer shipped pointing at Nanotom CAPITAL's profiles.
+   *
+   * Nothing caught it: the links were absolute, https, and every one of them
+   * resolved to a real live page — they were simply the wrong company's. The
+   * two businesses share an owner and a naming pattern, which is what makes
+   * `nanotomcapital` and `nanotomlabs` so easy to swap, and a working link to
+   * the wrong brand is invisible to every other check here.
+   */
+  it('sends visitors to Labs\' accounts, not Capital\'s', async () => {
+    const { SOCIAL_CARDS } = await import('../components/marketing/labs/brand');
+
+    for (const card of SOCIAL_CARDS) {
+      expect(card.href.toLowerCase(), card.name).not.toContain('nanotomcapital');
+      expect(card.href.toLowerCase(), card.name).not.toContain('nanotom-capital');
+      expect(card.href.toLowerCase(), card.name).toMatch(/nanotom-?labs/);
+    }
+  });
+
   it('keeps the unbuilt nav items unlinked rather than pointing them at 404s', async () => {
     const { NAV } = await import('../components/marketing/labs/brand');
 
     const unbuilt = NAV.filter((item) => !item.href).map((item) => item.label);
 
     // If this list shrinks, the route should exist and be registered in
-    // CODED_SITES — check that before updating the expectation.
-    expect(unbuilt).toEqual(['Projects', 'About']);
+    // CODED_SITES — check that before updating the expectation. 'About' left
+    // it when /about was built; 'Projects' leaves when a /projects index is.
+    expect(unbuilt).toEqual(['Projects']);
   });
 
   it('routes every call to action at one destination per page, so it moves in one edit', async () => {
@@ -122,6 +181,10 @@ describe('every destination resolves', () => {
 describe('no form silently discards input', () => {
   it.each([
     ['the enquiry form', 'sections.tsx', 3],
+    // Four, not one per field: the fields are a `.map`, so the source carries
+    // one `disabled` per control TYPE. The rendered-output check below is the
+    // one that actually counts every control.
+    ['the get-started form', 'get-started.tsx', 4],
     ['the newsletter', 'site-footer.tsx', 1],
   ])('%s is disabled until it has an endpoint', (_label, file, controls) => {
     /*
@@ -140,6 +203,40 @@ describe('no form silently discards input', () => {
     // A bare form element would submit to the current URL on Enter and look
     // like it worked. There is deliberately none in either.
     expect(source).not.toMatch(/<form[\s>]/);
+  });
+
+  /*
+   * Counting `disabled` in the SOURCE is a proxy, and a loose one — a field
+   * rendered in a `.map` contributes one occurrence however many fields there
+   * are, so a new enabled input beside a disabled one would not move the
+   * number. This counts the controls the browser actually receives.
+   */
+  it.each([
+    ['the homepage', 'home'],
+    ['the Services page', 'services'],
+    ['the Get Started page', 'get-started'],
+  ])('%s renders no enabled control anywhere', async (_label, page) => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const mod = await import(`../components/marketing/labs/${page}`);
+    const Component = Object.values(mod).find((value) => typeof value === 'function');
+
+    const html = renderToStaticMarkup(
+      React.createElement(Component as React.FunctionComponent),
+    );
+
+    const controls = html.match(/<(input|textarea|button|select)\b[^>]*>/g) ?? [];
+    expect(controls.length).toBeGreaterThan(0);
+
+    for (const control of controls) {
+      /*
+       * The success stories' and contact tabs' radios are the one exception:
+       * they drive a CSS-only switch, take no input from the visitor and post
+       * nowhere, so disabling them would break the tabs for no benefit.
+       */
+      if (control.includes('type="radio"')) continue;
+      expect(control).toContain('disabled');
+    }
   });
 });
 
@@ -239,6 +336,8 @@ describe('the chrome stays server-rendered', () => {
     'site-footer.tsx',
     'home.tsx',
     'services.tsx',
+    'get-started.tsx',
+    'project.tsx',
     'sections.tsx',
     'primitives.tsx',
   ])(
@@ -297,11 +396,237 @@ describe('the homepage renders', () => {
     for (const heading of Object.values(SECTIONS)) expect(html).toContain(heading);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
-      expect(html, service.projectsTitle).toContain(service.projectsTitle);
+      expect(html, service.title).toContain(`${service.title} Projects`);
     }
     for (const faq of FAQS) expect(html).toContain(faq.question);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
     expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  /*
+   * "Why you" belongs before "what do you sell", so these four moved off
+   * /services and onto the homepage. Pinned in BOTH directions: a section that
+   * silently renders on both pages is the failure a move like this leaves
+   * behind, and it looks fine on whichever page you happen to open.
+   */
+  it('owns the reasons block, which /services no longer renders', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsServices } = await import('../components/marketing/labs/services');
+    const { REASONS, SECTIONS } = await import('../components/marketing/labs/content');
+
+    const home = decoded(await render());
+    const services = decoded(renderToStaticMarkup(React.createElement(LabsServices)));
+
+    expect(home).toContain(SECTIONS.reasons);
+    expect(services).not.toContain(SECTIONS.reasons);
+
+    for (const reason of REASONS) {
+      expect(home, reason.title).toContain(reason.title);
+      expect(services, reason.title).not.toContain(reason.title);
+    }
+  });
+
+  /*
+   * The headline's rolling word, and the three things about it that break
+   * quietly.
+   *
+   * It looks like an animation, so it reads like something only a human with
+   * the page open can check. Two thirds of it are not: what is in the markup,
+   * and what a screen reader is handed, are both static facts.
+   */
+  it('puts every outcome in the markup, with the first one twice', async () => {
+    const html = decoded(await render());
+    const { HERO } = await import('../components/marketing/labs/content');
+
+    expect(html).toContain(HERO.lead);
+    for (const word of HERO.rolling) expect(html, word).toContain(word);
+
+    /*
+     * Everything between the track opening and the close that ends it, with
+     * the last word's own `</span>` put back — the split eats it, and without
+     * a closing bracket after it the final word does not match.
+     */
+    const opens = html.indexOf('class="nl-roll-track"');
+    expect(opens, 'the roll track is gone').toBeGreaterThan(-1);
+    const start = html.indexOf('>', opens); // past the element's own attributes
+    const track = `${html.slice(start).split('</span></span>')[0]}</span>`;
+    const words = [...track.matchAll(/>([^<>]+)</g)].map((m) => m[1]);
+
+    /*
+     * The column carries the first word again at the end. The animation's last
+     * step lands on that copy, which is the frame it restarts from — drop it
+     * and the roll either snaps backwards through the whole list or ends on
+     * blank space. See the keyframes in globals.css.
+     */
+    expect(words).toEqual([...HERO.rolling, HERO.rolling[0]]);
+  });
+
+  it('hides the moving column from a screen reader and states the words plainly', async () => {
+    const html = decoded(await render());
+    const { HERO } = await import('../components/marketing/labs/content');
+
+    // The window is the mechanism: read aloud it says the first word twice.
+    expect(html).toMatch(/class="nl-roll[^"]*"\s+aria-hidden="true"/);
+    // What replaces it is the same four outcomes as one plain phrase.
+    expect(html).toContain(`>${HERO.rolling.join(', ')}<`);
+  });
+
+  /*
+   * THE KEYFRAMES HARD-CODE THE WORD COUNT, and nothing else does.
+   *
+   * CSS cannot loop, so every stop in `@keyframes nl-roll` is written out by
+   * hand against however many words ./content.ts happens to hold. Add one and
+   * the column grows a row while the animation keeps moving in the old
+   * fraction: from the second word on, every one lands part-way and sits there
+   * half-shown for two seconds. It looks like a rendering bug, and a build, a
+   * typecheck and every other test here pass.
+   *
+   * So this recomputes the whole block — positions AND times — from the copy.
+   * The failure it is really guarding is a copy edit, which is the kind of
+   * change nobody opens a browser for.
+   */
+  it('keeps the roll keyframes in step with the number of words', async () => {
+    const { HERO } = await import('../components/marketing/labs/content');
+    const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+    const start = CSS.indexOf('@keyframes nl-roll');
+    expect(start, '@keyframes nl-roll is gone').toBeGreaterThan(-1);
+    const block = CSS.slice(start, CSS.indexOf('\n  }', CSS.indexOf('{', start)));
+
+    const words = HERO.rolling.length;
+    const rows = words + 1; // the words, plus the repeated first
+    const step = 100 / rows; // one word's share of the column's height
+    const slot = 100 / words; // one word's share of the cycle
+    /*
+     * 0.4s of travel, as a percentage of a cycle that runs two seconds a word
+     * — the same two seconds `.nl-roll-track` multiplies by --nl-roll-words.
+     */
+    const travel = (100 * 0.4) / (words * 2);
+
+    const stops = [...block.matchAll(/([\d.%,\s]+)\{\s*transform:\s*translate3d\(0,\s*(-?[\d.]+)%?,\s*0\)/g)];
+    expect(stops, 'one rule per word, plus the closing frame').toHaveLength(rows);
+
+    const near = (actual: number, want: number, what: string) =>
+      expect(Math.abs(actual - want), `${what}: ${actual} vs ${want}`).toBeLessThan(0.01);
+
+    stops.forEach((stop, k) => {
+      const times = (stop[1] as string)
+        .split(',')
+        .map((t) => Number.parseFloat(t))
+        .filter((t) => !Number.isNaN(t));
+
+      near(Number.parseFloat(stop[2] as string), -k * step, `row ${k} offset`);
+
+      if (k === words) {
+        // The closing frame: the repeated first word, arriving exactly at 100%.
+        expect(times).toEqual([100]);
+        return;
+      }
+
+      // Every other word: still from its slot's start until 0.4s before the end.
+      expect(times, `row ${k} needs a rest and a hold`).toHaveLength(2);
+      near(times[0] as number, k * slot, `row ${k} starts`);
+      near(times[1] as number, (k + 1) * slot - travel, `row ${k} holds until`);
+    });
+
+    // And the cycle itself is the count times those two seconds.
+    expect(CSS).toContain('animation: nl-roll calc(var(--nl-roll-words, 4) * 2s)');
+  });
+
+  /*
+   * A gallery tile that opens a case study has to SHOW that case study.
+   *
+   * The tile is a picture with an "Open Project" control over it, so the
+   * picture is the promise: click a shot of the Golden Scaffold site and you
+   * expect the Golden Scaffold page. That pairing lives in two files — the tile
+   * in labs/content.ts, the page's own art in labs/projects-content.ts — and
+   * nothing but this test notices when they drift. It nearly shipped drifted:
+   * the case study's hero was still the template's A-AURA artwork when the
+   * first tile started pointing at it.
+   */
+  it('shows a project its own artwork on the tile that opens it', async () => {
+    const { SERVICES } = await import('../components/marketing/labs/content');
+    const { projectBySlug } = await import('../components/marketing/labs/projects-content');
+
+    const linked = SERVICES.flatMap((service) => service.projects).filter(
+      (project) => project.href,
+    );
+    expect(linked.length).toBeGreaterThan(0);
+
+    for (const tile of linked) {
+      const href = tile.href as string;
+      const study = projectBySlug(href.replace(/^\/projects\//, ''));
+
+      // The destination is a real page, not a slug that was renamed elsewhere.
+      expect(study, href).toBeTruthy();
+      expect(tile.src, href).toBe(study?.hero.image.src);
+      expect(tile.alt, href).toBe(study?.hero.image.alt);
+    }
+  });
+
+  /*
+   * The other tiles stay text. Six of the eight are still the template's stock
+   * screens with nothing behind them, and an "Open Project" that looks operable
+   * and goes nowhere is worse than a label — see the note on ArrowLink.
+   */
+  it('renders one anchor per linked tile and leaves the rest as text', async () => {
+    const html = await render();
+    const { SERVICES, LINKS } = await import('../components/marketing/labs/content');
+
+    const tiles = SERVICES.flatMap((service) => service.projects);
+    const labels = [...html.matchAll(new RegExp(`>${LINKS.openProject}<`, 'g'))];
+    expect(labels).toHaveLength(tiles.length);
+
+    for (const href of new Set(tiles.map((tile) => tile.href).filter(Boolean))) {
+      const anchors = [...html.matchAll(new RegExp(`<a[^>]*href="${href}"`, 'g'))];
+      expect(
+        anchors.length,
+        href as string,
+      ).toBe(tiles.filter((tile) => tile.href === href).length);
+    }
+  });
+
+  /*
+   * White type over artwork nobody here controls needs a scrim under it.
+   *
+   * Measured rather than guessed, in a browser with the real font: over the
+   * Golden Scaffold collage the "Open Project" label came out at 2.07:1 — a
+   * white label on a white screenshot — and the gradient takes it to between
+   * 6:1 and 10.5:1 across 1280-1920, where the crop moves and the artwork under
+   * the label changes with it. AA wants 4.5:1.
+   *
+   * A source assertion, because the number cannot be computed here: it depends
+   * on the pixels of an image and on how `object-cover` crops it at each
+   * viewport. So this pins the scrim's presence, and the note above records the
+   * measurement it came from.
+   */
+  it('keeps a scrim under the label on every gallery tile', () => {
+    const source = read('home.tsx');
+    const scrim = /bg-gradient-to-t from-black\/(\d+)/.exec(source);
+
+    expect(scrim, 'the tile overlay lost its gradient').toBeTruthy();
+    expect(Number(scrim?.[1])).toBeGreaterThanOrEqual(85);
+    // Decorative and non-blocking: it must never eat the click on the link.
+    expect(source).toMatch(/pointer-events-none[^"]*bg-gradient-to-t/);
+  });
+
+  /*
+   * The story and the galleries are about the same engagement, so they name the
+   * same client. Stored twice — a success story is not a project entry — and
+   * the two would otherwise part company the first time one is renamed.
+   */
+  it('heads the success stories with the client the galleries link to', async () => {
+    const { SUCCESS_STORIES } = await import('../components/marketing/labs/content');
+    const { GOLDEN_SCAFFOLD } = await import('../components/marketing/labs/projects-content');
+
+    const story = SUCCESS_STORIES[0];
+    expect(story?.client).toBe(GOLDEN_SCAFFOLD.showcase.title);
+
+    const html = decoded(await render());
+    expect(html).toContain(story?.client);
+    expect(html).toContain(story?.industry);
+    expect(html).toContain(story?.service);
   });
 
   it('renders unbuilt nav destinations as text, not anchors', async () => {
@@ -401,13 +726,15 @@ describe('the radius scale matches the artwork', () => {
     const pills = [
       'home.tsx',
       'services.tsx',
+      'get-started.tsx',
+      'project.tsx',
       'sections.tsx',
       'primitives.tsx',
       'site-footer.tsx',
       'site-header.tsx',
     ].flatMap((file) => read(file).match(/rounded-full/g) ?? []);
 
-    expect(pills.length).toBeLessThanOrEqual(21);
+    expect(pills.length).toBeLessThanOrEqual(30);
   });
 });
 
@@ -536,7 +863,12 @@ describe('the Nanotom Labs branding', () => {
     const strip = (s: string) =>
       s.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
 
-    for (const file of ['content.ts', 'services-content.ts', 'brand.ts']) {
+    for (const file of [
+      'content.ts',
+      'services-content.ts',
+      'get-started-content.ts',
+      'brand.ts',
+    ]) {
       expect(strip(read(file)), file).not.toMatch(/NexGen|NextGen/);
     }
     expect(read('content.ts')).toContain('Nanotom Labs');
@@ -587,7 +919,7 @@ describe('the Services page', () => {
     const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS, SERVICES } = await import(
       '../components/marketing/labs/content'
     );
-    const { REASONS, SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
+    const { SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
       '../components/marketing/labs/services-content'
     );
 
@@ -595,7 +927,6 @@ describe('the Services page', () => {
     expect(html).toContain(SERVICES_HERO.imageTitle);
     for (const heading of Object.values(SERVICES_SECTIONS)) expect(html).toContain(heading);
     expect(html).toContain(SECTIONS.services);
-    for (const reason of REASONS) expect(html, reason.title).toContain(reason.title);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
       expect(html, service.body).toContain(service.body);
@@ -664,5 +995,438 @@ describe('the Services page', () => {
     for (const path of paths) {
       expect(existsSync(join(__dirname, '..', 'public', path)), path).toBe(true);
     }
+  });
+});
+
+describe('the Get Started page', () => {
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsGetStarted } = await import('../components/marketing/labs/get-started');
+
+    return renderToStaticMarkup(React.createElement(LabsGetStarted));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'get-started');
+
+    expect(route, 'get-started missing from CODED_SITES').toBeTruthy();
+    expect(route?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const file = readFileSync(
+      join(__dirname, '..', 'app', 'get-started', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(file).toContain('isNntmLabs()');
+    expect(file).toContain('notFound()');
+  });
+
+  /*
+   * The header's primary button points here. It pointed at the homepage's form
+   * anchor before this page existed, and a stale constant would leave the
+   * site's main call scrolling to a section instead of opening the page built
+   * for it — which looks deliberate and is not.
+   */
+  it('is where the header button goes', async () => {
+    const { NAV, GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+    const cta = NAV.find((item) => item.cta);
+
+    expect(GET_STARTED_PATH).toBe('/get-started');
+    expect(cta?.href).toBe(GET_STARTED_PATH);
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, STATS } = await import('../components/marketing/labs/content');
+    const { CONTACT_CHANNELS, ENQUIRY_FIELDS, GET_STARTED_HERO, REACH_US } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+
+    for (const line of GET_STARTED_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(GET_STARTED_HERO.body);
+    for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
+    expect(html).toContain(REACH_US);
+    for (const channel of CONTACT_CHANNELS) expect(html, channel.name).toContain(channel.name);
+    for (const field of ENQUIRY_FIELDS) expect(html, field.id).toContain(field.placeholder);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+  });
+
+  /*
+   * The tabs are a radio group switched in CSS, so the page still ships no
+   * JavaScript of its own. What regresses invisibly is the wiring: the panels
+   * are keyed by POSITION, and a panel whose key does not match its input's
+   * value simply never shows — a tab that looks operable and does nothing.
+   */
+  it('switches its contact tabs without JavaScript, keyed by position', async () => {
+    const html = await render();
+    const { CONTACT_CHANNELS } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+    const css = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+    const values = [...html.matchAll(/<input[^>]*name="nl-contact-channel"[^>]*value="(\d+)"/g)]
+      .map((m) => m[1]);
+    const panels = [...html.matchAll(/data-tabpanel="(\d+)"/g)].map((m) => m[1]);
+
+    expect(values).toEqual(CONTACT_CHANNELS.map((_, i) => String(i + 1)));
+    expect(panels).toEqual(values);
+
+    // Exactly one default, and it is the first tab — which is also the panel
+    // the plain-CSS rule shows in a browser without :has().
+    const checked = [...html.matchAll(/<input[^>]*checked[^>]*>/g)];
+    expect(checked).toHaveLength(1);
+    expect(checked[0]?.[0]).toContain('value="1"');
+    expect(css).toMatch(/\.nl-tabset \[data-tabpanel='1'\]\s*\{\s*display: block/);
+
+    // Every position the page renders has a rule to reveal it.
+    for (const value of values.slice(1)) {
+      expect(css, `panel ${value}`).toContain(`:has(input[value='${value}']:checked)`);
+    }
+  });
+
+  /*
+   * A contact page that invents an address is worse than one that admits it
+   * has none: a plausible mailbox nobody reads swallows enquiries in silence,
+   * which is the single failure this page exists to prevent.
+   */
+  it('never renders a contact detail it does not have', async () => {
+    const html = await render();
+    const { CONTACT_CHANNELS, CONTACT_PENDING } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+
+    for (const channel of CONTACT_CHANNELS) {
+      for (const entry of channel.entries) {
+        if (entry.value === null) expect(entry.href, entry.label).toBeUndefined();
+      }
+    }
+
+    const pending = CONTACT_CHANNELS.flatMap((c) => c.entries).filter((e) => e.value === null);
+    if (pending.length > 0) {
+      expect(html).toContain(CONTACT_PENDING);
+      // No mailto:/tel: anywhere while every detail is still a placeholder.
+      expect(html).not.toMatch(/href="(mailto|tel):/);
+    }
+  });
+});
+
+describe('the About page', () => {
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsAbout } = await import('../components/marketing/labs/about');
+
+    return renderToStaticMarkup(React.createElement(LabsAbout));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'about');
+
+    expect(route, 'about missing from CODED_SITES').toBeTruthy();
+    expect(route?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const file = readFileSync(join(__dirname, '..', 'app', 'about', 'page.tsx'), 'utf8');
+
+    expect(file).toContain('isNntmLabs()');
+    expect(file).toContain('notFound()');
+  });
+
+  /*
+   * The nav item carried no href for as long as there was no page. Now that
+   * there is one, the item and the footer's "About Us" both point at it —
+   * pinned here because a page nobody can reach is the same as no page, and
+   * nothing else notices.
+   */
+  it('is what the nav and the footer now link to', async () => {
+    const { NAV, FOOTER_COLUMNS, ABOUT_PATH } = await import(
+      '../components/marketing/labs/brand'
+    );
+
+    expect(ABOUT_PATH).toBe('/about');
+    expect(NAV.find((item) => item.label === 'About')?.href).toBe(ABOUT_PATH);
+
+    const footer = FOOTER_COLUMNS.flatMap((column) => column.links);
+    expect(footer.find((link) => link.label === 'About Us')?.href).toBe(ABOUT_PATH);
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, CLOSING_CTA, SECTIONS, STATS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { ABOUT_HERO, ABOUT_SECTIONS, ABOUT_STATS_CTA, AWARDS, MILESTONES, TEAM } =
+      await import('../components/marketing/labs/about-content');
+
+    for (const line of ABOUT_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(ABOUT_HERO.body);
+    for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
+    expect(html).toContain(ABOUT_STATS_CTA);
+
+    for (const heading of Object.values(ABOUT_SECTIONS)) expect(html).toContain(heading);
+    for (const member of TEAM) {
+      expect(html, member.name).toContain(member.name);
+      expect(html, member.role).toContain(member.role);
+    }
+    for (const milestone of MILESTONES) expect(html, milestone.date).toContain(milestone.title);
+    for (const award of AWARDS) expect(html, award.date).toContain(award.title);
+
+    expect(html).toContain(SECTIONS.testimonials);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  /*
+   * THE THREE PLACEHOLDER SECTIONS DISAPPEAR WHEN THEIR ARRAYS DO.
+   *
+   * That is the whole removal plan for the invented staff, dates and awards —
+   * see the warning at the top of about-content.ts — so emptying an array has
+   * to remove the SECTION and not leave a panel with a heading and nothing
+   * under it, which looks broken in a way the placeholder did not.
+   *
+   * Asserted against the source rather than against a render, because the
+   * arrays are module constants: proving it by rendering would mean mocking
+   * the content module, which tests the mock. What is checked is that each
+   * section opens with the guard, before any markup — the only shape in which
+   * it can return nothing at all.
+   */
+  it.each([
+    ['Team', 'TEAM'],
+    ['Milestones', 'MILESTONES'],
+    ['Awards', 'AWARDS'],
+  ])('drops the %s section when its list is empty', (component, list) => {
+    const source = read('about.tsx');
+    const opens = new RegExp(
+      `function ${component}\\(\\) \\{\\s*if \\(${list}\\.length === 0\\) return null;`,
+    );
+
+    expect(source, `${component} needs the empty guard first`).toMatch(opens);
+  });
+
+  /*
+   * A social disc with no destination is a control that looks operable and is
+   * not — the same rule ArrowLink follows. The template gives every face three
+   * of them; these appear only for a member who has somewhere to send you, and
+   * today none do.
+   */
+  it('renders no dead social controls under the faces', async () => {
+    const html = await render();
+    const { TEAM } = await import('../components/marketing/labs/about-content');
+
+    const linked = TEAM.flatMap((member) => member.links ?? []);
+    const offsite = [...html.matchAll(/<a[^>]*target="_blank"/g)];
+
+    expect(offsite).toHaveLength(linked.length);
+    for (const link of linked) {
+      expect(html, link.href).toContain(`href="${link.href}"`);
+      // Off-site, so it needs the opener guard the footer's cards also carry.
+      expect(html).toMatch(new RegExp(`href="${link.href}"[^>]*rel="noopener noreferrer"`));
+    }
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+
+  /*
+   * Its calls go to the contact page rather than to the FAQ's form, which the
+   * shared section does bring down the page with it — the same call the
+   * project pages make, and pinned for the same reason: the other heroes point
+   * at '#ask', so copying one of them is how this page would quietly stop
+   * sending anyone anywhere useful.
+   */
+  it('sends its calls to the contact page', async () => {
+    const html = await render();
+    const { GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+
+    expect(html).toContain(`href="${GET_STARTED_PATH}"`);
+    expect(html).not.toMatch(/href="\/#ask"/);
+  });
+});
+
+describe('the heroes are one height', () => {
+  /*
+   * The three heroes used to size themselves from whatever they contained —
+   * 520, 573 and 379 at 1920. Close enough to look accidental rather than
+   * intentional, and obvious the moment you click between pages and the fold
+   * jumps.
+   *
+   * Asserting they all name the SAME TOKEN rather than that each equals some
+   * pixel value: the point is that there is one number to change, not three
+   * that happen to agree today. This is the same reasoning as the ground-colour
+   * test in marketing.test.ts.
+   */
+  const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+  it('declares the height once', () => {
+    const declarations = CSS.match(/--nl-hero-h:\s*\d+px/g) ?? [];
+    expect(declarations).toHaveLength(1);
+  });
+
+  it.each(['home.tsx', 'services.tsx', 'get-started.tsx', 'about.tsx'])('%s reads it', (file) => {
+    const source = read(file);
+    const hero = source.slice(source.indexOf('function Hero()'));
+
+    expect(hero).toContain('lg:min-h-[var(--nl-hero-h)]');
+    /*
+     * And nothing in a hero sets its own height above `lg`. The homepage's
+     * image card carried `lg:min-h-[520px]`, which is where the number came
+     * from and why the other two never matched it.
+     */
+    expect(hero.slice(0, hero.indexOf('\n}'))).not.toMatch(/lg:(min-)?h-\[\d+px\]/);
+  });
+});
+
+describe('the project pages', () => {
+  async function render(slug = 'golden-scaffold-los-angeles-ca') {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsProject } = await import('../components/marketing/labs/project');
+    const { projectBySlug } = await import('../components/marketing/labs/projects-content');
+
+    const project = projectBySlug(slug);
+    expect(project, slug).toBeTruthy();
+
+    return renderToStaticMarkup(
+      React.createElement(LabsProject, { project: project! }),
+    );
+  }
+
+  /*
+   * The registry and CODED_SITES are two lists of the same slugs, and they
+   * have to be, because @blog/core is the shared dependency and importing app
+   * code into it would invert that. Two hand-kept lists drift; this is the
+   * only thing that would notice.
+   */
+  it('registers every project in CODED_SITES, and nothing that is not one', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const { PROJECTS } = await import('../components/marketing/labs/projects-content');
+
+    const registered = codedRoutesFor(NNTM_LABS_SLUG)
+      .map((route) => route.path)
+      .filter((path) => path.startsWith('projects/'))
+      .sort();
+
+    expect(registered).toEqual(PROJECTS.map((p) => `projects/${p.slug}`).sort());
+  });
+
+  /*
+   * The page names a real company beside copy that describes nothing that
+   * happened. Submitting that to a search engine publishes a claim about
+   * somebody else's business — so the route sets `robots: noindex` AND the
+   * sitemap entry says index: false, and the two have to agree. Listing a
+   * noindex page in a sitemap is the specific trap Capital's stub pages sat in.
+   */
+  it('keeps a placeholder case study out of the sitemap and out of the index', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    const noindexInRoute = /robots:\s*\{[^}]*index:\s*false/.test(route);
+    const projects = codedRoutesFor(NNTM_LABS_SLUG).filter((r) =>
+      r.path.startsWith('projects/'),
+    );
+
+    expect(projects.length).toBeGreaterThan(0);
+    for (const project of projects) {
+      expect(project.index, `${project.path} sitemap flag must match the route's robots`).toBe(
+        !noindexInRoute,
+      );
+    }
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(route).toContain('isNntmLabs()');
+    expect(route).toContain('notFound()');
+  });
+
+  it('builds one static page per registry entry', async () => {
+    const { PROJECTS } = await import('../components/marketing/labs/projects-content');
+    const route = readFileSync(
+      join(__dirname, '..', 'app', 'projects', '[slug]', 'page.tsx'),
+      'utf8',
+    );
+
+    expect(route).toContain('generateStaticParams');
+    expect(PROJECTS.length).toBeGreaterThan(0);
+    // Slugs are URL segments, so anything that would need encoding is a bug.
+    for (const project of PROJECTS) {
+      expect(project.slug, project.title).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
+    }
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, CLOSING_CTA, SECTIONS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { GOLDEN_SCAFFOLD } = await import('../components/marketing/labs/projects-content');
+
+    for (const line of GOLDEN_SCAFFOLD.hero.headingLines) expect(html).toContain(line);
+    expect(html).toContain(GOLDEN_SCAFFOLD.hero.body);
+    expect(html).toContain(GOLDEN_SCAFFOLD.hero.tag);
+    expect(html).toContain(GOLDEN_SCAFFOLD.featuresTitle);
+    for (const feature of GOLDEN_SCAFFOLD.features) {
+      expect(html, feature.title).toContain(feature.title);
+    }
+    expect(html).toContain(GOLDEN_SCAFFOLD.showcaseTitle);
+    for (const tech of GOLDEN_SCAFFOLD.showcase.technologies) expect(html).toContain(tech);
+    expect(html).toContain(SECTIONS.testimonials);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+
+  /*
+   * Every call goes to the contact page rather than to the FAQ's form, which
+   * the shared section does bring down the page with it. Pinned because the
+   * other three pages point their calls at '#ask', so copying a hero from one
+   * of them is how this page would quietly stop sending anyone anywhere useful.
+   */
+  it('sends its calls to the contact page, not to the FAQ form below', async () => {
+    const html = await render();
+    const { GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+
+    expect(html).toContain(`href="${GET_STARTED_PATH}"`);
+    expect(html).not.toMatch(/href="[^"]*#ask"/);
   });
 });

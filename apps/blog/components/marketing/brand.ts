@@ -117,17 +117,31 @@ export type NavItem = {
  * is deliberately left up: retiring it belongs with the other redirects at
  * domain transfer, not here.
  */
+/**
+ * The individual funding programs.
+ *
+ * Its own const because the header's dropdown and the footer's first column are
+ * the same five links, and a footer that quietly falls behind the nav is how a
+ * site ends up advertising a program it no longer offers. Both read this.
+ *
+ * All five are still STUB_PAGES below — they resolve as noindex headings until
+ * someone writes them. Linking them from the footer anyway is deliberate: the
+ * nav has promised them since launch, and a footer that lists four of five
+ * because one has no copy yet is a worse inconsistency than a thin page.
+ */
+export const FUNDING_PROGRAMS: readonly { label: string; href: string }[] = [
+  { label: 'Business Loans', href: '/funding-solutions/business-loans' },
+  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
+  { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
+  { label: 'Working Capital', href: '/funding-solutions/working-capital' },
+  { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
+];
+
 export const NAV: readonly NavItem[] = [
   {
     label: 'Funding Solutions',
     href: '/funding-solutions',
-    children: [
-      { label: 'Business Loans', href: '/funding-solutions/business-loans' },
-      { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
-      { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
-      { label: 'Working Capital', href: '/funding-solutions/working-capital' },
-      { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
-    ],
+    children: FUNDING_PROGRAMS,
   },
   {
     label: 'Industries',
@@ -165,11 +179,11 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    */
   programs: 'Programs',
 
-  'funding-solutions/business-loans': 'Business Loans',
-  'funding-solutions/line-of-credit': 'Line of Credit',
-  'funding-solutions/revenue-based-financing': 'Revenue-Based Financing',
-  'funding-solutions/working-capital': 'Working Capital',
-  'funding-solutions/equipment-financing': 'Equipment Financing',
+  /*
+   * The five funding products are NOT here any more. They are a coded route
+   * now — app/funding-solutions/[product]/page.tsx — and a static segment beats
+   * the catch-all, so leaving them would have been a map nothing ever read.
+   */
   industries: 'Industries',
   'industries/food-business': 'Food Business',
   'industries/construction-business': 'Construction Business',
@@ -201,26 +215,19 @@ export const CTA_HREF = '/get-funded';
  * placeholder state that reads as a bug rather than as missing config.
  */
 /**
- * The SocialJuice review wall, embedded on the homepage.
+ * SocialJuice, which still collects the reviews but no longer displays them.
  *
- * Identifiers live here rather than inline in the component, for the same reason
- * SURVEY does: they are account-specific values that two pages now share, and a
- * wall id buried in JSX is one nobody finds when it changes.
+ * The homepage used to embed this account's wall in an iframe. It renders our
+ * own markup over our own copy now — see TESTIMONIALS in ft/content.ts, where
+ * the reviews are quoted exactly — so all that survives here is the address of
+ * the public wall, which "View All Testimonials" links to and which is where a
+ * customer leaves a new one.
  *
- * Public by nature — the wall is a public page and these strings are in the HTML
- * of the live site — so committed rather than made configuration.
+ * The embed url, the resizer script, its origin and the reserved height went
+ * with the component. They are in git history if the widget ever comes back.
  */
 export const REVIEWS = {
-  wallUrl: 'https://embed.socialjuice.io/wall/9690?s=nntm-capital',
-  resizerSrc: 'https://embed.socialjuice.io/js/iframeResizer.min.js',
-  /** Preconnected in the root layout, like IMAGE_ORIGIN above. */
-  origin: 'https://embed.socialjuice.io',
-  /**
-   * Reserved until the resizer reports the wall's real height, so the sections
-   * below it do not jump. iframeResizer overwrites it via inline style.
-   */
-  initialHeight: 575,
-  /** Where "View All Testimonials" goes — the public wall, not the embed. */
+  /** Where "View All Testimonials" goes — the public wall, not an embed. */
   collectUrl: 'https://collect.socialjuice.io/p/nntm-capital/wall',
 } as const;
 

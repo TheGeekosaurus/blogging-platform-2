@@ -8,16 +8,16 @@ import {
 
 import { CTA_HREF, HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
 import { CtaButton } from '../cta-button';
-import { TestimonialWall } from '../testimonial-wall';
 import { FundingCarousel } from './funding-carousel';
 import { Chip, CONTAINER, GhostButton, SectionHead } from './primitives';
-import { CategoryPills, PostRow } from './post-list';
+import { Avatar, CategoryPills, PostRow } from './post-list';
 import { ApplyRow, Faq, HowItWorks, Qualifier, UseCases } from './shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
   CoinsIcon,
   GrowthIcon,
+  StarIcon,
 } from './icons';
 import {
   APPLY_LABEL,
@@ -143,7 +143,7 @@ function FeaturedOn() {
   const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
-    <div className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
+    <div className="ft-band border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
       <div className={CONTAINER}>
         <Chip>Featured On</Chip>
       </div>
@@ -407,7 +407,71 @@ function Requirements() {
   );
 }
 
+/**
+ * A review's score, drawn.
+ *
+ * The number is the accessible name and the stars are hidden from it: five
+ * repetitions of "star" is not what a screen reader should read out, and a
+ * rounded-up four would be a different claim than the one the customer made.
+ *
+ * An empty star is the SAME path at low opacity rather than a different mark,
+ * so the five always sit on one baseline at identical width, and it dims with
+ * whatever --ft-subtle is rather than a hardcoded grey.
+ */
+function Stars({ score }: { score: number }) {
+  return (
+    <p className="inline-flex items-center gap-1 rounded-full bg-[var(--ft-card)] px-4 py-2">
+      <span className="sr-only">{score} out of 5</span>
+      {[1, 2, 3, 4, 5].map((position) => (
+        <StarIcon
+          key={position}
+          className={
+            position <= score
+              ? 'h-4 w-4 text-[var(--ft-accent)]'
+              : 'h-4 w-4 text-[var(--ft-subtle)] opacity-35'
+          }
+        />
+      ))}
+    </p>
+  );
+}
+
+/*
+ * How wide a cell is, by how many share its row.
+ *
+ * The grid is SIX columns so a short last row can fill it instead of ending
+ * ragged: three cells take two columns each, two take three, one takes all six.
+ * That matters because the hairlines here are `gap-px` over a container painted
+ * --ft-line — the same trick UseCases uses — so a column with no cell in it is
+ * not blank, it is a solid bar of rule colour. Filling the row avoids that
+ * without centring hacks, and it means any number of reviews lays out properly.
+ *
+ * Written as whole literal class names. Tailwind generates classes by scanning
+ * source text, so `lg:col-span-${n}` would compile to nothing at all.
+ */
+const REVIEW_SPAN: Record<number, string> = {
+  1: 'lg:col-span-6',
+  2: 'lg:col-span-3',
+  3: 'lg:col-span-2',
+};
+
+/**
+ * The review wall.
+ *
+ * Our own markup over our own copy, where this used to be a SocialJuice iframe.
+ * The account is still where the reviews are collected and the section's link
+ * still goes to its public wall — what is gone is the embed, which could not be
+ * styled from here, shipped a resizer script to get its height right, and drew
+ * a white canvas behind dark cards unless the parent told it not to.
+ *
+ * The reviews are quoted exactly as written; see the note over TESTIMONIALS.
+ */
 function Testimonials() {
+  const { reviews } = TESTIMONIALS;
+  /* Cells in the final row — 3 when the count divides evenly, not 0. */
+  const lastRow = reviews.length % 3 || 3;
+  const lastRowFrom = reviews.length - lastRow;
+
   return (
     <section aria-labelledby="ft-testimonials">
       <SectionHead
@@ -420,7 +484,37 @@ function Testimonials() {
       />
 
       <div className={`${CONTAINER} py-14 lg:py-20`}>
-        <TestimonialWall />
+        <ul className="grid gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-6">
+          {reviews.map((review, index) => (
+            <li
+              key={review.name}
+              className={`flex flex-col items-center gap-5 bg-[var(--ft-bg)] px-6 py-10 text-center lg:px-8 ${
+                REVIEW_SPAN[index < lastRowFrom ? 3 : lastRow]
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {/*
+                  No reviewer on the wall has a photo, so this is always the
+                  initial disc — the same one the blog list uses, which derives
+                  a stable hue from the name rather than randomising it.
+                */}
+                <Avatar name={review.name} className="h-10 w-10 text-sm" />
+                <div className="text-left leading-tight">
+                  <p className="font-medium text-[var(--ft-ink)]">{review.name}</p>
+                  <p className="text-sm text-[var(--ft-muted)]">
+                    {review.title ? `${review.title} - ${review.company}` : review.company}
+                  </p>
+                </div>
+              </div>
+
+              <Stars score={review.score} />
+
+              <blockquote className="w-full rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-5 py-5 text-[0.9375rem] leading-[1.55] text-[var(--ft-muted)]">
+                <p>{review.quote}</p>
+              </blockquote>
+            </li>
+          ))}
+        </ul>
       </div>
     </section>
   );

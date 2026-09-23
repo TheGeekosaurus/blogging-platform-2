@@ -23,6 +23,20 @@ export type PageTemplate = 'prose' | 'full';
  */
 export type LeadMagnetScope = 'site' | 'category' | 'tag' | 'post';
 
+/** Pillar or spoke, per the cluster model. See 0013_seo.sql. */
+export type SeoPageRole = 'pillar' | 'sub';
+/**
+ * Where a planned page sits in the pipeline. `researched` is research and does
+ * not appear on the Roadmap screen; `briefed` is the promotion moment.
+ */
+export type SeoPageStatus = 'researched' | 'briefed' | 'drafted' | 'published';
+/** The dominant interpretation, not every interpretation. See 0013_seo.sql. */
+export type SeoKeywordIntent =
+  | 'informational'
+  | 'commercial'
+  | 'transactional'
+  | 'navigational';
+
 /**
  * One JSON-LD node, as stored in a `structured_data` column.
  *
@@ -47,7 +61,15 @@ export type SiteRow = {
   logo_url: string | null;
   favicon_url: string | null;
   social: Record<string, string>;
-  analytics_id: string | null;
+  /**
+   * Google Tag Manager container, e.g. `GTM-XXXXXXX`. Null means this site
+   * loads no tracking at all.
+   *
+   * Format-checked in the database (0012_gtm_container.sql) because it is
+   * interpolated into an inline script — read it through `readGtmContainerId`
+   * rather than trusting the string, since a row can also be written by SQL.
+   */
+  gtm_container_id: string | null;
   /** Page served at '/'. Null falls back to the post index. */
   homepage_page_id: string | null;
   /**
@@ -315,6 +337,78 @@ type Writable<T, Optional extends keyof T> = Omit<T, Optional> &
   Partial<Pick<T, Optional>>;
 
 /** Columns the database fills in for us. */
+/**
+ * A research grouping — "SBA loans", "Equipment financing".
+ *
+ * Deliberately NOT a term: a term is a taxonomy readers browse, and most of
+ * what hangs off a topic is pages that do not exist yet. See 0013_seo.sql.
+ */
+export type SeoTopicRow = {
+  id: string;
+  site_id: string;
+  name: string;
+  /** Optional third level above the topic. Free text because it churns. */
+  pillar: string | null;
+  position: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One page we intend to build. The unit the Roadmap screen tracks.
+ *
+ * `topic_id` is nullable and clears rather than cascades when a topic is
+ * deleted, so reorganising research cannot quietly delete briefed work.
+ */
+export type SeoPageRow = {
+  id: string;
+  site_id: string;
+  topic_id: string | null;
+  role: SeoPageRole;
+  status: SeoPageStatus;
+  title: string;
+  /**
+   * Mirrored from the page's primary keyword row so a list of hundreds does
+   * not need a filtered join per row. `seo_keywords` still owns the metrics.
+   */
+  primary_keyword: string | null;
+  brief: string | null;
+  outline: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  /** The post this became, once written. Clears if the post is deleted. */
+  post_id: string | null;
+  position: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One keyword. `page_id` null means researched but not yet clustered, which is
+ * the pile the Keywords screen exists to work through.
+ *
+ * Unique on (site_id, lower(keyword)) — the cannibalisation gate, enforced by
+ * the database rather than by whoever is doing the clustering that day.
+ */
+export type SeoKeywordRow = {
+  id: string;
+  site_id: string;
+  page_id: string | null;
+  keyword: string;
+  volume: number | null;
+  kd: number | null;
+  cpc: number | null;
+  intent: SeoKeywordIntent | null;
+  is_primary: boolean;
+  /** Which provider the numbers came from — they are not comparable across. */
+  source: string | null;
+  metrics_updated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 type Generated = 'id' | 'created_at' | 'updated_at';
 
 export type Database = {
@@ -322,7 +416,7 @@ export type Database = {
     Tables: {
       sites: {
         Row: SiteRow;
-        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'analytics_id' | 'homepage_page_id' | 'structured_data'>;
+        Insert: Writable<SiteRow, Generated | 'description' | 'locale' | 'logo_url' | 'favicon_url' | 'social' | 'gtm_container_id' | 'homepage_page_id' | 'structured_data'>;
         Update: Partial<SiteRow>;
         Relationships: [];
       };
@@ -575,6 +669,94 @@ export type Database = {
           },
         ];
       };
+      seo_topics: {
+        Row: SeoTopicRow;
+        Insert: Writable<SeoTopicRow, Generated | 'pillar' | 'position' | 'notes'>;
+        Update: Partial<SeoTopicRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'seo_topics_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      seo_pages: {
+        Row: SeoPageRow;
+        Insert: Writable<
+          SeoPageRow,
+          | Generated
+          | 'topic_id'
+          | 'role'
+          | 'status'
+          | 'primary_keyword'
+          | 'brief'
+          | 'outline'
+          | 'meta_title'
+          | 'meta_description'
+          | 'post_id'
+          | 'position'
+          | 'notes'
+        >;
+        Update: Partial<SeoPageRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'seo_pages_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'seo_pages_topic_id_fkey';
+            columns: ['topic_id'];
+            isOneToOne: false;
+            referencedRelation: 'seo_topics';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'seo_pages_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      seo_keywords: {
+        Row: SeoKeywordRow;
+        Insert: Writable<
+          SeoKeywordRow,
+          | Generated
+          | 'page_id'
+          | 'volume'
+          | 'kd'
+          | 'cpc'
+          | 'intent'
+          | 'is_primary'
+          | 'source'
+          | 'metrics_updated_at'
+        >;
+        Update: Partial<SeoKeywordRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'seo_keywords_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'seo_keywords_page_id_fkey';
+            columns: ['page_id'];
+            isOneToOne: false;
+            referencedRelation: 'seo_pages';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
@@ -604,6 +786,9 @@ export type Database = {
       member_role: MemberRole;
       term_kind: TermKind;
       lead_magnet_scope: LeadMagnetScope;
+      seo_page_role: SeoPageRole;
+      seo_page_status: SeoPageStatus;
+      seo_keyword_intent: SeoKeywordIntent;
     };
     CompositeTypes: { [_ in never]: never };
   };

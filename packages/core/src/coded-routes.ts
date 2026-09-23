@@ -60,12 +60,21 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
    */
   { path: 'calc', title: 'Loan Calculator', index: true },
   /*
-   * The loans index. Its five children — business-loans, line-of-credit,
-   * revenue-based-financing, working-capital, equipment-financing — are still
-   * STUB_PAGES and deliberately absent here: a stub is noindex, so listing one
-   * in the sitemap would submit a page that asks not to be indexed.
+   * The loans index and its five products. The children were STUB_PAGES and
+   * deliberately absent from this list while they were — a stub is noindex, so
+   * listing one would have submitted a page asking not to be indexed. They are
+   * real pages now, so they belong in the sitemap.
    */
   { path: 'funding-solutions', title: 'Funding Solutions', index: true },
+  { path: 'funding-solutions/business-loans', title: 'Business Loans', index: true },
+  { path: 'funding-solutions/line-of-credit', title: 'Line of Credit', index: true },
+  {
+    path: 'funding-solutions/revenue-based-financing',
+    title: 'Revenue-Based Financing',
+    index: true,
+  },
+  { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
+  { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.
@@ -74,15 +83,36 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
 /**
  * Nanotom Labs: the agency site.
  *
- * The homepage and /services so far. Projects, about and contact are still to
- * come, and each is a coded route rather than a `pages` row — add them here as
- * they land, or they will not reach the sitemap. `blogs` is deliberately
+ * The homepage, /services and /get-started so far. Projects and about are
+ * still to come, and each is a coded route rather than a `pages` row — add
+ * them here as they land, or they will not reach the sitemap. `blogs` is deliberately
  * absent: it points at the database-driven /blog renderer, which the sitemap
  * already covers from `posts`.
  */
 const NNTM_LABS_ROUTES: readonly CodedRoute[] = [
   { path: '', title: 'Home', index: true },
   { path: 'services', title: 'Services', index: true },
+  { path: 'get-started', title: 'Get Started', index: true },
+  { path: 'about', title: 'About', index: true },
+  /*
+   * One entry per project page. These are generated from a registry in
+   * `apps/blog/components/marketing/labs/projects-content.ts` — which this
+   * package cannot import, because @blog/core is the shared dependency and
+   * importing app code into it would invert that. So the slugs are written
+   * twice, and `__tests__/labs.test.ts` fails if the two lists disagree.
+   */
+  {
+    path: 'projects/golden-scaffold-los-angeles-ca',
+    /*
+     * index: false WHILE THE CASE STUDY IS PLACEHOLDER. The page carries a real
+     * company's name beside copy that describes nothing that happened, and its
+     * route sets `robots: noindex` to match. Listing it here as indexable would
+     * submit a page that asks not to be indexed — the same trap Capital's stub
+     * pages sat in above. Flip both together, once the copy is real.
+     */
+    title: 'Golden Scaffold — Los Angeles, CA',
+    index: false,
+  },
 ];
 
 /**

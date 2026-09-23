@@ -113,84 +113,123 @@ describe('brand constants', () => {
     }
   });
 
-  it('keeps the phone number out of the header and in the footer', async () => {
+  /*
+   * This used to assert the phone was in the footer and not the header, on the
+   * argument that two numbers in the header split the click. Denis has since
+   * had the footer's contact column removed as well, so the number is in
+   * NEITHER piece of site chrome.
+   *
+   * What the test protects is therefore no longer "one place" but "still
+   * reachable somewhere": a phone number that exists in brand.ts and is dialled
+   * from nowhere is a number the business thinks it is publishing and is not.
+   * The calculator's advisor prompts and the FAQ's "Ask a Question" button are
+   * what carry it now, so the assertion follows them.
+   */
+  it('still dials the phone number somewhere, now that no chrome shows it', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    const read = (file: string) =>
-      readFileSync(join(__dirname, '..', 'components', 'marketing', file), 'utf8');
+    const marketing = join(__dirname, '..', 'components', 'marketing');
+    const read = (file: string) => readFileSync(join(marketing, file), 'utf8');
 
-    // One phone number, one place. Two in the header split the click.
     expect(read('site-header.tsx')).not.toContain('CONTACT.phone');
-    expect(read('site-footer.tsx')).toContain('CONTACT.phone');
+    expect(read('site-footer.tsx')).not.toContain('CONTACT.phone');
+
+    const { CONTACT } = await import('../components/marketing/brand');
+    const reachable =
+      read(join('ft', 'calculator.tsx')).includes('CONTACT.phoneHref') ||
+      read(join('ft', 'content.ts')).includes(CONTACT.phoneHref);
+
+    expect(reachable, 'CONTACT.phoneHref is dialled from at least one page').toBe(true);
   });
 });
 
-describe('the SocialJuice review wall', () => {
-  async function source() {
+describe('the review wall', () => {
+  /*
+   * These are real customers' words, lifted from the SocialJuice wall this
+   * section used to embed. The risk with copy nobody can read at a glance is
+   * that someone tidies it — "reccomend" looks like a typo to fix, and fixing
+   * it turns a quote into a paraphrase we are attributing to a named person.
+   */
+  it('quotes the reviews exactly, typos included', async () => {
+    const { TESTIMONIALS } = await import('../components/marketing/ft/content');
+    const quotes = TESTIMONIALS.reviews.map((review) => review.quote);
+
+    expect(quotes.some((quote) => quote.includes('Would reccomend.'))).toBe(true);
+    expect(quotes.some((quote) => quote.includes('very straight forward process'))).toBe(true);
+  });
+
+  /*
+   * The four-star review is the one that says the funding took four days
+   * instead of two. Rounding it up would be inventing a rating the customer
+   * did not give, so the score is carried per review rather than assumed.
+   */
+  it('keeps every score as it was given', async () => {
+    const { TESTIMONIALS } = await import('../components/marketing/ft/content');
+    const scores = TESTIMONIALS.reviews.map((review) => review.score);
+
+    expect(scores).toContain(4);
+    for (const score of scores) {
+      expect(score).toBeGreaterThanOrEqual(1);
+      expect(score).toBeLessThanOrEqual(5);
+    }
+  });
+
+  /*
+   * The grid is six columns so a short final row widens to fill it. The cells
+   * are hairline-separated with `gap-px` over a container painted --ft-line, so
+   * a column left empty is not blank — it is a solid bar of rule colour across
+   * the bottom of the section. Every row has to add up to six.
+   */
+  it('lays every row out to a full six columns', async () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
-    return readFileSync(
-      join(__dirname, '..', 'components', 'marketing', 'testimonial-wall.tsx'),
+    const { TESTIMONIALS } = await import('../components/marketing/ft/content');
+
+    const code = readFileSync(
+      join(__dirname, '..', 'components', 'marketing', 'ft', 'home-v2.tsx'),
       'utf8',
     );
-  }
 
-  it('embeds this account\'s wall', async () => {
+    const spans = Object.fromEntries(
+      [...code.matchAll(/^\s*(\d): 'lg:col-span-(\d)',$/gm)].map(([, cells, span]) => [
+        Number(cells),
+        Number(span),
+      ]),
+    );
+
+    // Tailwind only emits classes it can find written out, so these are literals.
+    expect(spans).toEqual({ 1: 6, 2: 3, 3: 2 });
+
+    const lastRow = TESTIMONIALS.reviews.length % 3 || 3;
+    expect(lastRow * (spans[lastRow] ?? 0)).toBe(6);
+  });
+
+  it('still sends "View All Testimonials" to the wall that collects them', async () => {
     const { REVIEWS } = await import('../components/marketing/brand');
 
-    expect(REVIEWS.wallUrl).toContain('embed.socialjuice.io/wall/9690');
-    expect(REVIEWS.wallUrl).toContain('s=nntm-capital');
+    expect(REVIEWS.collectUrl).toContain('collect.socialjuice.io');
   });
 
   /*
-   * The same invisible regression the HighLevel iframe has, and the reason both
-   * are pinned: iframeResizer resolves its target from a selector built off this
-   * id. Change one without the other and the wall still renders — it just never
-   * resizes, staying clipped at initialHeight, with nothing logged anywhere.
+   * The embed is gone, and so is everything it needed: a client component to
+   * call iFrameResize after the library loaded, a preconnect, a reserved height
+   * and a bodyBackground option to stop the wall rendering as white space. If
+   * any of that comes back without the iframe, it is dead weight on every page.
    */
-  it('points the resizer at the id the iframe actually carries', async () => {
-    const code = await source();
-    const id = code.match(/const FRAME_ID = '([^']+)'/)?.[1];
+  it('ships nothing the old iframe needed', async () => {
+    const { readFileSync, existsSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const root = join(__dirname, '..');
 
-    expect(id, 'FRAME_ID should be a string literal the test can read').toBeTruthy();
-    expect(code).toContain('id={FRAME_ID}');
-    expect(code).toContain('`#${FRAME_ID}`');
-  });
+    expect(existsSync(join(root, 'components', 'marketing', 'testimonial-wall.tsx'))).toBe(false);
 
-  it('calls the resizer from onLoad, so the library is there when it runs', async () => {
-    const code = await source();
-
-    // Next only guarantees script ORDER for beforeInteractive, so an inline call
-    // beside the <Script src> could run before iFrameResize exists. onLoad is the
-    // documented mechanism — and it is why this component is client-side.
-    expect(code).toContain("strategy=\"afterInteractive\"");
-    expect(code).toContain('onLoad=');
-    expect(code).toMatch(/^'use client';/);
-    // A bare <script src> would be hoisted into <head> and could run too early.
-    expect(code).not.toMatch(/<script\s+src=/);
-  });
-
-  it('reserves a height so the sections below it do not jump', async () => {
-    const { REVIEWS } = await import('../components/marketing/brand');
-
-    expect(REVIEWS.initialHeight).toBeGreaterThan(0);
-    expect(await source()).toContain('height: REVIEWS.initialHeight');
-  });
-
-  /*
-   * Another silent one. SocialJuice sets no background on its own html or body —
-   * its dark mode themes the cards and the text only — so without this option the
-   * wall's canvas falls back to the browser default and the whole embed renders
-   * as white space around dark cards on our dark page. Nothing errors; it just
-   * looks broken. `bodyBackground` is how iframe-resizer lets the parent set it
-   * across the origin boundary, and it defaults to null, which the child skips.
-   */
-  it('tells the resizer to paint the wall body, or it renders white', async () => {
-    const code = await source();
-
-    expect(code).toContain('bodyBackground');
-    // Read from the token, not a hex, so the wall tracks the site's ground.
-    expect(code).toContain("getPropertyValue('--color-ground')");
+    for (const file of [
+      join(root, 'app', 'layout.tsx'),
+      join(root, 'components', 'marketing', 'ft', 'home-v2.tsx'),
+      join(root, 'components', 'marketing', 'brand.ts'),
+    ]) {
+      expect(readFileSync(file, 'utf8')).not.toContain('embed.socialjuice.io');
+    }
   });
 });
 
@@ -264,12 +303,28 @@ describe('the page ground is one colour', () => {
   const read = (...parts: string[]) =>
     readFileSync(join(__dirname, '..', ...parts), 'utf8');
 
-  it('declares the ground once', () => {
+  it('declares the ground once, and re-points it only for the light theme', () => {
     const css = read('app', 'globals.css');
-    const declarations = css.match(/--color-ground:\s*#[0-9a-fA-F]{6}/g) ?? [];
 
-    expect(declarations).toHaveLength(1);
-    expect(declarations[0]).toContain('#141414');
+    /*
+     * The selector sits on the line carrying that rule's opening brace — every
+     * rule in this file is written that way, so reading it back is enough to
+     * tell a theme override apart from the drift this test exists to catch.
+     */
+    const declarations = [...css.matchAll(/--color-ground:\s*(#[0-9a-fA-F]{6})/g)].map((match) => {
+      const open = css.lastIndexOf('{', match.index);
+      return { selector: css.slice(0, open).split('\n').pop()!.trim(), hex: match[1] };
+    });
+
+    /*
+     * `.ft-light` is the light palette at the bottom of the file, which moves
+     * the ground for the whole document on purpose. Every OTHER declaration is
+     * still held to one: a second value anywhere else is the header and footer
+     * drifting apart again, which is what this test was written for.
+     */
+    const base = declarations.filter((one) => one.selector !== '.ft-light');
+
+    expect(base.map((one) => one.hex)).toEqual(['#141414']);
   });
 
   it.each([

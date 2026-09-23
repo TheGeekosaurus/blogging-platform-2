@@ -20,12 +20,12 @@ import {
 
 import { AuthorBox } from '@/components/blog/author-box';
 import { Breadcrumbs } from '@/components/blog/breadcrumbs';
-import { LeadMagnetPopover } from '@/components/blog/lead-magnet-popover';
+import { PostAside } from '@/components/blog/post-aside';
 import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
 import { SimilarPosts } from '@/components/blog/similar-posts';
 import { TableOfContents } from '@/components/blog/table-of-contents';
-import { ThemeToggle } from '@/components/blog/theme-toggle';
+import { sidebarCta } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
 
 export const dynamic = 'force-static';
@@ -178,14 +178,27 @@ export default async function PostPage({
            globals.css), so they land on the divider and only the content is
            inset.
 
-        Widths are unchanged by all this. The old arrangement spent 48px of gap
-        plus a 352px rail; this one spends 400px on the sidebar wrapper, of
-        which 48px is the gutter — so the article is exactly as wide as before
-        and the contents list gains the 32px the old `pl-8` was taking.
+        WHAT CHANGED WHEN THE SIDEBAR MOVED LEFT. The column rule is gone: the
+        sidebar is now a bordered panel, and a panel's own outline a gutter away
+        from a full-height divider reads as a mistake rather than as a frame.
+        The other three strokes stay, and point 1 above still holds — the bottom
+        rule is what closes the frame now that there is no vertical one.
+
+        With the rule gone there is only ONE gutter to pay rather than two, so
+        the article is 48px wider than it was: the old arrangement spent 48px on
+        the article's right padding AND 48px on the rail's left padding, with
+        the stroke between them. The panel keeps the 352px the contents list
+        already had.
+
+        `flex-row-reverse` rather than reordering the markup. The article stays
+        FIRST in the DOM, which is what decides the stacked order below `lg`,
+        the reading order for a screen reader, and what a crawler sees first.
+        Putting a contents list and two buttons ahead of the article to move
+        them 400px left would be paying for a visual arrangement in all three.
       */}
       <div className="post-frame border-b border-[var(--color-line)]">
-        <div className="mx-auto w-full max-w-7xl px-5 lg:flex lg:px-8">
-          <div className="min-w-0 flex-1 py-12 lg:py-16 lg:pr-[var(--frame-gutter)]">
+        <div className="mx-auto w-full max-w-7xl px-5 lg:flex lg:flex-row-reverse lg:px-8">
+          <div className="min-w-0 flex-1 py-12 lg:py-16 lg:pl-[var(--frame-gutter)]">
             {/*
               The post's top matter, in the reading column rather than a
               full-bleed band above it. Removing the hero also removed a whole
@@ -243,7 +256,6 @@ export default async function PostPage({
             <TableOfContents
               groups={headingGroups}
               variant="disclosure"
-              id="toc-disclosure"
               className="mb-10 lg:hidden"
             />
 
@@ -283,70 +295,22 @@ export default async function PostPage({
           </div>
 
           {/*
-            The sidebar is TWO nested boxes, and the nesting is the fix for the
-            rule that used to float.
+            The sidebar column: a wrapper that reserves the width, and the panel
+            inside it that does everything else.
 
-            The outer one is an ordinary flex child, so it stretches to the
-            row's full height and its left border runs from the header boundary
-            to the bottom line. The border cannot live on the sticky element: a
-            sticky, `self-start`, `max-h`-bounded box is by definition only as
-            tall as its own content, so its border was only ever as long as the
-            contents list.
+            The wrapper is still an ordinary flex child rather than the sticky
+            element itself, because a sticky box is by definition only as tall
+            as its own content — so anything hung on it (a border, once; the
+            bottom padding, now) would stop where the panel stops rather than at
+            the row's edge.
 
-            The inner one is the bounded sticky box, with the contents list
-            scrolling inside it — still two elements, because `overflow` on an
-            ancestor breaks `position: sticky` for its descendants. The theme
-            control sits above the list and outside the scroll area, so it stays
-            put however long the list is.
-
-            `max-h` is sized for the rail's NATURAL top, not the 96px it settles
-            at once stuck. Before it sticks it sits below that — ~137px at 1280
-            and ~153px at 1024, where the site header wraps taller — so a height
-            computed for the stuck position ran past the bottom of the viewport
-            until you scrolled. 11rem clears the tallest of those; the ~32px it
-            gives up once stuck is not worth chasing with a fixed offset that
-            cannot be right at every width.
+            No inner padding and no border here any more. Both belonged to the
+            column rule this frame used to draw down its left side; the panel
+            carries its own outline, and sits flush in the width the wrapper
+            reserves. See PostAside for what is inside it and why in that order.
           */}
-          <div className="pb-12 lg:w-[400px] lg:shrink-0 lg:border-l lg:border-[var(--color-line)] lg:py-16 lg:pl-[var(--frame-gutter)]">
-            {/*
-              `relative` so the offer popup has something to resolve against.
-              It floats over this column rather than sitting in it, and the
-              nearest positioned ancestor is what decides where "over this
-              column" is — without this it would escape to whatever ancestor
-              happened to be positioned, which at `lg` is the page.
-            */}
-            <aside className="relative lg:sticky lg:top-24 lg:flex lg:max-h-[calc(100vh-11rem)] lg:flex-col">
-              {/*
-                The offer, floating above the rail rather than in it, so the
-                reading control and the contents list lay out as though it were
-                not there. Rendered ONCE for both breakpoints: below `lg` this
-                column stops being a flex container and stacks under the
-                article, where an end-of-post call to action belongs anyway, so
-                the popup drops into the flow there. The contents list needs two
-                renderings because a list of links is useless after the text it
-                indexes; an offer is not.
-              */}
-              {offer ? <LeadMagnetPopover offer={offer} /> : null}
-
-              <div className="flex shrink-0 flex-col gap-1.5">
-                {/*
-                  aria-hidden, not decorative: the control carries its own
-                  sr-only legend with this wording, so both in the tree
-                  announces it twice.
-                */}
-                <span aria-hidden="true" className="text-sm text-[var(--color-ink-muted)]">
-                  Reading theme
-                </span>
-                <ThemeToggle />
-              </div>
-
-              <TableOfContents
-                groups={headingGroups}
-                variant="rail"
-                id="toc-rail"
-                className="mt-8 hidden min-h-0 flex-1 lg:flex"
-              />
-            </aside>
+          <div className="pb-12 lg:w-[352px] lg:shrink-0 lg:py-16">
+            <PostAside groups={headingGroups} offer={offer} cta={sidebarCta()} />
           </div>
         </div>
       </div>
