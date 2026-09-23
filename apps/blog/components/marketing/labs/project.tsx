@@ -44,7 +44,17 @@ export function LabsProject({ project }: { project: Project }) {
       <div className="mt-[var(--nl-section-gap)]">
         <SectionHeader title={project.showcaseTitle} />
         <div className="mt-5">
-          <WorkPanel work={project.showcase} enquiryAnchor={GET_STARTED_PATH} />
+          {/*
+           * `linkToCaseStudy={false}`: this panel's own entry points at this
+           * page, and a gold button offering to show you the page you are
+           * reading is a dead end wearing a call to action. It falls back to
+           * "Book A Call" here.
+           */}
+          <WorkPanel
+            work={project.showcase}
+            enquiryAnchor={GET_STARTED_PATH}
+            linkToCaseStudy={false}
+          />
         </div>
       </div>
 

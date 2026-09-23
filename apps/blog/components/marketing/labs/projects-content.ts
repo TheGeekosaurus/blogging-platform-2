@@ -23,9 +23,9 @@ import type { Work } from './content';
  * app/projects/[slug]/page.tsx) and out of the sitemap until the case study is
  * written, and that is the only thing still holding it back from search.
  *
- * The hero image is the real one. The showcase panel's `technologies`, `team`
- * and `image` are still the Figma template's, reused so the layout renders.
- * They describe nothing real.
+ * The hero image and the showcase's are the real ones — the same collage, and
+ * the same file the homepage's galleries use. What is still unwritten is the
+ * showcase's before-and-after, which is the part that would state a result.
  *
  * WHY A REGISTRY rather than a file per project: the page is one layout with
  * different content, so a second project should be a row here and nothing
@@ -72,7 +72,7 @@ export type Project = {
   features: readonly ProjectFeature[];
 
   showcaseTitle: string;
-  /** The three-column panel, the same shape /services renders. */
+  /** The three-column panel, the same shape the homepage and /services render. */
   showcase: Work;
 };
 
@@ -116,8 +116,11 @@ export const PROJECT_FEATURES: readonly ProjectFeature[] = [
   },
 ];
 
+/** Written once: the entry's own slug, and the path its showcase links to. */
+const SLUG = 'golden-scaffold-los-angeles-ca';
+
 export const GOLDEN_SCAFFOLD: Project = {
-  slug: 'golden-scaffold-los-angeles-ca',
+  slug: SLUG,
   title: 'Golden Scaffold — Los Angeles, CA',
   /* ⚠️ PLACEHOLDER — rewrite once the engagement is described. */
   description:
@@ -153,25 +156,45 @@ export const GOLDEN_SCAFFOLD: Project = {
   features: PROJECT_FEATURES,
 
   showcaseTitle: 'Project Showcase',
+  /*
+   * ALSO THE FIRST ENTRY IN WORKS, which the homepage and /services render —
+   * see ../content.ts. Defined here because this is the project's file, and
+   * because a second copy of a client's name, category and artwork is a thing
+   * that drifts rather than a thing that stays in step.
+   */
   showcase: {
-    /* ⚠️ Every field below is the template's placeholder data. */
-    icon: 'spark',
+    icon: 'scaffold',
     title: 'Golden Scaffold',
-    category: 'Local SEO/GEO',
+    category: 'Website, Local SEO & Google Ads',
+    /* ⚠️ PLACEHOLDER. */
     timeTaken: 'To be confirmed',
     body:
-      'The scope, the timeline and what changed will be written up here once the ' +
-      'engagement is documented.',
+      'A commercial scaffolding contractor serving Los Angeles and Orange County, with the ' +
+      'website, the local search work and the ad campaigns run together.',
     image: {
-      src: '/nntm-labs/work-zenith.webp',
-      alt: 'Placeholder artwork standing in for the Golden Scaffold project',
+      src: '/nntm-labs/project-golden-scaffold.webp',
+      alt: 'Pages from the Golden Scaffold website, a Los Angeles scaffolding contractor',
     },
-    technologies: ['Google Business Profile', 'Local SEO', 'Google Ads'],
-    team: [
-      '/nntm-labs/team-1.webp',
-      '/nntm-labs/team-3.webp',
-      '/nntm-labs/team-6.webp',
-    ],
+    href: `/projects/${SLUG}`,
+    /*
+     * ⚠️ BOTH PANELS ARE PLACEHOLDER, and visibly so. This is the half of the
+     * panel that says what changed, which is exactly the claim that cannot be
+     * invented about a named company — see the warning at the top of this file.
+     */
+    panels: {
+      before: {
+        heading: 'Before',
+        body:
+          'Where this business stood before the work began goes here — the figures it can ' +
+          'evidence.',
+      },
+      after: {
+        heading: 'After',
+        body:
+          'What the website, the local search work and the ad campaigns changed goes here, ' +
+          'once the results are written up.',
+      },
+    },
   },
 };
 

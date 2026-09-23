@@ -1,3 +1,5 @@
+import { Fragment } from 'react';
+
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -5,6 +7,7 @@ import { ABOUT_PATH } from './brand';
 import type { Work } from './content';
 import {
   CLOSING_CTA,
+  DEFAULT_WORK_TAB,
   ENQUIRY_FORM,
   FAQS,
   LINKS,
@@ -14,6 +17,7 @@ import {
   STATS_CTA,
   TESTIMONIALS,
   WORKS,
+  WORK_TABS,
 } from './content';
 import { ArrowDown, ArrowRight, Plus, WORK_ICONS } from './icons';
 import { ArrowLink, DiscLink, Panel, SectionHeader, SectionLink } from './primitives';
@@ -428,14 +432,45 @@ export function Works({ enquiryAnchor }: { enquiryAnchor: string }) {
   );
 }
 
+/**
+ * One project, in three columns: the copy and its call, the artwork, and a
+ * Before / After toggle.
+ *
+ * WHAT THE THIRD COLUMN USED TO BE — a list of technology chips over a row of
+ * five stock portraits. That is a developer's portfolio answering "what did
+ * you build it with and who was on the team"; a local business wants to know
+ * what changed. The toggle came off the success stories this section replaced,
+ * where it was the one part worth keeping.
+ *
+ * INTERACTIVE WITHOUT JAVASCRIPT, the same radio-group trick the contact card
+ * uses: one visually-hidden input per panel, labels styled as the buttons, and
+ * `.nl-tabs` in globals.css doing the switching with `:has()`. The radio group
+ * is named per project, so two panels on one page switch independently.
+ *
+ * THE GOLD BUTTON MOVED to the bottom of the FIRST column. It sat under the
+ * chips and the portraits, which is where the design put it when that column
+ * was a list; with a toggle there it would have been a call to action under a
+ * pair of tab panels, competing with them for the same corner. The columns
+ * stretch to a common height, so it lands at the same vertical position it
+ * held before.
+ *
+ * WHERE IT GOES depends on the project: an entry with a case study sends you
+ * there and says so, and one without falls back to "Book A Call" and the
+ * page's own form. `linkToCaseStudy` turns the first off for the case-study
+ * page itself, which would otherwise offer a button to the page you are on.
+ */
 export function WorkPanel({
   work,
   enquiryAnchor,
+  linkToCaseStudy = true,
 }: {
   work: Work;
   enquiryAnchor: string;
+  linkToCaseStudy?: boolean;
 }) {
   const Icon = WORK_ICONS[work.icon];
+  const caseStudy = linkToCaseStudy ? work.href : undefined;
+  const group = `nl-work-${work.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
   return (
     <Panel>
@@ -459,7 +494,8 @@ export function WorkPanel({
               </h3>
             </div>
             <div className="sm:justify-self-end">
-              <ArrowLink label={LINKS.details} />
+              {/* The details ARE the case study, where there is one. */}
+              <ArrowLink label={LINKS.details} href={caseStudy} />
             </div>
           </div>
 
@@ -480,6 +516,14 @@ export function WorkPanel({
           </dl>
 
           <p className="text-sm leading-relaxed text-[var(--nl-body)]">{work.body}</p>
+
+          {/* `mt-auto` is what holds it to the bottom of the column. */}
+          <Link
+            href={caseStudy ?? enquiryAnchor}
+            className="nl-label mt-auto flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-4 text-xs text-[#0f0f0f] lg:text-sm"
+          >
+            {caseStudy ? LINKS.viewCaseStudy : LINKS.bookACall}
+          </Link>
         </article>
 
         <div className="relative min-h-[220px] overflow-hidden rounded-[var(--nl-radius-card)] bg-[var(--nl-line-strong)] lg:min-h-0">
@@ -492,62 +536,60 @@ export function WorkPanel({
           />
         </div>
 
-        <div className="flex flex-col gap-5">
-          <div className="flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-10">
-            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
-              {LINKS.technologiesUsed}
-            </h4>
-            <ul className="mt-4 flex flex-wrap gap-2 lg:mt-6">
-              {work.technologies.map((technology) => (
-                <li
-                  key={technology}
-                  className="rounded-full bg-[var(--nl-raised)] px-4 py-2 font-[family-name:var(--font-nl-mono)] text-xs text-[var(--nl-body)] lg:text-sm"
-                >
-                  {technology}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-5 py-4 lg:px-10">
-            <h4 className="nl-label text-xs text-[var(--nl-ink)] lg:text-sm">
-              {LINKS.teamMembers}
-            </h4>
-
-            {/*
-             * The accent shows THROUGH each portrait: the source files are
-             * cut-outs with an alpha channel, so the disc behind them is what
-             * supplies the colour. That is how the artwork tints them, and it
-             * means they followed the rebrand from terracotta to gold without
-             * a re-export.
-             *
-             * alt="" on every one — they are the template's stock portraits
-             * and name nobody, so announcing them would be noise.
-             */}
-            <ul className="flex items-center gap-2">
-              {work.team.map((portrait, index) => (
-                <li
-                  key={`${portrait}-${index}`}
-                  className="size-10 overflow-hidden rounded-full bg-[var(--nl-accent)] lg:size-[50px]"
-                >
-                  <Image
-                    src={portrait}
-                    alt=""
-                    width={50}
-                    height={50}
-                    className="size-full object-cover"
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <Link
-            href={enquiryAnchor}
-            className="nl-label flex w-full items-center justify-center rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-5 py-4 text-xs text-[#0f0f0f] lg:text-sm"
+        <div className="nl-tabs flex flex-col gap-4">
+          <div
+            role="group"
+            aria-label={`${work.title}: before and after`}
+            className="flex flex-wrap items-center gap-2 px-1"
           >
-            {LINKS.bookACall}
-          </Link>
+            {WORK_TABS.map((tab) => {
+              const value = tab.toLowerCase();
+
+              return (
+                /*
+                 * A Fragment rather than a wrapper element, so the input and
+                 * its label are direct children of the row. The CSS matches
+                 * the label with `input:checked + [data-tab-label]`, and an
+                 * intervening element would break that adjacency.
+                 */
+                <Fragment key={tab}>
+                  <input
+                    type="radio"
+                    name={group}
+                    id={`${group}-${value}`}
+                    value={value}
+                    defaultChecked={tab === DEFAULT_WORK_TAB}
+                    className="sr-only"
+                  />
+                  <label
+                    htmlFor={`${group}-${value}`}
+                    data-tab-label={value}
+                    className="nl-label cursor-pointer rounded-[var(--nl-radius-control)] px-4 py-2 text-[10px] transition-colors lg:text-xs"
+                  >
+                    {tab}
+                  </label>
+                </Fragment>
+              );
+            })}
+          </div>
+
+          {WORK_TABS.map((tab) => {
+            const value = tab.toLowerCase() as Lowercase<typeof tab>;
+            const panel = work.panels[value];
+
+            return (
+              <article
+                key={tab}
+                data-tab={value}
+                className="nl-tab-panel flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
+              >
+                <h4 className="nl-heading text-xl lg:text-4xl">{panel.heading}</h4>
+                <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6">
+                  {panel.body}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </div>
     </Panel>

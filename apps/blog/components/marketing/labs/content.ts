@@ -334,23 +334,39 @@ export const TESTIMONIALS: readonly Testimonial[] = [
   },
 ];
 
+/**
+ * The two states a work panel's third column switches between.
+ *
+ * WHAT REPLACED THE TECHNOLOGY CHIPS AND THE PORTRAIT ROW. Those told a
+ * visitor what this agency used and who was on the team, which is a developer
+ * portfolio's answer; a local business wants to know what changed. The toggle
+ * came off the old success stories, where it was the one part worth keeping.
+ */
+export const WORK_TABS = ['Before', 'After'] as const;
+
+export type WorkTab = (typeof WORK_TABS)[number];
+
+/** Which panel opens with the page. The outcome, which is what sells. */
+export const DEFAULT_WORK_TAB: WorkTab = 'After';
+
+export type WorkPanelCopy = { heading: string; body: string };
+
 export type Work = {
   /** Key into WORK_ICONS in ./icons.tsx. */
-  icon: 'spark' | 'balloon';
+  icon: 'spark' | 'balloon' | 'scaffold';
   title: string;
   category: string;
   timeTaken: string;
   body: string;
   image: { src: string; alt: string };
-  technologies: readonly string[];
   /**
-   * Five portraits per project, under /public/nntm-labs.
-   *
-   * They carry no names, in the design or here. Naming them would attach real
-   * faces — these are the template's stock portraits — to a staff list that
-   * does not exist, so they are decorative and take alt="".
+   * Its own case study, if it has one. The panel's gold button goes here and
+   * says so; without one it falls back to "Book A Call" and the page's enquiry
+   * form, which is what every entry did before any project had a page.
    */
-  team: readonly string[];
+  href?: string;
+  /** Keyed by tab, lowercased — see WorkPanel in ./sections.tsx. */
+  panels: Record<Lowercase<WorkTab>, WorkPanelCopy>;
 };
 
 /**
@@ -360,34 +376,21 @@ export type Work = {
  * for them, and the heading and link label came along: a list two pages read
  * belongs with the rest of the shared copy rather than in one page's file.
  *
- * ⚠️ NEITHER PROJECT HAPPENED. Two named clients with categories, durations,
- * technology stacks and five staff portraits each — a portfolio of work this
- * agency did not do, and now on the front page rather than one page in. The
- * one real project on this site is Golden Scaffold; see ./projects-content.ts.
+ * ⚠️ THE SECOND ONE DID NOT HAPPEN. A-Aura is the template's invented client,
+ * with a category and a duration attached to it, on the front page rather than
+ * one page in. The first entry is Golden Scaffold, which is real — though its
+ * before-and-after copy is still waiting to be written.
  */
 export const WORKS: readonly Work[] = [
+  /*
+   * THE ONE REAL PROJECT, and it is defined in ./projects-content.ts rather
+   * than here: the case study page renders the same record, and two copies of
+   * a client's name, category and artwork would part company the first time
+   * one was edited.
+   */
+  GOLDEN_SCAFFOLD.showcase,
   {
-    icon: 'spark',
-    title: 'Zenith Fitness App',
-    category: 'Mobile App Development',
-    timeTaken: '6 months',
-    body:
-      'An all-in-one health and wellness app that offers personalized fitness plans, ' +
-      'nutrition guidance, and virtual workout classes.',
-    image: {
-      src: '/nntm-labs/work-zenith.webp',
-      alt: 'Screens from the Zenith fitness app, laid out on an angle',
-    },
-    technologies: ['React Native', 'Firebase', 'Redux', 'REST API', 'MongoDB'],
-    team: [
-      '/nntm-labs/team-1.webp',
-      '/nntm-labs/team-2.webp',
-      '/nntm-labs/team-3.webp',
-      '/nntm-labs/team-4.webp',
-      '/nntm-labs/team-5.webp',
-    ],
-  },
-  {
+    /* ⚠️ THE TEMPLATE'S INVENTED CLIENT. See the warning above. */
     icon: 'balloon',
     title: 'A-Aura Ecommerce',
     category: 'Web Design & Development',
@@ -399,14 +402,16 @@ export const WORKS: readonly Work[] = [
       src: '/nntm-labs/work-a-aura.webp',
       alt: 'Pages from the A-Aura commerce site, laid out on an angle',
     },
-    technologies: ['WordPress', 'PHP', 'HTML5', 'CSS3', 'JavaScript'],
-    team: [
-      '/nntm-labs/team-6.webp',
-      '/nntm-labs/team-7.webp',
-      '/nntm-labs/team-8.webp',
-      '/nntm-labs/team-9.webp',
-      '/nntm-labs/team-2.webp',
-    ],
+    panels: {
+      before: {
+        heading: 'Before',
+        body: 'Where this business stood before the work began goes here.',
+      },
+      after: {
+        heading: 'After',
+        body: 'What the work changed goes here, once there is a real engagement to describe.',
+      },
+    },
   },
 ];
 
@@ -572,6 +577,8 @@ export const SECTIONS = {
 
 export const LINKS = {
   viewAll: 'View All',
+  /** The work panel's gold button, for an entry that has a case study. */
+  viewCaseStudy: 'View Case Study',
   /*
    * "Our Work", not the template's "Our Works". Work is a mass noun for what a
    * business produces — you show your work; the works are what a composer
@@ -583,10 +590,12 @@ export const LINKS = {
   openProject: 'Open Project',
   visitWebsite: 'Visit Website',
   learnMore: 'Learn More',
-  /* The shared WorkPanel's labels — see ./sections.tsx. */
+  /*
+   * The shared WorkPanel's labels — see ./sections.tsx. "Technologies Used"
+   * and "Team Members" went with the column they headed, which is now the
+   * Before / After toggle.
+   */
   details: 'Details',
-  technologiesUsed: 'Technologies Used',
-  teamMembers: 'Team Members',
   category: 'Category',
   timeTaken: 'Time Taken',
 } as const;

@@ -1503,11 +1503,75 @@
   }
 
   /*
+   * The work panels' Before / After toggle — interactive, with no JavaScript.
+   *
+   * A radio group drives it: one visually-hidden input per panel, labels
+   * styled as the buttons, and `:has()` matching the checked input's value.
+   * `:has()` rather than Tailwind's `peer-checked` because that compiles to a
+   * SIBLING combinator, which cannot reach the labels — they are nested inside
+   * the tab row, not siblings of the inputs. `:has()` on the container does not
+   * care how deep either one sits.
+   *
+   * Selecting on `value` rather than on generated ids keeps this static CSS:
+   * the two values are fixed, while the ids are per-project so two panels on
+   * one page switch independently.
+   *
+   * THE DEFAULT IS PLAIN CSS, deliberately. "After" shows and "Before" hides
+   * before any `:has()` rule applies, so a browser without `:has()` still
+   * renders the outcome panel rather than an empty card — it simply cannot
+   * switch. Everything below is an enhancement on top of a readable page.
+   *
+   * These rules were deleted with the success stories they were written for
+   * and came back a day later with the toggle. Worth knowing before deleting
+   * them again: the markup that uses them is now in `WorkPanel`.
+   */
+  .nl-tab-panel[data-tab='before'] {
+    display: none;
+  }
+
+  .nl-tabs:has(input[value='before']:checked) .nl-tab-panel[data-tab='before'] {
+    display: block;
+  }
+
+  .nl-tabs:has(input[value='before']:checked) .nl-tab-panel[data-tab='after'] {
+    display: none;
+  }
+
+  /*
+   * The label's RESTING colours live here, not as Tailwind utilities on the
+   * element. Utilities sit in a later layer than components, so a
+   * `bg-[var(--nl-raised)]` class would beat the selected rule below and the
+   * active tab would never take the accent.
+   */
+  .nl-tabs [data-tab-label] {
+    background-color: var(--nl-raised);
+    color: var(--nl-muted);
+  }
+
+  .nl-tabs [data-tab-label]:hover {
+    color: var(--nl-ink);
+  }
+
+  .nl-tabs input:checked + [data-tab-label] {
+    background-color: var(--nl-accent);
+    color: #0f0f0f;
+  }
+
+  /*
+   * The inputs are sr-only, so the visible focus ring has to be drawn on the
+   * label — without this the tabs are keyboard-operable but give no sign of
+   * where focus is. `.nl-tabset` carries its own copy for the contact card.
+   */
+  .nl-tabs input:focus-visible + [data-tab-label] {
+    outline: 2px solid var(--nl-accent);
+    outline-offset: 2px;
+  }
+
+  /*
    * A tab group of any size, keyed by POSITION rather than by name.
    *
-   * The success stories' `.nl-tabs` used to sit above this, naming `before`
-   * and `after` — fine for two fixed panels, useless for the contact card's
-   * three, and gone with the section it belonged to.
+   * `.nl-tabs` above names `before` and `after` — fine for the work panels'
+   * two fixed states, useless for the contact card's three.
    * CSS cannot express "show the panel whose key matches the checked input",
    * so the keys have to be written out either way; numbering them keeps the
    * rules content-agnostic, so the next tab group reuses these instead of
