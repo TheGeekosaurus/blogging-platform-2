@@ -1,23 +1,11 @@
-import { Fragment } from 'react';
-
 import Image from 'next/image';
 import Link from 'next/link';
 
 import { ENQUIRY_ANCHOR } from './brand';
-import {
-  DEFAULT_STORY_TAB,
-  HERO,
-  LINKS,
-  SECTIONS,
-  SERVICES,
-  SERVICE_MARQUEE,
-  STORY_TABS,
-  SUCCESS_STORIES,
-  projectsTitle,
-} from './content';
-import { ArrowRight, SERVICE_ICONS, STORY_ICONS } from './icons';
-import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
-import { ClosingCta, Faq, Reasons, Stats, Testimonials } from './sections';
+import { HERO, LINKS, SECTIONS, SERVICES, SERVICE_MARQUEE, projectsTitle } from './content';
+import { ArrowRight, SERVICE_ICONS } from './icons';
+import { ArrowLink, Marquee, Panel, SectionHeader } from './primitives';
+import { ClosingCta, Faq, Reasons, Stats, Testimonials, Works } from './sections';
 
 /**
  * The Nanotom Labs homepage.
@@ -37,9 +25,11 @@ import { ClosingCta, Faq, Reasons, Stats, Testimonials } from './sections';
  * Each is implemented as a breakpoint change at `lg`, so both ends match their
  * artboard and the space between them interpolates.
  *
- * WHAT LIVES HERE is the hero and the two sections unique to this page. The
- * stat band, the testimonials, the FAQ and the closing call are shared with
- * /services and live in ./sections.tsx — see the note there.
+ * WHAT LIVES HERE is the hero and the service rows with their project
+ * galleries beside them, which is all that is still unique to this page. The
+ * stat band, the reasons cards, the work panels, the testimonials, the FAQ and
+ * the closing call are all shared and live in ./sections.tsx — the last of
+ * those to move was the work, which took the place of the success stories.
  */
 
 /**
@@ -370,118 +360,6 @@ function ServiceRow({ service }: { service: (typeof SERVICES)[number] }) {
   );
 }
 
-/**
- * A success story, with working Before / After tabs.
- *
- * INTERACTIVE WITHOUT JAVASCRIPT. The tabs are a radio group: one hidden input
- * per panel, labels styled as the buttons, and `peer-checked` variants doing
- * the switching in CSS. That keeps this a server component, which is the same
- * call the header's <details> menu and the FAQ accordion already make — a
- * `useState` toggle here would put a client bundle on every route of the site
- * to switch between two blocks of static text.
- *
- * It is also better than a scripted tablist on the things that usually get
- * dropped: arrow keys move between the options natively, the state survives
- * with JS disabled, and the checked panel is real DOM rather than a
- * conditional render.
- *
- * The radio `name` is per-story, so the two stories on the page switch
- * independently rather than sharing one group.
- */
-function SuccessStory({ story }: { story: (typeof SUCCESS_STORIES)[number] }) {
-  const Icon = STORY_ICONS[story.icon];
-  const group = `nl-story-${story.icon}`;
-
-  return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,747fr)_minmax(0,953fr)]">
-      <article className="flex flex-col justify-between gap-6 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-9">
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <span className="grid size-11 shrink-0 place-items-center rounded-[var(--nl-radius-control)] bg-[var(--nl-raised)] text-[var(--nl-accent)]">
-              <Icon className="size-5" />
-            </span>
-            <h3 className="nl-heading text-xl lg:text-3xl">{story.client}</h3>
-          </div>
-          <div className="justify-self-end">
-            <ArrowLink label={LINKS.visitWebsite} />
-          </div>
-        </div>
-
-        <dl className="flex flex-wrap gap-3">
-          {[
-            { term: 'Industry', value: story.industry },
-            { term: 'Service Utilized', value: story.service },
-          ].map((meta) => (
-            <div
-              key={meta.term}
-              className="flex items-center gap-2 rounded-full bg-[var(--nl-raised)] px-4 py-2.5"
-            >
-              <dt className="text-xs text-[var(--nl-muted)] lg:text-sm">{meta.term}</dt>
-              <dd className="text-xs text-[var(--nl-ink)] lg:text-sm">{meta.value}</dd>
-            </div>
-          ))}
-        </dl>
-      </article>
-
-      <div className="nl-tabs flex flex-col gap-4">
-        <div
-          role="group"
-          aria-label={`${story.client}: before and after`}
-          className="flex flex-wrap items-center gap-2 px-1"
-        >
-          {STORY_TABS.map((tab) => {
-            const value = tab.toLowerCase();
-
-            return (
-              /*
-               * A Fragment rather than a wrapper element, so the input and its
-               * label are direct children of the row. The CSS matches the
-               * label with `input:checked + [data-tab-label]`, and an
-               * intervening element would break that adjacency.
-               */
-              <Fragment key={tab}>
-                <input
-                  type="radio"
-                  name={group}
-                  id={`${group}-${value}`}
-                  value={value}
-                  defaultChecked={tab === DEFAULT_STORY_TAB}
-                  className="sr-only"
-                />
-                <label
-                  htmlFor={`${group}-${value}`}
-                  data-tab-label={value}
-                  className="nl-label cursor-pointer rounded-[var(--nl-radius-control)] px-4 py-2 text-[10px] transition-colors lg:text-xs"
-                >
-                  {tab}
-                </label>
-              </Fragment>
-            );
-          })}
-        </div>
-
-        {STORY_TABS.map((tab) => {
-          const value = tab.toLowerCase() as Lowercase<typeof tab>;
-          const panel = story.panels[value];
-
-          return (
-            <article
-              key={tab}
-              data-tab={value}
-              className="nl-tab-panel flex-1 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
-            >
-              <h4 className="nl-heading text-xl lg:text-5xl">{panel.heading}</h4>
-              <p className="mt-4 text-sm leading-relaxed text-[var(--nl-body)] lg:mt-6 lg:text-lg">
-                {panel.body}
-              </p>
-            </article>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export function LabsHome() {
   return (
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
@@ -499,25 +377,10 @@ export function LabsHome() {
       </Panel>
 
       {/*
-        * Success Stories is the odd one out, and deliberately so: its heading
-        * card sits on the ground rather than inside a panel, and EACH STORY
-        * gets its own panel (the artwork has two 1824x434 panels at y=3177 and
-        * y=3627, not one tall one). Wrapping them together reads as a single
-        * block of four cards instead of two separate case studies.
-        */}
-      <div className="mt-[var(--nl-section-gap)]">
-        <SectionHeader title={SECTIONS.successStories} link={{ label: LINKS.viewAll }} />
-
-        <div className="mt-5 flex flex-col gap-5">
-          {SUCCESS_STORIES.map((story) => (
-            <Panel key={story.client}>
-              <SuccessStory story={story} />
-            </Panel>
-          ))}
-        </div>
-
-        <SectionLink label={LINKS.viewAll} />
-      </div>
+       * Our Work, where the success stories were. Shared with /services — see
+       * the note on `Works` in ./sections.tsx.
+       */}
+      <Works enquiryAnchor={ENQUIRY_ANCHOR} />
 
       <Testimonials />
       <Faq />

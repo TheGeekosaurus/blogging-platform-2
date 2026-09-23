@@ -13,6 +13,7 @@ import {
   STATS,
   STATS_CTA,
   TESTIMONIALS,
+  WORKS,
 } from './content';
 import { ArrowDown, ArrowRight, Plus, WORK_ICONS } from './icons';
 import { ArrowLink, DiscLink, Panel, SectionHeader, SectionLink } from './primitives';
@@ -321,6 +322,19 @@ export function Faq() {
           {FAQS.map((faq, index) => (
             <details
               key={faq.question}
+              /*
+               * ONE OPEN AT A TIME, in HTML rather than in JavaScript. A shared
+               * `name` makes a group of <details> exclusive the way radio
+               * buttons are: opening one closes the rest, with no state, no
+               * effect and no client bundle — which is the same bargain every
+               * other moving part of this site takes.
+               *
+               * It degrades to the old behaviour rather than breaking: a
+               * browser that does not know the attribute ignores it and lets
+               * two sit open, which is what this did before. Everything else
+               * — the marker, the animation, keyboard operation — is native.
+               */
+              name="nl-faq"
               open={index === 0}
               className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-raised)] bg-[var(--nl-card)] px-5 py-4 lg:px-7 lg:py-5"
             >
@@ -387,6 +401,33 @@ export function ClosingCta({ enquiryAnchor }: { enquiryAnchor: string }) {
  * column is itself a stack of three: the technology list, the team strip, and
  * a full-width call, at the artwork's 225 / 90 / 63 heights.
  */
+/**
+ * Our Work: a heading card on the page ground, then one panel per project.
+ *
+ * NOT ONE PANEL AROUND ALL OF THEM, which is the artwork's own decision — two
+ * 1822x470 panels rather than one tall one. Wrapped together they read as a
+ * single block of six cards instead of two separate projects.
+ *
+ * SHARED BY /services AND THE HOMEPAGE. It was the Services page's until the
+ * homepage's success stories made way for it; both now render this, and
+ * `enquiryAnchor` is what keeps each page's "Book A Call" on its own form.
+ */
+export function Works({ enquiryAnchor }: { enquiryAnchor: string }) {
+  return (
+    <div className="mt-[var(--nl-section-gap)]">
+      <SectionHeader id="work" title={SECTIONS.work} link={{ label: LINKS.allWork }} />
+
+      <div className="mt-5 flex flex-col gap-5">
+        {WORKS.map((work) => (
+          <WorkPanel key={work.title} work={work} enquiryAnchor={enquiryAnchor} />
+        ))}
+      </div>
+
+      <SectionLink label={LINKS.allWork} />
+    </div>
+  );
+}
+
 export function WorkPanel({
   work,
   enquiryAnchor,

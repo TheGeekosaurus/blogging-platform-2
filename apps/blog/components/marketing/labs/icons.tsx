@@ -107,23 +107,16 @@ function SocialAds({ className }: IconProps) {
 }
 
 /**
- * Golden Scaffold's mark: two standards, two ledgers and a diagonal brace.
+ * A scaffold: two standards, two ledgers and a diagonal brace.
  *
- * It replaced the template's t-shirt glyph, which belonged to Klothink — the
- * invented clothing brand that used to hold this success-story slot.
+ * Drawn for the Golden Scaffold success story, which no longer exists — the
+ * homepage shows work panels where those were. It survives as the Construction
+ * & Trades mark on /industries, which is the trade that case study is in.
  */
 function Scaffold({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
       <path d="M5 4v16M19 4v16M4 8.5h16M4 15.5h16M5 8.5l14 7" {...STROKE} />
-    </svg>
-  );
-}
-
-function Fitness({ className }: IconProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
-      <path d="M4 12h2M18 12h2M7.5 8.5v7M16.5 8.5v7M7.5 12h9" {...STROKE} />
     </svg>
   );
 }
@@ -347,12 +340,6 @@ export const INDUSTRY_ICONS = {
   restaurant: Restaurant,
   legal: Legal,
   auto: Auto,
-} as const;
-
-/** Success-story icons, keyed by `SuccessStory['icon']`. */
-export const STORY_ICONS = {
-  scaffold: Scaffold,
-  fitness: Fitness,
 } as const;
 
 /** Project marks on /services, keyed by `Work['icon']` in ./services-content.ts. */
