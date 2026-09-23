@@ -9,9 +9,11 @@ export const dynamic = 'force-dynamic';
 /**
  * Keywords — the research, in full.
  *
- * Every keyword this site knows about, grouped by the page intended to own it:
- * topic → page → keywords. Nothing here has been committed to; a page appears
- * on the Roadmap screen once it has been briefed.
+ * Every keyword this site knows about, in the shape the research produces it:
+ * topic → cluster → keywords, where a cluster is named by its head term. No
+ * page titles — clustering happens well before anything has a title, and the
+ * working ones that do exist are placeholders. Titles appear on the Roadmap,
+ * which is where a cluster lands once it has been briefed as a page.
  *
  * Read-only for now, deliberately. The clustering decisions that populate these
  * tables are made against live SERPs — which page should own a term is settled
@@ -22,7 +24,7 @@ export default async function KeywordsPage() {
   const site = await requireCurrentSite();
   const tree = await loadSeoTree(site.id, 'research');
 
-  const pageCount = tree.topics.reduce(
+  const clusterCount = tree.topics.reduce(
     (sum, t) => sum + (t.pillar ? 1 : 0) + t.subs.length,
     0,
   );
@@ -32,8 +34,9 @@ export default async function KeywordsPage() {
       <h1 className="text-xl font-semibold tracking-tight">Keywords</h1>
 
       <p className="mt-2 max-w-2xl text-sm text-[#50575e]">
-        Every keyword researched for this site, grouped by the page meant to own
-        it. A page moves to the <strong>Roadmap</strong> once it has a brief.
+        Every keyword researched for this site, grouped into the clusters meant
+        to own them. A cluster reaches the <strong>Roadmap</strong> once it has
+        been briefed as a page.
       </p>
 
       {isSeoTreeEmpty(tree) ? (
@@ -69,10 +72,10 @@ export default async function KeywordsPage() {
             </div>
             <div>
               <dt className="text-xs uppercase tracking-wide text-[#787c82]">
-                Pages planned
+                Clusters
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
-                {pageCount}
+                {clusterCount}
               </dd>
             </div>
           </dl>

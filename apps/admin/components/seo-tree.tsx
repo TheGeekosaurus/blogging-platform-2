@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import {
+  clusterLabel,
   formatVolume,
   kdBand,
   KD_BAND_LABELS,
@@ -15,7 +16,7 @@ import {
 } from '@blog/core';
 
 /**
- * The three-level disclosure both SEO screens render: topic → page → keywords.
+ * The three-level disclosure both SEO screens render.
  *
  * WHY <details>, NOT REACT STATE. Every node here is independently open or
  * closed and nothing else on the page reacts to it, which is exactly what
@@ -24,8 +25,16 @@ import {
  * disclosure role and find-in-page expansion for free. React state would cost
  * a client boundary and reimplement all four.
  *
- * The two screens differ only in `variant`: Keywords leads with the research
- * numbers, Roadmap leads with title and status. Same tree, same roll-ups.
+ * The middle level is the same row of the same table on both screens, but it is
+ * not the same THING, and the two variants no longer pretend otherwise:
+ *
+ *   research  topic → cluster → keywords. A cluster is named by its head term,
+ *             carries the research numbers, and has no title because nothing
+ *             has been written yet.
+ *   roadmap   topic → page → keywords. A page is named by its working title,
+ *             carries its status, and carries no research numbers — by the time
+ *             something is briefed, the volume that justified it is settled and
+ *             repeating it on every row is just noise between you and the work.
  */
 
 export type SeoTreeVariant = 'research' | 'roadmap';
@@ -101,7 +110,24 @@ function IntentBar({ mix }: { mix: IntentMix }) {
   );
 }
 
-function Chevron() {
+/*
+ * NAMED GROUPS, one per nesting level.
+ *
+ * A bare `group-open:` matches when ANY ancestor `.group` is open, and these
+ * disclosures are three deep — so opening a topic rotated every chevron
+ * underneath it, and a collapsed page sat there pointing down as though it were
+ * already expanded. Naming the level each chevron belongs to is the fix.
+ *
+ * The strings are whole literals rather than an interpolation because Tailwind
+ * finds classes by scanning the source for them.
+ */
+const CHEVRON_ROTATE = {
+  topic: 'group-open/topic:rotate-90',
+  page: 'group-open/page:rotate-90',
+  section: 'group-open/section:rotate-90',
+} as const;
+
+function Chevron({ level }: { level: keyof typeof CHEVRON_ROTATE }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -110,7 +136,7 @@ function Chevron() {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-3.5 w-3.5 shrink-0 text-[#787c82] transition-transform group-open:rotate-90"
+      className={`h-3.5 w-3.5 shrink-0 text-[#787c82] transition-transform ${CHEVRON_ROTATE[level]}`}
       aria-hidden="true"
     >
       <path d="m9 6 6 6-6 6" />
@@ -125,9 +151,7 @@ function Chevron() {
 function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
   if (keywords.length === 0) {
     return (
-      <p className="px-4 py-3 text-sm text-[#50575e]">
-        No keywords on this page yet.
-      </p>
+      <p className="px-4 py-3 text-sm text-[#50575e]">No keywords here yet.</p>
     );
   }
 
@@ -169,43 +193,30 @@ function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// Level 2 — a page
+// Level 2a — a cluster, on the Keywords screen
 // ---------------------------------------------------------------------------
 
-function PageRow({
-  node,
-  variant,
-  isPillar,
-}: {
-  node: SeoPageNode;
-  variant: SeoTreeVariant;
-  isPillar: boolean;
-}) {
-  const { page, metrics, intent } = node;
+/**
+ * A group of terms, named by the term that leads it.
+ *
+ * No page title anywhere: at this stage the clusters come out of the keyword
+ * research and the titles do not exist yet, so showing one meant showing a
+ * placeholder. The numbers stay — they are the entire reason to look at this
+ * screen.
+ */
+function ClusterRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
+  const { metrics, intent } = node;
 
   return (
     <details
-      className={`group border-b border-[#f0f0f1] last:border-0 ${
+      className={`group/page border-b border-[#f0f0f1] last:border-0 ${
         isPillar ? 'border-l-2 border-l-[var(--color-wp-nav-active)]' : ''
       }`}
     >
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-[#f6f7f7]">
-        <Chevron />
+        <Chevron level="page" />
 
-        <span className="min-w-0 flex-1 truncate text-sm">
-          {page.title}
-          {page.primary_keyword ? (
-            <span className="ml-2 text-xs text-[#787c82]">{page.primary_keyword}</span>
-          ) : null}
-        </span>
-
-        {variant === 'roadmap' ? (
-          <span
-            className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
-          >
-            {SEO_STATUS_LABELS[page.status]}
-          </span>
-        ) : null}
+        <span className="min-w-0 flex-1 truncate text-sm">{clusterLabel(node)}</span>
 
         <span className="hidden w-16 shrink-0 text-right text-xs tabular-nums text-[#50575e] sm:block">
           {metrics.keywordCount} kw
@@ -223,45 +234,97 @@ function PageRow({
 
       <div className="bg-[#fbfbfc] pb-2">
         <KeywordTable keywords={node.keywords} />
+      </div>
+    </details>
+  );
+}
 
-        {variant === 'roadmap' ? <PageDetail node={node} /> : null}
+// ---------------------------------------------------------------------------
+// Level 2b — a page, on the Roadmap screen
+// ---------------------------------------------------------------------------
+
+/**
+ * Title and status, and nothing else.
+ *
+ * The research numbers are gone from this row on purpose. A page reaches the
+ * roadmap because someone decided it was worth writing; re-deciding that on
+ * every glance is not what the screen is for, and four columns of figures in
+ * front of a status badge made it hard to read the one thing that changes. They
+ * are all still a click away.
+ */
+function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
+  const { page } = node;
+
+  return (
+    <details
+      className={`group/page border-b border-[#f0f0f1] last:border-0 ${
+        isPillar ? 'border-l-2 border-l-[var(--color-wp-nav-active)]' : ''
+      }`}
+    >
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-[#f6f7f7]">
+        <Chevron level="page" />
+
+        <span className="min-w-0 flex-1 truncate text-sm">{page.title}</span>
+
+        <span
+          className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
+        >
+          {SEO_STATUS_LABELS[page.status]}
+        </span>
+      </summary>
+
+      <div className="bg-[#fbfbfc] pb-2">
+        <PageDetail node={node} />
       </div>
     </details>
   );
 }
 
 /**
- * The roadmap's extra panel: what has actually been written for this page.
+ * A long field, folded away behind its own heading.
  *
- * Only on the roadmap variant. On the Keywords screen a page is a research
- * grouping and none of this exists yet, so the panel would be four empty
- * headings on every row.
+ * Briefs and outlines run to hundreds of words. Printed in full they pushed the
+ * next page in the topic off the screen, which defeats a roadmap — the point of
+ * it is seeing the queue.
  */
+function Section({ title, body }: { title: string; body: string }) {
+  return (
+    <details className="group/section">
+      <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-semibold uppercase tracking-wide text-[#787c82] hover:text-[#3c434a]">
+        <Chevron level="section" />
+        {title}
+      </summary>
+      <p className="mt-1 whitespace-pre-wrap pl-5.5 text-[#3c434a]">{body}</p>
+    </details>
+  );
+}
+
+/** What has actually been settled for this page, once it is expanded. */
 function PageDetail({ node }: { node: SeoPageNode }) {
   const { page } = node;
   const hasMeta = page.meta_title || page.meta_description;
 
-  if (!page.brief && !page.outline && !hasMeta && !page.post_id) return null;
+  /*
+   * The head term, which used to sit inline beside the title on the row above.
+   * It belongs here: it is reference, not status, and on a row it competed with
+   * the title for the same line and lost half of itself to truncation.
+   */
+  const primary =
+    node.keywords.find((k) => k.is_primary)?.keyword ?? page.primary_keyword;
 
   return (
-    <div className="space-y-3 border-t border-[#f0f0f1] px-4 pt-3 text-sm">
-      {page.brief ? (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
-            Brief
-          </h4>
-          <p className="mt-1 whitespace-pre-wrap text-[#3c434a]">{page.brief}</p>
-        </div>
+    <div className="space-y-3 px-4 pt-3 text-sm">
+      {primary ? (
+        <p>
+          <span className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
+            Primary keyword
+          </span>{' '}
+          <span className="text-[#3c434a]">{primary}</span>
+        </p>
       ) : null}
 
-      {page.outline ? (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
-            Outline
-          </h4>
-          <p className="mt-1 whitespace-pre-wrap text-[#3c434a]">{page.outline}</p>
-        </div>
-      ) : null}
+      {page.brief ? <Section title="Brief" body={page.brief} /> : null}
+      {page.outline ? <Section title="Outline" body={page.outline} /> : null}
 
       {hasMeta ? (
         <div>
@@ -276,6 +339,10 @@ function PageDetail({ node }: { node: SeoPageNode }) {
           ) : null}
         </div>
       ) : null}
+
+      <div className="border-t border-[#f0f0f1] pt-2">
+        <KeywordTable keywords={node.keywords} />
+      </div>
 
       {page.post_id ? (
         <p>
@@ -292,13 +359,23 @@ function PageDetail({ node }: { node: SeoPageNode }) {
 
 function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVariant }) {
   const { topic, pillar, subs, metrics, statusCounts } = node;
-  const pageCount = (pillar ? 1 : 0) + subs.length;
-  const published = statusCounts.published;
+  const childCount = (pillar ? 1 : 0) + subs.length;
+  const research = variant === 'research';
+
+  // "Clusters" on the research screen, "pages" on the roadmap — the same rows,
+  // but only one of them describes something anyone has agreed to build.
+  const noun = research
+    ? childCount === 1
+      ? 'cluster'
+      : 'clusters'
+    : childCount === 1
+      ? 'page'
+      : 'pages';
 
   return (
-    <details className="group rounded border border-[#dcdcde] bg-white" open={false}>
+    <details className="group/topic rounded border border-[#dcdcde] bg-white">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-[#f6f7f7]">
-        <Chevron />
+        <Chevron level="topic" />
 
         <span className="min-w-0 flex-1">
           <span className="text-sm font-semibold">
@@ -315,8 +392,8 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
         </span>
 
         <span className="shrink-0 text-xs text-[#50575e]">
-          {pageCount} {pageCount === 1 ? 'page' : 'pages'}
-          {variant === 'roadmap' ? ` · ${published} published` : null}
+          {childCount} {noun}
+          {research ? null : ` · ${statusCounts.published} published`}
         </span>
 
         <span className="hidden shrink-0 text-xs text-[#50575e] sm:block">
@@ -332,28 +409,30 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
       </summary>
 
       <div className="border-t border-[#dcdcde]">
-        {pageCount === 0 ? (
+        {childCount === 0 ? (
           <p className="px-4 py-3 text-sm text-[#50575e]">
-            No pages in this topic yet.
+            {research ? 'No clusters in this topic yet.' : 'No pages in this topic yet.'}
           </p>
         ) : (
           <>
             {pillar ? (
               <>
                 <p className="border-b border-[#f0f0f1] bg-[#fbfbfc] px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-[#787c82]">
-                  Pillar page
+                  {research ? 'Pillar' : 'Pillar page'}
                 </p>
-                <PageRow node={pillar} variant={variant} isPillar />
+                <ChildRow node={pillar} variant={variant} isPillar />
               </>
             ) : null}
 
             {subs.length > 0 ? (
               <>
                 <p className="border-b border-[#f0f0f1] bg-[#fbfbfc] px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-[#787c82]">
-                  {pillar ? `Subpages: ${subs.length}` : `Pages: ${subs.length}`}
+                  {pillar
+                    ? `${research ? 'Supporting' : 'Subpages'}: ${subs.length}`
+                    : `${research ? 'Clusters' : 'Pages'}: ${subs.length}`}
                 </p>
                 {subs.map((sub) => (
-                  <PageRow
+                  <ChildRow
                     key={sub.page.id}
                     node={sub}
                     variant={variant}
@@ -366,6 +445,22 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
         )}
       </div>
     </details>
+  );
+}
+
+function ChildRow({
+  node,
+  variant,
+  isPillar,
+}: {
+  node: SeoPageNode;
+  variant: SeoTreeVariant;
+  isPillar: boolean;
+}) {
+  return variant === 'research' ? (
+    <ClusterRow node={node} isPillar={isPillar} />
+  ) : (
+    <PageRow node={node} isPillar={isPillar} />
   );
 }
 
@@ -390,13 +485,13 @@ export function SeoTreeView({
 
       {/*
         Unclustered keywords sit at the bottom rather than being hidden. They
-        are the working pile — research that has not been assigned to a page —
-        and a screen that omits them quietly loses the work.
+        are the working pile — research that has not been assigned to a cluster
+        — and a screen that omits them quietly loses the work.
       */}
       {tree.unassigned.length > 0 ? (
-        <details className="group rounded border border-dashed border-[#c3c4c7] bg-white">
+        <details className="group/topic rounded border border-dashed border-[#c3c4c7] bg-white">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-[#f6f7f7]">
-            <Chevron />
+            <Chevron level="topic" />
             <span className="flex-1 text-sm font-semibold">Not yet clustered</span>
             <span className="text-xs text-[#50575e]">
               {tree.unassigned.length}{' '}
