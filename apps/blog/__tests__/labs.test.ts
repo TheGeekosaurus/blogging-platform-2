@@ -153,8 +153,9 @@ describe('every destination resolves', () => {
     const unbuilt = NAV.filter((item) => !item.href).map((item) => item.label);
 
     // If this list shrinks, the route should exist and be registered in
-    // CODED_SITES — check that before updating the expectation.
-    expect(unbuilt).toEqual(['Projects', 'About']);
+    // CODED_SITES — check that before updating the expectation. 'About' left
+    // it when /about was built; 'Projects' leaves when a /projects index is.
+    expect(unbuilt).toEqual(['Projects']);
   });
 
   it('routes every call to action at one destination per page, so it moves in one edit', async () => {
@@ -1114,6 +1115,153 @@ describe('the Get Started page', () => {
   });
 });
 
+describe('the About page', () => {
+  async function render() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsAbout } = await import('../components/marketing/labs/about');
+
+    return renderToStaticMarkup(React.createElement(LabsAbout));
+  }
+
+  it('is registered as a coded route, so it reaches the sitemap and the admin', async () => {
+    const { codedRoutesFor, NNTM_LABS_SLUG } = await import('@blog/core');
+    const route = codedRoutesFor(NNTM_LABS_SLUG).find((r) => r.path === 'about');
+
+    expect(route, 'about missing from CODED_SITES').toBeTruthy();
+    expect(route?.index).toBe(true);
+  });
+
+  it('is gated on the Labs deployment, not served from every blog', () => {
+    const file = readFileSync(join(__dirname, '..', 'app', 'about', 'page.tsx'), 'utf8');
+
+    expect(file).toContain('isNntmLabs()');
+    expect(file).toContain('notFound()');
+  });
+
+  /*
+   * The nav item carried no href for as long as there was no page. Now that
+   * there is one, the item and the footer's "About Us" both point at it —
+   * pinned here because a page nobody can reach is the same as no page, and
+   * nothing else notices.
+   */
+  it('is what the nav and the footer now link to', async () => {
+    const { NAV, FOOTER_COLUMNS, ABOUT_PATH } = await import(
+      '../components/marketing/labs/brand'
+    );
+
+    expect(ABOUT_PATH).toBe('/about');
+    expect(NAV.find((item) => item.label === 'About')?.href).toBe(ABOUT_PATH);
+
+    const footer = FOOTER_COLUMNS.flatMap((column) => column.links);
+    expect(footer.find((link) => link.label === 'About Us')?.href).toBe(ABOUT_PATH);
+  });
+
+  it('puts every section on the page', async () => {
+    const html = decoded(await render());
+    const { FAQS, TESTIMONIALS, CLOSING_CTA, SECTIONS, STATS } = await import(
+      '../components/marketing/labs/content'
+    );
+    const { ABOUT_HERO, ABOUT_SECTIONS, ABOUT_STATS_CTA, AWARDS, MILESTONES, TEAM } =
+      await import('../components/marketing/labs/about-content');
+
+    for (const line of ABOUT_HERO.headingLines) expect(html).toContain(line);
+    expect(html).toContain(ABOUT_HERO.body);
+    for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
+    expect(html).toContain(ABOUT_STATS_CTA);
+
+    for (const heading of Object.values(ABOUT_SECTIONS)) expect(html).toContain(heading);
+    for (const member of TEAM) {
+      expect(html, member.name).toContain(member.name);
+      expect(html, member.role).toContain(member.role);
+    }
+    for (const milestone of MILESTONES) expect(html, milestone.date).toContain(milestone.title);
+    for (const award of AWARDS) expect(html, award.date).toContain(award.title);
+
+    expect(html).toContain(SECTIONS.testimonials);
+    for (const person of TESTIMONIALS) expect(html).toContain(person.name);
+    for (const faq of FAQS) expect(html).toContain(faq.question);
+    expect(html).toContain(CLOSING_CTA.heading);
+  });
+
+  /*
+   * THE THREE PLACEHOLDER SECTIONS DISAPPEAR WHEN THEIR ARRAYS DO.
+   *
+   * That is the whole removal plan for the invented staff, dates and awards —
+   * see the warning at the top of about-content.ts — so emptying an array has
+   * to remove the SECTION and not leave a panel with a heading and nothing
+   * under it, which looks broken in a way the placeholder did not.
+   *
+   * Asserted against the source rather than against a render, because the
+   * arrays are module constants: proving it by rendering would mean mocking
+   * the content module, which tests the mock. What is checked is that each
+   * section opens with the guard, before any markup — the only shape in which
+   * it can return nothing at all.
+   */
+  it.each([
+    ['Team', 'TEAM'],
+    ['Milestones', 'MILESTONES'],
+    ['Awards', 'AWARDS'],
+  ])('drops the %s section when its list is empty', (component, list) => {
+    const source = read('about.tsx');
+    const opens = new RegExp(
+      `function ${component}\\(\\) \\{\\s*if \\(${list}\\.length === 0\\) return null;`,
+    );
+
+    expect(source, `${component} needs the empty guard first`).toMatch(opens);
+  });
+
+  /*
+   * A social disc with no destination is a control that looks operable and is
+   * not — the same rule ArrowLink follows. The template gives every face three
+   * of them; these appear only for a member who has somewhere to send you, and
+   * today none do.
+   */
+  it('renders no dead social controls under the faces', async () => {
+    const html = await render();
+    const { TEAM } = await import('../components/marketing/labs/about-content');
+
+    const linked = TEAM.flatMap((member) => member.links ?? []);
+    const offsite = [...html.matchAll(/<a[^>]*target="_blank"/g)];
+
+    expect(offsite).toHaveLength(linked.length);
+    for (const link of linked) {
+      expect(html, link.href).toContain(`href="${link.href}"`);
+      // Off-site, so it needs the opener guard the footer's cards also carry.
+      expect(html).toMatch(new RegExp(`href="${link.href}"[^>]*rel="noopener noreferrer"`));
+    }
+  });
+
+  it('ships every asset it references', async () => {
+    const { existsSync } = await import('node:fs');
+    const html = await render();
+
+    const srcs = [...html.matchAll(/\/_next\/image\?url=([^&"]+)/g)].map((m) =>
+      decodeURIComponent(m[1] as string),
+    );
+
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of new Set(srcs)) {
+      expect(existsSync(join(__dirname, '..', 'public', src)), src).toBe(true);
+    }
+  });
+
+  /*
+   * Its calls go to the contact page rather than to the FAQ's form, which the
+   * shared section does bring down the page with it — the same call the
+   * project pages make, and pinned for the same reason: the other heroes point
+   * at '#ask', so copying one of them is how this page would quietly stop
+   * sending anyone anywhere useful.
+   */
+  it('sends its calls to the contact page', async () => {
+    const html = await render();
+    const { GET_STARTED_PATH } = await import('../components/marketing/labs/brand');
+
+    expect(html).toContain(`href="${GET_STARTED_PATH}"`);
+    expect(html).not.toMatch(/href="\/#ask"/);
+  });
+});
+
 describe('the heroes are one height', () => {
   /*
    * The three heroes used to size themselves from whatever they contained —
@@ -1133,7 +1281,7 @@ describe('the heroes are one height', () => {
     expect(declarations).toHaveLength(1);
   });
 
-  it.each(['home.tsx', 'services.tsx', 'get-started.tsx'])('%s reads it', (file) => {
+  it.each(['home.tsx', 'services.tsx', 'get-started.tsx', 'about.tsx'])('%s reads it', (file) => {
     const source = read(file);
     const hero = source.slice(source.indexOf('function Hero()'));
 

@@ -12,7 +12,7 @@ import {
   STATS_CTA,
   TESTIMONIALS,
 } from './content';
-import { ArrowRight, Plus, WORK_ICONS } from './icons';
+import { ArrowDown, ArrowRight, Plus, WORK_ICONS } from './icons';
 import { ArrowLink, Panel, SectionHeader, SectionLink } from './primitives';
 
 /**
@@ -73,6 +73,50 @@ export function Stats({ enquiryAnchor }: { enquiryAnchor: string }) {
         </div>
       </div>
     </Panel>
+  );
+}
+
+/**
+ * The same five figures, stacked two-up beside a hero instead of banded under
+ * one — the shape /get-started and /about both give them.
+ *
+ * Extracted when the second page wanted it, not before, and the second page is
+ * the reason it is worth extracting at all: the tiles, the accent, the label
+ * case and the `auto-rows-fr` that keeps the rows even are five decisions that
+ * would otherwise be made twice and drift once.
+ *
+ * `trailing` is the sixth tile, which is a call rather than a figure — the
+ * band above does the same. It carries a DOWN arrow because both callers point
+ * it further down their own page rather than away from it; if one ever needs
+ * to leave the page, that is a new variant, not a new href.
+ */
+export function StatGrid({ trailing }: { trailing: { label: string; href: string } }) {
+  return (
+    <div className="grid grid-cols-2 gap-3 lg:auto-rows-fr lg:gap-4">
+      {STATS.map((stat) => (
+        <div
+          key={stat.label}
+          className="flex flex-col items-center justify-center gap-2 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 text-center"
+        >
+          <p className="nl-label text-[10px] text-[var(--nl-body)] lg:text-xs">
+            {stat.label}
+          </p>
+          <p className="nl-heading text-3xl text-[var(--nl-accent)] lg:text-4xl">
+            {stat.value}
+          </p>
+        </div>
+      ))}
+
+      <Link
+        href={trailing.href}
+        className="group flex items-center justify-center gap-3 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6"
+      >
+        <span className="nl-label text-xs text-[var(--nl-ink)]">{trailing.label}</span>
+        <span className="grid size-9 shrink-0 place-items-center rounded-full border border-current text-[var(--nl-ink)] transition-transform duration-200 group-hover:translate-y-px">
+          <ArrowDown className="size-4" />
+        </span>
+      </Link>
+    </div>
   );
 }
 

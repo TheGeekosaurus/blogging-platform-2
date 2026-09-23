@@ -261,6 +261,26 @@ export const SERVICE_ICONS = {
   'social-ads': SocialAds,
 } as const;
 
+/**
+ * The award mark: a medal on a ribbon.
+ *
+ * Stroked like every other glyph here rather than filled like the two project
+ * marks, because it sits in the same 44px tile the service icons use and a
+ * solid shape at that size reads as a blob.
+ */
+function Medal({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M8.5 3 11 8M15.5 3 13 8" {...STROKE} />
+      <circle cx="12" cy="14.5" r="6" {...STROKE} />
+      <path d="m12 11.5 1 2.2 2.3.3-1.7 1.6.4 2.4-2-1.2-2 1.2.4-2.4-1.7-1.6 2.3-.3z" {...STROKE} />
+    </svg>
+  );
+}
+
+/** The single mark the awards cards share — see ./about-content.ts. */
+export const AwardMedal = Medal;
+
 /** Success-story icons, keyed by `SuccessStory['icon']`. */
 export const STORY_ICONS = {
   scaffold: Scaffold,

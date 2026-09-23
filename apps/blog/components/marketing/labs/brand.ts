@@ -77,6 +77,9 @@ export const GET_STARTED_PATH = '/get-started';
  */
 export const SERVICES_ENQUIRY_ANCHOR = '/services#ask';
 
+/** The About page. Linked from the nav, and from nothing else. */
+export const ABOUT_PATH = '/about';
+
 export type NavItem = {
   label: string;
   /** Absent while the destination is unbuilt — rendered unlinked, not as a 404. */
@@ -96,11 +99,17 @@ export type NavItem = {
  *
  * That leaves four items where the design has seven, which is also what keeps
  * the desktop bar inside 1024px without wrapping.
+ *
+ * PROJECTS IS STILL UNLINKED. Individual project pages exist, but there is no
+ * index for this item to point at, and a nav link to a page that does not
+ * exist is the failure `labs.test.ts` guards against. About lost its own
+ * `href`-less entry when /about was built; Projects loses its when a /projects
+ * index is.
  */
 export const NAV: readonly NavItem[] = [
   { label: 'Services', href: '/services' },
   { label: 'Projects' },
-  { label: 'About' },
+  { label: 'About', href: ABOUT_PATH },
   { label: 'Get Started', href: GET_STARTED_PATH, cta: true },
 ];
 
@@ -121,7 +130,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     heading: 'Home',
     links: [
       { label: 'Why Us' },
-      { label: 'About Us' },
+      { label: 'About Us', href: ABOUT_PATH },
       { label: 'Testimonials', href: '/#testimonials' },
       { label: 'FAQˇs', href: '/#faq' },
     ],
