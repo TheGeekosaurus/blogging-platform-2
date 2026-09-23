@@ -442,25 +442,87 @@ export type Work = {
   team: readonly string[];
 };
 
-export type Faq = { question: string; answer?: string };
+export type Faq = {
+  question: string;
+  /**
+   * Optional, and every entry has one today. It was optional because the
+   * template supplied an answer for the first question and left four questions
+   * hanging — and an accordion that opens onto nothing is a worse thing to
+   * ship than a shorter list.
+   */
+  answer?: string;
+};
 
 /**
- * Only the first carries an answer in the design; the rest are shown closed.
- * Kept that way rather than invented, because inventing answers would put
- * claims about delivery and capability into the business's mouth.
+ * The questions a local business actually asks before it hires anybody.
+ *
+ * NOT THE TEMPLATE'S. Those were about mobile app development, third-party
+ * APIs and cross-platform compatibility — a web shop's FAQ on a local
+ * marketing agency's site, which is both wrong and slightly damning, since an
+ * agency that sells web copy had five questions of somebody else's on every
+ * page of its own.
+ *
+ * WHAT THE ANSWERS DO AND DO NOT SAY. Each one describes how the work behaves
+ * — why ads are fast and search is slow, why a click costs what it costs —
+ * rather than promising a result. Nothing here claims a ranking, a timeline
+ * for a specific business, or a number this agency has hit.
+ *
+ * ⚠️ TWO OF THEM ARE POLICY, not description, and they are the business's to
+ * confirm rather than mine to assert: who owns the accounts, and what
+ * reporting a client gets. Both are written the way a good agency answers
+ * them. If either is not how Nanotom Labs works, it is the answer that needs
+ * changing, not the question.
  */
 export const FAQS: readonly Faq[] = [
   {
-    question: 'How long does it take to complete a web development project?',
+    question: 'How soon will I see results?',
     answer:
-      "The timeline varies depending on the project's complexity and requirements. Our " +
-      'team strives to deliver projects on time while maintaining the highest quality ' +
-      'standards.',
+      'It depends which service you are buying. Ads can produce calls in the first week, ' +
+      'because you are paying for attention that already exists. Local search is slower — ' +
+      'Google has to see a consistent profile, consistent listings and real reviews before ' +
+      'rankings hold, and that is usually months rather than weeks. We tell you at the ' +
+      'start which of the two your budget is buying.',
   },
-  { question: 'Can you handle large-scale mobile app development projects?' },
-  { question: 'Can you integrate third-party APIs into our mobile app?' },
-  { question: 'How do you ensure cross-platform compatibility for mobile apps?' },
-  { question: 'What is your approach to user experience (UX) design?' },
+  {
+    question: 'Do I need a new website, or can you work with the one I have?',
+    answer:
+      'Either. If your site loads quickly, says plainly what you do, and is easy to call or ' +
+      'book from on a phone, the money is better spent getting people to it. If it does ' +
+      'not, no amount of traffic fixes that — so we say which of the two you are looking ' +
+      'at before anything is booked.',
+  },
+  {
+    question: 'How much should I be spending on ads?',
+    answer:
+      'Enough to buy more clicks than it takes your market to produce a lead, which varies ' +
+      'by trade and by city — a plumbing click and an attorney click are not the same ' +
+      'price. We work back from what a customer is worth to you and what the auction ' +
+      'currently costs, rather than starting from a monthly figure and hoping.',
+  },
+  {
+    /* ⚠️ POLICY — see the note above. */
+    question: 'Who owns the website, the ad account and the Google profile?',
+    answer:
+      'You do. Accounts are set up in your name with us added as a user, so if we part ' +
+      'ways you keep the history, the data and everything built for you. An agency that ' +
+      'holds your ad account holds your business.',
+  },
+  {
+    /* ⚠️ POLICY — see the note above. */
+    question: 'How will I know it is working?',
+    answer:
+      'Calls and form fills are tracked back to the channel that produced them, so the ' +
+      'question gets answered in leads rather than impressions. You get a report you can ' +
+      'read in two minutes, and the dashboards underneath it are yours to open whenever ' +
+      'you like.',
+  },
+  {
+    question: 'What do you need from me to get started?',
+    answer:
+      'Access to whatever already exists — the site, the Google profile, any ad accounts — ' +
+      'and an honest description of what a good customer looks like and what one is worth ' +
+      'to you. Photographs of your actual work help more than anything we could write.',
+  },
 ];
 
 export const ENQUIRY_FORM = {

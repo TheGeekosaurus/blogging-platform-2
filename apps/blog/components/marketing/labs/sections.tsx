@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
+import { ABOUT_PATH } from './brand';
 import type { Work } from './content';
 import {
   CLOSING_CTA,
@@ -161,8 +162,14 @@ export function Reasons() {
               </p>
             </div>
 
-            {/* Unlinked: the design gives these four no destination. */}
-            <DiscLink label={LINKS.learnMore} />
+            {/*
+             * To /about. The design gives these four no destination, and they
+             * sat unlinked until there was one — but "why this agency" is the
+             * About page's whole subject, so four controls asking the visitor
+             * to learn more now go to the page that does the explaining.
+             * One href for both pages that render this.
+             */}
+            <DiscLink label={LINKS.learnMore} href={ABOUT_PATH} />
           </article>
         ))}
       </div>
@@ -301,7 +308,13 @@ export function EnquiryForm() {
 export function Faq() {
   return (
     <div className="mt-[var(--nl-section-gap)]">
-      <SectionHeader id="faq" title={SECTIONS.faq} link={{ label: LINKS.viewAll }} />
+      {/*
+       * NO "VIEW ALL". The template puts one in this header, and there is no
+       * longer list to view — these six ARE the frequently asked questions,
+       * and a control promising more of them promises something that does not
+       * exist. The section link under the column went with it.
+       */}
+      <SectionHeader id="faq" title={SECTIONS.faq} />
 
       <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]">
         <div className="flex flex-col gap-4">
@@ -329,8 +342,6 @@ export function Faq() {
 
         <EnquiryForm />
       </div>
-
-      <SectionLink label={LINKS.viewAll} />
     </div>
   );
 }
