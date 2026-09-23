@@ -5,8 +5,8 @@ import { SERVICES_ENQUIRY_ANCHOR } from './brand';
 import { LINKS, SECTIONS, SERVICES, SERVICE_MARQUEE } from './content';
 import { ArrowRight, SERVICE_ICONS } from './icons';
 import { ArrowLink, Marquee, Panel, SectionHeader, SectionLink } from './primitives';
-import { ClosingCta, Faq, Stats, Testimonials, WorkPanel } from './sections';
-import { SERVICES_HERO, SERVICES_LINKS, SERVICES_SECTIONS, WORKS } from './services-content';
+import { ClosingCta, Faq, Stats, Testimonials, Works } from './sections';
+import { SERVICES_HERO } from './services-content';
 
 /**
  * The Nanotom Labs Services page.
@@ -237,39 +237,13 @@ function ServiceCards() {
   );
 }
 
-/**
- * Our Works, laid out like the homepage's Success Stories: the heading card
- * sits on the page ground and EACH PROJECT gets its own panel, because the
- * artwork has two 1822x470 panels rather than one tall one. Wrapping them
- * together would read as a single block of six cards instead of two projects.
- */
-function Works() {
-  return (
-    <div className="mt-[var(--nl-section-gap)]">
-      <SectionHeader
-        id="works"
-        title={SERVICES_SECTIONS.works}
-        link={{ label: SERVICES_LINKS.allWorks }}
-      />
-
-      <div className="mt-5 flex flex-col gap-5">
-        {WORKS.map((work) => (
-          <WorkPanel key={work.title} work={work} enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
-        ))}
-      </div>
-
-      <SectionLink label={SERVICES_LINKS.allWorks} />
-    </div>
-  );
-}
-
 export function LabsServices() {
   return (
     <div className="px-4 pb-6 pt-4 lg:px-[50px] lg:pt-5">
       <Hero />
       <Stats enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
       <ServiceCards />
-      <Works />
+      <Works enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />
       <Testimonials />
       <Faq />
       <ClosingCta enquiryAnchor={SERVICES_ENQUIRY_ANCHOR} />

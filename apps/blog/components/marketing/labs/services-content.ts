@@ -1,5 +1,3 @@
-import type { Work } from './content';
-
 /**
  * Copy unique to the Nanotom Labs Services page.
  *
@@ -15,12 +13,11 @@ import type { Work } from './content';
  * — stay in ./content.ts and are imported from there, so a wording change
  * reaches both pages in one edit.
  *
- * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC. WORKS below describes two
- * named client projects that did not happen — categories, durations, technology
- * stacks and five staff portraits each — and reads as a portfolio of work
- * Nanotom Labs did not do. The stat band and the testimonials this page also
- * renders carry the same problem, and the same note in ./content.ts. Replace or
- * remove all of it before the site goes live.
+ * WHAT MUST CHANGE BEFORE THIS SERVES REAL TRAFFIC: the hero's screenshot and
+ * caption name "Estatein Real Estate", which is the template's invented client
+ * and not this agency's work. The stat band, the testimonials and the work
+ * panels this page also renders carry the same problem and the same note in
+ * ./content.ts.
  */
 
 export const SERVICES_HERO = {
@@ -54,57 +51,10 @@ export const SERVICES_HERO = {
  * quietly disagreed.
  */
 
-export const WORKS: readonly Work[] = [
-  {
-    icon: 'spark',
-    title: 'Zenith Fitness App',
-    category: 'Mobile App Development',
-    timeTaken: '6 months',
-    body:
-      'An all-in-one health and wellness app that offers personalized fitness plans, ' +
-      'nutrition guidance, and virtual workout classes.',
-    image: {
-      src: '/nntm-labs/work-zenith.webp',
-      alt: 'Screens from the Zenith fitness app, laid out on an angle',
-    },
-    technologies: ['React Native', 'Firebase', 'Redux', 'REST API', 'MongoDB'],
-    team: [
-      '/nntm-labs/team-1.webp',
-      '/nntm-labs/team-2.webp',
-      '/nntm-labs/team-3.webp',
-      '/nntm-labs/team-4.webp',
-      '/nntm-labs/team-5.webp',
-    ],
-  },
-  {
-    icon: 'balloon',
-    title: 'A-Aura Ecommerce',
-    category: 'Web Design & Development',
-    timeTaken: '3 months',
-    body:
-      'A complete overhaul of a corporate website to enhance its brand identity and user ' +
-      'experience.',
-    image: {
-      src: '/nntm-labs/work-a-aura.webp',
-      alt: 'Pages from the A-Aura commerce site, laid out on an angle',
-    },
-    technologies: ['WordPress', 'PHP', 'HTML5', 'CSS3', 'JavaScript'],
-    team: [
-      '/nntm-labs/team-6.webp',
-      '/nntm-labs/team-7.webp',
-      '/nntm-labs/team-8.webp',
-      '/nntm-labs/team-9.webp',
-      '/nntm-labs/team-2.webp',
-    ],
-  },
-];
+/*
+ * NEITHER IS "Our Work". It followed the same path the moment the homepage
+ * started rendering it too — the list, the heading and the link label are all
+ * in ./content.ts now, and both pages call the one `Works` section in
+ * ./sections.tsx. This file is down to the hero.
+ */
 
-/** Section headings unique to this page. */
-export const SERVICES_SECTIONS = {
-  works: 'Our Works',
-} as const;
-
-/** Labels unique to this page. The WorkPanel's own live in ./content.ts. */
-export const SERVICES_LINKS = {
-  allWorks: 'ALL Works',
-} as const;

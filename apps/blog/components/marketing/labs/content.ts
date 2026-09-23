@@ -283,95 +283,6 @@ export const SERVICE_MARQUEE: readonly string[] = [
   ...SERVICES.map((service) => service.title),
 ];
 
-/**
- * The success stories' tabs.
- *
- * The template ships Challenge / Solution / Results and supplies copy for
- * Solution only. These are Before / After instead — a deliberate change, so a
- * story can show the numbers on either side of the engagement rather than
- * three prose panels. `After` is the default because it is the outcome, which
- * is what the section is selling.
- */
-export const STORY_TABS = ['Before', 'After'] as const;
-
-export type StoryTab = (typeof STORY_TABS)[number];
-
-/** Which panel opens with the page. The outcome, not the starting point. */
-export const DEFAULT_STORY_TAB: StoryTab = 'After';
-
-export type StoryPanel = { heading: string; body: string };
-
-export type SuccessStory = {
-  /** Key into the icon map in ./icons.tsx. */
-  icon: 'scaffold' | 'fitness';
-  client: string;
-  industry: string;
-  service: string;
-  /** Keyed by tab, lowercased — see `panelFor` in home.tsx. */
-  panels: Record<Lowercase<StoryTab>, StoryPanel>;
-};
-
-export const SUCCESS_STORIES: readonly SuccessStory[] = [
-  /*
-   * A REAL CLIENT, WITH NOTHING SAID ABOUT THE WORK YET.
-   *
-   * This slot held Klothink, the template's invented e-commerce engagement. The
-   * client is now Golden Scaffold, which is a real company — so the template's
-   * "after" prose could not come with it. That copy described a checkout
-   * redesign for a clothing shop; attached to a named scaffolding contractor it
-   * would not be placeholder text, it would be a false account of an engagement
-   * that has a real other party to contradict it.
-   *
-   * So both panels are visibly unwritten, and the ⚠️ warning at the top of
-   * ./projects-content.ts applies here word for word. Fill them with the real
-   * before-and-after — the figures the business can evidence — or drop the
-   * story until they exist.
-   */
-  {
-    icon: 'scaffold',
-    client: 'Golden Scaffold',
-    industry: 'Scaffolding',
-    /*
-     * All three services, which is why the same project heads the Website
-     * Design, Local SEO/GEO and Google Ads galleries above.
-     */
-    service: 'Website, Local SEO, Google Ads',
-    panels: {
-      before: {
-        heading: 'Before',
-        body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
-      },
-      after: {
-        heading: 'After',
-        body:
-          'What the website, the local search work and the ad campaigns changed goes here, ' +
-          'once the results are written up.',
-      },
-    },
-  },
-  {
-    icon: 'fitness',
-    client: 'Fitness Tracker App',
-    industry: 'Health & Fitness',
-    service: 'Mobile App Development',
-    panels: {
-      before: {
-        heading: 'Before',
-        body: 'Baseline figures for this engagement go here — where the numbers stood before the work began.',
-      },
-      after: {
-        heading: 'After',
-        body:
-          'Leveraging our expertise in app development, we built an interactive mobile app ' +
-          'with user-friendly features. The app allowed users to set personalized fitness ' +
-          'goals, track their progress, and share achievements on social media platforms. ' +
-          'Real-time data synchronization enabled users to access their data on multiple ' +
-          'devices.',
-      },
-    },
-  },
-];
-
 export type Testimonial = {
   quote: string;
   body: string;
@@ -441,6 +352,63 @@ export type Work = {
    */
   team: readonly string[];
 };
+
+/**
+ * The work panels, which BOTH the homepage and /services render.
+ *
+ * They were the Services page's until the homepage's success stories made way
+ * for them, and the heading and link label came along: a list two pages read
+ * belongs with the rest of the shared copy rather than in one page's file.
+ *
+ * ⚠️ NEITHER PROJECT HAPPENED. Two named clients with categories, durations,
+ * technology stacks and five staff portraits each — a portfolio of work this
+ * agency did not do, and now on the front page rather than one page in. The
+ * one real project on this site is Golden Scaffold; see ./projects-content.ts.
+ */
+export const WORKS: readonly Work[] = [
+  {
+    icon: 'spark',
+    title: 'Zenith Fitness App',
+    category: 'Mobile App Development',
+    timeTaken: '6 months',
+    body:
+      'An all-in-one health and wellness app that offers personalized fitness plans, ' +
+      'nutrition guidance, and virtual workout classes.',
+    image: {
+      src: '/nntm-labs/work-zenith.webp',
+      alt: 'Screens from the Zenith fitness app, laid out on an angle',
+    },
+    technologies: ['React Native', 'Firebase', 'Redux', 'REST API', 'MongoDB'],
+    team: [
+      '/nntm-labs/team-1.webp',
+      '/nntm-labs/team-2.webp',
+      '/nntm-labs/team-3.webp',
+      '/nntm-labs/team-4.webp',
+      '/nntm-labs/team-5.webp',
+    ],
+  },
+  {
+    icon: 'balloon',
+    title: 'A-Aura Ecommerce',
+    category: 'Web Design & Development',
+    timeTaken: '3 months',
+    body:
+      'A complete overhaul of a corporate website to enhance its brand identity and user ' +
+      'experience.',
+    image: {
+      src: '/nntm-labs/work-a-aura.webp',
+      alt: 'Pages from the A-Aura commerce site, laid out on an angle',
+    },
+    technologies: ['WordPress', 'PHP', 'HTML5', 'CSS3', 'JavaScript'],
+    team: [
+      '/nntm-labs/team-6.webp',
+      '/nntm-labs/team-7.webp',
+      '/nntm-labs/team-8.webp',
+      '/nntm-labs/team-9.webp',
+      '/nntm-labs/team-2.webp',
+    ],
+  },
+];
 
 export type Faq = {
   question: string;
@@ -597,13 +565,19 @@ export const REASONS: readonly Reason[] = [
 export const SECTIONS = {
   reasons: 'Reasons to Choose Nanotom Labs for Your Local Business',
   services: 'Our Services',
-  successStories: 'Success Stories',
+  work: 'Our Work',
   testimonials: 'Testimonials',
   faq: 'Frequently Asked Questions',
 } as const;
 
 export const LINKS = {
   viewAll: 'View All',
+  /*
+   * "Our Work", not the template's "Our Works". Work is a mass noun for what a
+   * business produces — you show your work; the works are what a composer
+   * leaves behind or a council digs up in the road.
+   */
+  allWork: 'All Work',
   allTestimonials: 'ALL Testimonials',
   bookACall: 'Book A Call',
   openProject: 'Open Project',

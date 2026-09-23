@@ -612,21 +612,20 @@ describe('the homepage renders', () => {
   });
 
   /*
-   * The story and the galleries are about the same engagement, so they name the
-   * same client. Stored twice — a success story is not a project entry — and
-   * the two would otherwise part company the first time one is renamed.
+   * The work panels replaced the success stories here, and they are the same
+   * component /services renders — so the homepage now shows the portfolio
+   * rather than two before-and-after cards with nothing in the "before".
    */
-  it('heads the success stories with the client the galleries link to', async () => {
-    const { SUCCESS_STORIES } = await import('../components/marketing/labs/content');
-    const { GOLDEN_SCAFFOLD } = await import('../components/marketing/labs/projects-content');
-
-    const story = SUCCESS_STORIES[0];
-    expect(story?.client).toBe(GOLDEN_SCAFFOLD.showcase.title);
-
+  it('shows the work panels where the success stories were', async () => {
     const html = decoded(await render());
-    expect(html).toContain(story?.client);
-    expect(html).toContain(story?.industry);
-    expect(html).toContain(story?.service);
+    const { WORKS, SECTIONS } = await import('../components/marketing/labs/content');
+
+    expect(html).toContain(SECTIONS.work);
+    expect(html).not.toContain('Success Stories');
+    for (const work of WORKS) {
+      expect(html, work.title).toContain(work.title);
+      expect(html, work.title).toContain(work.body);
+    }
   });
 
   it('renders unbuilt nav destinations as text, not anchors', async () => {
@@ -735,78 +734,6 @@ describe('the radius scale matches the artwork', () => {
     ].flatMap((file) => read(file).match(/rounded-full/g) ?? []);
 
     expect(pills.length).toBeLessThanOrEqual(30);
-  });
-});
-
-describe('the success stories switch without JavaScript', () => {
-  /*
-   * The tabs are a radio group styled with CSS — no client component, so the
-   * page still ships none of its own JavaScript. What can regress silently:
-   * the default panel, the per-story grouping, and the CSS that does the
-   * switching. All three fail invisibly (a page that looks right and does
-   * nothing), so they are pinned rather than eyeballed.
-   */
-  const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
-
-  it('offers exactly Before and After, defaulting to the outcome', async () => {
-    const { STORY_TABS, DEFAULT_STORY_TAB } = await import(
-      '../components/marketing/labs/content'
-    );
-
-    expect([...STORY_TABS]).toEqual(['Before', 'After']);
-    expect(DEFAULT_STORY_TAB).toBe('After');
-  });
-
-  it('gives every story a panel for every tab', async () => {
-    const { SUCCESS_STORIES, STORY_TABS } = await import(
-      '../components/marketing/labs/content'
-    );
-
-    for (const story of SUCCESS_STORIES) {
-      for (const tab of STORY_TABS) {
-        const panel = story.panels[tab.toLowerCase() as 'before' | 'after'];
-        expect(panel?.heading, `${story.client}/${tab}`).toBeTruthy();
-        expect(panel?.body, `${story.client}/${tab}`).toBeTruthy();
-      }
-    }
-  });
-
-  it('renders one checked radio per story, in its own group', async () => {
-    const React = await import('react');
-    const { renderToStaticMarkup } = await import('react-dom/server');
-    const { LabsHome } = await import('../components/marketing/labs/home');
-    const html = renderToStaticMarkup(React.createElement(LabsHome));
-
-    const groups = new Set([...html.matchAll(/name="(nl-story-[^"]+)"/g)].map((m) => m[1]));
-    const { SUCCESS_STORIES } = await import('../components/marketing/labs/content');
-
-    // One group per story: a shared name would make the two switch together.
-    expect(groups.size).toBe(SUCCESS_STORIES.length);
-    // One default per story, and it is the "after" input.
-    const checked = [...html.matchAll(/<input[^>]*checked[^>]*>/g)].map((m) => m[0]);
-    expect(checked).toHaveLength(SUCCESS_STORIES.length);
-    for (const input of checked) expect(input).toContain('value="after"');
-  });
-
-  it('keeps the switching in CSS, with a readable no-:has() fallback', () => {
-    const block = CSS.slice(CSS.indexOf('.nl-tab-panel'));
-
-    // The panel swap needs :has() because panels are not siblings of the inputs.
-    expect(block).toContain(":has(input[value='before']:checked)");
-    // The label highlight does not — it is a plain adjacent sibling.
-    expect(block).toContain('input:checked + [data-tab-label]');
-    /*
-     * Only "before" is hidden by default. If both were, a browser without
-     * :has() would render two empty cards instead of the outcome panel.
-     */
-    const bareRule = (tab: string) =>
-      // Anchored to the start of a line, so this matches only the DEFAULT rule
-      // and not the `:has(...) .nl-tab-panel[data-tab='after']` one, which
-      // legitimately hides "after" while "before" is selected.
-      new RegExp(`(^|\\n)\\s*\\.nl-tab-panel\\[data-tab='${tab}'\\]\\s*\\{\\s*display:\\s*none`);
-
-    expect(block).toMatch(bareRule('before'));
-    expect(block).not.toMatch(bareRule('after'));
   });
 });
 
@@ -919,13 +846,12 @@ describe('the Services page', () => {
     const { SECTIONS, CLOSING_CTA, FAQS, TESTIMONIALS, SERVICES } = await import(
       '../components/marketing/labs/content'
     );
-    const { SERVICES_HERO, SERVICES_SECTIONS, WORKS } = await import(
-      '../components/marketing/labs/services-content'
-    );
+    const { WORKS } = await import('../components/marketing/labs/content');
+    const { SERVICES_HERO } = await import('../components/marketing/labs/services-content');
 
     for (const line of SERVICES_HERO.headingLines) expect(html).toContain(line);
     expect(html).toContain(SERVICES_HERO.imageTitle);
-    for (const heading of Object.values(SERVICES_SECTIONS)) expect(html).toContain(heading);
+    expect(html).toContain(SECTIONS.work);
     expect(html).toContain(SECTIONS.services);
     for (const service of SERVICES) {
       expect(html, service.title).toContain(service.title);
@@ -955,9 +881,8 @@ describe('the Services page', () => {
 
   it('renders every work image and leaves the team portraits decorative', async () => {
     const html = await render();
-    const { WORKS, SERVICES_HERO } = await import(
-      '../components/marketing/labs/services-content'
-    );
+    const { WORKS } = await import('../components/marketing/labs/content');
+    const { SERVICES_HERO } = await import('../components/marketing/labs/services-content');
 
     for (const work of WORKS) {
       // next/image rewrites src through the optimiser, so the encoded path is
@@ -983,9 +908,8 @@ describe('the Services page', () => {
 
   it('ships every asset it references', async () => {
     const { existsSync } = await import('node:fs');
-    const { WORKS, SERVICES_HERO } = await import(
-      '../components/marketing/labs/services-content'
-    );
+    const { WORKS } = await import('../components/marketing/labs/content');
+    const { SERVICES_HERO } = await import('../components/marketing/labs/services-content');
 
     const paths = [
       SERVICES_HERO.image.src,
@@ -1456,6 +1380,59 @@ describe('the shared FAQ and the reasons cards', () => {
 
     for (const stale of ['mobile app', 'third-party api', 'cross-platform']) {
       expect(asked, stale).not.toContain(stale);
+    }
+  });
+
+  /*
+   * ONE OPEN AT A TIME, and in HTML rather than JavaScript.
+   *
+   * A shared `name` makes a group of <details> exclusive the way radio buttons
+   * are. What breaks it is subtle: a name that differs between items, or one
+   * that collides with another group on the page, and either failure looks
+   * exactly like the old behaviour rather than like an error.
+   */
+  it('closes the other answers when one opens, with no JavaScript', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+    const { FAQS } = await import('../components/marketing/labs/content');
+
+    const html = renderToStaticMarkup(React.createElement(LabsHome));
+    const details = [...html.matchAll(/<details[^>]*>/g)].map((m) => m[0]);
+
+    expect(details).toHaveLength(FAQS.length);
+
+    const names = new Set(
+      details.map((tag) => /name="([^"]+)"/.exec(tag)?.[1] ?? '(none)'),
+    );
+    // Every one named, and all of them the SAME name — that is the group.
+    expect(names.size, [...names].join(', ')).toBe(1);
+    expect(names.has('(none)')).toBe(false);
+
+    // Exactly one starts open, and it is the first.
+    // React serialises a boolean attribute as `open=""`, not a bare `open`.
+    const open = details.filter((tag) => /\sopen(=|\s|>)/.test(tag));
+    expect(open).toHaveLength(1);
+    expect(details.indexOf(open[0] as string)).toBe(0);
+
+    // And no script came along with it.
+    expect(read('sections.tsx')).not.toContain('useState');
+  });
+
+  /*
+   * "Our Work", not "Our Works".
+   *
+   * Work is a mass noun for what a business produces — you show your work. The
+   * template said "Our Works", which is what you call a composer's output or a
+   * hole in the road, and it was on two pages.
+   */
+  it('calls the portfolio "Our Work"', async () => {
+    const { SECTIONS, LINKS } = await import('../components/marketing/labs/content');
+
+    expect(SECTIONS.work).toBe('Our Work');
+    expect(LINKS.allWork).toBe('All Work');
+    for (const value of [...Object.values(SECTIONS), ...Object.values(LINKS)]) {
+      expect(value, value).not.toMatch(/\bWorks\b/);
     }
   });
 
