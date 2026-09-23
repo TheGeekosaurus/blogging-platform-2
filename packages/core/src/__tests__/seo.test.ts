@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildSeoTree,
+  clusterLabel,
   formatVolume,
   kdBand,
   type SeoKeywordRow,
@@ -251,5 +252,59 @@ describe('buildSeoTree', () => {
     );
 
     expect(tree.topics[0]?.subs.map((s) => s.page.id)).toEqual(['first', 'second']);
+  });
+});
+
+describe('clusterLabel', () => {
+  const cluster = (pageOver: Partial<SeoPageRow>, keywords: SeoKeywordRow[]) => {
+    const p = page({ id: 'p1', title: 'A working title', ...pageOver });
+    const tree = buildSeoTree(
+      [topic({ id: 't1', name: 'Topic' })],
+      [{ ...p, topic_id: 't1' }],
+      keywords.map((k) => ({ ...k, page_id: 'p1' })),
+    );
+    const node = tree.topics[0]?.subs[0];
+    if (!node) throw new Error('expected a cluster');
+    return clusterLabel(node);
+  };
+
+  it('names a cluster by its head term, not the working page title', () => {
+    expect(
+      cluster({}, [
+        kw({ id: 'k1', keyword: 'sba loan requirements', is_primary: true, volume: 40 }),
+        kw({ id: 'k2', keyword: 'sba 7a eligibility', volume: 900 }),
+      ]),
+    ).toBe('sba loan requirements');
+  });
+
+  it('prefers the keyword row over the denormalised copy when they disagree', () => {
+    // The row is where one-primary-per-page is enforced, so it is the copy
+    // that cannot drift; primary_keyword is a render convenience.
+    expect(
+      cluster({ primary_keyword: 'stale copy' }, [
+        kw({ id: 'k1', keyword: 'the real head term', is_primary: true }),
+      ]),
+    ).toBe('the real head term');
+  });
+
+  it('falls back to the denormalised copy when no row is flagged primary', () => {
+    expect(
+      cluster({ primary_keyword: 'equipment financing' }, [
+        kw({ id: 'k1', keyword: 'lease vs buy equipment', volume: 300 }),
+      ]),
+    ).toBe('equipment financing');
+  });
+
+  it('falls back to the biggest term when nothing is flagged or denormalised', () => {
+    expect(
+      cluster({}, [
+        kw({ id: 'k1', keyword: 'small term', volume: 10 }),
+        kw({ id: 'k2', keyword: 'big term', volume: 5000 }),
+      ]),
+    ).toBe('big term');
+  });
+
+  it('uses the title only for a cluster with no keywords at all', () => {
+    expect(cluster({}, [])).toBe('A working title');
   });
 });

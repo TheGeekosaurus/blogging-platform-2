@@ -301,6 +301,31 @@ export function formatVolume(volume: number | null | undefined): string {
   return `${(volume / 1_000_000).toFixed(1)}M`;
 }
 
+/**
+ * What to call a cluster on the Keywords screen.
+ *
+ * Its head term, not `page.title`. Clustering happens before anything is
+ * written: the research produces groups of terms, and a working page title is
+ * invented later — often much later, and by a different pass. Naming the group
+ * after a title that does not exist yet was showing placeholder prose on a
+ * screen whose whole job is the terms.
+ *
+ * Preferring the keyword row over the denormalised `page.primary_keyword`
+ * matters when the two disagree: the row is where `is_primary` is enforced
+ * one-per-page, so it is the copy that cannot drift. The title survives only as
+ * a last resort, for a cluster with no keywords in it at all — rare, and better
+ * than an unlabelled row.
+ */
+export function clusterLabel(node: SeoPageNode): string {
+  const primary = node.keywords.find((k) => k.is_primary);
+  return (
+    primary?.keyword ??
+    node.page.primary_keyword ??
+    node.keywords[0]?.keyword ??
+    node.page.title
+  );
+}
+
 export const SEO_STATUS_LABELS: Record<SeoPageStatus, string> = {
   researched: 'Researched',
   briefed: 'Briefed',
