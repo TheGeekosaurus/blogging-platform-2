@@ -2,7 +2,7 @@ import { Fragment } from 'react';
 
 import Link from 'next/link';
 
-import { SERVICE_MARQUEE, STATS } from './content';
+import { SERVICE_MARQUEE } from './content';
 import {
   CONTACT_CHANNELS,
   CONTACT_PENDING,
@@ -11,9 +11,9 @@ import {
   GET_STARTED_HERO,
   REACH_US,
 } from './get-started-content';
-import { ArrowDown, ArrowRight, ArrowUpRight } from './icons';
+import { ArrowRight, ArrowUpRight } from './icons';
 import { Marquee, Panel } from './primitives';
-import { Faq, Testimonials } from './sections';
+import { Faq, StatGrid, Testimonials } from './sections';
 
 /**
  * The Nanotom Labs Get Started page — where the header's button lands.
@@ -100,42 +100,14 @@ function Hero() {
       </div>
 
       {/*
-       * The same figures the other two pages band across the full width, here
+       * The same figures the other pages band across the full width, here
        * stacked two-up beside the copy — which is the template's own idea and a
        * good one: on a contact page the numbers are the reason to bother
        * filling the form in, so they belong next to the invitation rather than
-       * under it.
-       *
-       * The trailing tile is a call rather than a figure, exactly as in the
-       * band, and it scrolls DOWN the page rather than away from it — hence
-       * the down arrow instead of the up-right one every off-section link
-       * uses.
+       * under it. /about makes the same call, which is why the grid moved into
+       * ./sections.tsx.
        */}
-      <div className="grid grid-cols-2 gap-3 lg:auto-rows-fr lg:gap-4">
-        {STATS.map((stat) => (
-          <div
-            key={stat.label}
-            className="flex flex-col items-center justify-center gap-2 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6 text-center"
-          >
-            <p className="nl-label text-[10px] text-[var(--nl-body)] lg:text-xs">
-              {stat.label}
-            </p>
-            <p className="nl-heading text-3xl text-[var(--nl-accent)] lg:text-4xl">
-              {stat.value}
-            </p>
-          </div>
-        ))}
-
-        <Link
-          href={FORM_ANCHOR}
-          className="group flex items-center justify-center gap-3 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] px-4 py-6"
-        >
-          <span className="nl-label text-xs text-[var(--nl-ink)]">{REACH_US}</span>
-          <span className="grid size-9 shrink-0 place-items-center rounded-full border border-current text-[var(--nl-ink)] transition-transform duration-200 group-hover:translate-y-px">
-            <ArrowDown className="size-4" />
-          </span>
-        </Link>
-      </div>
+      <StatGrid trailing={{ label: REACH_US, href: FORM_ANCHOR }} />
     </section>
   );
 }
