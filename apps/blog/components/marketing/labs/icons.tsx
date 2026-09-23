@@ -278,8 +278,76 @@ function Medal({ className }: IconProps) {
   );
 }
 
+/*
+ * The industry marks. Line glyphs at the same 1.5 stroke as the service icons,
+ * because they sit in the same tile at the same size — see ./industries.tsx.
+ */
+function HomeServices({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M3.5 10.5 12 4l8.5 6.5V20H3.5z" {...STROKE} />
+      <path d="M9.5 20v-5h5v5M10 11.5h4" {...STROKE} />
+    </svg>
+  );
+}
+
+function Dental({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path
+        d="M12 5.5c2-1.5 4.5-1.6 5.6-.3 1.4 1.7.6 4.4.2 6.6-.4 2.2-.6 7.7-2.3 7.7-1.4 0-1.2-4.4-3.5-4.4s-2.1 4.4-3.5 4.4c-1.7 0-1.9-5.5-2.3-7.7-.4-2.2-1.2-4.9.2-6.6C7.5 3.9 10 4 12 5.5z"
+        {...STROKE}
+      />
+    </svg>
+  );
+}
+
+function Restaurant({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M7 3v8M5 3v4a2 2 0 0 0 4 0V3M7 11v10" {...STROKE} />
+      <path d="M17 21v-7M17 14c-1.7 0-2.5-1.3-2.5-3.5S15.3 3 17 3s2.5 5.3 2.5 7.5S18.7 14 17 14z" {...STROKE} />
+    </svg>
+  );
+}
+
+function Legal({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M12 4v16M8 20h8M5 8h14M7.5 7 4 14h7zM16.5 7 13 14h7z" {...STROKE} />
+    </svg>
+  );
+}
+
+function Auto({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden focusable="false">
+      <path d="M4 16v2.5M20 16v2.5M3 16v-3.5l2-4.5a2 2 0 0 1 1.8-1.2h10.4A2 2 0 0 1 19 8l2 4.5V16z" {...STROKE} />
+      <path d="M3 12.5h18M6.5 14.5h1.5M16 14.5h1.5" {...STROKE} />
+    </svg>
+  );
+}
+
 /** The single mark the awards cards share — see ./about-content.ts. */
 export const AwardMedal = Medal;
+
+/** Industry marks, keyed by `Industry['icon']` in ./industries-content.ts. */
+export const INDUSTRY_ICONS = {
+  'home-services': HomeServices,
+  /*
+   * The scaffold frame, which the Golden Scaffold success story also uses.
+   * A hard hat is the obvious mark for this trade and it does not survive the
+   * size: drawn as a dome, a brim and a crest at 24px it reads as a serving
+   * cloche, which was two attempts and a screenshot to establish. A scaffold
+   * frame is unambiguous, and it happens to be the trade this agency's one
+   * real case study is in.
+   */
+  construction: Scaffold,
+  dental: Dental,
+  restaurant: Restaurant,
+  legal: Legal,
+  auto: Auto,
+} as const;
 
 /** Success-story icons, keyed by `SuccessStory['icon']`. */
 export const STORY_ICONS = {

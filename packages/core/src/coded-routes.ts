@@ -94,6 +94,7 @@ const NNTM_LABS_ROUTES: readonly CodedRoute[] = [
   { path: 'services', title: 'Services', index: true },
   { path: 'get-started', title: 'Get Started', index: true },
   { path: 'about', title: 'About', index: true },
+  { path: 'industries', title: 'Industries', index: true },
   /*
    * One entry per project page. These are generated from a registry in
    * `apps/blog/components/marketing/labs/projects-content.ts` — which this
