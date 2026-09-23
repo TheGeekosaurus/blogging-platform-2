@@ -342,10 +342,11 @@ export const INDUSTRY_ICONS = {
   auto: Auto,
 } as const;
 
-/** Project marks on /services, keyed by `Work['icon']` in ./services-content.ts. */
+/** Work-panel marks, keyed by `Work['icon']` in ./content.ts. */
 export const WORK_ICONS = {
   spark: Spark,
   balloon: Balloon,
+  scaffold: Scaffold,
 } as const;
 
 /** Footer social icons, keyed by `SocialCard['icon']` in ./brand.ts. */

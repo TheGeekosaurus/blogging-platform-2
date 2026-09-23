@@ -579,7 +579,17 @@ describe('the homepage renders', () => {
     expect(labels).toHaveLength(tiles.length);
 
     for (const href of new Set(tiles.map((tile) => tile.href).filter(Boolean))) {
-      const anchors = [...html.matchAll(new RegExp(`<a[^>]*href="${href}"`, 'g'))];
+      /*
+       * Matched on the anchor that CARRIES the label, not on the href alone.
+       * The work panel below these galleries points its Details link and its
+       * gold button at the same case study, so counting hrefs page-wide counts
+       * those too — which is how this first failed.
+       */
+      const anchors = [
+        ...html.matchAll(
+          new RegExp(`<a[^>]*href="${href}"[^>]*>(?:(?!</a>).)*?>${LINKS.openProject}<`, 'gs'),
+        ),
+      ];
       expect(
         anchors.length,
         href as string,
@@ -859,7 +869,7 @@ describe('the Services page', () => {
     }
     for (const work of WORKS) {
       expect(html, work.title).toContain(work.title);
-      for (const tech of work.technologies) expect(html, tech).toContain(tech);
+      expect(html, work.title).toContain(work.panels.after.body);
     }
     for (const faq of FAQS) expect(html).toContain(faq.question);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
@@ -879,7 +889,7 @@ describe('the Services page', () => {
     expect(html).toContain('id="ask"');
   });
 
-  it('renders every work image and leaves the team portraits decorative', async () => {
+  it('renders every work image, with alt text that describes it', async () => {
     const html = await render();
     const { WORKS } = await import('../components/marketing/labs/content');
     const { SERVICES_HERO } = await import('../components/marketing/labs/services-content');
@@ -888,21 +898,16 @@ describe('the Services page', () => {
       // next/image rewrites src through the optimiser, so the encoded path is
       // what lands in the markup.
       expect(html, work.image.src).toContain(encodeURIComponent(work.image.src));
-      for (const portrait of work.team) {
-        expect(html, portrait).toContain(encodeURIComponent(portrait));
-      }
     }
     expect(html).toContain(encodeURIComponent(SERVICES_HERO.image.src));
 
     /*
-     * The portraits are the template's stock people and name nobody, so they
-     * are decorative: alt="" rather than an invented name read out five times
-     * per project. The screenshots do describe something and carry real alt.
+     * A screenshot of the work describes something, so it takes real alt text.
+     * The five stock portraits that used to sit in each panel took alt="" and
+     * went with the technology chips — see WorkPanel.
      */
     const alts = [...html.matchAll(/<img[^>]*\balt="([^"]*)"/g)].map((m) => m[1]);
-    expect(alts.filter((alt) => alt === '').length).toBeGreaterThanOrEqual(
-      WORKS.reduce((n, work) => n + work.team.length, 0),
-    );
+    for (const work of WORKS) expect(alts, work.title).toContain(work.image.alt);
     expect(alts).toContain(SERVICES_HERO.image.alt);
   });
 
@@ -911,10 +916,7 @@ describe('the Services page', () => {
     const { WORKS } = await import('../components/marketing/labs/content');
     const { SERVICES_HERO } = await import('../components/marketing/labs/services-content');
 
-    const paths = [
-      SERVICES_HERO.image.src,
-      ...WORKS.flatMap((work) => [work.image.src, ...work.team]),
-    ];
+    const paths = [SERVICES_HERO.image.src, ...WORKS.map((work) => work.image.src)];
 
     for (const path of paths) {
       expect(existsSync(join(__dirname, '..', 'public', path)), path).toBe(true);
@@ -1455,6 +1457,133 @@ describe('the shared FAQ and the reasons cards', () => {
   });
 });
 
+describe('the work panels', () => {
+  async function renderHome() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+
+    return renderToStaticMarkup(React.createElement(LabsHome));
+  }
+
+  /*
+   * The Before / After toggle switches in CSS, so the page still ships no
+   * JavaScript. What regresses invisibly is the wiring: a radio group shared
+   * between two panels makes them switch together, and a panel whose
+   * `data-tab` does not match an input's value simply never shows.
+   */
+  it('gives each project its own toggle, defaulting to the outcome', async () => {
+    const html = await renderHome();
+    const { WORKS, WORK_TABS, DEFAULT_WORK_TAB } = await import(
+      '../components/marketing/labs/content'
+    );
+
+    expect([...WORK_TABS]).toEqual(['Before', 'After']);
+    expect(DEFAULT_WORK_TAB).toBe('After');
+
+    // One radio group per project — a shared name would tie them together.
+    const groups = new Set([...html.matchAll(/name="(nl-work-[^"]+)"/g)].map((m) => m[1]));
+    expect(groups.size).toBe(WORKS.length);
+
+    // One checked input per project, and it is the "after" one.
+    const checked = [...html.matchAll(/<input[^>]*checked[^>]*>/g)].map((m) => m[0]);
+    expect(checked).toHaveLength(WORKS.length);
+    for (const input of checked) expect(input).toContain('value="after"');
+
+    // Every panel's copy is on the page, both states of both projects.
+    for (const work of WORKS) {
+      for (const tab of WORK_TABS) {
+        const panel = work.panels[tab.toLowerCase() as 'before' | 'after'];
+        expect(decoded(html), `${work.title}/${tab}`).toContain(panel.body);
+      }
+    }
+  });
+
+  it('keeps the switching in CSS, with a readable no-:has() fallback', () => {
+    const CSS = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+    const block = CSS.slice(CSS.indexOf('.nl-tab-panel'));
+
+    // The panel swap needs :has(): panels are not siblings of the inputs.
+    expect(block).toContain(":has(input[value='before']:checked)");
+    // The label highlight does not — it is a plain adjacent sibling.
+    expect(block).toContain('.nl-tabs input:checked + [data-tab-label]');
+    // The inputs are sr-only, so the focus ring has to be drawn on the label.
+    expect(block).toContain('.nl-tabs input:focus-visible + [data-tab-label]');
+    /*
+     * Only "before" is hidden by default. If both were, a browser without
+     * :has() would render two empty cards instead of the outcome panel.
+     */
+    expect(block).toMatch(/^\s*\.nl-tab-panel\[data-tab='before'\]\s*\{\s*display: none/m);
+  });
+
+  /*
+   * THE GOLD BUTTON'S DESTINATION IS THE WHOLE POINT OF `href` ON A WORK.
+   * A project with a case study sends you there and says so; one without falls
+   * back to the page's own form. Getting it backwards is a button that says
+   * "View Case Study" and scrolls to a contact form.
+   */
+  it('sends the gold button to the case study, or to the form when there is none', async () => {
+    const html = await renderHome();
+    const { WORKS, LINKS } = await import('../components/marketing/labs/content');
+    const { ENQUIRY_ANCHOR } = await import('../components/marketing/labs/brand');
+
+    const button = (label: string, href: string) =>
+      new RegExp(`<a[^>]*href="${href}"[^>]*>\\s*${label}\\s*</a>`);
+
+    for (const work of WORKS) {
+      if (work.href) {
+        expect(html, work.title).toMatch(button(LINKS.viewCaseStudy, work.href));
+      }
+    }
+
+    const withCaseStudy = WORKS.filter((work) => work.href);
+    expect(withCaseStudy.length, 'Golden Scaffold at least').toBeGreaterThan(0);
+
+    // The rest fall back, and the fallback is this page's own form.
+    if (withCaseStudy.length < WORKS.length) {
+      expect(html).toMatch(button(LINKS.bookACall, ENQUIRY_ANCHOR));
+    }
+  });
+
+  /*
+   * The case study page renders the same panel, and its own entry points at
+   * itself — a gold button offering the page you are reading. `linkToCaseStudy`
+   * is what turns that off, and nothing else would notice if it stopped.
+   */
+  it('does not offer the case study to someone already reading it', async () => {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsProject } = await import('../components/marketing/labs/project');
+    const { GOLDEN_SCAFFOLD, projectPath } = await import(
+      '../components/marketing/labs/projects-content'
+    );
+    const { LINKS } = await import('../components/marketing/labs/content');
+
+    const html = renderToStaticMarkup(
+      React.createElement(LabsProject, { project: GOLDEN_SCAFFOLD }),
+    );
+
+    expect(html).not.toContain(LINKS.viewCaseStudy);
+    expect(html, 'no self-link').not.toContain(`href="${projectPath(GOLDEN_SCAFFOLD)}"`);
+    expect(html).toContain(LINKS.bookACall);
+  });
+
+  /*
+   * The technology chips and the five stock portraits are gone from this panel
+   * — a developer portfolio's answer to a question a local business does not
+   * ask. Pinned because the fields went with them: a `technologies` array
+   * reappearing in the data would mean somebody rebuilt the old column.
+   */
+  it('shows no technology chips and no stock team row', async () => {
+    const html = await renderHome();
+
+    // Literals rather than constants: the constants went with the column.
+    expect(html).not.toContain('Technologies Used');
+    expect(html).not.toContain('Team Members');
+    expect(read('sections.tsx')).not.toContain('work.technologies');
+  });
+});
+
 describe('the heroes are one height', () => {
   /*
    * The three heroes used to size themselves from whatever they contained —
@@ -1591,7 +1720,7 @@ describe('the project pages', () => {
       expect(html, feature.title).toContain(feature.title);
     }
     expect(html).toContain(GOLDEN_SCAFFOLD.showcaseTitle);
-    for (const tech of GOLDEN_SCAFFOLD.showcase.technologies) expect(html).toContain(tech);
+    expect(html).toContain(GOLDEN_SCAFFOLD.showcase.panels.after.body);
     expect(html).toContain(SECTIONS.testimonials);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
     for (const faq of FAQS) expect(html).toContain(faq.question);
