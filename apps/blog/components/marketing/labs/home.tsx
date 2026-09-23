@@ -141,11 +141,18 @@ function Hero() {
            * 7-10% in hand at every width in between (measured at 16 of them,
            * not interpolated).
            *
-           * THE LONGEST WORD IS WHAT THE HEADLINE COSTS. Three lines of static
-           * copy at 62px became two lines and a roll at 74.6px; adding
-           * "Estimate Requests" to the list took it back to 67.8px, because
-           * 14.83em has to fit where 13.26em did. Shorten that entry and every
-           * word grows again.
+           * THE LONGEST WORD IS WHAT THE HEADLINE COSTS, and it is the only
+           * thing that does. Three static lines ran at 62px; the roll took
+           * that to 74.6px, and adding "Estimate Requests" to the list brought
+           * it back to 67.8px, because 14.83em has to fit where 13.26em did.
+           * Shorten that entry and every word grows again.
+           *
+           * The third line came back at no cost to any of this: it is the
+           * LINE WIDTH that sets the size here, and a fixed short line under
+           * the roll does not touch it. Vertically the card has the room —
+           * three lines measure 224px at 1920 inside a 520px hero that also
+           * holds the body copy and the marquee, with nothing clipped at any
+           * width from 320 up.
            */}
           {/*
            * Fluid below `lg` too, and tighter: at 360 the card's inner width is

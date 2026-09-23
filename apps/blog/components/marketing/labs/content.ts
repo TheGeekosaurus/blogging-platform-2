@@ -42,11 +42,15 @@ import { GOLDEN_SCAFFOLD, projectPath } from './projects-content';
  * still is; this block is the business's own positioning, and it says what
  * Nanotom Labs sells rather than what the Figma file said.
  *
- * TWO LINES, AND THE FIRST ONE ROLLS. It was three static clauses — More
- * Calls / More Foot Traffic / More Revenue — and the outcomes a local business
- * actually wants are four, not two. Rolling them through one slot says all
- * four in the space of one line and buys the type the size the third line was
- * costing it.
+ * THREE LINES, AND THE FIRST ONE ROLLS. It was three static clauses — More
+ * Calls / More Foot Traffic / More Revenue — which named two outcomes and
+ * stopped. The rolling slot names fourteen in the space of one line, and the
+ * two lines under it are the ones that do not change: sales, then revenue.
+ *
+ * READ AS A LADDER, WHICH IS THE POINT OF THE ORDER. The rolling word is the
+ * thing a marketing spend actually produces — a call, a booking, a quote
+ * request — and the two fixed lines are what those turn into. Whichever word
+ * is showing, the headline ends in the same place.
  *
  * `lead` + `rolling` is the first line, `headingLines` everything under it.
  * The roll is CSS, so the words are all in the markup at once — see
@@ -91,8 +95,12 @@ export const HERO = {
     'Repeat Business',
     'Contracts',
   ],
-  /** Under the roll, and deliberately fixed: the outcome all four lead to. */
-  headingLines: ['More Revenue'],
+  /**
+   * Under the roll, and deliberately fixed: what every one of those outcomes
+   * turns into. The call rides the LAST of these — see ./home.tsx — so adding
+   * a line here moves it down with them.
+   */
+  headingLines: ['More Sales', 'More Revenue'],
   cta: 'Get Started',
   body:
     'At Nanotom Labs, we help local businesses dominate their market with a high-converting ' +
