@@ -1403,6 +1403,81 @@ describe('the Industries page', () => {
   });
 });
 
+describe('the shared FAQ and the reasons cards', () => {
+  /*
+   * Both of these render on four or five pages from one component, which is
+   * what makes them worth pinning: a regression here is not one page's.
+   */
+  async function renderHome() {
+    const React = await import('react');
+    const { renderToStaticMarkup } = await import('react-dom/server');
+    const { LabsHome } = await import('../components/marketing/labs/home');
+
+    return renderToStaticMarkup(React.createElement(LabsHome));
+  }
+
+  it('sends every "Learn More" to the About page', async () => {
+    const html = await renderHome();
+    const { REASONS, LINKS } = await import('../components/marketing/labs/content');
+    const { ABOUT_PATH } = await import('../components/marketing/labs/brand');
+
+    const calls = [...html.matchAll(new RegExp(`>${LINKS.learnMore}<`, 'g'))];
+    expect(calls, 'one per reasons card').toHaveLength(REASONS.length);
+
+    // Every one of them is an anchor, and every one goes to the same place.
+    const linked = [...html.matchAll(new RegExp(`<a[^>]*href="${ABOUT_PATH}"`, 'g'))];
+    expect(linked.length).toBeGreaterThanOrEqual(REASONS.length);
+  });
+
+  /*
+   * EVERY QUESTION ANSWERS. The template supplied one answer and four bare
+   * questions, and the type still allows that — but each renders as a
+   * <details> the visitor can open, and one that opens onto nothing reads as
+   * broken rather than as brief.
+   */
+  it('answers every question it asks', async () => {
+    const { FAQS } = await import('../components/marketing/labs/content');
+
+    expect(FAQS.length).toBeGreaterThan(0);
+    for (const faq of FAQS) {
+      expect(faq.answer, faq.question).toBeTruthy();
+      expect((faq.answer as string).length, faq.question).toBeGreaterThan(40);
+    }
+  });
+
+  /*
+   * And the questions are this business's. The template's five were about
+   * mobile app development and cross-platform builds — a web shop's FAQ, on
+   * every page of a local marketing agency's site.
+   */
+  it('asks about marketing rather than app development', async () => {
+    const { FAQS } = await import('../components/marketing/labs/content');
+    const asked = FAQS.map((faq) => faq.question.toLowerCase()).join(' ');
+
+    for (const stale of ['mobile app', 'third-party api', 'cross-platform']) {
+      expect(asked, stale).not.toContain(stale);
+    }
+  });
+
+  /*
+   * NO "VIEW ALL" ON THE FAQ. There is no longer list behind it: these are the
+   * frequently asked questions, not a sample of them, so the control promised
+   * a page that does not exist. Pinned in the source because its absence is
+   * invisible in a render.
+   */
+  it('offers no "view all" from a list that is already whole', async () => {
+    const source = read('sections.tsx');
+    const faq = source.slice(source.indexOf('export function Faq()'));
+    const body = faq.slice(0, faq.indexOf('\n}'));
+
+    expect(body).not.toContain('LINKS.viewAll');
+    expect(body).not.toContain('SectionLink');
+
+    // The sections that DO have more behind them keep theirs.
+    expect(read('home.tsx')).toContain('LINKS.viewAll');
+  });
+});
+
 describe('the heroes are one height', () => {
   /*
    * The three heroes used to size themselves from whatever they contained —
