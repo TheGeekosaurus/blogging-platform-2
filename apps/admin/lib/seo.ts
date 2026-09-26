@@ -85,7 +85,17 @@ export async function loadSeoTree(
     (topics.data ?? []) as SeoTopicRow[],
     inScope,
     (keywords.data ?? []) as SeoKeywordRow[],
-    { includeUnassigned: scope === 'research' },
+    {
+      includeUnassigned: scope === 'research',
+      /*
+       * Ordered in memory rather than by the select above, because the select
+       * cannot do it: the roll-ups have to sum every keyword under a topic to
+       * be true, so nothing can be filtered or paged away in SQL, and a few
+       * hundred rows already in hand sort faster than a second round trip.
+       * Which is also why 0014 adds no index.
+       */
+      orderBy: scope === 'roadmap' ? 'priority' : 'position',
+    },
   );
 
   return {

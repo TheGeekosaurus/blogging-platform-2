@@ -5,6 +5,8 @@ import {
   clusterLabel,
   formatVolume,
   kdBand,
+  parsePriority,
+  SEO_PRIORITIES,
   type SeoKeywordRow,
   type SeoPageRow,
   type SeoTopicRow,
@@ -25,6 +27,7 @@ const page = (over: Partial<SeoPageRow> & Pick<SeoPageRow, 'id' | 'title'>): Seo
   topic_id: null,
   role: 'sub',
   status: 'researched',
+  priority: null,
   primary_keyword: null,
   brief: null,
   outline: null,
@@ -306,5 +309,90 @@ describe('clusterLabel', () => {
 
   it('uses the title only for a cluster with no keywords at all', () => {
     expect(cluster({}, [])).toBe('A working title');
+  });
+});
+
+describe('priority ordering', () => {
+  const roadmap = (pages: SeoPageRow[]) =>
+    buildSeoTree(
+      [topic({ id: 't1', name: 'Topic' })],
+      pages.map((p) => ({ ...p, topic_id: 't1' })),
+      [],
+      { orderBy: 'priority' },
+    );
+
+  it('ranks unset last, not as low', () => {
+    const tree = roadmap([
+      page({ id: 'none', title: 'Nobody looked at this' }),
+      page({ id: 'low', title: 'Deliberately low', priority: 'low' }),
+      page({ id: 'high', title: 'Urgent', priority: 'high' }),
+      page({ id: 'mid', title: 'Middling', priority: 'medium' }),
+    ]);
+
+    expect(tree.topics[0]?.subs.map((s) => s.page.id)).toEqual([
+      'high',
+      'mid',
+      'low',
+      'none',
+    ]);
+  });
+
+  it('keeps position as the tiebreaker within one priority', () => {
+    const tree = roadmap([
+      page({ id: 'second', title: 'B', priority: 'high', position: 2 }),
+      page({ id: 'first', title: 'A', priority: 'high', position: 1 }),
+      page({ id: 'later', title: 'C', priority: 'low', position: 0 }),
+    ]);
+
+    // `later` has the lowest position of the three and still sorts last:
+    // priority is a key in front of the existing chain, not a replacement.
+    expect(tree.topics[0]?.subs.map((s) => s.page.id)).toEqual([
+      'first',
+      'second',
+      'later',
+    ]);
+  });
+
+  it('leaves the research screen ordered by position, whatever the priority', () => {
+    const pages = [
+      page({ id: 'first', title: 'A', topic_id: 't1', position: 1, priority: 'low' }),
+      page({ id: 'second', title: 'B', topic_id: 't1', position: 2, priority: 'high' }),
+    ];
+    const tree = buildSeoTree([topic({ id: 't1', name: 'Topic' })], pages, []);
+
+    expect(tree.topics[0]?.subs.map((s) => s.page.id)).toEqual(['first', 'second']);
+  });
+
+  it('never sorts the pillar below its own spokes', () => {
+    const tree = roadmap([
+      page({ id: 'hub', title: 'The pillar', role: 'pillar', priority: 'low' }),
+      page({ id: 'spoke', title: 'A spoke', priority: 'high' }),
+    ]);
+
+    expect(tree.topics[0]?.pillar?.page.id).toBe('hub');
+    expect(tree.topics[0]?.subs.map((s) => s.page.id)).toEqual(['spoke']);
+  });
+
+  it('tallies priority per topic, counting the pillar and skipping unranked', () => {
+    const tree = roadmap([
+      page({ id: 'hub', title: 'Hub', role: 'pillar', priority: 'high' }),
+      page({ id: 'a', title: 'A', priority: 'high' }),
+      page({ id: 'b', title: 'B', priority: 'medium' }),
+      page({ id: 'c', title: 'C' }),
+    ]);
+
+    expect(tree.topics[0]?.priorityCounts).toEqual({ high: 2, medium: 1, low: 0 });
+  });
+});
+
+describe('parsePriority', () => {
+  it('accepts the three the enum allows', () => {
+    expect(SEO_PRIORITIES.map(parsePriority)).toEqual(['high', 'medium', 'low']);
+  });
+
+  it('reads anything else as unranked, so a cleared select clears the column', () => {
+    for (const value of ['', 'urgent', 'HIGH', null, undefined, 0]) {
+      expect(parsePriority(value)).toBeNull();
+    }
   });
 });

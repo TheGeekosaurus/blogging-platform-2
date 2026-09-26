@@ -30,6 +30,12 @@ export type SeoPageRole = 'pillar' | 'sub';
  * not appear on the Roadmap screen; `briefed` is the promotion moment.
  */
 export type SeoPageStatus = 'researched' | 'briefed' | 'drafted' | 'published';
+/**
+ * Build order within a topic on the Roadmap. Nullable on the row, and null
+ * means unranked rather than low — see 0014_seo_priority.sql. Declared
+ * most-urgent-first, which is also the enum's sort order in Postgres.
+ */
+export type SeoPagePriority = 'high' | 'medium' | 'low';
 /** The dominant interpretation, not every interpretation. See 0013_seo.sql. */
 export type SeoKeywordIntent =
   | 'informational'
@@ -367,6 +373,8 @@ export type SeoPageRow = {
   topic_id: string | null;
   role: SeoPageRole;
   status: SeoPageStatus;
+  /** Null until someone ranks it. Sorts after every ranked page, not as low. */
+  priority: SeoPagePriority | null;
   title: string;
   /**
    * Mirrored from the page's primary keyword row so a list of hundreds does
@@ -691,6 +699,7 @@ export type Database = {
           | 'topic_id'
           | 'role'
           | 'status'
+          | 'priority'
           | 'primary_keyword'
           | 'brief'
           | 'outline'
@@ -788,6 +797,7 @@ export type Database = {
       lead_magnet_scope: LeadMagnetScope;
       seo_page_role: SeoPageRole;
       seo_page_status: SeoPageStatus;
+      seo_page_priority: SeoPagePriority;
       seo_keyword_intent: SeoKeywordIntent;
     };
     CompositeTypes: { [_ in never]: never };
