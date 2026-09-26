@@ -22,7 +22,7 @@
 -- Declaration order IS sort order in Postgres, so `order by priority` puts the
 -- work first without a CASE. A value can be spliced in later with
 -- `alter type ... add value 'urgent' before 'high'` if three stops being enough.
-create type seo_page_priority as ('high', 'medium', 'low');
+create type seo_page_priority as enum ('high', 'medium', 'low');
 
 /*
  * Nullable, with NO default.
