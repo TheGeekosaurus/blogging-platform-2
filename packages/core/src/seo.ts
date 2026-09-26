@@ -1,6 +1,7 @@
 import type {
   SeoKeywordIntent,
   SeoKeywordRow,
+  SeoPagePriority,
   SeoPageRow,
   SeoPageStatus,
   SeoTopicRow,
@@ -91,6 +92,13 @@ export interface SeoTopicNode {
   metrics: SeoMetrics;
   /** Status tally across the topic's pages — what the Roadmap header shows. */
   statusCounts: Record<SeoPageStatus, number>;
+  /**
+   * Priority tally, so a COLLAPSED topic can still say it holds urgent work.
+   * Without it the only way to find the top of the queue in a six-topic tree is
+   * to open all six, which is the problem the ordering was added to solve.
+   * Unranked pages are counted in neither bucket; `pageCount` is the total.
+   */
+  priorityCounts: Record<SeoPagePriority, number>;
 }
 
 export interface SeoTree {
@@ -115,6 +123,25 @@ function emptyIntentMix(): IntentMix {
 
 function emptyStatusCounts(): Record<SeoPageStatus, number> {
   return { researched: 0, briefed: 0, drafted: 0, published: 0 };
+}
+
+function emptyPriorityCounts(): Record<SeoPagePriority, number> {
+  return { high: 0, medium: 0, low: 0 };
+}
+
+/**
+ * Where an unranked page sorts: after every ranked one.
+ *
+ * Null is not low. A page nobody has looked at yet and a page someone decided
+ * was low priority are different claims, and folding them together would let an
+ * untouched roadmap look as though it had been triaged. Ranked work floats up;
+ * the unranked tail is visibly the part still to be triaged.
+ */
+const PRIORITY_RANK: Record<SeoPagePriority, number> = { high: 0, medium: 1, low: 2 };
+const UNRANKED = 3;
+
+export function priorityRank(priority: SeoPagePriority | null): number {
+  return priority === null ? UNRANKED : PRIORITY_RANK[priority];
 }
 
 /**
@@ -171,6 +198,35 @@ function byVolume(a: SeoKeywordRow, b: SeoKeywordRow): number {
   return a.keyword.localeCompare(b.keyword);
 }
 
+/**
+ * How the two screens order the pages inside a topic.
+ *
+ * `position` is the research order — whatever sequence the clusters were
+ * entered in, which is what the Keywords screen wants because nothing there has
+ * been ranked. `priority` is the queue, and it is the Roadmap's: once work has
+ * been committed to, the only ordering question left is what to write next.
+ */
+export type SeoPageOrder = 'position' | 'priority';
+
+function comparePages(orderBy: SeoPageOrder) {
+  return (a: SeoPageNode, b: SeoPageNode): number => {
+    // Every tiebreaker below is the existing `position` chain, unchanged.
+    // Priority is a key in FRONT of it, not a replacement for it: two equally
+    // urgent pages still fall back to the order someone put them in.
+    const ranked =
+      orderBy === 'priority'
+        ? priorityRank(a.page.priority) - priorityRank(b.page.priority)
+        : 0;
+
+    return (
+      ranked ||
+      a.page.position - b.page.position ||
+      b.metrics.volume - a.metrics.volume ||
+      a.page.title.localeCompare(b.page.title)
+    );
+  };
+}
+
 function pageNode(page: SeoPageRow, keywords: SeoKeywordRow[]): SeoPageNode {
   // The primary keyword leads regardless of volume — it is the page's subject,
   // and a list that buries it under a bigger secondary reads as a mistake.
@@ -199,9 +255,9 @@ export function buildSeoTree(
   topics: SeoTopicRow[],
   pages: SeoPageRow[],
   keywords: SeoKeywordRow[],
-  options: { includeUnassigned?: boolean } = {},
+  options: { includeUnassigned?: boolean; orderBy?: SeoPageOrder } = {},
 ): SeoTree {
-  const { includeUnassigned = true } = options;
+  const { includeUnassigned = true, orderBy = 'position' } = options;
 
   const byPage = new Map<string, SeoKeywordRow[]>();
   const unassigned: SeoKeywordRow[] = [];
@@ -237,18 +293,20 @@ export function buildSeoTree(
   const build = (topic: SeoTopicRow | null, topicPages: SeoPageRow[]): SeoTopicNode => {
     const built = topicPages.map((p) => pageNode(p, byPage.get(p.id) ?? []));
 
+    /*
+     * The pillar is not in the sort at all, on either screen. It leads its
+     * topic because of what it is, and a cluster model where the hub can be
+     * ranked below its own spokes is not a cluster model.
+     */
     const pillar = built.find((n) => n.page.role === 'pillar') ?? null;
-    const subs = built
-      .filter((n) => n !== pillar)
-      .sort(
-        (a, b) =>
-          a.page.position - b.page.position ||
-          b.metrics.volume - a.metrics.volume ||
-          a.page.title.localeCompare(b.page.title),
-      );
+    const subs = built.filter((n) => n !== pillar).sort(comparePages(orderBy));
 
     const statusCounts = emptyStatusCounts();
-    for (const n of built) statusCounts[n.page.status] += 1;
+    const priorityCounts = emptyPriorityCounts();
+    for (const n of built) {
+      statusCounts[n.page.status] += 1;
+      if (n.page.priority) priorityCounts[n.page.priority] += 1;
+    }
 
     const flat = built.flatMap((n) => n.keywords);
 
@@ -263,6 +321,7 @@ export function buildSeoTree(
        */
       metrics: summarise(flat),
       statusCounts,
+      priorityCounts,
     };
   };
 
@@ -332,6 +391,22 @@ export const SEO_STATUS_LABELS: Record<SeoPageStatus, string> = {
   drafted: 'Drafted',
   published: 'Published',
 };
+
+export const SEO_PRIORITY_LABELS: Record<SeoPagePriority, string> = {
+  high: 'High',
+  medium: 'Medium',
+  low: 'Low',
+};
+
+/** Most urgent first, which is both the enum's order and the picker's. */
+export const SEO_PRIORITIES: readonly SeoPagePriority[] = ['high', 'medium', 'low'];
+
+/** Narrows a submitted form value, which is a string from anywhere. */
+export function parsePriority(value: unknown): SeoPagePriority | null {
+  return (SEO_PRIORITIES as readonly unknown[]).includes(value)
+    ? (value as SeoPagePriority)
+    : null;
+}
 
 /**
  * The statuses the Roadmap screen shows.

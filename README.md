@@ -23,9 +23,11 @@ Feature-complete for a single-author blog. Write and publish from the browser;
 the live site updates within seconds with no redeploy.
 
 The admin also carries the SEO planning screens — **Keywords**, the research
-grouped topic → page → keyword, and **Roadmap**, the same tree filtered to pages
-that have been briefed. Both are read-only; the rows are written by whatever
-does the research.
+grouped topic → cluster → keyword, and **Roadmap**, the same tree filtered to
+pages that have been briefed and ordered by priority within each topic. The rows
+themselves are written by whatever does the research; priority is the one field
+an editor sets here, because it is a judgement about what to write next rather
+than a finding about what ranks.
 
 Not built, because they were not needed: scheduled publishing, and any UI for
 inviting additional writers. Roles (`owner`/`admin`/`editor`/`author`) and the
@@ -74,6 +76,7 @@ supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
 supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
 supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
 supabase/migrations/0013_seo.sql                keyword research and the roadmap
+supabase/migrations/0014_seo_priority.sql       build order on the roadmap
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email

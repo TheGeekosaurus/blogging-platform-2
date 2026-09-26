@@ -5,15 +5,19 @@ import {
   formatVolume,
   kdBand,
   KD_BAND_LABELS,
+  SEO_PRIORITY_LABELS,
   SEO_STATUS_LABELS,
   type IntentMix,
   type KdBand,
   type SeoKeywordRow,
   type SeoPageNode,
+  type SeoPagePriority,
   type SeoPageStatus,
   type SeoTopicNode,
   type SeoTree,
 } from '@blog/core';
+
+import { SeoPriorityPicker } from './seo-priority-picker';
 
 /**
  * The three-level disclosure both SEO screens render.
@@ -53,6 +57,40 @@ const STATUS_STYLES: Record<SeoPageStatus, string> = {
   drafted: 'bg-amber-100 text-amber-900',
   published: 'bg-emerald-100 text-emerald-900',
 };
+
+/*
+ * Priority chips are OUTLINED where status chips are filled.
+ *
+ * The two sit side by side on the same row, and every fill that reads as
+ * "urgent" was already spoken for — amber is Drafted, slate is Researched, red
+ * is a hard keyword three columns along. Distinguishing them by weight instead
+ * of hue means the pair never has to be told apart by colour memory, and the
+ * row still has exactly one solid chip on it.
+ */
+const PRIORITY_STYLES: Record<SeoPagePriority, string> = {
+  high: 'border-rose-300 bg-rose-50 text-rose-900',
+  medium: 'border-slate-300 bg-white text-slate-700',
+  low: 'border-slate-200 bg-white text-slate-500',
+};
+
+/**
+ * Renders nothing for an unranked page.
+ *
+ * A "Not ranked" chip on every untouched row would be eighty-three chips saying
+ * nothing, and it would make the ranked ones harder to spot — which is the only
+ * reason the chip exists.
+ */
+function PriorityChip({ priority }: { priority: SeoPagePriority | null }) {
+  if (!priority) return null;
+  return (
+    <span
+      className={`shrink-0 rounded border px-2 py-0.5 text-xs font-medium ${PRIORITY_STYLES[priority]}`}
+    >
+      <span className="sr-only">Priority: </span>
+      {SEO_PRIORITY_LABELS[priority]}
+    </span>
+  );
+}
 
 /*
  * Intent colours, matched to the four enum values in 0013_seo.sql. Chosen to
@@ -266,6 +304,8 @@ function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
 
         <span className="min-w-0 flex-1 truncate text-sm">{page.title}</span>
 
+        <PriorityChip priority={page.priority} />
+
         <span
           className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
         >
@@ -314,6 +354,8 @@ function PageDetail({ node }: { node: SeoPageNode }) {
 
   return (
     <div className="space-y-3 px-4 pt-3 text-sm">
+      <SeoPriorityPicker pageId={page.id} priority={page.priority} />
+
       {primary ? (
         <p>
           <span className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
@@ -358,7 +400,7 @@ function PageDetail({ node }: { node: SeoPageNode }) {
 // ---------------------------------------------------------------------------
 
 function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVariant }) {
-  const { topic, pillar, subs, metrics, statusCounts } = node;
+  const { topic, pillar, subs, metrics, statusCounts, priorityCounts } = node;
   const childCount = (pillar ? 1 : 0) + subs.length;
   const research = variant === 'research';
 
@@ -395,6 +437,14 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
           {childCount} {noun}
           {research ? null : ` · ${statusCounts.published} published`}
         </span>
+
+        {/* Only when there is some, and only on the roadmap: this is the one
+            thing a closed topic needs to be able to say. */}
+        {!research && priorityCounts.high > 0 ? (
+          <span className="shrink-0 rounded border border-rose-300 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-900">
+            {priorityCounts.high} high
+          </span>
+        ) : null}
 
         <span className="hidden shrink-0 text-xs text-[#50575e] sm:block">
           Total volume{' '}
