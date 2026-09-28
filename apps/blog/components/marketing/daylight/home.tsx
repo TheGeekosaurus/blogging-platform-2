@@ -4,7 +4,7 @@ import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
 import { IMAGES, REVIEWS } from '../brand';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { Faq, Qualifier, UseCases } from '../ft/shared-sections';
+import { Faq, HowItWorks, Qualifier, UseCases } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -21,7 +21,6 @@ import {
   TESTIMONIALS,
 } from '../ft/content';
 import { AmountSlider } from './amount-slider';
-import { DaylightHowItWorks } from './how-it-works';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
 import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from './primitives';
@@ -41,13 +40,12 @@ import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from 
  *    source. Denis asked to reuse the current site's copy, and two copies of a
  *    headline is how the two versions start quietly saying different things
  *    while the comparison is still running.
- *  - THE SECTIONS THAT PAINT FROM TOKENS. UseCases, Qualifier and Faq are
- *    imported from ft/shared-sections whole. They read --ft-* and nothing else,
- *    so `.dl-surface` re-themes them with no fork. The rule is to fork one only
- *    the day this design wants it to look different — and HowItWorks is the
- *    first to reach that day: its steps are cards on navy here and a connected
- *    timeline there, which is a change of structure that no token expresses.
- *    See ./how-it-works.tsx.
+ *  - THE SECTIONS THAT PAINT FROM TOKENS. HowItWorks, UseCases, Qualifier and
+ *    Faq are imported from ft/shared-sections whole. They read --ft-* and
+ *    nothing else, so `.dl-surface` re-themes them with no fork; forking them
+ *    would be four files to keep in step for no benefit. HowItWorks was briefly
+ *    forked here as cards on a navy ground and Denis reverted it — the fork is
+ *    deleted rather than parked behind a flag, so there is one of it again.
  *
  * WHAT IT DOES NOT SHARE: the chrome, and anything that bakes the dark ground
  * into artwork rather than reading a token. Those are the four edits below, and
@@ -96,13 +94,14 @@ function PlainHead({ heading, body, id }: { heading: string; body?: string; id?:
  * must be wider than the viewport. `nt-marquee-track` is the class the
  * reduced-motion guard in globals.css targets.
  *
- * DAYLIGHT — the source logos are 500x500 with opaque WHITE backgrounds, which
- * is what decided this band's treatment rather than the other way round. On the
- * white page they were invisible tiles needing a drawn border to exist at all;
- * on the navy each one is a floating white card for free, which is the effect
- * the border was faking. The mask that fades the track at both ends is the same
- * one the dark design uses — `black` there is a mask stop, not a colour, so it
- * needs no change for the ground beneath it.
+ * DAYLIGHT — its own band, on Denis's light blue at full strength. The source
+ * logos are 500x500 with opaque WHITE backgrounds, which is what decided the
+ * treatment rather than the other way round: on the white page they were
+ * invisible tiles needing a drawn border to exist at all, and on any coloured
+ * ground each one is a floating white card for free.
+ *
+ * The mask that fades the track at both ends needs no change for the new
+ * ground — `black` there is a mask stop, not a colour.
  *
  * Still placeholders. Real transparent artwork would want a lighter treatment
  * than a white card, so revisit this when it arrives.
@@ -111,7 +110,7 @@ function FeaturedOn() {
   const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
-    <div className="pb-4 pt-12">
+    <section aria-label="Press coverage" className="dl-pop-band py-10 lg:py-12">
       <div className={CONTAINER}>
         <Chip>Featured On</Chip>
       </div>
@@ -137,7 +136,7 @@ function FeaturedOn() {
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -620,18 +619,17 @@ export function DaylightHome({
       <Hero />
 
       {/*
-        THE DARK REGION — one navy ground carrying three bands, per the
-        reference: the press marquee, the three destination tiles and How It
-        Works. Grouped in a single element rather than given a dark class each,
-        so there are no light seams between them and the page has exactly one
-        dark anchor. See the long note over `.dl-deep` in globals.css.
+        Two coloured bands back to back — cyan for the press logos, navy for the
+        three destination cards — and then the page returns to white. How It
+        Works deliberately is NOT in here: it was, briefly, and Denis pulled it
+        back to white. See the note over `.dl-pop-band` in globals.css.
       */}
+      <FeaturedOn />
       <div className="dl-deep">
-        <FeaturedOn />
         <DestinationTiles />
-        <DaylightHowItWorks />
       </div>
 
+      <HowItWorks />
       <UseCases />
       <FundingOptions />
       <Qualifier />

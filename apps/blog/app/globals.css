@@ -1983,27 +1983,49 @@
   }
 
   /* -------------------------------------------------------------------------
-   * THE DARK REGION, and the floating cards on it.
+   * THE TWO COLOURED BANDS, and the floating cards on them.
    *
-   * Three contiguous bands near the top of the page — the press marquee, the
-   * three destination tiles and How It Works — share one navy ground, with
-   * their content lifted onto white cards. Denis framed exactly those three in
-   * the reference and pointed at a second one (Fora Financial) for the
-   * treatment: a dark band carrying a white heading over rounded white cards.
+   * The page runs white, then a cyan strip carrying the press logos, then a
+   * navy block carrying the three destination cards, then white again for the
+   * rest. Three grounds in the first screenful, which is more rhythm than the
+   * dark design has anywhere.
    *
-   * WHY IT IS ONE REGION AND NOT THREE DARK SECTIONS. Run separately they would
-   * be three dark slabs with light seams between them, which reads as three
-   * unrelated interruptions. Run together they are a single anchor: white hero,
-   * one dark block, then light for the rest of the page. That also keeps the
-   * count of dark areas at one on a build whose whole premise is that the old
-   * site was too dark.
+   * THIS WAS BRIEFLY ONE DARK REGION OF THREE BANDS — the marquee, the cards
+   * and How It Works all on navy. Denis pulled How It Works back to white and
+   * gave the marquee its own colour, which is the better call: How It Works is
+   * a long read and was the band paying the most for a dark ground, and three
+   * consecutive navy sections was most of the upper page dark on a build whose
+   * whole premise is that the old site was too dark.
    *
-   * HOW THE INVERSION WORKS. `.dl-deep` re-points the same --ft-* tokens the
-   * rest of the page uses, so anything placed inside it comes out light-on-dark
-   * with no component knowing where it is. `.dl-card` re-points them BACK for
-   * the card interiors. Two levels of the same mechanism, which is the idiom
+   * HOW THE INVERSION WORKS. Each band re-points the same --ft-* tokens the
+   * rest of the page uses, so anything placed inside comes out correct for that
+   * ground with no component knowing where it is. `.dl-card` then re-points
+   * them BACK for the white card interiors on the navy. It is the idiom
    * `.ft-light .ft-band` already established further up this file.
    * ---------------------------------------------------------------------- */
+
+  /*
+   * The press strip: Denis's light blue, exact and at full strength.
+   *
+   * This is the one band where #0AC4E0 is the GROUND rather than a mark, and it
+   * works here for the same reason it fails as text — it is bright. Navy on it
+   * is 6.12:1, and the logo tiles are white cards that gain an edge from it for
+   * free.
+   *
+   * The chip goes white rather than the translucent wash it uses on navy: at
+   * 12% white over a colour this light there is no wash left to see.
+   */
+  .dl-pop-band {
+    background-color: var(--dl-pop);
+
+    --ft-ink: #0b2d72;
+    --ft-muted: #0b2d72;
+    --ft-card: #ffffff;
+    --ft-card-raised: #ffffff;
+    --ft-line: #57d7ec;
+
+    color: var(--ft-ink);
+  }
   .dl-deep {
     background-color: var(--dl-deep);
 
