@@ -121,7 +121,7 @@ export function AmountSlider() {
            * wrong at every position but one.
            */
           aria-label="Decrease amount"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
         >
           <span aria-hidden="true">−</span>
         </button>
@@ -141,7 +141,7 @@ export function AmountSlider() {
           onClick={() => nudge(2)}
           disabled={position >= POSITIONS}
           aria-label="Increase amount"
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
         >
           <span aria-hidden="true">+</span>
         </button>
@@ -163,7 +163,7 @@ export function AmountSlider() {
 
       <Link
         href={`${CTA_HREF}?amount=${amount}`}
-        className="nc-cta mt-8 block rounded-full bg-[var(--dl-gold)] px-6 py-5 text-center text-[1.0625rem] font-bold leading-tight no-underline transition-[background-color,box-shadow] hover:bg-[#cf9832] hover:shadow-[0_8px_24px_-8px_rgba(224,168,64,0.8)]"
+        className="nc-cta mt-8 block rounded-md bg-[var(--dl-gold)] px-6 py-5 text-center text-[1.0625rem] font-bold leading-tight no-underline transition-[background-color,box-shadow] hover:bg-[#cf9832] hover:shadow-[0_8px_24px_-8px_rgba(224,168,64,0.8)]"
       >
         See what you qualify for
       </Link>

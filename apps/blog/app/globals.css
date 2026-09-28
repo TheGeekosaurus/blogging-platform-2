@@ -2176,6 +2176,23 @@
 }
 
 /*
+ * Every button on the page at the brand's radius.
+ *
+ * The live Nanotom Capital site draws every button as a rounded rectangle at
+ * 6px, so the shape is the brand's rather than this design's to invent. The
+ * filled buttons get there through CtaButton's and SolidButton's own classes;
+ * GhostButton cannot, because its `rounded-xl` is the FutureTech template's and
+ * the dark homepage still wants it.
+ *
+ * Hence the marker, and hence a rule rather than a fork: this reaches the
+ * "Read More" on every blog row and the "View All" in two section headers, none
+ * of which this design's own files write out.
+ */
+.dl-surface .ft-ghost {
+  border-radius: 0.375rem;
+}
+
+/*
  * The call-to-action's label.
  *
  * ../components/marketing/cta-button.tsx paints white on brand gold, which is

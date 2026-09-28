@@ -305,7 +305,13 @@ export function Faq() {
           */}
           <a
             href={FAQ.cta.href}
-            className="mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+            /*
+             * `ft-ghost` even though this is not GhostButton: it is that
+             * button's class list copied out, so it should answer to the same
+             * marker. Without it the Daylight build squares off every button on
+             * the page except this one.
+             */
+            className="ft-ghost mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
           >
             {FAQ.cta.label}
             <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
