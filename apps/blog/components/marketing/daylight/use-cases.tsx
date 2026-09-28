@@ -29,6 +29,12 @@ import { CONTAINER, SectionIntro } from './primitives';
  *
  * THE CHIP STAYS LIGHT BLUE with dark text, as asked. It re-points --ft-ink on
  * itself, so it is unaffected by the white the section sets around it.
+ *
+ * THE CELL ICONS ARE GOLD, also at Denis's request, and the same reasoning
+ * applies as to the step numerals: #E0A840 on the white cells is 2.13:1, which
+ * would matter if the icon carried the meaning. It does not — every cell prints
+ * its label directly underneath, so the mark is decoration beside a word rather
+ * than a word of its own.
  */
 
 const USE_CASE_ICONS = {
@@ -76,7 +82,7 @@ export function DaylightUseCases() {
                  */
                 className="ft-use-case relative flex flex-col items-center gap-4 bg-[var(--ft-bg)] px-5 py-10 text-center transition-[scale,background-color] duration-300 ease-out hover:z-10 hover:scale-[1.06] hover:bg-[var(--ft-card)]"
               >
-                <Icon className="h-8 w-8 text-[var(--ft-accent)]" />
+                <Icon className="h-8 w-8 text-[var(--dl-gold)]" />
                 <span className="text-[1.0625rem] leading-[1.4] text-[var(--ft-ink)]">
                   {item.label}
                 </span>

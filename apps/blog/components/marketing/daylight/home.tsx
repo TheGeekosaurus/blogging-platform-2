@@ -323,6 +323,13 @@ function Hero() {
  * funding time, the entry requirements and a pros/cons pair — considerably more
  * than the six bullets it replaces.
  *
+ * THE CARDS ARE WHITE ON A SHADOW, matching the press tiles rather than the
+ * tinted panels they were. Which means they are white on a white page and the
+ * shadow is the only thing separating them — so it is the press tiles' exact
+ * shadow, a tinted navy rather than a neutral black, and the border went with
+ * the fill: a hairline plus a shadow gives a card two edges and reads as a
+ * mistake.
+ *
  * AND THE FIGURE IS THE CARD'S OWN, deliberately. The obvious move was to pull
  * `facts.amount` off the linked LOAN_PAGES entry, which would have given every
  * card a clean "$15,000 to $5,000,000" line exactly like the reference. It is
@@ -385,7 +392,7 @@ function FundingOptions() {
             return (
               <li
                 key={card.title}
-                className="rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-6 lg:p-8"
+                className="rounded-2xl bg-[var(--ft-bg)] p-6 shadow-[0_10px_26px_-12px_rgba(11,45,114,0.38)] lg:p-8"
               >
                 <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2vw,1.5rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
                   {card.title}
