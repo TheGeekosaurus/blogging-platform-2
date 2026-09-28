@@ -1858,21 +1858,25 @@
  * there, which is the whole reason the token layer exists.
  *
  * ---------------------------------------------------------------------------
- * THE PALETTE IS DENIS'S TWO BLUES, from the reference he sent: #2D3748 dark
- * and #0AC4E0 light. The greys are cooled to sit under them rather than fight
- * them — a neutral grey next to a saturated cyan reads as dirty.
+ * THE PALETTE IS DENIS'S TWO BLUES: #0B2D72 dark and #0AC4E0 light. The greys
+ * are tinted toward them rather than neutral — a neutral grey next to a
+ * saturated cyan reads as dirty.
  *
  * CONTRAST, computed rather than eyeballed. Every text tone against every
- * ground it can land on — white, the band, the card, the raised chip:
+ * ground it can land on — white, the band, the card, the raised chip, and the
+ * cyan wash behind the hero badge:
  *
- *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4
- *   ink        11.99     11.03     11.24     10.32
- *   muted       7.53      6.93      7.06      6.48
- *   subtle      5.61      5.16      5.26      4.83
- *   accent      5.92      5.44      5.55      5.09
+ *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4   #C9F2F8
+ *   ink        12.86     11.84     12.06     11.08     10.74
+ *   muted       7.35      6.76      6.89      6.33      6.14
+ *   subtle      6.01      5.53      5.64      5.18      5.02
+ *   accent      5.92      5.44      5.55      5.09      4.94
  *
- * All clear the 4.5:1 body-text floor on all four. __tests__/contrast.test.ts
- * recomputes them from this block and fails if a retune drops one.
+ * All clear the 4.5:1 body-text floor on all five. --ft-subtle is the value
+ * that tin ground decided: at #5A6B95 it measured 4.42 there and failed, which
+ * is why it is a step darker than it looks like it needs to be.
+ * __tests__/contrast.test.ts recomputes every cell and fails if a retune drops
+ * one.
  *
  * ---------------------------------------------------------------------------
  * THE LIGHT BLUE CANNOT BE TEXT, and this is the one place the design has to
@@ -1936,9 +1940,9 @@
     --ft-line: #d3dee7;
 
     /** Denis's dark blue, carrying every heading and every strong run. */
-    --ft-ink: #2d3748;
-    --ft-muted: #4a5568;
-    --ft-subtle: #5a6883;
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
 
     /** Cyan at body size. See the three-way split above. */
     --ft-accent: #066e80;
@@ -1957,6 +1961,14 @@
     --dl-display: #0794ab;
     /** Brand gold: the one warm CTA, and the review stars. */
     --dl-gold: #e0a840;
+    /**
+     * The ground of the dark region — see `.dl-deep` below. The same navy as
+     * --ft-ink rather than a second value, because the two are the same colour
+     * doing opposite jobs: ink on white up here, ground under white cards down
+     * there. Written as its own token so `.dl-deep` can re-point --ft-ink to
+     * white without losing the navy it needs to paint itself.
+     */
+    --dl-deep: #0b2d72;
 
     background-color: var(--ft-bg);
     color: var(--ft-ink);
@@ -1968,6 +1980,82 @@
   .dl-surface a {
     color: inherit;
     text-decoration: none;
+  }
+
+  /* -------------------------------------------------------------------------
+   * THE DARK REGION, and the floating cards on it.
+   *
+   * Three contiguous bands near the top of the page — the press marquee, the
+   * three destination tiles and How It Works — share one navy ground, with
+   * their content lifted onto white cards. Denis framed exactly those three in
+   * the reference and pointed at a second one (Fora Financial) for the
+   * treatment: a dark band carrying a white heading over rounded white cards.
+   *
+   * WHY IT IS ONE REGION AND NOT THREE DARK SECTIONS. Run separately they would
+   * be three dark slabs with light seams between them, which reads as three
+   * unrelated interruptions. Run together they are a single anchor: white hero,
+   * one dark block, then light for the rest of the page. That also keeps the
+   * count of dark areas at one on a build whose whole premise is that the old
+   * site was too dark.
+   *
+   * HOW THE INVERSION WORKS. `.dl-deep` re-points the same --ft-* tokens the
+   * rest of the page uses, so anything placed inside it comes out light-on-dark
+   * with no component knowing where it is. `.dl-card` re-points them BACK for
+   * the card interiors. Two levels of the same mechanism, which is the idiom
+   * `.ft-light .ft-band` already established further up this file.
+   * ---------------------------------------------------------------------- */
+  .dl-deep {
+    background-color: var(--dl-deep);
+
+    /*
+     * On the navy: white at 12.86:1, and the two dimmer tones are blue-tinted
+     * rather than grey so they read as the same family as the ground.
+     */
+    --ft-ink: #ffffff;
+    --ft-muted: #b9c6e4;
+    --ft-subtle: #a3b3d8;
+
+    /*
+     * AND HERE DENIS'S LIGHT BLUE FINALLY GETS TO BE TEXT. #0AC4E0 is 2.10:1 on
+     * white — the reason --ft-accent is a deepened teal everywhere else on this
+     * page — but on the navy it measures 6.12:1 and clears AA outright. So the
+     * dark region is the one place the exact brand cyan carries type and icons,
+     * which is also where it looks best.
+     */
+    --ft-accent: #0ac4e0;
+
+    /* A hairline that is visible on navy without becoming a stripe. */
+    --ft-line: #24499c;
+
+    /* The cards themselves, and the chips that sit directly on the ground. */
+    --ft-card: #ffffff;
+    --ft-card-raised: rgba(255, 255, 255, 0.12);
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * A card floating on the dark region.
+   *
+   * Rounded, white, and lifted by a shadow that is a DARKENED NAVY rather than
+   * black — a neutral black shadow on a saturated navy reads as grime around
+   * the card. The tokens go back to their light values inside, so a component
+   * dropped in a card is identical to the same component elsewhere on the page.
+   */
+  .dl-deep .dl-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 18px 40px -20px rgba(4, 16, 46, 0.55);
+
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
+    --ft-accent: #066e80;
+    --ft-line: #dbe3f0;
+    --ft-card: #f5f8fa;
+    --ft-card-raised: #e8eff4;
+
+    color: var(--ft-ink);
   }
 
   /*

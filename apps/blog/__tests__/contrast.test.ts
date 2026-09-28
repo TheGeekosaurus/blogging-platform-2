@@ -234,7 +234,13 @@ describe('the Daylight palette meets AA on every ground', () => {
     expect(BLOCK).not.toBe('');
   });
 
-  const GROUNDS = ['ft-bg', 'ft-band', 'ft-card', 'ft-card-raised'];
+  /*
+   * The cyan wash behind the hero badge is in here as a ground, not treated as
+   * a special case. It is a surface text lands on, and --ft-subtle measured
+   * 4.42:1 against it while clearing all four of the others — which is the
+   * whole argument for checking every pairing rather than the obvious ones.
+   */
+  const GROUNDS = ['ft-bg', 'ft-band', 'ft-card', 'ft-card-raised', 'dl-pop-tint'];
   const INKS = ['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'];
 
   it.each(INKS.flatMap((ink) => GROUNDS.map((ground) => [ink, ground] as const)))(
@@ -268,15 +274,6 @@ describe('the Daylight palette meets AA on every ground', () => {
   });
 
   /*
-   * The hero's rating badge sits on a pale wash of the same cyan. It is a
-   * literal rather than a color-mix() precisely so it can be asserted here —
-   * see the note beside the token.
-   */
-  it('puts a readable label on the cyan tint', () => {
-    expect(ratio(dl('ft-ink'), dl('dl-pop-tint'))).toBeGreaterThanOrEqual(AA_BODY);
-  });
-
-  /*
    * The hero's accent word is the one piece of display type in a brand colour.
    *
    * It is large by construction — the clamp bottoms out at 2.75rem, well past
@@ -303,6 +300,68 @@ describe('the Daylight palette meets AA on every ground', () => {
     expect(label, '.dl-surface .nc-cta must set a literal colour').toBeTruthy();
     expect(ratio(label!, dl('dl-gold'))).toBeGreaterThanOrEqual(AA_BODY);
     expect(ratio('#ffffff', dl('dl-gold'))).toBeLessThan(3);
+  });
+});
+
+/**
+ * The dark region, where the same tokens are inverted.
+ *
+ * `.dl-deep` re-points --ft-ink and friends to light-on-navy, and `.dl-card`
+ * re-points them back for the white cards floating on it. Both are grounds that
+ * text lands on, so both are measured — a palette that passes everywhere on
+ * white and fails on the one dark band is the easiest possible thing to ship
+ * without noticing.
+ */
+describe('the Daylight dark region meets AA', () => {
+  function block(selector: string): string {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return CSS.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+  }
+
+  function tokenIn(selector: string, name: string): string {
+    const found = block(selector).match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
+    if (!found?.[1]) throw new Error(`--${name} is not a literal hex in ${selector}`);
+    return found[1];
+  }
+
+  /** .dl-deep paints --dl-deep, which is declared up on .dl-surface. */
+  function ground(): string {
+    const found = block('.dl-surface').match(/--dl-deep:\s*(#[0-9a-fA-F]{6})/);
+    if (!found?.[1]) throw new Error('--dl-deep is not a literal hex on .dl-surface');
+    return found[1];
+  }
+
+  it('finds both blocks, so a rename fails here rather than skipping silently', () => {
+    expect(block('.dl-deep')).not.toBe('');
+    expect(block('.dl-deep .dl-card')).not.toBe('');
+  });
+
+  it.each(['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'])('--%s on the navy', (name) => {
+    expect(ratio(tokenIn('.dl-deep', name), ground())).toBeGreaterThanOrEqual(AA_BODY);
+  });
+
+  it.each(['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'])(
+    '--%s inside a white card on the navy',
+    (name) => {
+      expect(ratio(tokenIn('.dl-deep .dl-card', name), '#ffffff')).toBeGreaterThanOrEqual(
+        AA_BODY,
+      );
+    },
+  );
+
+  /*
+   * The one genuinely nice thing the navy buys, asserted so it cannot be
+   * quietly given up: Denis's exact #0AC4E0 is 2.10:1 on white and unusable as
+   * text there, but 6.12:1 on this ground. The dark region is the one place on
+   * the page where the real brand cyan carries type, and this states that it
+   * has to stay the real one.
+   */
+  it('uses the exact brand cyan as text, which only the navy makes possible', () => {
+    const pop = block('.dl-surface').match(/--dl-pop:\s*(#[0-9a-fA-F]{6})/)?.[1];
+
+    expect(tokenIn('.dl-deep', 'ft-accent')).toBe(pop);
+    expect(ratio(pop!, '#ffffff')).toBeLessThan(3);
+    expect(ratio(pop!, ground())).toBeGreaterThanOrEqual(AA_BODY);
   });
 });
 
