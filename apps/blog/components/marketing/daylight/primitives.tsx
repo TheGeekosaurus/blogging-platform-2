@@ -27,16 +27,21 @@ export { CONTAINER, Chip, GhostButton, SectionHead } from '../ft/primitives';
 export { CtaButton } from '../cta-button';
 
 /**
- * The gold disc with a dark arrow, on the three CTA tiles.
+ * The cyan disc with a navy arrow, on the three destination cards.
  *
- * Gold as a FILL, which is the treatment that stays legal on white — and the
- * arrow inside it is ink at 8.69:1. The dark design's version paints --ft-bg
- * into the arrow, which is white here and would put a 2.13:1 mark in the middle
- * of every tile.
+ * CYAN AND NOT GOLD, though it was gold first. The palette reserves gold for
+ * the one warm call to action on a cool page, and a gold disc on every card
+ * broke that rule three times over on a single row — and sat beside a teal icon
+ * inside the same card, so each card carried two unrelated accents.
+ *
+ * Cyan as a FILL is the treatment that is legal on both grounds this disc
+ * appears on: navy on #0AC4E0 is 6.12:1. The dark design's version paints
+ * --ft-bg into the arrow, which would be white here and put a 2.10:1 mark in
+ * the middle of every card.
  */
 export function ArrowDisc() {
   return (
-    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--dl-gold)] text-[#1a1205] transition-transform group-hover:-translate-y-0.5">
+    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--dl-pop)] text-[var(--dl-deep)] transition-transform group-hover:-translate-y-0.5">
       <ArrowUpRightIcon className="h-[18px] w-[18px]" />
     </span>
   );

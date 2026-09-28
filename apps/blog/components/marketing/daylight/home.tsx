@@ -5,7 +5,7 @@ import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 import { IMAGES, REVIEWS } from '../brand';
 import { FundingCarousel } from '../ft/funding-carousel';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { ApplyRow, Faq, HowItWorks, Qualifier, UseCases } from '../ft/shared-sections';
+import { ApplyRow, Faq, Qualifier, UseCases } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -21,6 +21,7 @@ import {
   TESTIMONIALS,
 } from '../ft/content';
 import { AmountSlider } from './amount-slider';
+import { DaylightHowItWorks } from './how-it-works';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
 import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from './primitives';
@@ -40,11 +41,13 @@ import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from 
  *    source. Denis asked to reuse the current site's copy, and two copies of a
  *    headline is how the two versions start quietly saying different things
  *    while the comparison is still running.
- *  - THE SECTIONS THAT PAINT FROM TOKENS. HowItWorks, UseCases, Qualifier and
- *    Faq are imported from ft/shared-sections whole. They read --ft-* and
- *    nothing else, so `.dl-surface` re-themes them with no fork; forking them
- *    now would be four files to keep in step for no benefit yet. Fork one the
- *    day this design wants it to look different — not before.
+ *  - THE SECTIONS THAT PAINT FROM TOKENS. UseCases, Qualifier and Faq are
+ *    imported from ft/shared-sections whole. They read --ft-* and nothing else,
+ *    so `.dl-surface` re-themes them with no fork. The rule is to fork one only
+ *    the day this design wants it to look different — and HowItWorks is the
+ *    first to reach that day: its steps are cards on navy here and a connected
+ *    timeline there, which is a change of structure that no token expresses.
+ *    See ./how-it-works.tsx.
  *
  * WHAT IT DOES NOT SHARE: the chrome, and anything that bakes the dark ground
  * into artwork rather than reading a token. Those are the four edits below, and
@@ -86,25 +89,29 @@ function PlainHead({ heading, body, id }: { heading: string; body?: string; id?:
  * ------------------------------------------------------------------------- */
 
 /**
- * The press-logo marquee.
+ * The press-logo marquee, on the dark region.
  *
  * FOUR copies of the six logos, not eight: the loop translates by exactly -50%,
  * so the track must be an even number of identical copies and its first half
  * must be wider than the viewport. `nt-marquee-track` is the class the
  * reduced-motion guard in globals.css targets.
  *
- * DAYLIGHT — the tiles have a hairline and the band is the light grey. The
- * source logos are 500x500 with opaque WHITE backgrounds; on the dark design
- * that made them read as white slabs, and here it makes them read as nothing at
- * all, because a white tile on a near-white band has no edge. The border draws
- * that edge back. Still placeholders either way — the real fix is transparent
- * artwork, at which point this border should go.
+ * DAYLIGHT — the source logos are 500x500 with opaque WHITE backgrounds, which
+ * is what decided this band's treatment rather than the other way round. On the
+ * white page they were invisible tiles needing a drawn border to exist at all;
+ * on the navy each one is a floating white card for free, which is the effect
+ * the border was faking. The mask that fades the track at both ends is the same
+ * one the dark design uses — `black` there is a mask stop, not a colour, so it
+ * needs no change for the ground beneath it.
+ *
+ * Still placeholders. Real transparent artwork would want a lighter treatment
+ * than a white card, so revisit this when it arrives.
  */
 function FeaturedOn() {
   const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
-    <div className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] py-12">
+    <div className="pb-4 pt-12">
       <div className={CONTAINER}>
         <Chip>Featured On</Chip>
       </div>
@@ -116,20 +123,64 @@ function FeaturedOn() {
       >
         <div className="nt-marquee-track flex w-max animate-[nt-marquee_160s_linear_infinite]">
           {track.map((dup) => (
-            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-20 pr-20">
+            <div key={dup} aria-hidden={dup !== 0} className="flex items-center gap-8 pr-8">
               {IMAGES.featuredOn.map((src, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   key={i}
                   src={src}
                   alt={dup === 0 ? 'Press logo' : ''}
-                  className="h-12 w-auto shrink-0 rounded-md border border-[var(--ft-line)] object-contain"
+                  className="h-20 w-36 shrink-0 rounded-2xl bg-white object-contain p-3 shadow-[0_12px_28px_-16px_rgba(4,16,46,0.7)]"
                 />
               ))}
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * The three destination tiles, as floating cards on the dark region.
+ *
+ * Where the dark design draws them as three cells of one bordered grid, these
+ * are separated cards — the treatment Denis pointed at. The consequence worth
+ * noting is that the hairline rules between the cells are gone, and with them
+ * the internal divider above each tile's footnote: on a card, whitespace does
+ * that job and a rule would be one line too many.
+ *
+ * Each card is still a single <Link>, so the whole card is the target rather
+ * than just the title — the arrow disc is decoration inside the link, not a
+ * second control.
+ */
+function DestinationTiles() {
+  return (
+    <div className={`${CONTAINER} grid gap-6 pb-2 pt-6 md:grid-cols-3 lg:gap-8 lg:pb-4`}>
+      {HERO.tiles.map((tile) => {
+        const Icon = TILE_ICONS[tile.icon];
+        return (
+          <Link
+            key={tile.title}
+            href={tile.href}
+            className="dl-card group flex flex-col gap-7 p-8 transition-transform duration-200 hover:-translate-y-1 lg:p-10"
+          >
+            <Icon className="h-11 w-11 text-[var(--ft-accent)]" />
+
+            <div className="flex items-start justify-between gap-6">
+              <div>
+                <p className="text-lg font-semibold text-[var(--ft-ink)]">{tile.title}</p>
+                <p className="mt-1 text-[1.0625rem] text-[var(--ft-subtle)]">{tile.subtitle}</p>
+              </div>
+              <ArrowDisc />
+            </div>
+
+            <p className="mt-auto font-[family-name:var(--font-headline)] text-[1.0625rem] leading-[1.5] text-[var(--ft-muted)]">
+              {tile.note}
+            </p>
+          </Link>
+        );
+      })}
     </div>
   );
 }
@@ -225,41 +276,6 @@ function Hero() {
         </div>
       </dl>
 
-      <FeaturedOn />
-
-      {/* The three CTA tiles, one bordered cell each. */}
-      <div className="border-t border-[var(--ft-line)]">
-        <div className={`${CONTAINER} grid md:grid-cols-3`}>
-          {HERO.tiles.map((tile, i) => {
-            const Icon = TILE_ICONS[tile.icon];
-            return (
-              <Link
-                key={tile.title}
-                href={tile.href}
-                className={`group flex flex-col gap-8 border-[var(--ft-line)] py-10 lg:py-14 ${
-                  i > 0 ? 'border-t md:border-l md:border-t-0 md:pl-10' : ''
-                } ${i < HERO.tiles.length - 1 ? 'md:pr-10' : ''}`}
-              >
-                <Icon className="h-11 w-11 text-[var(--ft-accent)]" />
-
-                <div className="flex items-start justify-between gap-6">
-                  <div>
-                    <p className="text-lg font-medium text-[var(--ft-ink)]">{tile.title}</p>
-                    <p className="mt-1 text-[1.0625rem] text-[var(--ft-subtle)]">
-                      {tile.subtitle}
-                    </p>
-                  </div>
-                  <ArrowDisc />
-                </div>
-
-                <p className="border-t border-[var(--ft-line)] pt-6 font-[family-name:var(--font-headline)] text-[1.0625rem] text-[var(--ft-muted)]">
-                  {tile.note}
-                </p>
-              </Link>
-            );
-          })}
-        </div>
-      </div>
     </section>
   );
 }
@@ -557,7 +573,20 @@ export function DaylightHome({
     <div className="dl-surface">
       <DaylightHeader />
       <Hero />
-      <HowItWorks />
+
+      {/*
+        THE DARK REGION — one navy ground carrying three bands, per the
+        reference: the press marquee, the three destination tiles and How It
+        Works. Grouped in a single element rather than given a dark class each,
+        so there are no light seams between them and the page has exactly one
+        dark anchor. See the long note over `.dl-deep` in globals.css.
+      */}
+      <div className="dl-deep">
+        <FeaturedOn />
+        <DestinationTiles />
+        <DaylightHowItWorks />
+      </div>
+
       <UseCases />
       <FundingOptions />
       <Qualifier />
