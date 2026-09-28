@@ -4,7 +4,7 @@ import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
 import { IMAGES, REVIEWS } from '../brand';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { Faq, UseCases } from '../ft/shared-sections';
+import { Faq } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -23,9 +23,10 @@ import {
 import { AmountSlider } from './amount-slider';
 import { DaylightDifference } from './difference';
 import { DaylightHowItWorks } from './how-it-works';
+import { DaylightUseCases } from './use-cases';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
-import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionHead, SolidButton } from './primitives';
+import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionIntro, SolidButton } from './primitives';
 
 /*
  * DAYLIGHT — the Nanotom Capital homepage in white.
@@ -42,7 +43,7 @@ import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionHead, SolidButton } from 
  *    source. Denis asked to reuse the current site's copy, and two copies of a
  *    headline is how the two versions start quietly saying different things
  *    while the comparison is still running.
- *  - THE SECTIONS THAT PAINT FROM TOKENS. UseCases and Faq are imported from
+ *  - THE SECTIONS THAT PAINT FROM TOKENS. Faq is imported from
  *    ft/shared-sections whole. They read --ft-* and
  *    nothing else, so `.dl-surface` re-themes them with no fork; forking them
  *    would be four files to keep in step for no benefit. HowItWorks was briefly
@@ -538,16 +539,17 @@ function Testimonials() {
 
   return (
     <section aria-labelledby="dl-testimonials">
-      <SectionHead
-        id="dl-testimonials"
-        label={TESTIMONIALS.label}
-        heading={TESTIMONIALS.heading}
-        cta={TESTIMONIALS.cta}
-        ctaHref={REVIEWS.collectUrl}
-        ctaExternal
-      />
-
       <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <SectionIntro
+          id="dl-testimonials"
+          label={TESTIMONIALS.label}
+          heading={TESTIMONIALS.heading}
+          cta={TESTIMONIALS.cta}
+          ctaHref={REVIEWS.collectUrl}
+          ctaExternal
+          className="mb-12 lg:mb-14"
+        />
+
         <ul className="grid gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] lg:grid-cols-6">
           {reviews.map((review, index) => (
             <li
@@ -608,13 +610,15 @@ function BlogPosts({
 
   return (
     <section aria-labelledby="dl-blog" className="dl-bloglist">
-      <SectionHead
-        id="dl-blog"
-        label={BLOG_SECTION.label}
-        heading={BLOG_SECTION.heading}
-        cta={BLOG_SECTION.cta}
-        ctaHref={blogIndexPath()}
-      />
+      <div className={`${CONTAINER} pb-10 pt-14 lg:pb-12 lg:pt-20`}>
+        <SectionIntro
+          id="dl-blog"
+          label={BLOG_SECTION.label}
+          heading={BLOG_SECTION.heading}
+          cta={BLOG_SECTION.cta}
+          ctaHref={blogIndexPath()}
+        />
+      </div>
 
       <CategoryPills categories={categories} />
 
@@ -664,7 +668,7 @@ export function DaylightHome({
         own in white; the picture shows in the margins between them.
       */}
       <div className="dl-art">
-        <UseCases />
+        <DaylightUseCases />
       </div>
       <FundingOptions />
       <DaylightDifference />
