@@ -86,6 +86,11 @@ export function DaylightDifference() {
           The photograph, at the same radius the destination cards use so the
           page has one corner language.
 
+          `width`/`height` are the FILE's real pixels, not a guess: next/image
+          reserves the box from that ratio before the image arrives, so a stale
+          pair is a layout shift on load and a crop under `object-cover`. They
+          moved with the photo when it was replaced.
+
           `sizes` matters here: without it next/image assumes the image is the
           full viewport width and serves a file roughly twice the size it needs.
           Half the viewport above the breakpoint, all of it below.
@@ -94,7 +99,7 @@ export function DaylightDifference() {
           src={DIFFERENCE.image.src}
           alt={DIFFERENCE.image.alt}
           width={1800}
-          height={1005}
+          height={1018}
           sizes="(min-width: 1024px) 50vw, 100vw"
           className="w-full rounded-[20px] object-cover shadow-[0_18px_40px_-20px_rgba(11,45,114,0.35)]"
         />
