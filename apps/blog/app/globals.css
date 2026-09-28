@@ -2077,11 +2077,69 @@
    * section simply looks the way it did before.
    */
   .dl-art {
-    background-color: var(--ft-bg);
-    background-image: url('/marketing/cards-band.png');
+    /*
+     * THE FALLBACK IS NAVY, NOT WHITE, and the reason is the heading. This
+     * section's header moved out of its banner and onto the artwork, so it is
+     * white — which makes a light fallback the one colour it must not be. If
+     * the image never arrives, a navy ground still reads; a white one would
+     * leave the heading invisible.
+     *
+     * It was white for exactly one round, when the heading was still in a pale
+     * banner above and everything on the artwork was opaque.
+     */
+    background-color: var(--dl-deep);
+    /*
+     * A scrim over the top of the artwork, under the heading.
+     *
+     * The picture is navy in the middle and cyan and gold at the edges, and
+     * white on #0AC4E0 is 2.10:1 — so a white heading is only safe over part of
+     * it, and which part depends on how `cover` crops at a given width.
+     *
+     * THE STOPS ARE IN PIXELS, NOT PERCENTAGES, and that is the whole point.
+     * Percentages are of the section's height, which grows as the grid rewraps
+     * — so the same gradient covered the heading at 390px and had faded to 30%
+     * under it at 1440px, where the worst pixel behind a glyph measured 4.02:1.
+     * Pixels track the thing that actually has to be covered: the chip and the
+     * heading, which are roughly the first 300px whatever the viewport does.
+     *
+     * Measured from the rendered page rather than reasoned about — the heading
+     * is screenshotted with its glyphs made transparent, so every pixel in the
+     * box is ground, and the worst one is checked at four widths.
+     */
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba(11, 45, 114, 0.95) 0,
+        rgba(11, 45, 114, 0.93) 300px,
+        rgba(11, 45, 114, 0.45) 430px,
+        rgba(11, 45, 114, 0) 560px
+      ),
+      url('/marketing/cards-band.png');
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
+
+    /*
+     * The heading, and anything else placed directly on the artwork. The grid
+     * takes its own tokens back through `.dl-panel`.
+     */
+    --ft-ink: #ffffff;
+  }
+
+  /*
+   * An opaque panel sitting on the artwork, with the light tokens restored.
+   *
+   * Same arrangement as `.dl-card` on the navy band: the ground re-points the
+   * tokens one way and the content re-points them back, so a component dropped
+   * into either is identical to the same component elsewhere on the page.
+   */
+  .dl-art .dl-panel {
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
+    --ft-accent: #066e80;
+
+    color: var(--ft-ink);
   }
 
   /*
@@ -2227,6 +2285,17 @@
  */
 .dl-surface .ft-chip {
   background-color: var(--dl-pop-tint);
+
+  /*
+   * And it re-points --ft-ink on itself, which Chip reads for its label.
+   * Without this the chip would follow whatever ink its section sets — on the
+   * use-of-funds artwork that is white, which would be white on a pale cyan
+   * tint at 1.3:1. Denis asked for that chip to stay light blue with its dark
+   * label while the heading beside it goes white; this is what holds the two
+   * apart. Ink on the tint is 10.74:1.
+   */
+  --ft-ink: #0b2d72;
+  color: var(--ft-ink);
 }
 
 /*

@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 import { HOW_IT_WORKS } from '../ft/content';
 import { ApplyRow } from '../ft/shared-sections';
-import { CONTAINER, SectionHead } from './primitives';
+import { CONTAINER, SectionIntro } from './primitives';
 
 /**
  * How It Works — the shared timeline, with Denis's step icons above it.
@@ -50,9 +50,14 @@ const STEP_ICONS = [
 export function DaylightHowItWorks() {
   return (
     <section aria-labelledby="dl-how">
-      <SectionHead id="dl-how" label={HOW_IT_WORKS.label} heading={HOW_IT_WORKS.heading} />
-
       <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <SectionIntro
+          id="dl-how"
+          label={HOW_IT_WORKS.label}
+          heading={HOW_IT_WORKS.heading}
+          className="mb-14 lg:mb-16"
+        />
+
         <h3 className="mb-12 text-center font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.8vw,2.125rem)] font-semibold leading-[1.2] text-[var(--ft-ink)] lg:mb-16">
           {HOW_IT_WORKS.stepsHeading}
         </h3>
