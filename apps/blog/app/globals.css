@@ -2001,7 +2001,31 @@
    * ---------------------------------------------------------------------- */
 
   .dl-deep {
+    /*
+     * The artwork Denis supplied: a navy field with two cyan blobs outlined in
+     * pale gold, 1366x768 and drawn in the brand's own colours.
+     *
+     * THE COLOUR IS NOT A FALLBACK-IN-NAME-ONLY. It is declared first and it is
+     * the same navy the image is built on, so the band looks finished rather
+     * than broken while the image loads, if it 404s, and in the crop on a
+     * narrow screen where `cover` shows a slice that is mostly flat navy
+     * anyway. Nothing about the section depends on the artwork arriving.
+     *
+     * `cover` and centred, per the brief. The band is much wider than it is
+     * tall, so a 16:9 image has to crop vertically; centring keeps both blobs
+     * in frame at desktop widths and lets the middle — the plain navy part —
+     * be what survives on a phone.
+     *
+     * Safe to put art behind this band because nothing on it is text: the only
+     * children are three opaque white cards. The --ft-ink and --ft-muted values
+     * below are inherited by the card interiors through `.dl-card`, not painted
+     * on the artwork.
+     */
     background-color: var(--dl-deep);
+    background-image: url('/marketing/cards-band.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 
     /*
      * On the navy: white at 12.86:1, and the two dimmer tones are blue-tinted
