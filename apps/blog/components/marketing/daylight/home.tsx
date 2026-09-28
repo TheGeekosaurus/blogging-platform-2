@@ -23,7 +23,7 @@ import {
 import { AmountSlider } from './amount-slider';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
-import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from './primitives';
+import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionHead, SolidButton } from './primitives';
 
 /*
  * DAYLIGHT — the Nanotom Capital homepage in white.
@@ -94,14 +94,19 @@ function PlainHead({ heading, body, id }: { heading: string; body?: string; id?:
  * must be wider than the viewport. `nt-marquee-track` is the class the
  * reduced-motion guard in globals.css targets.
  *
- * DAYLIGHT — its own band, on Denis's light blue at full strength. The source
- * logos are 500x500 with opaque WHITE backgrounds, which is what decided the
- * treatment rather than the other way round: on the white page they were
- * invisible tiles needing a drawn border to exist at all, and on any coloured
- * ground each one is a floating white card for free.
+ * DAYLIGHT — its own section on the white ground, with the logos as cards
+ * floating over it. The source images are 500x500 with opaque WHITE
+ * backgrounds, so on white there is no tile edge to see and the card has to be
+ * drawn rather than inherited.
  *
- * The mask that fades the track at both ends needs no change for the new
- * ground — `black` there is a mask stop, not a colour.
+ * It is a SHADOW that draws it, not the border an earlier pass used. A hairline
+ * gives a white rectangle on white a hard edge and no depth, which reads as a
+ * mistake; a shadow lifts it off the page, which is what "floating" means. The
+ * shadow is a tinted navy rather than neutral black — a grey shadow under a
+ * card on a page this blue reads as dirt.
+ *
+ * The mask that fades the track at both ends is unaffected by the ground:
+ * `black` there is a mask stop, not a colour.
  *
  * Still placeholders. Real transparent artwork would want a lighter treatment
  * than a white card, so revisit this when it arrives.
@@ -110,7 +115,7 @@ function FeaturedOn() {
   const track = Array.from({ length: 4 }, (_, dup) => dup);
 
   return (
-    <section aria-label="Press coverage" className="dl-pop-band py-10 lg:py-12">
+    <section aria-label="Press coverage" className="py-10 lg:py-12">
       <div className={CONTAINER}>
         <Chip>Featured On</Chip>
       </div>
@@ -129,7 +134,7 @@ function FeaturedOn() {
                   key={i}
                   src={src}
                   alt={dup === 0 ? 'Press logo' : ''}
-                  className="h-20 w-36 shrink-0 rounded-2xl bg-white object-contain p-3 shadow-[0_12px_28px_-16px_rgba(4,16,46,0.7)]"
+                  className="h-20 w-36 shrink-0 rounded-2xl bg-white object-contain p-3 shadow-[0_10px_26px_-12px_rgba(11,45,114,0.38)]"
                 />
               ))}
             </div>
@@ -379,7 +384,7 @@ function FundingOptions() {
                 ) : null}
 
                 <div className="mt-6 flex flex-wrap items-center gap-4">
-                  <GhostButton href={card.cta.href}>{card.cta.label}</GhostButton>
+                  <SolidButton href={card.cta.href}>{card.cta.label}</SolidButton>
                   {card.tag ? (
                     <p className="text-[0.9375rem] italic text-[var(--ft-subtle)]">{card.tag}</p>
                   ) : null}
@@ -619,10 +624,10 @@ export function DaylightHome({
       <Hero />
 
       {/*
-        Two coloured bands back to back — cyan for the press logos, navy for the
-        three destination cards — and then the page returns to white. How It
-        Works deliberately is NOT in here: it was, briefly, and Denis pulled it
-        back to white. See the note over `.dl-pop-band` in globals.css.
+        One navy band, carrying the three destination cards and nothing else.
+        The press marquee above it and How It Works below are both on white —
+        each was on a colour at some point and each came back. See the note over
+        `.dl-deep` in globals.css for how that settled.
       */}
       <FeaturedOn />
       <div className="dl-deep">

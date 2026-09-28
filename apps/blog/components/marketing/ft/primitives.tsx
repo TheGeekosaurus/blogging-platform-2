@@ -17,10 +17,17 @@ import { ArrowUpRightIcon } from './icons';
 /** The centred column. Matches the site header's container exactly. */
 export const CONTAINER = 'mx-auto w-full max-w-7xl px-5 lg:px-8';
 
-/** The grey chip every section label and page eyebrow sits in. */
+/**
+ * The grey chip every section label and page eyebrow sits in.
+ *
+ * `ft-chip` carries no styles here. It is a marker for one rule in globals.css:
+ * the Daylight build wants every chip on the page tinted, and most of them are
+ * rendered by SectionHead rather than written out, so there is no prop to pass
+ * and no import to swap. Same arrangement as `ft-avatar` and `nc-cta`.
+ */
 export function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
+    <span className="ft-chip inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
       {children}
     </span>
   );

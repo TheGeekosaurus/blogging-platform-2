@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { ArrowUpRightIcon } from '../ft/icons';
 
 /*
@@ -25,6 +27,62 @@ import { ArrowUpRightIcon } from '../ft/icons';
 
 export { CONTAINER, Chip, GhostButton, SectionHead } from '../ft/primitives';
 export { CtaButton } from '../cta-button';
+
+/**
+ * The solid navy button, for a secondary action that still has to be found.
+ *
+ * It replaces GhostButton on the funding cards. A ghost button is a bordered
+ * outline over --ft-card, which on this palette is a near-white panel on a
+ * near-white page: at the bottom of a long card it was the faintest thing in
+ * the section, and "Learn More" is the only way into four product pages.
+ *
+ * Navy at 12.86:1 against its white label, and the same pill the header wore
+ * before its button went gold — which is where Denis pointed for this. Gold
+ * stays the primary action and navy is the secondary one, so the two never
+ * compete for the same click.
+ *
+ * next/link for internal destinations, a plain anchor for off-site ones, for
+ * the reason GhostButton does it: `trailingSlash: true` means an internal path
+ * costs a 308 redirect as a bare <a>, and Link both skips that hop and
+ * prefetches.
+ */
+export function SolidButton({
+  children,
+  href,
+  external,
+}: {
+  children: React.ReactNode;
+  href?: string;
+  external?: boolean;
+}) {
+  const className =
+    'inline-flex shrink-0 items-center gap-2.5 rounded-full bg-[var(--ft-ink)] px-6 py-3 text-[0.9375rem] font-semibold text-white transition-colors hover:bg-[#123a8f]';
+  const label = (
+    <>
+      {children}
+      <ArrowUpRightIcon className="h-4 w-4" />
+    </>
+  );
+
+  if (href && !external) {
+    return (
+      <Link href={href} className={className}>
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <a
+      href={href ?? '#'}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+      className={className}
+    >
+      {label}
+    </a>
+  );
+}
 
 /**
  * The cyan disc with a navy arrow, on the three destination cards.

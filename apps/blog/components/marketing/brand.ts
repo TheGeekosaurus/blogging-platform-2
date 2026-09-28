@@ -80,10 +80,16 @@ export const LOCAL_IMAGES = {
    * `logo` above is light artwork on transparency — on white it all but
    * disappears, and the obvious fix, a CSS `invert()`, takes the gold mark with
    * it and turns it blue. So this is a real second file: the neutral pixels
-   * recoloured to #0B2D72 — Daylight's own ink — the saturated gold ones
-   * untouched, because the mark is the company's and not the theme's, and every
-   * antialiased edge preserved because the coverage was already in the alpha
-   * channel rather than in the colour.
+   * recoloured, the saturated gold ones untouched, and every antialiased edge
+   * preserved because the coverage was already in the alpha channel rather than
+   * in the colour.
+   *
+   * THE WORDMARK IS BLACK, NOT THE THEME'S BLUE. It was briefly #0B2D72 to
+   * match Daylight's ink, which is exactly the mistake worth naming: a logo is
+   * the company's and a palette is the page's, and tinting one to the other
+   * means the mark changes every time the design does. #0B0B0C is
+   * --color-brand, the near-black this codebase already declares, so this is
+   * the brand's own black rather than a value invented for the occasion.
    *
    * Generated from `logo`, not drawn — if the brand ever supplies an official
    * dark-background wordmark, replace this file with it rather than
