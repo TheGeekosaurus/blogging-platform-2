@@ -1985,47 +1985,21 @@
   /* -------------------------------------------------------------------------
    * THE TWO COLOURED BANDS, and the floating cards on them.
    *
-   * The page runs white, then a cyan strip carrying the press logos, then a
-   * navy block carrying the three destination cards, then white again for the
-   * rest. Three grounds in the first screenful, which is more rhythm than the
-   * dark design has anywhere.
+   * ONE navy block, carrying the three destination cards, with white above and
+   * below it. It arrived at that over three rounds: first as a single dark
+   * region of three bands (the press marquee, the cards and How It Works), then
+   * with How It Works pulled back to white and the marquee given a cyan ground
+   * of its own, then with the marquee returned to white too. What is left is
+   * the one band that wanted a dark ground — three white cards need something
+   * to float on, and the marquee and the timeline did not.
    *
-   * THIS WAS BRIEFLY ONE DARK REGION OF THREE BANDS — the marquee, the cards
-   * and How It Works all on navy. Denis pulled How It Works back to white and
-   * gave the marquee its own colour, which is the better call: How It Works is
-   * a long read and was the band paying the most for a dark ground, and three
-   * consecutive navy sections was most of the upper page dark on a build whose
-   * whole premise is that the old site was too dark.
-   *
-   * HOW THE INVERSION WORKS. Each band re-points the same --ft-* tokens the
-   * rest of the page uses, so anything placed inside comes out correct for that
-   * ground with no component knowing where it is. `.dl-card` then re-points
-   * them BACK for the white card interiors on the navy. It is the idiom
-   * `.ft-light .ft-band` already established further up this file.
+   * HOW THE INVERSION WORKS. `.dl-deep` re-points the same --ft-* tokens the
+   * rest of the page uses, so anything placed inside comes out light-on-dark
+   * with no component knowing where it is. `.dl-card` then re-points them BACK
+   * for the white card interiors. It is the idiom `.ft-light .ft-band` already
+   * established further up this file.
    * ---------------------------------------------------------------------- */
 
-  /*
-   * The press strip: Denis's light blue, exact and at full strength.
-   *
-   * This is the one band where #0AC4E0 is the GROUND rather than a mark, and it
-   * works here for the same reason it fails as text — it is bright. Navy on it
-   * is 6.12:1, and the logo tiles are white cards that gain an edge from it for
-   * free.
-   *
-   * The chip goes white rather than the translucent wash it uses on navy: at
-   * 12% white over a colour this light there is no wash left to see.
-   */
-  .dl-pop-band {
-    background-color: var(--dl-pop);
-
-    --ft-ink: #0b2d72;
-    --ft-muted: #0b2d72;
-    --ft-card: #ffffff;
-    --ft-card-raised: #ffffff;
-    --ft-line: #57d7ec;
-
-    color: var(--ft-ink);
-  }
   .dl-deep {
     background-color: var(--dl-deep);
 
@@ -2183,6 +2157,22 @@
  */
 .dl-surface .ft-avatar {
   color: #ffffff;
+}
+
+/*
+ * Every section label chip, tinted.
+ *
+ * The hero's rating badge sits on a wash of the brand cyan, and Denis wanted
+ * the rest of the page's chips to match it. Doing that by swapping an import
+ * would have reached only two of them: the others are rendered inside
+ * SectionHead, which is shared with the dark site and takes no styling prop.
+ *
+ * So it is one rule on the marker class, which catches every chip on the page —
+ * the two written out here and the four inside section headers — and moves none
+ * of them anywhere else. Ink on this tint is 10.74:1.
+ */
+.dl-surface .ft-chip {
+  background-color: var(--dl-pop-tint);
 }
 
 /*

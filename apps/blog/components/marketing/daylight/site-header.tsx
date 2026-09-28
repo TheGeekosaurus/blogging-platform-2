@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { CTA_HREF, LOCAL_IMAGES, NAV, type NavItem } from '../brand';
-import { APPLY_LABEL } from '../ft/content';
+import { LOCAL_IMAGES, NAV, type NavItem } from '../brand';
 import { DaylightHeaderShell } from './header-shell';
 import { DaylightMobileNav } from './mobile-nav';
+import { CtaButton } from './primitives';
 
 /*
  * Daylight's site header — the light twin of ../site-header.tsx.
@@ -145,20 +145,21 @@ export function DaylightHeader() {
         </nav>
 
         {/*
-          The header button is the DARK PILL from the reference, not the gold
-          one. Two reasons: the reference reserves its warm colour for the one
-          button that starts the flow, and on this page that is the hero card's
-          CTA — two gold buttons a hand's width apart would split the click. And
-          white on #2D3748 is 11.99:1, so the pill is the most legible control
-          in the header rather than the least.
+          Gold, in the pill shape the navy version wore.
+          
+          It was navy for a while, on the argument that the reference reserves
+          its warm colour for the one button that starts the flow. Denis wants
+          the brand colour on the header instead, and the argument survives the
+          change intact — it just resolves the other way: gold is now the
+          primary action everywhere it appears, and navy became the secondary
+          one, which is what SolidButton carries on the funding cards.
+
+          The label is ink rather than white. That is the `.dl-surface .nc-cta`
+          rule in globals.css doing its job, not a class here — white on gold is
+          2.13:1.
         */}
         <div className="hidden shrink-0 items-center lg:flex">
-          <Link
-            href={CTA_HREF}
-            className="inline-block rounded-full bg-[var(--ft-ink)] px-8 py-3.5 text-sm font-bold text-white no-underline transition-colors hover:bg-[#1f2937]"
-          >
-            {APPLY_LABEL}
-          </Link>
+          <CtaButton className="!rounded-full !px-8 !py-3.5 !text-sm" />
         </div>
 
         <div className="ml-auto lg:hidden">
