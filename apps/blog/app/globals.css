@@ -1866,15 +1866,16 @@
  * ground it can land on — white, the band, the card, the raised chip, and the
  * cyan wash behind the hero badge:
  *
- *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4   #C9F2F8
- *   ink        12.86     11.84     12.06     11.08     10.74
- *   muted       7.35      6.76      6.89      6.33      6.14
- *   subtle      6.01      5.53      5.64      5.18      5.02
- *   accent      5.92      5.44      5.55      5.09      4.94
+ *              #FFFFFF   #F6E7BC   #F5F8FA   #E8EFF4   #C9F2F8
+ *   ink        12.86     10.46     12.06     11.08     10.74
+ *   muted       7.35      5.97      6.89      6.33      6.14
+ *   subtle      6.01      4.89      5.64      5.18      5.02
+ *   accent      5.92      4.81      5.55      5.09      4.94
  *
- * All clear the 4.5:1 body-text floor on all five. --ft-subtle is the value
- * that tin ground decided: at #5A6B95 it measured 4.42 there and failed, which
- * is why it is a step darker than it looks like it needs to be.
+ * All clear the 4.5:1 body-text floor on all five, and the cream band is now
+ * the tightest of them — --ft-accent has 0.31 of headroom there. --ft-subtle
+ * is a step darker than it looks like it needs to be because the cyan chip
+ * tint decided it: at #5A6B95 it measured 4.42 on that ground and failed.
  * __tests__/contrast.test.ts recomputes every cell and fails if a retune drops
  * one.
  *
@@ -1918,17 +1919,17 @@
 
     --ft-bg: #ffffff;
     /*
-     * The bands are DARKER than the ground here, where in the dark design they
-     * are lighter (#1A1A1A on #141414). Same idea both ways round: a band is a
-     * band because it steps away from the page, and on white the only direction
-     * to step is down. A white band on a white ground is not a band at all — it
-     * is the section header losing its edges.
+     * THE SECTION HEADER BANDS ARE CREAM, and they are the one warm surface on
+     * a cool page. The value is Denis's, and it is not arbitrary: it is the
+     * pale gold that outlines both shapes in the band artwork, so the page's
+     * only warm colour appears in exactly two places and they match.
      *
-     * Tinted toward the blues rather than neutral. At #F6F7F9 these grounds
-     * read faintly warm beside #0AC4E0, which is the thing that makes a
-     * two-colour palette look accidental.
+     * It was a cool blue-grey before. A band still has to step away from the
+     * page to be a band, and on white the only direction is down — cream is
+     * darker than white, so it still reads as a band rather than as the header
+     * losing its edges.
      */
-    --ft-band: #f2f6f9;
+    --ft-band: #f6e7bc;
     --ft-card: #f5f8fa;
     --ft-card-raised: #e8eff4;
     /*
@@ -2052,6 +2053,30 @@
     --ft-card-raised: rgba(255, 255, 255, 0.12);
 
     color: var(--ft-ink);
+  }
+
+  /*
+   * The band artwork again, as a section ground rather than a band.
+   *
+   * Same file as `.dl-deep`, so the browser has it cached by the time this
+   * section scrolls into view, and the two read as one motif rather than two
+   * pictures.
+   *
+   * WHAT SITS ON IT IS OPAQUE, which is the whole reason this is safe. The
+   * use-of-funds grid paints --ft-line behind cells that paint --ft-bg, and its
+   * section header paints --ft-band — so every piece of text on this section is
+   * on a flat colour, not on the artwork. Do not put bare text in here.
+   *
+   * The white fallback matters more than `.dl-deep`'s navy one did: this
+   * section's content expects a light ground, so if the image never arrives the
+   * section simply looks the way it did before.
+   */
+  .dl-art {
+    background-color: var(--ft-bg);
+    background-image: url('/marketing/cards-band.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
   }
 
   /*
@@ -2214,6 +2239,41 @@
  */
 .dl-surface .ft-ghost {
   border-radius: 0.375rem;
+}
+
+/*
+ * The blog rows' "Read More", solid navy.
+ *
+ * Scoped to an <article> inside the blog list on purpose. `.ft-ghost` is worn
+ * by four things on this page — the two "View All" buttons in section headers,
+ * the FAQ's "Ask a Question" and this — and Denis asked for the blog one.
+ * Filling all four would have turned two section-header actions into primary
+ * buttons and left "View All Testimonials" looking different from "View All
+ * Blogs" directly below it.
+ *
+ * `article` is PostRow's own wrapper and the only one inside this section, so
+ * the selector reaches every post row and nothing else. The class it hangs off
+ * is on Daylight's own section element rather than on a shared component.
+ */
+.dl-surface .dl-bloglist article .ft-ghost {
+  border-color: var(--ft-ink);
+  background-color: var(--ft-ink);
+  color: #ffffff;
+
+  /*
+   * The arrow inside comes from GhostButton and reads --ft-accent, which is
+   * the deepened teal that exists to be legible on WHITE. On this navy fill it
+   * measures 2.17:1 and turns to mud. Re-pointing the token rather than the
+   * icon is what keeps the fix inside the button: cyan on navy is 6.12:1, the
+   * same pairing the dark card band already uses.
+   */
+  --ft-accent: var(--dl-pop);
+}
+
+.dl-surface .dl-bloglist article .ft-ghost:hover {
+  border-color: #123a8f;
+  background-color: #123a8f;
+  color: #ffffff;
 }
 
 /*

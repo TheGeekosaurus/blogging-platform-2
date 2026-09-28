@@ -606,7 +606,7 @@ function BlogPosts({
   if (posts.length === 0) return null;
 
   return (
-    <section aria-labelledby="dl-blog">
+    <section aria-labelledby="dl-blog" className="dl-bloglist">
       <SectionHead
         id="dl-blog"
         label={BLOG_SECTION.label}
@@ -652,7 +652,19 @@ export function DaylightHome({
       </div>
 
       <DaylightHowItWorks />
-      <UseCases />
+
+      {/*
+        Use of funds, on the band artwork rather than on white.
+
+        A wrapper rather than a prop, because UseCases is shared with the dark
+        homepage and takes none — and it needs none: everything it draws is
+        opaque, so it sits ON the artwork without knowing the artwork is there.
+        Its header band covers its own strip in cream and the grid covers its
+        own in white; the picture shows in the margins between them.
+      */}
+      <div className="dl-art">
+        <UseCases />
+      </div>
       <FundingOptions />
       <Qualifier />
       <Requirements />
