@@ -1835,3 +1835,192 @@
 .ft-light .ft-surface .ft-image-slot {
   background-image: linear-gradient(135deg, #3b4759, #2d3748 60%);
 }
+
+/* ===========================================================================
+ * DAYLIGHT — the parallel light build of Nanotom Capital.
+ *
+ * A second design living beside the dark one, not a theme switch on it. Denis's
+ * reading of the current site is "too dark, not inviting", so this is where a
+ * white version gets built and compared without the live page moving. It serves
+ * one route today, /daylight, and shares the dark site's copy.
+ *
+ * WHY THIS IS NOT `.ft-light`. That block, further up, is a different and
+ * narrower experiment — near-black sections to #2D3748, grey bands to white,
+ * switched by FT_LIGHT_TEST in app/layout.tsx and currently off. It is a
+ * whole-site override; this is a surface class on one page's root, so the two
+ * cannot collide and neither has to be deleted to try the other.
+ *
+ * IT RE-DECLARES THE SAME --ft-* NAMES `.ft-surface` DOES, deliberately. Every
+ * section of this design paints from those tokens and nothing else, so one
+ * block of values re-themes the shared sections — the timeline, the use-of-funds
+ * grid, the qualifier, the FAQ, the blog rows — with no fork of any of them. A
+ * component that reads a token gets the light value here and the dark value
+ * there, which is the whole reason the token layer exists.
+ *
+ * ---------------------------------------------------------------------------
+ * CONTRAST, computed rather than eyeballed. Every text tone against every
+ * ground it can land on — white, the band, the card, the raised chip:
+ *
+ *              #FFFFFF   #F4F6F9   #F7F9FC   #EEF2F7
+ *   ink        17.75     16.39     16.83     15.79
+ *   muted       7.69      7.10      7.29      6.84
+ *   subtle      5.40      4.99      5.12      4.80
+ *   accent      5.70      5.26      5.40      5.07
+ *
+ * All clear the 4.5:1 body-text floor on all four. __tests__/contrast.test.ts
+ * recomputes them from this block and fails if a retune drops one.
+ *
+ * THE ACCENT IS NOT BRAND GOLD, and this is the one value the light build
+ * cannot borrow. #E0A840 measures 2.13:1 on white — not merely poor, below even
+ * the 3:1 floor for large text. So --ft-accent is the same hue taken down until
+ * it clears AA, and it is what every piece of gold TEXT and every gold ICON
+ * reads. Brand gold survives as --dl-gold, a FILL: the CTA, the arrow discs,
+ * the bullet dots. See daylight/primitives.tsx for the one rule that keeps the
+ * two apart — ink on gold, never white on gold, which is 2.13:1 the other way
+ * round.
+ * =========================================================================== */
+@layer components {
+  .dl-surface {
+    /*
+     * Opts back out of the reader's dark-mode preference, exactly as
+     * `.ft-surface` and `.blog-surface` do. `.marketing-root` on <body> already
+     * forces light for Capital, so this is belt and braces — but this class is
+     * the thing that decides what the page looks like, and it should not depend
+     * on a body class it does not own.
+     */
+    color-scheme: light;
+
+    --ft-bg: #ffffff;
+    /*
+     * The bands are DARKER than the ground here, where in the dark design they
+     * are lighter (#1A1A1A on #141414). Same idea both ways round: a band is a
+     * band because it steps away from the page, and on white the only direction
+     * to step is down. A white band on a white ground is not a band at all — it
+     * is the section header losing its edges, which is exactly what the first
+     * pass of this looked like.
+     */
+    --ft-band: #f4f6f9;
+    --ft-card: #f7f9fc;
+    --ft-card-raised: #eef2f7;
+    /*
+     * Deliberately stronger than the #E2E8F0 a light UI usually reaches for.
+     * The hairline grids in this design are `gap-px` over a container painted
+     * --ft-line, so this colour IS the divider between two near-white cells and
+     * has nothing else holding the grid together. At #E2E8F0 the use-of-funds
+     * grid read as one undivided block.
+     */
+    --ft-line: #d8e0ea;
+
+    --ft-ink: #101828;
+    --ft-muted: #475467;
+    --ft-subtle: #5d6b82;
+
+    --ft-accent: #8a5e0a;
+    /** Brand gold, for fills only — never text. See the note above. */
+    --dl-gold: #e0a840;
+
+    background-color: var(--ft-bg);
+    color: var(--ft-ink);
+    font-family: var(--font-body);
+    /* The design's -3% tracking, inherited the same way `.ft-surface` does it. */
+    letter-spacing: -0.03em;
+  }
+
+  .dl-surface a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
+
+/*
+ * The two things on the page that bake the dark ground into artwork instead of
+ * reading a token, and so cannot follow the block above.
+ *
+ * UNLAYERED, for the reason the `.ft-light` block is: everything else in this
+ * file sits in @layer components, which Tailwind's `utilities` layer outranks,
+ * and both of these override a utility. Unlayered declarations beat every
+ * layer, so this wins without a single !important.
+ */
+
+/*
+ * The fallback artwork on a post with no featured image — a two-stop gradient
+ * with #1F1F22 and #141414 written into it. Left alone it is a black rectangle
+ * in the middle of a white page. The light stops are the card and raised tones,
+ * so the slot reads as a tinted panel rather than a hole.
+ *
+ * Its RayBurst overlay strokes #FFFFFF at 18% and simply disappears here. That
+ * is the intended outcome and not worth a fork of the component: what is left
+ * is a clean gradient behind the gold mark, which is what the burst was
+ * softening in the first place.
+ */
+.dl-surface .ft-image-slot {
+  background-image: linear-gradient(135deg, #eef2f7, #dde5ee 60%);
+}
+
+/*
+ * The author disc on a blog row.
+ *
+ * `Avatar` sets its background with an inline `style` — a hue derived from the
+ * name, at 30% lightness — which no stylesheet can override, and paints the
+ * initials with --ft-ink. On the dark design that is white on a dark disc; here
+ * --ft-ink is near-black on the same dark disc, which is unreadable.
+ *
+ * So the disc stays dark and the initials go back to white. `ft-avatar` is a
+ * marker class carrying no styles of its own, added to the shared component for
+ * this rule to have something to name — the same arrangement `ft-image-slot`
+ * and `ft-band` already use.
+ */
+.dl-surface .ft-avatar {
+  color: #ffffff;
+}
+
+/*
+ * The call-to-action's label.
+ *
+ * ../components/marketing/cta-button.tsx paints white on brand gold, which is
+ * 2.13:1 — below AA and below even the 3:1 large-text floor. That is true on
+ * the dark site too; it is a pre-existing defect rather than something the
+ * light palette introduced, and it is left alone there because that button is
+ * on every live page and moving it is not what this branch is for.
+ *
+ * Here it is re-pointed to ink at 8.69:1. `nc-cta` is a marker the shared
+ * button carries and nothing styles anywhere else, so this rule reaches every
+ * CTA on a Daylight page — including the two inside ft/shared-sections, which
+ * this design imports whole and could not otherwise have fixed.
+ */
+.dl-surface .nc-cta {
+  color: #1a1205;
+}
+
+/*
+ * The shared dark header and footer, hidden on a Daylight page.
+ *
+ * THIS IS THE ONE STOPGAP IN THE DAYLIGHT BUILD, and it is worth being plain
+ * about. The root layout renders <SiteHeader> and <SiteFooter> around every
+ * Capital route, and it cannot do otherwise: an App Router root layout has no
+ * access to the current path, and threading one down would take the whole
+ * marketing site off `force-static`. So Daylight renders its own chrome inside
+ * <main> and this rule removes the dark pair.
+ *
+ * `display: none` takes them out of the accessibility tree as well as the
+ * picture, so the page has exactly one banner and one contentinfo landmark —
+ * but their markup is still in the HTML, and HeaderShell still hydrates behind
+ * it. That cost is acceptable for a preview route and is NOT acceptable for a
+ * shipped homepage.
+ *
+ * THE FIX, when Daylight is either promoted or dropped: move the chrome out of
+ * the root layout into a route-group layout — app/(dark)/layout.tsx and
+ * app/(light)/layout.tsx — so each group renders its own and nothing is
+ * rendered to be hidden. Route groups do not change URLs, so that refactor is
+ * invisible from outside. It is deliberately not being done now, because it
+ * touches every route in the app to serve one page that may not survive the
+ * comparison.
+ *
+ * The child combinators matter: `> div >` names only the layout's own flex
+ * wrapper, so Daylight's own <header> and <footer>, which are nested deeper
+ * inside <main>, are untouched.
+ */
+body:has(.dl-surface) > div > header,
+body:has(.dl-surface) > div > footer {
+  display: none;
+}

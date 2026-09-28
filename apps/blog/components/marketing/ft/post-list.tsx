@@ -37,6 +37,11 @@ import { CONTAINER, GhostButton } from './primitives';
  * The hue is derived from the name so a given person is always the same colour,
  * and the arithmetic is pure — no randomness, which would differ between the
  * server and client renders and trip hydration.
+ *
+ * `ft-avatar` carries no styles here. It is a marker for one rule in
+ * globals.css: the disc's background is an inline style and so unoverridable,
+ * which means a light surface cannot flip it and has to flip the initials
+ * instead. Same arrangement as `ft-image-slot` and `ft-band`.
  */
 export function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string; className?: string }) {
   const initials = name
@@ -49,7 +54,7 @@ export function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-medium text-[var(--ft-ink)] ring-1 ring-white/15 ${className}`}
+      className={`ft-avatar inline-flex shrink-0 items-center justify-center rounded-full font-medium text-[var(--ft-ink)] ring-1 ring-white/15 ${className}`}
       style={{ backgroundColor: `hsl(${hue} 8% 30%)` }}
     >
       {initials}

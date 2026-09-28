@@ -206,3 +206,121 @@ describe('post-body links are not distinguished by colour alone', () => {
     expect(marker).toContain('var(--color-accent)');
   });
 });
+
+/**
+ * The Daylight palette.
+ *
+ * Its own describe block with its own token reader, because `token()` above
+ * matches the FIRST `--name:` in the file and `.dl-surface` deliberately
+ * re-declares the same --ft-* names `.ft-surface` does. Reading them with the
+ * shared helper would silently measure the DARK values and pass every
+ * assertion below while proving nothing.
+ *
+ * Every text tone is checked against every ground it can actually land on. The
+ * design puts body copy on the page, inside a band, inside a card and inside a
+ * chip, and a tone that clears white by a hair can fail on the chip — that is
+ * not hypothetical, it is how the blog's light link colour was caught.
+ */
+describe('the Daylight palette meets AA on every ground', () => {
+  const BLOCK = CSS.match(/\.dl-surface\s*\{([^}]*)\}/)?.[1] ?? '';
+
+  function dl(name: string): string {
+    const match = BLOCK.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
+    if (!match?.[1]) throw new Error(`--${name} is not a literal hex in .dl-surface`);
+    return match[1];
+  }
+
+  it('finds the block, so a rename fails here rather than silently skipping', () => {
+    expect(BLOCK).not.toBe('');
+  });
+
+  const GROUNDS = ['ft-bg', 'ft-band', 'ft-card', 'ft-card-raised'];
+  const INKS = ['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'];
+
+  it.each(INKS.flatMap((ink) => GROUNDS.map((ground) => [ink, ground] as const)))(
+    '--%s on --%s',
+    (ink, ground) => {
+      expect(ratio(dl(ink), dl(ground))).toBeGreaterThanOrEqual(AA_BODY);
+    },
+  );
+
+  /*
+   * The one value the light build could not borrow, asserted from both ends.
+   *
+   * Brand gold is 2.13:1 on white — below AA and below even the 3:1 large-text
+   * floor — so --ft-accent is a darkened version of the same hue. The tempting
+   * tidy-up is to "unify the accent with the brand colour"; these two refuse
+   * it.
+   */
+  it('keeps brand gold out of the text accent, because gold on white fails', () => {
+    expect(ratio(dl('dl-gold'), dl('ft-bg'))).toBeLessThan(3);
+    expect(dl('ft-accent')).not.toBe(dl('dl-gold'));
+  });
+
+  /*
+   * Gold survives as a FILL, and a fill needs a legible label on top of it.
+   * White on gold is 2.13:1 — the defect the .dl-surface .nc-cta rule exists to
+   * correct — so the check is that whatever that rule sets clears AA.
+   */
+  it('puts a readable label on the gold fill', () => {
+    const label = CSS.match(/\.dl-surface \.nc-cta\s*\{\s*color:\s*(#[0-9a-fA-F]{6})/)?.[1];
+    expect(label, '.dl-surface .nc-cta must set a literal colour').toBeTruthy();
+    expect(ratio(label!, dl('dl-gold'))).toBeGreaterThanOrEqual(AA_BODY);
+    expect(ratio('#ffffff', dl('dl-gold'))).toBeLessThan(3);
+  });
+});
+
+/**
+ * Daylight components must not reach past their tokens for a colour.
+ *
+ * `.dl-surface` re-points the --ft-* set, so anything painting from those
+ * tokens comes out light for free. The failure mode is a component reaching for
+ * --color-gold or a literal `text-white` instead: on the dark design both are
+ * correct and invisible as mistakes, and on white both are unreadable. Every
+ * component in this tree shipped from a dark original, so this is the exact
+ * copy-paste this test is here to catch.
+ *
+ * --dl-gold is allowed, and is the point of the distinction: it is this
+ * palette's own token for gold as a FILL, which stays legal on white in a way
+ * gold as text does not.
+ */
+describe('Daylight components paint from tokens', () => {
+  const { readdirSync: rd } = require('node:fs') as typeof import('node:fs');
+  const dir = join(__dirname, '..', 'components', 'marketing', 'daylight');
+  const files = rd(dir).filter((f) => /\.tsx$/.test(f));
+
+  /*
+   * Comments are stripped before the scan, and that is not a convenience.
+   * These files explain themselves partly by NAMING the dark values they
+   * replaced — "the shared header writes `text-white` and `border-white/10` as
+   * literals" — so a raw substring search flags the documentation and not the
+   * code. Left in, the honest fix would have been to stop writing the
+   * explanation down.
+   */
+  function code(file: string): string {
+    return readFileSync(join(dir, file), 'utf8')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/\/\/[^\n]*/g, ' ');
+  }
+
+  it('finds the components to check', () => {
+    expect(files.length).toBeGreaterThan(3);
+  });
+
+  it('strips comments rather than searching them', () => {
+    // The header's own prose quotes `text-white`; its markup must not.
+    expect(code('site-header.tsx')).not.toContain('text-white');
+    expect(readFileSync(join(dir, 'site-header.tsx'), 'utf8')).toContain('text-white');
+  });
+
+  it.each(['var(--color-gold)', 'text-white', 'border-white/', 'bg-white/'])(
+    'none use %s',
+    (needle) => {
+      const offenders = files.filter((f) => code(f).includes(needle));
+      expect(offenders, `${needle} is a dark-design value and is unreadable on white`).toEqual(
+        [],
+      );
+    },
+  );
+});
