@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { LOCAL_IMAGES, NAV, type NavItem } from '../brand';
+import { CTA_HREF, LOCAL_IMAGES, NAV, type NavItem } from '../brand';
+import { APPLY_LABEL } from '../ft/content';
 import { DaylightHeaderShell } from './header-shell';
 import { DaylightMobileNav } from './mobile-nav';
-import { CtaButton } from './primitives';
 
 /*
  * Daylight's site header — the light twin of ../site-header.tsx.
@@ -144,8 +144,21 @@ export function DaylightHeader() {
           </ul>
         </nav>
 
+        {/*
+          The header button is the DARK PILL from the reference, not the gold
+          one. Two reasons: the reference reserves its warm colour for the one
+          button that starts the flow, and on this page that is the hero card's
+          CTA — two gold buttons a hand's width apart would split the click. And
+          white on #2D3748 is 11.99:1, so the pill is the most legible control
+          in the header rather than the least.
+        */}
         <div className="hidden shrink-0 items-center lg:flex">
-          <CtaButton className="!px-8 !py-3 !text-sm" />
+          <Link
+            href={CTA_HREF}
+            className="inline-block rounded-full bg-[var(--ft-ink)] px-8 py-3.5 text-sm font-bold text-white no-underline transition-colors hover:bg-[#1f2937]"
+          >
+            {APPLY_LABEL}
+          </Link>
         </div>
 
         <div className="ml-auto lg:hidden">

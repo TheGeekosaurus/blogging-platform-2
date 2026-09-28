@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
-import { CTA_HREF, HERO_VIDEO, IMAGES, REVIEWS } from '../brand';
+import { IMAGES, REVIEWS } from '../brand';
 import { FundingCarousel } from '../ft/funding-carousel';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
 import { ApplyRow, Faq, HowItWorks, Qualifier, UseCases } from '../ft/shared-sections';
@@ -14,13 +14,13 @@ import {
   StarIcon,
 } from '../ft/icons';
 import {
-  APPLY_LABEL,
   BLOG_SECTION,
   FUNDING_OPTIONS,
   HERO,
   REQUIREMENTS,
   TESTIMONIALS,
 } from '../ft/content';
+import { AmountSlider } from './amount-slider';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
 import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from './primitives';
@@ -57,13 +57,6 @@ import { ArrowDisc, CONTAINER, Chip, CtaButton, GhostButton, SectionHead } from 
  * See the note there — it is the piece of this that is a preview-route stopgap
  * rather than a design decision.
  */
-
-/**
- * The left inset that lines a full-bleed row's first cell up with CONTAINER
- * while its last cell still runs to the viewport edge. Below the container's
- * breakpoint it collapses to the plain gutter.
- */
-const BLEED_INSET = 'pl-[max(1.25rem,calc((100vw-80rem)/2+2rem))]';
 
 const TILE_ICONS = {
   coins: CoinsIcon,
@@ -141,91 +134,96 @@ function FeaturedOn() {
   );
 }
 
+/**
+ * The hero.
+ *
+ * DAYLIGHT — this is the section that departs furthest from ft/home-v2.tsx, on
+ * a reference Denis sent: a large two-column hero with the pitch on the left
+ * and a single interactive card on the right. The dark design's autoplaying
+ * video panel is gone from this build entirely; what replaces it is a control
+ * the visitor can actually touch, which is the whole argument for the change.
+ *
+ * THE COPY IS OURS, not the reference's, and one line of it matters. The
+ * reference leads with "No minimum credit score." We cannot: this page states a
+ * 551 minimum FICO three sections down, in REQUIREMENTS.stats. So the bold lead
+ * is REQUIREMENTS.note — "We look beyond your credit score to say 'Yes' when
+ * others won't" — which is the true version of the same promise and is already
+ * our copy, verbatim.
+ *
+ * THE STATS MOVED rather than being dropped. The reference's left column ends
+ * at the paragraph, and keeping three figures under a headline this size pushed
+ * the card out of the fold. They are now a full-width row directly beneath, so
+ * nothing is lost and the hero keeps the reference's composition.
+ */
 function Hero() {
+  /*
+   * The last word carries the accent colour, as in the reference. Split off the
+   * end of the existing string rather than adding a second field to content.ts:
+   * the dark homepage renders HERO.heading whole, and a `headingAccent` there
+   * would be a field one of the two designs always ignores.
+   */
+  const words = HERO.heading.split(' ');
+  const lead = words.slice(0, -1).join(' ');
+  const accent = words[words.length - 1];
+
   return (
     <section aria-labelledby="dl-hero" className="border-b border-[var(--ft-line)]">
-      <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,0.78fr)]">
-        <div className={`${BLEED_INSET} flex flex-col justify-center pr-5 lg:pr-16`}>
-          <div className="flex flex-col gap-6 py-16 lg:py-24">
-            <p className="font-[family-name:var(--font-headline)] text-[clamp(1.125rem,2vw,1.5rem)] text-[var(--ft-accent)]">
-              {HERO.eyebrow}
-            </p>
-            <h1
-              id="dl-hero"
-              className="max-w-[16ch] font-[family-name:var(--font-headline)] text-[clamp(2.25rem,5vw,3.5rem)] font-medium leading-[1.08] text-[var(--ft-ink)]"
-            >
-              {HERO.heading}
-            </h1>
-            <p className="max-w-[62ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-subtle)]">
-              {HERO.body}
-            </p>
-          </div>
+      <div
+        className={`${CONTAINER} grid items-center gap-12 py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:py-20`}
+      >
+        <div className="flex flex-col items-start gap-7">
+          {/*
+            The rating badge. Dark blue on a cyan tint at 10.45:1 — the cyan
+            itself is a fill here, never the text, for the reason set out over
+            the palette in globals.css.
 
-          <dl className="grid grid-cols-3 border-t border-[var(--ft-line)]">
-            {HERO.stats.map((stat, i) => (
-              <div
-                key={stat.label}
-                className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
-              >
-                <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
-                  {stat.value}
-                  <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
-                </dd>
-                <dt className="mt-3 max-w-[22ch] text-sm text-[var(--ft-muted)] lg:text-base">
-                  {stat.label}
-                </dt>
-              </div>
-            ))}
-          </dl>
+            Built from HERO.stats rather than written out, so the day the rating
+            changes it changes in one place and both designs follow.
+          */}
+          <p className="rounded-lg bg-[var(--dl-pop-tint)] px-4 py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-[var(--ft-ink)]">
+            {HERO.stats[2]?.value}-Star Average Rating
+          </p>
+
+          <h1
+            id="dl-hero"
+            className="max-w-[13ch] font-[family-name:var(--font-headline)] text-[clamp(2.75rem,6.2vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-[var(--ft-ink)]"
+          >
+            {lead}{' '}
+            <span className="text-[var(--dl-display)]">{accent}</span>
+          </h1>
+
+          <p className="max-w-[54ch] text-[clamp(1.0625rem,1.5vw,1.1875rem)] leading-[1.7] text-[var(--ft-muted)]">
+            <strong className="font-semibold text-[var(--ft-ink)]">{REQUIREMENTS.note}</strong>{' '}
+            {HERO.body}
+          </p>
         </div>
 
-        {/* The hero video, bleeding to the viewport edge. */}
-        <div className="relative isolate min-h-[320px] overflow-hidden border-t border-[var(--ft-line)] lg:min-h-0 lg:border-l lg:border-t-0">
-          {/*
-            Three layers, as on the live hero: the still frame is its own
-            element rather than only the video's `poster`, so it is what shows
-            while the video loads, if it is blocked, and under
-            `prefers-reduced-motion`, where globals.css hides `.nt-hero-video`.
-            Keeping that in CSS is what lets this stay a server component.
-          */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={IMAGES.heroBackground}
-            alt=""
-            aria-hidden="true"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            poster={IMAGES.heroBackground}
-            src={HERO_VIDEO}
-            aria-hidden="true"
-            className="nt-hero-video absolute inset-0 h-full w-full object-cover"
-          />
-          {/*
-            DAYLIGHT — the scrim runs to WHITE, where the dark design runs to
-            rgba(20,20,20). It is the one layer on the page with the old ground
-            written into it rather than read from a token, and left alone it
-            puts a black fade along the edge where the footage meets a white
-            page.
-
-            Turning it over does the same job in reverse: the footage dissolves
-            into the page at the bottom instead of being cut off by it, and the
-            button sitting on that fade gets a light ground to hold its own
-            light fill. It stops well short of opaque — the point is to soften
-            the seam, not to wash the video out.
-          */}
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(255,255,255,0.92),rgba(255,255,255,0.35)_38%,rgba(255,255,255,0)_70%)]" />
-
-          <div className="relative flex h-full flex-col items-start justify-end p-8 lg:p-12">
-            <GhostButton href={CTA_HREF}>{APPLY_LABEL}</GhostButton>
-          </div>
-        </div>
+        {/* The amount card. A client island; see ./amount-slider. */}
+        <AmountSlider />
       </div>
+
+      {/*
+        The three figures the left column used to carry, given the full width.
+        Same markup as the dark hero's <dl>, one row lower.
+      */}
+      <dl className="border-t border-[var(--ft-line)]">
+        <div className={`${CONTAINER} grid grid-cols-3`}>
+          {HERO.stats.map((stat, i) => (
+            <div
+              key={stat.label}
+              className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
+            >
+              <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
+                {stat.value}
+                <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
+              </dd>
+              <dt className="mt-3 max-w-[22ch] text-sm text-[var(--ft-muted)] lg:text-base">
+                {stat.label}
+              </dt>
+            </div>
+          ))}
+        </div>
+      </dl>
 
       <FeaturedOn />
 

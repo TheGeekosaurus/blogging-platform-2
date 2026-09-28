@@ -1858,26 +1858,48 @@
  * there, which is the whole reason the token layer exists.
  *
  * ---------------------------------------------------------------------------
+ * THE PALETTE IS DENIS'S TWO BLUES, from the reference he sent: #2D3748 dark
+ * and #0AC4E0 light. The greys are cooled to sit under them rather than fight
+ * them — a neutral grey next to a saturated cyan reads as dirty.
+ *
  * CONTRAST, computed rather than eyeballed. Every text tone against every
  * ground it can land on — white, the band, the card, the raised chip:
  *
- *              #FFFFFF   #F4F6F9   #F7F9FC   #EEF2F7
- *   ink        17.75     16.39     16.83     15.79
- *   muted       7.69      7.10      7.29      6.84
- *   subtle      5.40      4.99      5.12      4.80
- *   accent      5.70      5.26      5.40      5.07
+ *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4
+ *   ink        11.99     11.03     11.24     10.32
+ *   muted       7.53      6.93      7.06      6.48
+ *   subtle      5.61      5.16      5.26      4.83
+ *   accent      5.92      5.44      5.55      5.09
  *
  * All clear the 4.5:1 body-text floor on all four. __tests__/contrast.test.ts
  * recomputes them from this block and fails if a retune drops one.
  *
- * THE ACCENT IS NOT BRAND GOLD, and this is the one value the light build
- * cannot borrow. #E0A840 measures 2.13:1 on white — not merely poor, below even
- * the 3:1 floor for large text. So --ft-accent is the same hue taken down until
- * it clears AA, and it is what every piece of gold TEXT and every gold ICON
- * reads. Brand gold survives as --dl-gold, a FILL: the CTA, the arrow discs,
- * the bullet dots. See daylight/primitives.tsx for the one rule that keeps the
- * two apart — ink on gold, never white on gold, which is 2.13:1 the other way
- * round.
+ * ---------------------------------------------------------------------------
+ * THE LIGHT BLUE CANNOT BE TEXT, and this is the one place the design has to
+ * depart from the reference rather than copy it. #0AC4E0 measures 2.10:1 on
+ * white — worse than brand gold's 2.13:1, and below even the 3:1 floor that
+ * applies to large display type. The reference makes exactly this mistake: its
+ * mint headline word sits at roughly 2.1:1 on white.
+ *
+ * So the cyan is split three ways by JOB, not by taste:
+ *
+ *   --dl-pop      #0AC4E0  FILLS ONLY. The badge, the slider track, the arrow
+ *                          discs, the check marks. Dark blue on it is 5.70:1,
+ *                          so anything sitting ON it is comfortably readable —
+ *                          which is how the reference uses its mint too.
+ *   --dl-display  #0794AB  THE ONE HEADLINE WORD. 3.60:1 on white: clears the
+ *                          large-text floor with margin while staying
+ *                          unmistakably the same cyan. This is the value to
+ *                          change to #0AC4E0 if Denis wants the reference's
+ *                          exact colour and will accept 2.10:1.
+ *   --ft-accent   #066E80  EVERY OTHER PIECE OF CYAN TEXT OR ICON, at body
+ *                          size, where the floor is 4.5:1 and this clears at
+ *                          5.92:1.
+ *
+ * --dl-gold is what is left of the brand. It plays the role the reference gives
+ * orange: the single warm CTA against a cool page, plus the review stars, where
+ * a cyan star would read as a broken gold one. Its label is ink at 8.69:1 —
+ * white on gold is 2.13:1 and is the defect .dl-surface .nc-cta corrects.
  * =========================================================================== */
 @layer components {
   .dl-surface {
@@ -1896,27 +1918,44 @@
      * are lighter (#1A1A1A on #141414). Same idea both ways round: a band is a
      * band because it steps away from the page, and on white the only direction
      * to step is down. A white band on a white ground is not a band at all — it
-     * is the section header losing its edges, which is exactly what the first
-     * pass of this looked like.
+     * is the section header losing its edges.
+     *
+     * Tinted toward the blues rather than neutral. At #F6F7F9 these grounds
+     * read faintly warm beside #0AC4E0, which is the thing that makes a
+     * two-colour palette look accidental.
      */
-    --ft-band: #f4f6f9;
-    --ft-card: #f7f9fc;
-    --ft-card-raised: #eef2f7;
+    --ft-band: #f2f6f9;
+    --ft-card: #f5f8fa;
+    --ft-card-raised: #e8eff4;
     /*
      * Deliberately stronger than the #E2E8F0 a light UI usually reaches for.
      * The hairline grids in this design are `gap-px` over a container painted
      * --ft-line, so this colour IS the divider between two near-white cells and
-     * has nothing else holding the grid together. At #E2E8F0 the use-of-funds
-     * grid read as one undivided block.
+     * has nothing else holding the grid together.
      */
-    --ft-line: #d8e0ea;
+    --ft-line: #d3dee7;
 
-    --ft-ink: #101828;
-    --ft-muted: #475467;
-    --ft-subtle: #5d6b82;
+    /** Denis's dark blue, carrying every heading and every strong run. */
+    --ft-ink: #2d3748;
+    --ft-muted: #4a5568;
+    --ft-subtle: #5a6883;
 
-    --ft-accent: #8a5e0a;
-    /** Brand gold, for fills only — never text. See the note above. */
+    /** Cyan at body size. See the three-way split above. */
+    --ft-accent: #066e80;
+    /** Denis's light blue, exact, for fills only — never text. */
+    --dl-pop: #0ac4e0;
+    /*
+     * The same cyan at 22% over white, written out rather than computed with
+     * color-mix(). Two reasons, and the second is the real one: a literal is
+     * what the contrast test can read and assert against, where a color-mix()
+     * is opaque to it — and Chromium resolves color-mix() to `color(srgb ...)`
+     * in getComputedStyle, which every tool that expects rgb() mis-reads.
+     * Ink on it is 10.01:1.
+     */
+    --dl-pop-tint: #c9f2f8;
+    /** The hero's accent word, and nothing else. */
+    --dl-display: #0794ab;
+    /** Brand gold: the one warm CTA, and the review stars. */
     --dl-gold: #e0a840;
 
     background-color: var(--ft-bg);
@@ -1930,17 +1969,79 @@
     color: inherit;
     text-decoration: none;
   }
-}
 
-/*
- * The two things on the page that bake the dark ground into artwork instead of
- * reading a token, and so cannot follow the block above.
- *
- * UNLAYERED, for the reason the `.ft-light` block is: everything else in this
- * file sits in @layer components, which Tailwind's `utilities` layer outranks,
- * and both of these override a utility. Unlayered declarations beat every
- * layer, so this wins without a single !important.
- */
+  /*
+   * The hero's amount slider.
+   *
+   * A native <input type="range"> carries dragging, arrow-key stepping, touch
+   * targets and screen-reader semantics for free, so the hero form uses one
+   * rather than a div with pointer handlers. The cost is that its parts have to
+   * be styled per engine — WebKit and Firefox expose different pseudo-elements
+   * and neither inherits from the other. Same arrangement `.ft-surface` already
+   * has for the loan calculator's sliders; the values differ because this one
+   * sits on white.
+   *
+   * The FILLED portion is painted by a gradient on the input itself, sized from
+   * a --dl-fill custom property the component sets as the value changes. WebKit
+   * has no ::-moz-range-progress equivalent, so this is the only way to show
+   * progress on both engines from one declaration.
+   */
+  .dl-surface input[type='range'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--dl-pop) 0%,
+      var(--dl-pop) var(--dl-fill, 50%),
+      var(--ft-card-raised) var(--dl-fill, 50%),
+      var(--ft-card-raised) 100%
+    );
+    cursor: pointer;
+  }
+
+  .dl-surface input[type='range']:focus-visible {
+    outline: 2px solid var(--ft-ink);
+    outline-offset: 4px;
+  }
+
+  /*
+   * The thumb. White with a heavy ink ring rather than a filled disc: on a cyan
+   * track a cyan thumb disappears, and a dark thumb reads as a defect in the
+   * bar. 24px so it clears the 24x24 target size WCAG 2.2 asks for.
+   */
+  .dl-surface input[type='range']::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 3px solid var(--ft-ink);
+    box-shadow: 0 2px 6px rgba(45, 55, 72, 0.28);
+  }
+
+  .dl-surface input[type='range']::-moz-range-thumb {
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 3px solid var(--ft-ink);
+    box-shadow: 0 2px 6px rgba(45, 55, 72, 0.28);
+  }
+
+  /*
+   * Firefox draws its own track under the gradient above unless it is made
+   * transparent, which would otherwise hide the filled portion entirely.
+   */
+  .dl-surface input[type='range']::-moz-range-track {
+    background: transparent;
+    height: 10px;
+    border-radius: 999px;
+  }
+}
 
 /*
  * The fallback artwork on a post with no featured image — a two-stop gradient
@@ -1950,11 +2051,11 @@
  *
  * Its RayBurst overlay strokes #FFFFFF at 18% and simply disappears here. That
  * is the intended outcome and not worth a fork of the component: what is left
- * is a clean gradient behind the gold mark, which is what the burst was
- * softening in the first place.
+ * is a clean gradient behind the mark, which is what the burst was softening in
+ * the first place.
  */
 .dl-surface .ft-image-slot {
-  background-image: linear-gradient(135deg, #eef2f7, #dde5ee 60%);
+  background-image: linear-gradient(135deg, #eaf1f6, #d7e3ec 60%);
 }
 
 /*
@@ -1963,7 +2064,7 @@
  * `Avatar` sets its background with an inline `style` — a hue derived from the
  * name, at 30% lightness — which no stylesheet can override, and paints the
  * initials with --ft-ink. On the dark design that is white on a dark disc; here
- * --ft-ink is near-black on the same dark disc, which is unreadable.
+ * --ft-ink is the dark blue on the same dark disc, which is unreadable.
  *
  * So the disc stays dark and the initials go back to white. `ft-avatar` is a
  * marker class carrying no styles of its own, added to the shared component for
