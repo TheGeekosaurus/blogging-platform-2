@@ -145,7 +145,11 @@ export function DaylightHeader() {
         </nav>
 
         {/*
-          Gold, in the pill shape the navy version wore.
+          Gold, and a rounded RECTANGLE rather than the pill it wore briefly.
+          The live Nanotom Capital site sets every button that way, so the shape
+          is the brand's and not this design's to reinvent — `rounded-md` comes
+          from CtaButton's own base class, which is why there is no radius
+          override here.
           
           It was navy for a while, on the argument that the reference reserves
           its warm colour for the one button that starts the flow. Denis wants
@@ -159,7 +163,7 @@ export function DaylightHeader() {
           2.13:1.
         */}
         <div className="hidden shrink-0 items-center lg:flex">
-          <CtaButton className="!rounded-full !px-8 !py-3.5 !text-sm" />
+          <CtaButton className="!px-8 !py-3.5 !text-sm" />
         </div>
 
         <div className="ml-auto lg:hidden">

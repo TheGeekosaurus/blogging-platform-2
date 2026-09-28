@@ -36,10 +36,10 @@ export { CtaButton } from '../cta-button';
  * near-white page: at the bottom of a long card it was the faintest thing in
  * the section, and "Learn More" is the only way into four product pages.
  *
- * Navy at 12.86:1 against its white label, and the same pill the header wore
- * before its button went gold — which is where Denis pointed for this. Gold
- * stays the primary action and navy is the secondary one, so the two never
- * compete for the same click.
+ * Navy at 12.86:1 against its white label, in the same rounded rectangle the
+ * header's button uses — the live site's shape for every button. Gold stays
+ * the primary action and navy the secondary one, so the two never compete
+ * for the same click.
  *
  * next/link for internal destinations, a plain anchor for off-site ones, for
  * the reason GhostButton does it: `trailingSlash: true` means an internal path
@@ -56,7 +56,7 @@ export function SolidButton({
   external?: boolean;
 }) {
   const className =
-    'inline-flex shrink-0 items-center gap-2.5 rounded-full bg-[var(--ft-ink)] px-6 py-3 text-[0.9375rem] font-semibold text-white transition-colors hover:bg-[#123a8f]';
+    'inline-flex shrink-0 items-center gap-2.5 rounded-md bg-[var(--ft-ink)] px-6 py-3 text-[0.9375rem] font-semibold text-white transition-colors hover:bg-[#123a8f]';
   const label = (
     <>
       {children}
@@ -85,21 +85,24 @@ export function SolidButton({
 }
 
 /**
- * The cyan disc with a navy arrow, on the three destination cards.
+ * The gold disc with an ink arrow, on the three destination cards.
  *
- * CYAN AND NOT GOLD, though it was gold first. The palette reserves gold for
- * the one warm call to action on a cool page, and a gold disc on every card
- * broke that rule three times over on a single row — and sat beside a teal icon
- * inside the same card, so each card carried two unrelated accents.
+ * It went cyan for a round, on the argument that gold was reserved for the one
+ * warm call to action. Gold is the call-to-action colour everywhere now — the
+ * header, the hero card, the section buttons — so the disc rejoining it makes
+ * the card's affordance read as the same thing as every other action on the
+ * page rather than as a fourth accent.
  *
- * Cyan as a FILL is the treatment that is legal on both grounds this disc
- * appears on: navy on #0AC4E0 is 6.12:1. The dark design's version paints
- * --ft-bg into the arrow, which would be white here and put a 2.10:1 mark in
- * the middle of every card.
+ * Still a disc, not a rounded rectangle: it is an affordance mark inside a link
+ * whose whole card is the target, not a button of its own, and the dark design
+ * draws it the same way.
+ *
+ * The arrow is ink at 8.69:1. The dark design paints --ft-bg into it, which is
+ * white here and would be 2.13:1.
  */
 export function ArrowDisc() {
   return (
-    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--dl-pop)] text-[var(--dl-deep)] transition-transform group-hover:-translate-y-0.5">
+    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--dl-gold)] text-[#1a1205] transition-transform group-hover:-translate-y-0.5">
       <ArrowUpRightIcon className="h-[18px] w-[18px]" />
     </span>
   );

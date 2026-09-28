@@ -4,7 +4,7 @@ import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
 import { IMAGES, REVIEWS } from '../brand';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { Faq, HowItWorks, Qualifier, UseCases } from '../ft/shared-sections';
+import { Faq, Qualifier, UseCases } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -21,6 +21,7 @@ import {
   TESTIMONIALS,
 } from '../ft/content';
 import { AmountSlider } from './amount-slider';
+import { DaylightHowItWorks } from './how-it-works';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
 import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionHead, SolidButton } from './primitives';
@@ -120,8 +121,24 @@ function FeaturedOn() {
         <Chip>Featured On</Chip>
       </div>
 
+      {/*
+        `py-8` is not spacing — it is headroom for the cards' shadows.
+
+        This element has to be `overflow-hidden`: the track is four copies of
+        the logos and is far wider than the viewport, so without it the page
+        scrolls sideways. But overflow clips BOTH axes, and the shadow reaches
+        about 26px below each card, so it was being cut off flat along the top
+        and bottom edges of the strip. Padding gives it room inside the clip.
+
+        `overflow-x-hidden` is not the fix. Setting one axis to hidden computes
+        the other to `auto`, which turns this into a scroll container — the
+        shadow would be reachable by scrolling rather than visible.
+
+        The mask needs no adjustment: it fades horizontally and covers the
+        padding at full opacity.
+      */}
       <div
-        className="relative mt-8 overflow-hidden
+        className="relative mt-6 overflow-hidden py-8
           [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]
           [-webkit-mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]"
       >
@@ -160,7 +177,7 @@ function FeaturedOn() {
  */
 function DestinationTiles() {
   return (
-    <div className={`${CONTAINER} grid gap-6 pb-2 pt-6 md:grid-cols-3 lg:gap-8 lg:pb-4`}>
+    <div className={`${CONTAINER} grid gap-6 py-14 md:grid-cols-3 lg:gap-8 lg:py-20`}>
       {HERO.tiles.map((tile) => {
         const Icon = TILE_ICONS[tile.icon];
         return (
@@ -634,7 +651,7 @@ export function DaylightHome({
         <DestinationTiles />
       </div>
 
-      <HowItWorks />
+      <DaylightHowItWorks />
       <UseCases />
       <FundingOptions />
       <Qualifier />

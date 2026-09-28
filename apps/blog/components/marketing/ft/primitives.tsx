@@ -33,7 +33,14 @@ export function Chip({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** The dark bordered button with a gold arrow, used for every secondary action. */
+/**
+ * The dark bordered button with a gold arrow, used for every secondary action.
+ *
+ * `ft-ghost` carries no styles here. It is a marker for one rule in
+ * globals.css: the live Nanotom Capital site sets every button to a 6px
+ * radius, and the Daylight build follows it, while this component's own
+ * `rounded-xl` is the FutureTech template's. Same arrangement as `ft-chip`.
+ */
 export function GhostButton({
   children,
   href,
@@ -45,7 +52,7 @@ export function GhostButton({
   external?: boolean;
 }) {
   const className =
-    'inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]';
+    'ft-ghost inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]';
   const label = (
     <>
       {children}
