@@ -58,7 +58,7 @@ export function DaylightHowItWorks() {
           className="mb-14 lg:mb-16"
         />
 
-        <h3 className="mb-12 text-center font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.8vw,2.125rem)] font-semibold leading-[1.2] text-[var(--ft-ink)] lg:mb-16">
+        <h3 className="mb-12 font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.8vw,2.125rem)] font-semibold leading-[1.2] text-[var(--ft-ink)] lg:mb-16">
           {HOW_IT_WORKS.stepsHeading}
         </h3>
 
@@ -96,19 +96,19 @@ export function DaylightHowItWorks() {
                   <span
                     aria-hidden="true"
                     style={{ animationDelay: `${i * 2.4}s` }}
-                    className="ft-step-number font-[family-name:var(--font-headline)] text-[2.75rem] font-semibold leading-none text-[var(--ft-accent)]"
+                    className="ft-step-number font-[family-name:var(--font-headline)] text-[2.75rem] font-semibold leading-none text-[var(--dl-gold)]"
                   >
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   {i < HOW_IT_WORKS.steps.length - 1 ? (
                     <span
                       aria-hidden="true"
-                      className="relative hidden h-px flex-1 bg-[var(--ft-line)] md:block"
+                      className="relative hidden h-px flex-1 bg-[var(--dl-gold)]/35 md:block"
                     >
                       {/* Drawn over the resting rule, so the rule never disappears. */}
                       <span
                         style={{ animationDelay: `${i * 2.4 + 1.2}s` }}
-                        className="ft-step-fill absolute inset-0 block bg-[var(--ft-accent)]"
+                        className="ft-step-fill absolute inset-0 block bg-[var(--dl-gold)]"
                       />
                     </span>
                   ) : null}
