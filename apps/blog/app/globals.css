@@ -1866,16 +1866,16 @@
  * ground it can land on — white, the band, the card, the raised chip, and the
  * cyan wash behind the hero badge:
  *
- *              #FFFFFF   #F6E7BC   #F5F8FA   #E8EFF4   #C9F2F8
- *   ink        12.86     10.46     12.06     11.08     10.74
- *   muted       7.35      5.97      6.89      6.33      6.14
- *   subtle      6.01      4.89      5.64      5.18      5.02
- *   accent      5.92      4.81      5.55      5.09      4.94
+ *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4   #C9F2F8
+ *   ink        12.86     11.84     12.06     11.08     10.74
+ *   muted       7.35      6.76      6.89      6.33      6.14
+ *   subtle      6.01      5.53      5.64      5.18      5.02
+ *   accent      5.92      5.44      5.55      5.09      4.94
  *
- * All clear the 4.5:1 body-text floor on all five, and the cream band is now
- * the tightest of them — --ft-accent has 0.31 of headroom there. --ft-subtle
- * is a step darker than it looks like it needs to be because the cyan chip
- * tint decided it: at #5A6B95 it measured 4.42 on that ground and failed.
+ * All clear the 4.5:1 body-text floor on all five, and the cyan chip tint is
+ * the tightest of them. That ground is also what decided --ft-subtle: at
+ * #5A6B95 it measured 4.42 there and failed, which is why the value is a step
+ * darker than it looks like it needs to be.
  * __tests__/contrast.test.ts recomputes every cell and fails if a retune drops
  * one.
  *
@@ -1919,17 +1919,22 @@
 
     --ft-bg: #ffffff;
     /*
-     * THE SECTION HEADER BANDS ARE CREAM, and they are the one warm surface on
-     * a cool page. The value is Denis's, and it is not arbitrary: it is the
-     * pale gold that outlines both shapes in the band artwork, so the page's
-     * only warm colour appears in exactly two places and they match.
-     *
-     * It was a cool blue-grey before. A band still has to step away from the
-     * page to be a band, and on white the only direction is down — cream is
-     * darker than white, so it still reads as a band rather than as the header
+     * The bands are DARKER than the ground here, where in the dark design they
+     * are lighter (#1A1A1A on #141414). Same idea both ways round: a band is a
+     * band because it steps away from the page, and on white the only direction
+     * to step is down — a white band on a white ground is the section header
      * losing its edges.
+     *
+     * Tinted toward the blues rather than neutral, so it sits under #0AC4E0
+     * rather than fighting it: a neutral grey beside a saturated cyan reads as
+     * dirty.
+     *
+     * These were cream (#F6E7BC) for a round, matched to the pale gold that
+     * outlined the shapes in the band artwork. Denis reverted both together —
+     * the artwork's outlines are brand gold now, so the cream had nothing left
+     * to match.
      */
-    --ft-band: #f6e7bc;
+    --ft-band: #f2f6f9;
     --ft-card: #f5f8fa;
     --ft-card-raised: #e8eff4;
     /*
