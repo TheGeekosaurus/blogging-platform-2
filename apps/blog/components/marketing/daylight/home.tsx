@@ -4,7 +4,7 @@ import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
 import { IMAGES, REVIEWS } from '../brand';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { Faq, Qualifier, UseCases } from '../ft/shared-sections';
+import { Faq, UseCases } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -21,6 +21,7 @@ import {
   TESTIMONIALS,
 } from '../ft/content';
 import { AmountSlider } from './amount-slider';
+import { DaylightDifference } from './difference';
 import { DaylightHowItWorks } from './how-it-works';
 import { DaylightFooter } from './site-footer';
 import { DaylightHeader } from './site-header';
@@ -41,8 +42,8 @@ import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionHead, SolidButton } from 
  *    source. Denis asked to reuse the current site's copy, and two copies of a
  *    headline is how the two versions start quietly saying different things
  *    while the comparison is still running.
- *  - THE SECTIONS THAT PAINT FROM TOKENS. HowItWorks, UseCases, Qualifier and
- *    Faq are imported from ft/shared-sections whole. They read --ft-* and
+ *  - THE SECTIONS THAT PAINT FROM TOKENS. UseCases and Faq are imported from
+ *    ft/shared-sections whole. They read --ft-* and
  *    nothing else, so `.dl-surface` re-themes them with no fork; forking them
  *    would be four files to keep in step for no benefit. HowItWorks was briefly
  *    forked here as cards on a navy ground and Denis reverted it — the fork is
@@ -666,7 +667,7 @@ export function DaylightHome({
         <UseCases />
       </div>
       <FundingOptions />
-      <Qualifier />
+      <DaylightDifference />
       <Requirements />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />

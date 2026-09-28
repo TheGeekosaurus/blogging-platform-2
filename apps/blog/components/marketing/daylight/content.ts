@@ -1,0 +1,73 @@
+/*
+ * Copy that belongs to Daylight alone.
+ *
+ * Everything else on this page reads ft/content.ts, which is the single source
+ * both designs share. This file exists for the one section the dark homepage
+ * does not have, and it should stay that small: anything both pages say belongs
+ * in the shared file, or the two start quietly disagreeing.
+ */
+
+/**
+ * The "difference" band, which replaced the qualifier survey on this page.
+ *
+ * MODELLED ON NATIONAL FUNDING'S SECTION, at Denis's request — he sent it as
+ * the reference and asked for the copy to match. The LAYOUT and the four claims
+ * are theirs; the sentences are not, for the reason already settled when the
+ * how-it-works steps were written against Fora Financial's: taking a
+ * competitor's structure is fair, retyping their marketing copy onto a page
+ * aimed at the same market is not. The row headings are kept as-is because they
+ * are generic claim labels; the bodies are ours.
+ *
+ * AND BECAUSE EVERY BODY HERE HAD TO BECOME TRUE OF US. Three of the four
+ * originals are claims about a different company:
+ *
+ *   - "Funds in your account as fast as 24 hours" is their service level. Ours
+ *     is same-day, which HOW_IT_WORKS already states, so that is what this
+ *     says.
+ *   - "Bank-level encryption keeps your information safe" describes an
+ *     infrastructure posture nothing on this site establishes. What can be
+ *     stated is that the form is served over an encrypted connection and the
+ *     data is handled under a privacy policy that exists and is linked.
+ *   - "Speak with a U.S.-based funding expert" is a staffing fact about their
+ *     team. "In-house loan advisor" is the term this site already uses, and it
+ *     is the one that is ours to make.
+ *
+ * The credit-score row is the one that carries across almost unchanged, because
+ * it is already true here: the footer's funding disclaimer states that every
+ * application is subject to a soft credit check that does not affect scores.
+ *
+ * The footnote markers are gone with them. The original's "**" and "◊" point at
+ * disclosures printed further down THEIR page; reproducing the marks without
+ * the disclosures would be a reference to nothing.
+ */
+export const DIFFERENCE = {
+  heading: 'The Nanotom Capital difference',
+  rows: [
+    {
+      icon: 'speed',
+      title: 'We move fast.',
+      body: 'Same-day decisions, and the money can land as soon as the same day.',
+    },
+    {
+      icon: 'score',
+      title: 'We protect your credit score.',
+      body: "Checking what you qualify for is a soft credit check, so the score you have worked hard for is untouched.",
+    },
+    {
+      icon: 'data',
+      title: 'We protect your data.',
+      body: 'Your details are sent over an encrypted connection and handled under our Privacy Policy.',
+    },
+    {
+      icon: 'people',
+      title: 'We have real people and real support.',
+      body: 'Speak with an in-house loan advisor who works your file from application to funding.',
+    },
+  ],
+  cta: { label: 'Apply now' },
+  /** The photo beside it. Alt text describes the building, not the brand. */
+  image: {
+    src: '/marketing/office.webp',
+    alt: 'The Nanotom Capital office building',
+  },
+} as const;
