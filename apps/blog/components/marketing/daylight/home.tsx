@@ -3,9 +3,8 @@ import Link from 'next/link';
 import { blogIndexPath, type PostSummary, type TermRow } from '@blog/core';
 
 import { IMAGES, REVIEWS } from '../brand';
-import { FundingCarousel } from '../ft/funding-carousel';
 import { Avatar, CategoryPills, PostRow } from '../ft/post-list';
-import { ApplyRow, Faq, Qualifier, UseCases } from '../ft/shared-sections';
+import { Faq, Qualifier, UseCases } from '../ft/shared-sections';
 import {
   ArrowUpRightIcon,
   CalculatorIcon,
@@ -16,6 +15,7 @@ import {
 import {
   BLOG_SECTION,
   FUNDING_OPTIONS,
+  LOANS,
   HERO,
   REQUIREMENTS,
   TESTIMONIALS,
@@ -280,70 +280,115 @@ function Hero() {
   );
 }
 
+/**
+ * The funding options, as a sticky rail beside a scrolling column of products.
+ *
+ * DAYLIGHT — modelled on the National Funding section Denis sent: the heading
+ * holds still on the left while the products scroll past it on the right. The
+ * dark design's horizontal carousel is gone from this build, and with it the
+ * client component that drove it — this section is now entirely server
+ * rendered, because a vertical stack needs no scroll logic at all.
+ *
+ * WHY THE CARDS LOST FIVE BULLETS EACH. They carried all six `points`, which is
+ * a specification, not a teaser, and made each card taller than the viewport in
+ * a column of four. The reference's cards are a title, a blurb, one headline
+ * figure and a link — so these keep `points[0]`, the lead spec, and send the
+ * rest to the product page.
+ *
+ * Nothing is lost by that: every card links to a /funding-solutions page whose
+ * LOAN_PAGES entry carries the amount, the term, the repayment shape, the
+ * funding time, the entry requirements and a pros/cons pair — considerably more
+ * than the six bullets it replaces.
+ *
+ * AND THE FIGURE IS THE CARD'S OWN, deliberately. The obvious move was to pull
+ * `facts.amount` off the linked LOAN_PAGES entry, which would have given every
+ * card a clean "$15,000 to $5,000,000" line exactly like the reference. It is
+ * wrong here: the interest-only card links to /revenue-based-financing as the
+ * closest fit among the pages that exist, not because it IS that product — see
+ * the note on its `cta` in content.ts — so it would have printed another
+ * product's limits under its own name. On a page taking live credit
+ * applications that is not a cosmetic error.
+ */
 function FundingOptions() {
   return (
-    <section aria-labelledby="dl-options">
-      <SectionHead
-        id="dl-options"
-        label={FUNDING_OPTIONS.label}
-        heading={FUNDING_OPTIONS.heading}
-      />
+    <section aria-labelledby="dl-options" className="border-t border-[var(--ft-line)]">
+      <div
+        className={`${CONTAINER} grid gap-10 py-14 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16 lg:py-20`}
+      >
+        {/*
+          The rail. `self-start` is what makes `sticky` work inside a grid — a
+          grid item stretches to the row height by default, so it has no room to
+          move within its own track and sticks to nothing.
 
-      <div className={`${CONTAINER} py-14 lg:py-20`}>
-        <FundingCarousel label={FUNDING_OPTIONS.heading}>
-          {FUNDING_OPTIONS.cards.map((card) => (
-            <article
-              key={card.title}
-              /*
-               * The card keeps the width it had as half of a two-column grid,
-               * so the carousel changes how many exist and how they move, not
-               * how they look. `shrink-0` is what makes the flex track scroll
-               * rather than squeeze four cards into the viewport.
-               */
-              className="flex w-full shrink-0 snap-start flex-col gap-6 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-8 lg:w-[calc(50%-0.75rem)] lg:p-10"
-            >
-              <div>
-                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.375rem,2.4vw,1.75rem)] font-semibold leading-[1.2] text-[var(--ft-ink)]">
+          `top-28` clears the sticky site header, which is itself `top-0`;
+          without the offset the heading slides under it.
+        */}
+        <div className="flex flex-col items-start gap-6 lg:sticky lg:top-28 lg:self-start">
+          <Chip>{FUNDING_OPTIONS.label}</Chip>
+          <h2
+            id="dl-options"
+            className="max-w-[16ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.75rem)] font-bold leading-[1.1] text-[var(--ft-ink)]"
+          >
+            {FUNDING_OPTIONS.heading}
+          </h2>
+
+          {/*
+            The rail's paragraph is LOANS.hero.body, not a new sentence written
+            for this layout. FUNDING_OPTIONS has no body of its own, and the
+            reference's left column is a headline over a paragraph — so rather
+            than invent marketing copy for a page that takes credit
+            applications, this borrows the line /funding-solutions already
+            opens with. It describes exactly this: the options, side by side,
+            one application. Give it a sentence of its own and it goes here.
+          */}
+          <p className="max-w-[46ch] text-[1.0625rem] leading-[1.65] text-[var(--ft-muted)]">
+            {LOANS.hero.body}
+          </p>
+
+          <CtaButton className="mt-2" />
+        </div>
+
+        <ul className="flex flex-col gap-5 lg:gap-6">
+          {FUNDING_OPTIONS.cards.map((card) => {
+            /*
+             * Indexed access, so this is `| undefined` under the build's
+             * stricter typecheck even though every card is written with six
+             * points. Rendered conditionally rather than asserted — a card
+             * added later without points should lose a line, not crash the
+             * homepage.
+             */
+            const lead = card.points[0];
+
+            return (
+              <li
+                key={card.title}
+                className="rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-6 lg:p-8"
+              >
+                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2vw,1.5rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
                   {card.title}
                 </h3>
-                <p className="mt-4 text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
+
+                <p className="mt-3 text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
                   {card.body}
                 </p>
-              </div>
 
-              <ul className="flex flex-col gap-3 border-t border-[var(--ft-line)] pt-6">
-                {card.points.map((point) => (
-                  <li key={point.label} className="flex gap-3 text-[1.0625rem] leading-[1.5]">
-                    {/*
-                      DAYLIGHT — the bullet is the gold FILL, not --ft-accent.
-                      A dot carries no text, so the text-contrast rule that
-                      pushes the accent down to bronze does not apply to it,
-                      and brand gold is worth keeping wherever it still can be.
-                    */}
-                    <span
-                      aria-hidden="true"
-                      className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--dl-gold)]"
-                    />
-                    <span className="text-[var(--ft-muted)]">
-                      <strong className="font-medium text-[var(--ft-ink)]">{point.label}</strong>
-                      {' — '}
-                      {point.body}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-auto flex flex-wrap items-center gap-4 pt-2">
-                <GhostButton href={card.cta.href}>{card.cta.label}</GhostButton>
-                {card.tag ? (
-                  <p className="text-[0.9375rem] italic text-[var(--ft-subtle)]">{card.tag}</p>
+                {lead ? (
+                  <p className="mt-5 border-t border-[var(--ft-line)] pt-5 text-[1.0625rem] leading-[1.5]">
+                    <strong className="font-semibold text-[var(--ft-ink)]">{lead.label}</strong>
+                    <span className="text-[var(--ft-muted)]">{' — '}{lead.body}</span>
+                  </p>
                 ) : null}
-              </div>
-            </article>
-          ))}
-        </FundingCarousel>
 
-        <ApplyRow className="mt-14" />
+                <div className="mt-6 flex flex-wrap items-center gap-4">
+                  <GhostButton href={card.cta.href}>{card.cta.label}</GhostButton>
+                  {card.tag ? (
+                    <p className="text-[0.9375rem] italic text-[var(--ft-subtle)]">{card.tag}</p>
+                  ) : null}
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </section>
   );

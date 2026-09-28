@@ -28,33 +28,56 @@ import { CheckCircleIcon } from './icons';
  * it up whenever the survey is wired to accept a starting figure. Until then it
  * is inert and harmless.
  *
- * THE RANGE IS THE ONE THING HERE WORTH CHECKING AGAINST REALITY. It stops at
- * $1.5M because that is the approval ceiling the funding cards and the page's
- * own metadata state. The homepage's first CTA tile says "$15K to $5M across 6
- * funding types", which disagrees — see the note on MAX. A slider that offers
- * $5M on a lead form for products that cap at $1.5M is a promise the
- * application cannot keep, so this follows the lower of the two until Denis
- * settles which is right.
+ * THE RANGE IS $15K TO $5M, which is the site-wide figure and not a guess. It
+ * appears three times in content.ts — the homepage's first CTA tile, LOANS.hero
+ * and the business-loans page's `facts.amount` — and it is the widest of the
+ * products because business loans are the widest product.
+ *
+ * An earlier version of this file capped it at $1.5M and called the two figures
+ * a contradiction to be resolved. They are not: $1.5M is the LINE OF CREDIT's
+ * ceiling specifically, stated as such everywhere it appears, and reading it as
+ * a site-wide cap made this control quietly understate what the business
+ * actually funds.
  */
 
 const MIN = 15_000;
+const MAX = 5_000_000;
+
 /*
- * Not $5M. See the note above — this tracks the approval ceiling in
- * FUNDING_OPTIONS and in the route's own description, not the tile's copy.
- * Raise it here and in that tile together, once the two are reconciled.
+ * THE TRACK IS LOGARITHMIC, and it has to be at this range.
+ *
+ * Linear, $15,000 and $400,000 — which is most of the realistic asks — would
+ * share the first eight percent of the travel, so nearly every visitor would be
+ * fighting for a few pixels while four fifths of the bar covered amounts almost
+ * nobody requests. The position runs 0-100 and maps onto the amount by a
+ * constant RATIO, so equal movement is an equal PERCENTAGE change: the halfway
+ * point is about $274,000 rather than $2.5M.
+ *
+ * The <input> carries the position, not the money, which is why aria-valuetext
+ * below is not optional — without it a screen reader announces "57" for
+ * $500,000.
  */
-const MAX = 1_500_000;
-const STEP = 5_000;
+const POSITIONS = 100;
+
+function amountAt(position: number): number {
+  const raw = MIN * (MAX / MIN) ** (position / POSITIONS);
+  /*
+   * Rounded by magnitude, so the figure reads like something a person would
+   * ask for. Without this the log curve produces $273,861 and similar, which
+   * looks like a calculation rather than a request.
+   */
+  const step = raw < 100_000 ? 5_000 : raw < 1_000_000 ? 10_000 : 50_000;
+  return Math.min(MAX, Math.max(MIN, Math.round(raw / step) * step));
+}
+
 /*
  * The default is an ANCHOR, not a neutral starting point — it is the figure a
  * visitor who never touches the control submits, and the one every other
- * position is judged against. $350k sits mid-market for these products and
- * leaves the track visibly filled; at $150k the cyan was a sliver against a
- * $1.5M ceiling and the slider read as empty rather than as set. Move it if the
- * lead quality argues otherwise — it is one number and nothing else depends on
- * it.
+ * position is judged against. Mid-track, which the curve puts near $275,000:
+ * a credible mid-market ask, and visually a track that reads as set rather
+ * than as empty or as maxed out.
  */
-const DEFAULT = 350_000;
+const DEFAULT_POSITION = POSITIONS / 2;
 
 /** Whole dollars, no cents — the figure is a round number by construction. */
 const money = new Intl.NumberFormat('en-US', {
@@ -64,12 +87,14 @@ const money = new Intl.NumberFormat('en-US', {
 });
 
 export function AmountSlider() {
-  const [amount, setAmount] = useState(DEFAULT);
+  const [position, setPosition] = useState(DEFAULT_POSITION);
   const id = useId();
 
-  const clamp = (next: number) => Math.min(MAX, Math.max(MIN, next));
+  const amount = amountAt(position);
+  const nudge = (by: number) =>
+    setPosition((p) => Math.min(POSITIONS, Math.max(0, p + by)));
   /* Drives the filled portion of the track — see the gradient in globals.css. */
-  const fill = ((amount - MIN) / (MAX - MIN)) * 100;
+  const fill = position;
 
   return (
     <div className="rounded-[28px] border-2 border-[var(--ft-ink)] bg-[var(--ft-bg)] p-7 shadow-[0_28px_60px_-32px_rgba(45,55,72,0.45)] sm:p-10">
@@ -88,9 +113,14 @@ export function AmountSlider() {
         */}
         <button
           type="button"
-          onClick={() => setAmount((a) => clamp(a - STEP))}
-          disabled={amount <= MIN}
-          aria-label={`Decrease by ${money.format(STEP)}`}
+          onClick={() => nudge(-2)}
+          disabled={position <= 0}
+          /*
+           * "Decrease amount", not "Decrease by $5,000": the step is a constant
+           * percentage of the current figure, so a fixed dollar label would be
+           * wrong at every position but one.
+           */
+          aria-label="Decrease amount"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
         >
           <span aria-hidden="true">−</span>
@@ -108,9 +138,9 @@ export function AmountSlider() {
 
         <button
           type="button"
-          onClick={() => setAmount((a) => clamp(a + STEP))}
-          disabled={amount >= MAX}
-          aria-label={`Increase by ${money.format(STEP)}`}
+          onClick={() => nudge(2)}
+          disabled={position >= POSITIONS}
+          aria-label="Increase amount"
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--ft-card-raised)] text-2xl leading-none text-[var(--ft-ink)] transition-colors hover:bg-[var(--dl-pop)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[var(--ft-card-raised)]"
         >
           <span aria-hidden="true">+</span>
@@ -119,13 +149,13 @@ export function AmountSlider() {
 
       <input
         type="range"
-        min={MIN}
-        max={MAX}
-        step={STEP}
-        value={amount}
-        onChange={(event) => setAmount(Number(event.target.value))}
+        min={0}
+        max={POSITIONS}
+        step={1}
+        value={position}
+        onChange={(event) => setPosition(Number(event.target.value))}
         aria-labelledby={`${id}-label`}
-        /* Screen readers read the raw number otherwise: "one five zero zero zero zero". */
+        /* Without this a reader announces the POSITION — "57" — not the money. */
         aria-valuetext={money.format(amount)}
         style={{ ['--dl-fill' as string]: `${fill}%` }}
         className="mt-8"
