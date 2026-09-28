@@ -37,3 +37,71 @@ export function CheckCircleIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * The three marks the "difference" rows need that ft/icons.tsx has no
+ * equivalent for. The fourth row reuses CashFlowIcon, whose two-way arrow is
+ * already the glyph that section wants for speed.
+ *
+ * Drawn on the same 24-unit grid at the same 1.6 stroke, so they sit in a row
+ * with it without looking like a second icon set.
+ */
+
+/** A dial, for the credit-score row. */
+export function GaugeIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3.5 18a9 9 0 1 1 17 0" />
+      <path d="m12 14 4.2-4.2" />
+      <circle cx="12" cy="15.4" r="1.4" />
+    </svg>
+  );
+}
+
+/** A padlock, for the data row. */
+export function LockIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.2" />
+      <path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" />
+      <path d="M12 14.4v2.2" />
+    </svg>
+  );
+}
+
+/** One person, for the support row. */
+export function PersonIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="8" r="3.4" />
+      <path d="M5 20a7 7 0 0 1 14 0" />
+    </svg>
+  );
+}

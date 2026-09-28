@@ -72,6 +72,74 @@ describe("the two footers state the same legal text", () => {
 });
 
 /**
+ * The "difference" band's copy is ours.
+ *
+ * It is modelled on National Funding's section — Denis sent it as the
+ * reference — and the layout and the four claims come from there. The
+ * sentences do not, for the reason settled when the how-it-works steps were
+ * written against Fora Financial's: a competitor's structure is fair game, and
+ * retyping their marketing copy onto a page aimed at the same market is not.
+ *
+ * The easy way to undo that is a tidy-up pass that "restores the reference
+ * copy". These assertions are what that pass would have to argue with.
+ */
+describe('the difference band says what is true of us', () => {
+  const copy = read('daylight', 'content.ts');
+  const source = readFileSync(
+    join(marketing, 'daylight', 'content.ts'),
+    'utf8',
+  ).replace(/\/\*[\s\S]*?\*\//g, ' ');
+
+  it.each(['national funding', 'fora financial'])('never names %s in rendered copy', (rival) => {
+    // The comment block explains the provenance and may name them; the strings
+    // a visitor reads may not. Case-insensitive so a heading-cased or shouted
+    // spelling cannot slip through.
+    expect(source.toLowerCase()).not.toContain(rival);
+  });
+
+  it('records the provenance rather than hiding it', () => {
+    // Case-insensitive: the note shouts the name for emphasis.
+    expect(copy.toLowerCase()).toContain('national funding');
+  });
+
+  /*
+   * The original marks two claims with "**" and a lozenge, pointing at
+   * disclosures printed further down THEIR page. Carried across without those
+   * disclosures they would be references to nothing, which on a page taking
+   * credit applications is worse than no mark at all.
+   */
+  it('carries no footnote markers, because it carries no footnotes', () => {
+    expect(source).not.toMatch(/\*\*["\u2019\s]|\u25CA/);
+  });
+
+  /*
+   * The claim most likely to be "corrected" back to the reference's. Ours is
+   * same-day, which HOW_IT_WORKS already states; theirs is 24 hours, which is
+   * their service level and not a promise this business has made.
+   */
+  it('promises same-day funding, not the reference\'s 24 hours', () => {
+    expect(source).toContain('same day');
+    expect(source).not.toContain('24 hours');
+  });
+
+  /*
+   * The soft-pull claim has to keep agreeing with the footer's funding
+   * disclaimer, which states it on the same page.
+   */
+  it('describes the credit check the footer already discloses', () => {
+    /*
+     * Whitespace-normalised on both sides. JSX wraps prose at the print
+     * margin, so the footer's disclaimer carries a newline in the middle of
+     * "a soft / credit check" — a raw substring search finds nothing and the
+     * test fails for a reason that has nothing to do with the claim.
+     */
+    const flat = (text: string) => text.replace(/\s+/g, ' ');
+    expect(flat(source)).toContain('soft credit check');
+    expect(flat(read('site-footer.tsx'))).toContain('soft credit check');
+  });
+});
+
+/**
  * The preview must not compete with the page it previews.
  *
  * /daylight renders the homepage's copy at a second URL. Indexed, that is
