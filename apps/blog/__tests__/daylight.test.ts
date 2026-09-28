@@ -109,10 +109,10 @@ describe('the preview route is kept out of the index', () => {
  * The dark site is not supposed to move.
  *
  * The whole argument for building this as a parallel route rather than as a
- * theme flag is that the live homepage cannot be affected by it. Three shared
- * files were touched to make Daylight possible, and every one of those edits is
- * a MARKER CLASS carrying no styles of its own — the styling lives under
- * `.dl-surface`, which the dark pages never match.
+ * theme flag is that the live homepage cannot be affected by it. A handful of
+ * shared components were touched to make Daylight possible, and every one of
+ * those edits is a MARKER CLASS carrying no styles of its own — the styling
+ * lives under `.dl-surface`, which the dark pages never match.
  *
  * These tests state that invariant. If a marker ever grows a rule outside that
  * scope, the light build has started leaking into the live one.
@@ -120,7 +120,7 @@ describe('the preview route is kept out of the index', () => {
 describe('the shared components only gained markers', () => {
   const css = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
 
-  it.each(['ft-avatar', 'nc-cta'])('%s is styled only under .dl-surface', (marker) => {
+  it.each(['ft-avatar', 'nc-cta', 'ft-chip'])('%s is styled only under .dl-surface', (marker) => {
     const rules = [...css.matchAll(new RegExp(`([^{}]*\\.${marker}[^{}]*)\\{`, 'g'))].map(
       ([, selector]) => (selector ?? '').trim(),
     );
