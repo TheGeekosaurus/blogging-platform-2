@@ -80,7 +80,8 @@ export const LOCAL_IMAGES = {
    * `logo` above is light artwork on transparency — on white it all but
    * disappears, and the obvious fix, a CSS `invert()`, takes the gold mark with
    * it and turns it blue. So this is a real second file: the neutral pixels
-   * recoloured to #101828, the saturated gold ones untouched, and every
+   * recoloured to #2D3748 — Daylight's own ink — the saturated gold ones
+   * untouched, because the mark is the company's and not the theme's, and every
    * antialiased edge preserved because the coverage was already in the alpha
    * channel rather than in the colour.
    *

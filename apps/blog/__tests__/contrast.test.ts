@@ -245,16 +245,52 @@ describe('the Daylight palette meets AA on every ground', () => {
   );
 
   /*
-   * The one value the light build could not borrow, asserted from both ends.
+   * The two brand colours that cannot be text, asserted from both ends.
    *
-   * Brand gold is 2.13:1 on white — below AA and below even the 3:1 large-text
-   * floor — so --ft-accent is a darkened version of the same hue. The tempting
-   * tidy-up is to "unify the accent with the brand colour"; these two refuse
-   * it.
+   * Denis's light blue is 2.10:1 on white and brand gold is 2.13:1 — both below
+   * AA and below even the 3:1 large-text floor. So neither is --ft-accent. The
+   * tempting tidy-up is "unify the accent with the brand colour"; these refuse
+   * it, and they state WHY in the assertion itself, so the next person reads a
+   * measurement rather than a rule.
    */
-  it('keeps brand gold out of the text accent, because gold on white fails', () => {
-    expect(ratio(dl('dl-gold'), dl('ft-bg'))).toBeLessThan(3);
-    expect(dl('ft-accent')).not.toBe(dl('dl-gold'));
+  it.each(['dl-pop', 'dl-gold'])('keeps %s out of the text accent — it fails on white', (fill) => {
+    expect(ratio(dl(fill), dl('ft-bg'))).toBeLessThan(3);
+    expect(dl('ft-accent')).not.toBe(dl(fill));
+  });
+
+  /*
+   * Both fills still have to carry a label, and both are asserted against the
+   * ink that actually sits on them — the badge and the arrow discs put --ft-ink
+   * on the cyan, and .dl-surface .nc-cta puts its own value on the gold.
+   */
+  it('puts a readable label on the cyan fill', () => {
+    expect(ratio(dl('ft-ink'), dl('dl-pop'))).toBeGreaterThanOrEqual(AA_BODY);
+  });
+
+  /*
+   * The hero's rating badge sits on a pale wash of the same cyan. It is a
+   * literal rather than a color-mix() precisely so it can be asserted here —
+   * see the note beside the token.
+   */
+  it('puts a readable label on the cyan tint', () => {
+    expect(ratio(dl('ft-ink'), dl('dl-pop-tint'))).toBeGreaterThanOrEqual(AA_BODY);
+  });
+
+  /*
+   * The hero's accent word is the one piece of display type in a brand colour.
+   *
+   * It is large by construction — the clamp bottoms out at 2.75rem, well past
+   * the 24px where WCAG's large-text threshold of 3:1 applies — so it is held
+   * to 3:1 rather than 4.5:1, and to nothing less. The reference Denis worked
+   * from puts its own accent word at roughly 2.1:1, which is the mistake this
+   * assertion exists to keep out.
+   */
+  it('keeps the hero accent word above the large-text floor', () => {
+    expect(ratio(dl('dl-display'), dl('ft-bg'))).toBeGreaterThanOrEqual(3);
+  });
+
+  it('and the hero accent word is not the unreadable cyan', () => {
+    expect(dl('dl-display')).not.toBe(dl('dl-pop'));
   });
 
   /*
@@ -309,18 +345,40 @@ describe('Daylight components paint from tokens', () => {
   });
 
   it('strips comments rather than searching them', () => {
-    // The header's own prose quotes `text-white`; its markup must not.
-    expect(code('site-header.tsx')).not.toContain('text-white');
-    expect(readFileSync(join(dir, 'site-header.tsx'), 'utf8')).toContain('text-white');
+    // The footer's prose quotes `border-white/10`; its markup must not.
+    expect(code('site-footer.tsx')).not.toContain('border-white/');
+    expect(readFileSync(join(dir, 'site-footer.tsx'), 'utf8')).toContain('border-white/');
   });
 
-  it.each(['var(--color-gold)', 'text-white', 'border-white/', 'bg-white/'])(
-    'none use %s',
-    (needle) => {
-      const offenders = files.filter((f) => code(f).includes(needle));
-      expect(offenders, `${needle} is a dark-design value and is unreadable on white`).toEqual(
-        [],
-      );
-    },
-  );
+  it.each(['var(--color-gold)', 'border-white/', 'bg-white/'])('none use %s', (needle) => {
+    const offenders = files.filter((f) => code(f).includes(needle));
+    expect(offenders, `${needle} is a dark-design value and is unreadable on white`).toEqual([]);
+  });
+
+  /*
+   * White text is allowed, but only on the one dark fill this design has.
+   *
+   * This started as a flat ban, which was right until the header gained the
+   * reference's dark pill — white on --ft-ink is 11.99:1 and is the most
+   * legible control on the page. A flat ban would have had to be deleted to
+   * let that through, taking the actual guarantee with it.
+   *
+   * So the rule is narrowed rather than dropped: every class list that paints
+   * text white must also paint a dark background in the same list. That still
+   * catches the mistake worth catching — white text inherited onto white, which
+   * is what copying a class list over from the dark design produces.
+   */
+  it('only paints text white on the dark fill', () => {
+    const DARK_FILL = 'bg-[var(--ft-ink)]';
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      // Every quoted or backticked class list in the file.
+      for (const [, list] of code(file).matchAll(/["'`]([^"'`]*\btext-white\b[^"'`]*)["'`]/g)) {
+        if (!list?.includes(DARK_FILL)) offenders.push(`${file}: ${list?.trim()}`);
+      }
+    }
+
+    expect(offenders, `text-white without ${DARK_FILL} in the same class list`).toEqual([]);
+  });
 });
