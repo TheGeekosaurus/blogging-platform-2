@@ -75,6 +75,20 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   },
   { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
   { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
+  /*
+   * The light-theme homepage preview — see apps/blog/app/daylight/page.tsx.
+   *
+   * index: false BECAUSE IT IS THE HOMEPAGE'S CONTENT AT A SECOND URL. Listing
+   * it as indexable would submit a page that already sets `robots: noindex`,
+   * and would put two pages carrying the same copy in front of a crawler on a
+   * domain whose whole migration was for SEO. The two flags have to agree;
+   * flip neither on its own.
+   *
+   * It is here at all so the page is visible in the admin's Pages screen
+   * rather than appearing not to exist. Delete this entry with the route, once
+   * the light design is either promoted onto '/' or dropped.
+   */
+  { path: 'daylight', title: 'Daylight (homepage preview)', index: false },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.

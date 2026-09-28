@@ -73,6 +73,22 @@ export const IMAGES = {
  */
 export const LOCAL_IMAGES = {
   logo: '/marketing/nanotom-capital-logo.png',
+  /*
+   * The same wordmark with the type in ink instead of white, for the Daylight
+   * build's white header and footer.
+   *
+   * `logo` above is light artwork on transparency — on white it all but
+   * disappears, and the obvious fix, a CSS `invert()`, takes the gold mark with
+   * it and turns it blue. So this is a real second file: the neutral pixels
+   * recoloured to #101828, the saturated gold ones untouched, and every
+   * antialiased edge preserved because the coverage was already in the alpha
+   * channel rather than in the colour.
+   *
+   * Generated from `logo`, not drawn — if the brand ever supplies an official
+   * dark-background wordmark, replace this file with it rather than
+   * regenerating.
+   */
+  logoDark: '/marketing/nanotom-capital-logo-dark.png',
   appPhone: '/marketing/photo-app-phone.png',
   cityTower: '/marketing/photo-city-tower.png',
 } as const;
