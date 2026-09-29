@@ -278,7 +278,21 @@ function Answer({ runs }: { runs: readonly AnswerRun[] }) {
  * one closes the rest — which looks tidy and is worse: it stops anyone
  * comparing two answers, and it silently undoes a reader's own expand.
  */
-export function Faq() {
+/**
+ * The FAQ accordion.
+ *
+ * `exclusive` turns the list into a one-at-a-time accordion by giving every
+ * <details> the same `name`, which is the HTML spec's own way of doing it — no
+ * JavaScript, no state, and it survives a page with scripting off. Browsers
+ * that do not implement it (anything before Chrome 120, Safari 17.2 or Firefox
+ * 130) ignore the attribute and keep today's behaviour of opening as many rows
+ * as the reader likes, which is the right thing to degrade to.
+ *
+ * It is a prop rather than the default because this section is shared with the
+ * live dark site, where the rows open independently today and nobody has asked
+ * for that to change.
+ */
+export function Faq({ exclusive = false }: { exclusive?: boolean } = {}) {
   return (
     <section aria-labelledby="ft-faq" className="border-t border-[var(--ft-line)]">
       {/* Columns centred against each other, with the divider on the right
@@ -324,7 +338,19 @@ export function Faq() {
               <li key={item.id}>
                 <details
                   open={i === 0}
-                  className="group rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] [&_summary::-webkit-details-marker]:hidden"
+                  /*
+                   * Shared name = exclusive accordion; see the note on the prop.
+                   * `undefined` rather than `''` so the attribute is absent
+                   * entirely when it is off — an empty name still groups.
+                   */
+                  name={exclusive ? 'ft-faq' : undefined}
+                  /*
+                   * `ft-faq-item` is a styles-free marker, like `ft-chip` and
+                   * `ft-avatar`: it gives the Daylight sheet something to name
+                   * so it can paint the closed row navy without this component
+                   * knowing which design it is rendering into.
+                   */
+                  className="ft-faq-item group rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] [&_summary::-webkit-details-marker]:hidden"
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-6">
                     <h3 className="text-[1.0625rem] font-medium leading-[1.35] text-[var(--ft-ink)]">

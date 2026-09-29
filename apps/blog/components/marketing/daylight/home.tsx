@@ -613,7 +613,8 @@ export function DaylightHome({
       <DaylightDifference />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />
-      <Faq />
+      {/* One row at a time — see the note on the prop in ft/shared-sections. */}
+      <Faq exclusive />
       <DaylightFooter />
     </div>
   );

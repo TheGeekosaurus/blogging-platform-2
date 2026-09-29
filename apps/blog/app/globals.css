@@ -2167,6 +2167,77 @@
   }
 
   /*
+   * The footer, on the tiled Nanotom mark.
+   *
+   * THE ARTWORK IS A TILE, not a picture. Denis supplied a 1920x1080 PNG of the
+   * mark repeated on navy; measuring it found a period of 186x326, so what
+   * ships is one period cut out of it (`footer-pattern.png`, 8KB against the
+   * source's 776KB) laid down with `repeat`. That is not only a size win: a
+   * single frame stretched with `cover` would scale with the footer, and the
+   * footer is roughly twice as tall on a phone as on a desktop — the marks
+   * would have been a third of the width of a 390px screen. A tile is drawn at
+   * its own size on every viewport.
+   *
+   * Cutting the tile was measured, not eyeballed: across the two seams of a 3x3
+   * layup the step is 0.06 and 0.00 grey levels, against a mean step of 0.40
+   * and 0.33 between ordinary neighbouring columns and rows inside the pattern.
+   * The join is quieter than the texture it joins.
+   *
+   * The tile's flat ground was #0C2D73 and the token is #0B2D72, so the whole
+   * tile was shifted one level down on red and blue when it was cut. The
+   * background-color underneath is now exactly the artwork's own ground, which
+   * is what makes the fallback invisible rather than nearly invisible.
+   */
+  .dl-footer {
+    background-color: var(--dl-deep);
+
+    /*
+     * A FLAT SCRIM OVER THE TILE, and this one is about the legal block.
+     *
+     * The marks are not flat: each has a lit bevel face, and the lightest pixel
+     * in the tile is 0.0697 against the ground's 0.0316. Text is placed by the
+     * layout, not by the pattern, so any run can land on one — and measured
+     * against that worst pixel the 12px legal text came out at 4.20:1 and the
+     * cyan column headings at 4.17:1, both under the 4.5 floor.
+     *
+     * 45% of the ground over the tile lifts those to 4.98 and 4.95 while
+     * costing the pattern a little under half its amplitude, which it can
+     * afford — it is a watermark, and the alternative was lightening two tokens
+     * away from the values the rest of the page uses. Same device as `.dl-art`
+     * above, flat rather than a gradient because there is no one band to cover.
+     */
+    background-image: linear-gradient(rgba(11, 45, 114, 0.45), rgba(11, 45, 114, 0.45)),
+      url('/marketing/footer-pattern.png');
+    background-repeat: repeat;
+
+    /*
+     * The tokens, inverted for a dark ground — the same two-level arrangement
+     * as `.dl-deep`/`.dl-card`, except nothing inside takes them back, because
+     * the whole footer is on the navy.
+     *
+     * Ratios against the flat ground, and in brackets against that worst lit
+     * bevel pixel with the scrim on:
+     *
+     *   ink     #ffffff   12.86  (10.44)
+     *   muted   #bcccea    7.94  ( 6.44)
+     *   subtle  #9fb4dd    6.15  ( 4.98)
+     *   accent  #0ac4e0    6.12  ( 4.95)
+     *
+     * --ft-accent is the brand cyan here, and this is the one place on the page
+     * it gets to be TEXT. It is 2.10:1 on white, which is why the light surface
+     * spends three separate tokens to keep it out of body copy; on navy it is
+     * 6.12:1 and does the job it was picked for.
+     */
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
+    --ft-subtle: #9fb4dd;
+    --ft-accent: var(--dl-pop);
+    --ft-line: rgba(255, 255, 255, 0.16);
+
+    color: var(--ft-ink);
+  }
+
+  /*
    * The hero's amount slider.
    *
    * A native <input type="range"> carries dragging, arrow-key stepping, touch
@@ -2269,6 +2340,54 @@
  */
 .dl-surface .ft-avatar {
   color: #ffffff;
+}
+
+/*
+ * The FAQ rows, closed.
+ *
+ * Denis asked for the retracted banner to be dark blue, so a shut row is a
+ * solid navy bar and an open one is the pale card it always was. That gives the
+ * list a state you can read from across the page without looking at the little
+ * +/- glyph: navy means shut, pale means open.
+ *
+ * It paints the <details> rather than the <summary> because a shut <details> IS
+ * its summary — one box, no inner edge to get the radius wrong on — and because
+ * the rule then has somewhere to re-point the tokens the row's own markup
+ * reads. The heading takes --ft-ink and the glyph takes --ft-accent, so both
+ * follow the ground without the shared component knowing this rule exists.
+ *
+ * White on the navy is 12.86:1. The glyph goes to the brand cyan, 6.12:1 here
+ * against 2.10:1 if it had kept the teal tuned for the white card — the same
+ * correction the blog list's Read More button needs for the same reason.
+ *
+ * Unlayered, like every rule in this block: the class list it is overriding is
+ * Tailwind utilities, and the utilities layer outranks @layer components.
+ */
+.dl-surface .ft-faq-item:not([open]) {
+  background-color: var(--dl-deep);
+  border-color: var(--dl-deep);
+
+  --ft-ink: #ffffff;
+  --ft-accent: var(--dl-pop);
+
+  /*
+   * The answer's tokens, which nothing paints today: a shut row's content is
+   * laid out but not rendered. They are here for the day this list gets an
+   * animated disclosure — closing, the attribute drops before the content
+   * finishes collapsing, so for those frames the answer IS on the navy.
+   * Without these it would flash #45557F on #0B2D72, which is 1.75:1.
+   */
+  --ft-muted: #bcccea;
+  --ft-subtle: #9fb4dd;
+}
+
+/*
+ * A shut row lightens slightly under the pointer. `--ft-ink` stays white, so
+ * this is the one hover on the page that moves the ground instead of the text.
+ */
+.dl-surface .ft-faq-item:not([open]):hover {
+  background-color: #123a8c;
+  border-color: #123a8c;
 }
 
 /*

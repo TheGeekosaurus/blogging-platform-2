@@ -196,7 +196,7 @@ describe("the preview route is kept out of the index", () => {
 describe("the shared components only gained markers", () => {
   const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
 
-  it.each(["ft-avatar", "nc-cta", "ft-chip", "ft-ghost"])(
+  it.each(["ft-avatar", "nc-cta", "ft-chip", "ft-ghost", "ft-faq-item"])(
     "%s is styled only under .dl-surface",
     (marker) => {
       const rules = [
@@ -214,6 +214,24 @@ describe("the shared components only gained markers", () => {
       }
     },
   );
+
+  /*
+   * The FAQ's exclusive-accordion behaviour is the other half of the same
+   * invariant, and it is markup rather than CSS so the marker test cannot see
+   * it. `name` groups <details> elements, so leaving it on unconditionally
+   * would change how the live dark FAQ opens.
+   */
+  it("the FAQ only groups its rows when asked to", () => {
+    const shared = read("ft/shared-sections.tsx");
+    expect(shared).toContain("name={exclusive ? 'ft-faq' : undefined}");
+    expect(shared).toContain("exclusive = false");
+  });
+
+  it("Daylight is the only caller that asks for it", () => {
+    expect(read("daylight/home.tsx")).toContain("<Faq exclusive />");
+    // The dark homepage renders the same section with no prop at all.
+    expect(read("ft/home-v2.tsx")).toContain("<Faq />");
+  });
 
   it("the CTA marker adds no colour of its own in the component", () => {
     // It must be in the shared `base` string, which carries layout only — the
