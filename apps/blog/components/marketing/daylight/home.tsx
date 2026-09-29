@@ -68,23 +68,6 @@ const TILE_ICONS = {
   growth: GrowthIcon,
 } as const;
 
-/** A centred heading for the sections the design gives no label chip. */
-function PlainHead({ heading, body, id }: { heading: string; body?: string; id?: string }) {
-  return (
-    <div className="mx-auto flex max-w-3xl flex-col items-center gap-5 text-center">
-      <h2
-        id={id}
-        className="font-[family-name:var(--font-headline)] text-[clamp(1.75rem,3.6vw,2.5rem)] font-medium leading-[1.15] text-[var(--ft-ink)]"
-      >
-        {heading}
-      </h2>
-      {body ? (
-        <p className="text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">{body}</p>
-      ) : null}
-    </div>
-  );
-}
-
 /* ---------------------------------------------------------------------------
  * Sections
  * ------------------------------------------------------------------------- */
@@ -218,11 +201,16 @@ function DestinationTiles() {
  * the visitor can actually touch, which is the whole argument for the change.
  *
  * THE COPY IS OURS, not the reference's, and one line of it matters. The
- * reference leads with "No minimum credit score." We cannot: this page states a
- * 551 minimum FICO three sections down, in REQUIREMENTS.stats. So the bold lead
- * is REQUIREMENTS.note — "We look beyond your credit score to say 'Yes' when
- * others won't" — which is the true version of the same promise and is already
- * our copy, verbatim.
+ * reference leads with "No minimum credit score." We cannot: there is one, 551,
+ * and FAQ's `credit-score` answer states it further down THIS page. So the bold
+ * lead is REQUIREMENTS.note — "We look beyond your credit score to say 'Yes'
+ * when others won't" — which is the true version of the same promise and is
+ * already our copy, verbatim.
+ *
+ * It still reads REQUIREMENTS although Daylight no longer renders that section
+ * (Denis removed it): the sentence is the qualifying copy's own summary of
+ * itself, and should the 551 stance ever soften, the hero ought to move with it
+ * rather than keep hedging against a minimum nobody applies any more.
  *
  * THE STATS MOVED rather than being dropped. The reference's left column ends
  * at the paragraph, and keeping three figures under a headline this size pushed
@@ -419,62 +407,6 @@ function FundingOptions() {
             );
           })}
         </ul>
-      </div>
-    </section>
-  );
-}
-
-function Requirements() {
-  return (
-    <section aria-labelledby="dl-requirements">
-      <div className={`${CONTAINER} py-16 lg:py-24`}>
-        <PlainHead id="dl-requirements" heading={REQUIREMENTS.heading} />
-
-        <dl className="mt-12 grid border-t border-[var(--ft-line)] sm:grid-cols-3">
-          {REQUIREMENTS.stats.map((stat, i) => (
-            <div
-              key={stat.value}
-              className={`py-8 lg:py-10 ${i > 0 ? 'border-t border-[var(--ft-line)] sm:border-l sm:border-t-0 sm:pl-8' : ''} ${i < REQUIREMENTS.stats.length - 1 ? 'sm:pr-8' : ''}`}
-            >
-              <dt className="text-sm text-[var(--ft-muted)]">{stat.lead}</dt>
-              <dd className="mt-2 text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-accent)]">
-                {stat.value}
-              </dd>
-              <dd className="mt-2 text-sm text-[var(--ft-muted)]">{stat.trail}</dd>
-            </div>
-          ))}
-        </dl>
-
-        <p className="mt-8 text-center text-[1.0625rem] text-[var(--ft-subtle)]">
-          {REQUIREMENTS.note}
-        </p>
-
-        {/*
-          The second conversion path, and the reason it gets a tinted panel with
-          a gold edge rather than the treatment above: a visitor reads the three
-          numbers, decides they do not qualify, and this is the only thing on
-          the page that catches them.
-
-          DAYLIGHT — the edge is brand gold at a heavier alpha than the dark
-          design's 35%. A translucent gold hairline that reads clearly against
-          near-black is nearly invisible against near-white, so the panel lost
-          the one thing making it impossible to skim past.
-        */}
-        <div className="mt-12 rounded-2xl border border-[var(--dl-gold)]/70 bg-[var(--ft-card)] p-8 lg:p-10">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between lg:gap-12">
-            <div>
-              <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
-                {REQUIREMENTS.callout.heading}
-              </h3>
-              <p className="mt-3 max-w-[60ch] text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
-                {REQUIREMENTS.callout.body}
-              </p>
-            </div>
-            <CtaButton href={REQUIREMENTS.callout.cta.href} className="shrink-0">
-              {REQUIREMENTS.callout.cta.label}
-            </CtaButton>
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -679,7 +611,6 @@ export function DaylightHome({
       </div>
       <FundingOptions />
       <DaylightDifference />
-      <Requirements />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />
       <Faq />
