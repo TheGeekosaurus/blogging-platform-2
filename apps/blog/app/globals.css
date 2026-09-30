@@ -2285,9 +2285,24 @@
    * a "reduced" variant that still moves.
    */
   .dl-surface {
-    --dl-open-duration: 720ms;
-    --dl-item-duration: 420ms;
-    --dl-item-step: 80ms;
+    /*
+     * The tempo, and all of it lives here.
+     *
+     *   hold    the pill sits with only the wordmark
+     *   open    it widens, with the CTA out for the whole of it
+     *   pause   fully open, before the menu starts
+     *   step    one item per beat, right to left
+     *
+     * Denis set these deliberately slow. Worth knowing what it adds up to:
+     * hold + open + pause + 4 steps is about eleven seconds before the
+     * leftmost item lands, and the nav is not reachable until then. It runs on
+     * every full page load, not once per visitor.
+     */
+    --dl-closed-hold: 3000ms;
+    --dl-open-duration: 3000ms;
+    --dl-open-pause: 1000ms;
+    --dl-item-duration: 700ms;
+    --dl-item-step: 1000ms;
     /*
      * The closed pill. The wordmark is 163px wide at its 48px cap, plus the
      * row's 24px of padding each side, plus air.
@@ -2297,7 +2312,10 @@
      * Two curves, because the halves do different jobs. The bar gets
      * easeOutCubic: on expo-out it was 83% open at 28% of its duration, so the
      * CTA arrived and then sat still waiting for a tail nobody can see moving.
-     * The items keep expo-out — each is 420ms of its own and wants to snap.
+     * That mattered more at 720ms than it does at 3s, but the curve is still
+     * the right one — over three seconds an expo tail is three seconds of
+     * almost nothing happening. The items keep expo-out: each is 700ms of its
+     * own inside a one-second beat, and wants to land rather than drift.
      */
     --dl-ease-open: cubic-bezier(0.33, 1, 0.68, 1);
     --dl-ease-item: cubic-bezier(0.22, 1, 0.36, 1);
@@ -2322,7 +2340,8 @@
      * open width in pixels, and px cannot interpolate to 100%.
      */
     .dl-headbar {
-      animation: dl-head-open var(--dl-open-duration) var(--dl-ease-open) both;
+      animation: dl-head-open var(--dl-open-duration) var(--dl-ease-open)
+        var(--dl-closed-hold) both;
     }
 
     @keyframes dl-head-open {
@@ -2359,7 +2378,8 @@
      * leftward offset at the start that puts it under the wordmark.
      */
     .dl-headcta {
-      animation: dl-head-cta var(--dl-open-duration) var(--dl-ease-open) both;
+      animation: dl-head-cta var(--dl-open-duration) var(--dl-ease-open)
+        var(--dl-closed-hold) both;
     }
 
     @keyframes dl-head-cta {
@@ -2394,7 +2414,8 @@
     .dl-headnav {
       width: 0;
       overflow: hidden;
-      animation: dl-head-nav-room 1ms linear var(--dl-open-duration) both;
+      animation: dl-head-nav-room 1ms linear
+        calc(var(--dl-closed-hold) + var(--dl-open-duration)) both;
     }
 
     @keyframes dl-head-nav-room {
@@ -2422,7 +2443,8 @@
     .dl-headitem {
       animation: dl-head-item var(--dl-item-duration) var(--dl-ease-item) both;
       animation-delay: calc(
-        var(--dl-open-duration) + var(--dl-i, 0) * var(--dl-item-step)
+        var(--dl-closed-hold) + var(--dl-open-duration) + var(--dl-open-pause) +
+          var(--dl-i, 0) * var(--dl-item-step)
       );
     }
 
