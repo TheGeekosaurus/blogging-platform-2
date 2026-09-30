@@ -71,3 +71,28 @@ export const DIFFERENCE = {
     alt: 'The Nanotom Capital office building',
   },
 } as const;
+
+/**
+ * The band at the foot of every header dropdown.
+ *
+ * Modelled on the one Denis sent from Credibly's menu, where a two-line pitch
+ * and an Apply Now sit under the links. The SHAPE is theirs; the sentences are
+ * not, and neither is the number in them — "financing up to $600,000" is their
+ * ceiling, and printing it here would advertise a limit this business does not
+ * have.
+ *
+ * Both lines are compressions of copy already on the site rather than new
+ * claims:
+ *
+ *   - the heading is LOANS.hero.heading, "Every Way To Fund Your Business. One
+ *     Application.", said in one breath;
+ *   - the range is LOANS.hero.body's "approvals from $15,000 to $5,000,000",
+ *     and the soft pull is the footer's funding disclaimer and the FAQ's
+ *     `will-applying-affect-my-credit`, both of which state it on this page.
+ *
+ * If either fact changes it changes in ft/content.ts first, and this follows.
+ */
+export const NAV_CTA = {
+  heading: 'One application, every option.',
+  body: 'Approvals from $15,000 to $5,000,000, with a soft credit check.',
+} as const;

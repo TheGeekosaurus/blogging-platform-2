@@ -122,6 +122,16 @@ export type NavItem = {
   href?: string;
   external?: boolean;
   children?: readonly NavItem[];
+  /*
+   * A glyph for this entry, as a key rather than a component: this module is
+   * data and importing JSX into it would make every consumer of the nav pull
+   * an icon set it may not draw. Each design maps the key to its own mark — see
+   * NAV_ICONS in daylight/site-header.tsx.
+   *
+   * Only dropdown children carry one today, and only the Daylight header reads
+   * them; the dark header and the footer ignore the field entirely.
+   */
+  icon?: string;
 };
 
 /**
@@ -152,12 +162,24 @@ export type NavItem = {
  * nav has promised them since launch, and a footer that lists four of five
  * because one has no copy yet is a worse inconsistency than a thin page.
  */
-export const FUNDING_PROGRAMS: readonly { label: string; href: string }[] = [
-  { label: 'Business Loans', href: '/funding-solutions/business-loans' },
-  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
-  { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
-  { label: 'Working Capital', href: '/funding-solutions/working-capital' },
-  { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
+export const FUNDING_PROGRAMS: readonly {
+  label: string;
+  href: string;
+  icon: string;
+}[] = [
+  { label: 'Business Loans', href: '/funding-solutions/business-loans', icon: 'coins' },
+  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit', icon: 'cash-flow' },
+  {
+    label: 'Revenue-Based Financing',
+    href: '/funding-solutions/revenue-based-financing',
+    icon: 'growth',
+  },
+  { label: 'Working Capital', href: '/funding-solutions/working-capital', icon: 'wallet' },
+  {
+    label: 'Equipment Financing',
+    href: '/funding-solutions/equipment-financing',
+    icon: 'equipment',
+  },
 ];
 
 export const NAV: readonly NavItem[] = [
@@ -170,8 +192,12 @@ export const NAV: readonly NavItem[] = [
     label: 'Industries',
     href: '/industries',
     children: [
-      { label: 'Food Business', href: '/industries/food-business' },
-      { label: 'Construction Business', href: '/industries/construction-business' },
+      { label: 'Food Business', href: '/industries/food-business', icon: 'storefront' },
+      {
+        label: 'Construction Business',
+        href: '/industries/construction-business',
+        icon: 'hard-hat',
+      },
     ],
   },
   { label: 'Loan Calculator', href: '/calc' },
