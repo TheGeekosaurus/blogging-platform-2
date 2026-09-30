@@ -245,7 +245,16 @@ describe("the shared components only gained markers", () => {
   });
 
   it("Daylight is the only caller that asks for it", () => {
-    expect(read("daylight/home.tsx")).toContain("<Faq exclusive blurb={false} />");
+    /*
+     * The props are matched individually rather than as one exact call string.
+     * That string has now been rewritten twice by adding a prop, and each time
+     * the test failed for a reason that had nothing to do with what it guards:
+     * that Daylight opts in and the dark homepage does not.
+     */
+    const call = read("daylight/home.tsx").match(/<Faq\b[^>]*\/>/)?.[0] ?? "";
+    expect(call).toContain("exclusive");
+    expect(call).toContain("blurb={false}");
+
     // The dark homepage renders the same section with no props at all.
     expect(read("ft/home-v2.tsx")).toContain("<Faq />");
   });

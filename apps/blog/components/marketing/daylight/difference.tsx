@@ -4,7 +4,7 @@ import { CTA_HREF } from '../brand';
 import { CashFlowIcon } from '../ft/icons';
 import { DIFFERENCE } from './content';
 import { GaugeIcon, LockIcon, PersonIcon } from './icons';
-import { CONTAINER, CtaButton } from './primitives';
+import { CONTAINER, Chip, CtaButton } from './primitives';
 
 /**
  * The "difference" band — four claims beside a photograph.
@@ -42,9 +42,18 @@ export function DaylightDifference() {
         className={`${CONTAINER} grid items-center gap-12 py-14 lg:grid-cols-2 lg:gap-16 lg:py-20`}
       >
         <div>
+          {/*
+            The label, tinted by `.dl-surface .ft-chip` like every other section
+            label on the page. Written out rather than reached for through
+            SectionIntro: that primitive puts the heading in its own column with
+            an optional CTA beside it, and this section's heading has to sit
+            directly above the list it introduces.
+          */}
+          <Chip>{DIFFERENCE.label}</Chip>
+
           <h2
             id="dl-difference"
-            className="max-w-[14ch] font-[family-name:var(--font-headline)] text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.08] text-[var(--ft-ink)]"
+            className="mt-5 max-w-[19ch] font-[family-name:var(--font-headline)] text-[clamp(2rem,4vw,3rem)] font-bold leading-[1.08] text-[var(--ft-ink)]"
           >
             {DIFFERENCE.heading}
           </h2>
