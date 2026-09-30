@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -23,6 +24,18 @@ import { CtaButton } from './primitives';
  * same array the dark header reads, because the two sites have the same
  * navigation until Denis says otherwise — and a copied array is how one of them
  * ends up advertising a program the other has dropped.
+ *
+ * THE OPENING SEQUENCE is three beats, in pure CSS — see `.dl-headbar` and the
+ * block around it in globals.css. The island starts as a pill holding only the
+ * wordmark, widens to full width with the CTA riding out from behind the logo,
+ * and only then do the nav items arrive one at a time from the right. All this
+ * file adds is the marker classes and `--dl-i`, the per-item index, counted
+ * from the right because that is the direction the run travels.
+ *
+ * No state and no effect for any of it. The shell is already a client component
+ * for the scroll treatment, so this is not about a bundle — CSS delays simply
+ * start on first paint, which is earlier and steadier than anything an effect
+ * can schedule, and there is nothing here for React to own.
  */
 
 const TRIGGER_CLASS =
@@ -93,7 +106,16 @@ function DropdownRow({ item }: { item: NavItem }) {
   );
 }
 
-function DesktopItem({ item }: { item: NavItem }) {
+function DesktopItem({ item, index }: { item: NavItem; index: number }) {
+  /*
+   * `dl-headitem` carries the arrival animation and `--dl-i` its place in the
+   * queue; both are styles-free here. On a dropdown the class goes on the <li>
+   * that also holds the panel, which is deliberate — the panel is absolutely
+   * positioned inside it, so trigger and panel share one transform and the
+   * panel cannot be left behind in the depth.
+   */
+  const stagger = { '--dl-i': index } as CSSProperties;
+
   if (item.children) {
     const chevron = (
       <svg
@@ -124,7 +146,7 @@ function DesktopItem({ item }: { item: NavItem }) {
     const wide = item.children.length > 4;
 
     return (
-      <li className="group relative">
+      <li className="dl-headitem group relative" style={stagger}>
         {item.href ? (
           <Link
             href={item.href}
@@ -210,7 +232,7 @@ function DesktopItem({ item }: { item: NavItem }) {
   }
 
   return (
-    <li>
+    <li className="dl-headitem" style={stagger}>
       {item.external ? (
         <a
           href={item.href}
@@ -235,8 +257,12 @@ function DesktopItem({ item }: { item: NavItem }) {
 export function DaylightHeader() {
   return (
     <DaylightHeaderShell>
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-5 lg:px-8">
-        <Link href="/" className="flex shrink-0 items-center py-3 no-underline">
+      <div className="flex items-center gap-6 px-5 lg:px-6">
+        <Link
+          href="/"
+          /* `dl-headmark` only raises it above the CTA — see globals.css. */
+          className="dl-headmark flex shrink-0 items-center py-3 no-underline"
+        >
           {/*
             The ink wordmark, not the white one the dark header uses — see
             LOCAL_IMAGES.logoDark for why this is a second file rather than a
@@ -256,10 +282,14 @@ export function DaylightHeader() {
           `ml-auto` here and not on the CTA: it pushes the nav and the button
           right together as one group, leaving the logo alone on the left.
         */}
-        <nav aria-label="Main" className="ml-auto hidden lg:block">
+        <nav aria-label="Main" className="dl-headnav ml-auto hidden lg:block">
+          {/*
+            `--dl-i` counts from the RIGHT: the item nearest the CTA is 0 and
+            leads, so the run reads right to left.
+          */}
           <ul className="flex items-center gap-8">
-            {NAV.map((item) => (
-              <DesktopItem key={item.label} item={item} />
+            {NAV.map((item, i) => (
+              <DesktopItem key={item.label} item={item} index={NAV.length - 1 - i} />
             ))}
           </ul>
         </nav>
@@ -282,11 +312,19 @@ export function DaylightHeader() {
           rule in globals.css doing its job, not a class here — white on gold is
           2.13:1.
         */}
-        <div className="hidden shrink-0 items-center lg:flex">
+        <div className="dl-headcta hidden shrink-0 items-center lg:flex">
           <CtaButton className="!px-8 !py-3.5 !text-sm" />
         </div>
 
-        <div className="ml-auto lg:hidden">
+        {/*
+          Below lg the whole menu is this one button, so it takes the item
+          animation at index 0 and arrives in the beat the rightmost desktop
+          item would.
+        */}
+        <div
+          className="dl-headitem ml-auto lg:hidden"
+          style={{ '--dl-i': 0 } as CSSProperties}
+        >
           <DaylightMobileNav />
         </div>
       </div>
