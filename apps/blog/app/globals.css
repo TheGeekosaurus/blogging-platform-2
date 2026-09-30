@@ -2293,7 +2293,7 @@
      *   pause   fully open, before the menu starts
      *   step    one item per beat, right to left
      *
-     * hold + open + pause + 4 steps puts the leftmost item at about 6.5s, and
+     * hold + open + pause + 4 steps puts the leftmost item at about 5.2s, and
      * the nav is not reachable until then. It runs on every full page load,
      * not once per visitor.
      *
@@ -2301,9 +2301,14 @@
      * 700ms each, two items are in flight at once, which is what makes a
      * stagger read as a cascade rather than as four separate events.
      */
-    --dl-closed-hold: 1500ms;
-    --dl-open-duration: 2500ms;
-    --dl-open-pause: 1000ms;
+    --dl-closed-hold: 1000ms;
+    --dl-open-duration: 2000ms;
+    /*
+     * Zero, and kept as a property rather than deleted: it is the one beat
+     * whose value has changed every round, and the delays downstream are
+     * composed from it either way.
+     */
+    --dl-open-pause: 0ms;
     --dl-item-duration: 700ms;
     --dl-item-step: 500ms;
     /*
