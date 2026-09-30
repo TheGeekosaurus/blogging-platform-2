@@ -20,9 +20,16 @@ import { CONTAINER, CtaButton } from './primitives';
  * this file must not paraphrase, tighten or shorten any of it. If any of it
  * changes, it changes in both footers together.
  *
- * It sits on the band tone rather than white, so the page has a floor. A white
- * footer under a white page is the page simply running out, which is the one
- * thing the dark design never had to think about.
+ * IT SITS ON FLAT NAVY, so the page has a floor. A white footer under a white
+ * page is the page simply running out, which is the one thing the dark design
+ * never had to think about. It was the pale band tone, then briefly the tiled
+ * Nanotom mark, which Denis took off; `.dl-footer` in globals.css is now the
+ * ground colour and the token inversion a dark ground needs.
+ *
+ * Which is also why the wordmark here is LOCAL_IMAGES.logo, the light original,
+ * where the header still uses `logoDark`. That is not a reversal of "leave the
+ * logo black": `logoDark` is the ink wordmark drawn for a white ground, and the
+ * ground under this one is navy. Same rule, other side of it.
  *
  * WHAT IS DELIBERATELY MISSING: the /get-funded check. The shared footer wraps
  * its CTA band in a client component so the band can hide itself on the
@@ -35,7 +42,7 @@ export function DaylightFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[var(--ft-line)] bg-[var(--ft-band)] text-[var(--ft-ink)]">
+    <footer className="dl-footer border-t border-[var(--ft-line)] text-[var(--ft-ink)]">
       <div className="border-b border-[var(--ft-line)]">
         <div
           className={`${CONTAINER} flex flex-col items-center gap-6 py-12 text-center lg:flex-row lg:justify-between lg:text-left`}
@@ -49,9 +56,9 @@ export function DaylightFooter() {
 
       <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr] lg:px-8">
         <div>
-          {/* The ink wordmark — see LOCAL_IMAGES.logoDark. */}
+          {/* The light original, because the footer ground is navy again. */}
           <Image
-            src={LOCAL_IMAGES.logoDark}
+            src={LOCAL_IMAGES.logo}
             alt="Nanotom Capital"
             width={190}
             height={56}

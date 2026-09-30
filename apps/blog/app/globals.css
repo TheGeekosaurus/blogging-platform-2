@@ -2167,6 +2167,43 @@
   }
 
   /*
+   * The footer, on flat navy.
+   *
+   * It carried the tiled Nanotom mark for one round and Denis took it off, so
+   * what is left is the token inversion — the same two-level arrangement as
+   * `.dl-deep`/`.dl-card`, except nothing inside takes the tokens back, because
+   * the whole footer is on the navy.
+   *
+   * It exists as a class rather than Tailwind utilities on the element for that
+   * reason: the footer's markup names --ft-ink, --ft-muted, --ft-subtle and
+   * --ft-line throughout, so re-pointing four variables in one place inverts
+   * every line of it without touching a single className.
+   *
+   * Ratios against the ground:
+   *
+   *   ink     #ffffff   12.86
+   *   muted   #bcccea    7.94
+   *   subtle  #9fb4dd    6.15
+   *   accent  #0ac4e0    6.12
+   *
+   * --ft-accent is the brand cyan, and this is the one place on the page it
+   * gets to be TEXT. It is 2.10:1 on white, which is why the light surface
+   * spends three separate tokens keeping it out of body copy; on navy it is
+   * 6.12:1 and does the job it was picked for.
+   */
+  .dl-footer {
+    background-color: var(--dl-deep);
+
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
+    --ft-subtle: #9fb4dd;
+    --ft-accent: var(--dl-pop);
+    --ft-line: rgba(255, 255, 255, 0.16);
+
+    color: var(--ft-ink);
+  }
+
+  /*
    * The hero's amount slider.
    *
    * A native <input type="range"> carries dragging, arrow-key stepping, touch
@@ -2269,6 +2306,54 @@
  */
 .dl-surface .ft-avatar {
   color: #ffffff;
+}
+
+/*
+ * The FAQ rows, closed.
+ *
+ * Denis asked for the retracted banner to be dark blue, so a shut row is a
+ * solid navy bar and an open one is the pale card it always was. That gives the
+ * list a state you can read from across the page without looking at the little
+ * +/- glyph: navy means shut, pale means open.
+ *
+ * It paints the <details> rather than the <summary> because a shut <details> IS
+ * its summary — one box, no inner edge to get the radius wrong on — and because
+ * the rule then has somewhere to re-point the tokens the row's own markup
+ * reads. The heading takes --ft-ink and the glyph takes --ft-accent, so both
+ * follow the ground without the shared component knowing this rule exists.
+ *
+ * White on the navy is 12.86:1. The glyph goes to the brand cyan, 6.12:1 here
+ * against 2.10:1 if it had kept the teal tuned for the white card — the same
+ * correction the blog list's Read More button needs for the same reason.
+ *
+ * Unlayered, like every rule in this block: the class list it is overriding is
+ * Tailwind utilities, and the utilities layer outranks @layer components.
+ */
+.dl-surface .ft-faq-item:not([open]) {
+  background-color: var(--dl-deep);
+  border-color: var(--dl-deep);
+
+  --ft-ink: #ffffff;
+  --ft-accent: var(--dl-pop);
+
+  /*
+   * The answer's tokens, which nothing paints today: a shut row's content is
+   * laid out but not rendered. They are here for the day this list gets an
+   * animated disclosure — closing, the attribute drops before the content
+   * finishes collapsing, so for those frames the answer IS on the navy.
+   * Without these it would flash #45557F on #0B2D72, which is 1.75:1.
+   */
+  --ft-muted: #bcccea;
+  --ft-subtle: #9fb4dd;
+}
+
+/*
+ * A shut row lightens slightly under the pointer. `--ft-ink` stays white, so
+ * this is the one hover on the page that moves the ground instead of the text.
+ */
+.dl-surface .ft-faq-item:not([open]):hover {
+  background-color: #123a8c;
+  border-color: #123a8c;
 }
 
 /*
