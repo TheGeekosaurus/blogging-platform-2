@@ -2197,8 +2197,66 @@
     --ft-ink: #ffffff;
     --ft-muted: #bcccea;
     --ft-subtle: #9fb4dd;
-    --ft-accent: var(--dl-pop);
+    /*
+     * GOLD, not the brand cyan. Denis asked for the column headings to be gold,
+     * and --ft-accent is the only thing in this footer that reads as an accent,
+     * so re-pointing it here catches all four without a class on each. Gold on
+     * the navy is 6.03:1.
+     */
+    --ft-accent: var(--dl-gold);
     --ft-line: rgba(255, 255, 255, 0.16);
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * The CTA card at the head of the footer.
+   *
+   * A dark card on a white section, which is the shape of the reference Denis
+   * sent: copy on the left, button on the right, the brand mark showing through
+   * as texture. It is NOT the full-bleed navy band it replaced — the white
+   * section around it is what makes it read as a card.
+   *
+   * THE SCRIM IS A LEFT-TO-RIGHT RAMP, not a flat wash, because Denis asked for
+   * the overlay to sit on the left where the text is. The artwork's marks are
+   * far from flat — its brightest pixel is 0.53 relative luminance against a
+   * ground of 0.038 — so text anywhere on it needs cover, and how much depends
+   * on what sits there:
+   *
+   *   left  0.96   the heading and body, and the pattern all but gone
+   *   right 0.66   the button and the line under it, pattern clearly visible
+   *
+   * 0.66 IS A FLOOR, NOT A PREFERENCE, and what sets it is the button rather
+   * than any text. Measured against the brightest pixel in the artwork's right
+   * half: white is 6.83 there and would survive 0.55, but the gold fill's own
+   * edge against the card is 2.96 at 0.62 and 3.20 at 0.66, and a control has
+   * to clear 3:1 against its surround to read as one.
+   *
+   * It was 0.74, because --ft-muted needs about 0.72 to clear 4.5 and the line
+   * under the button was muted. Making that one line white instead bought the
+   * artwork most of what the scrim was taking from it.
+   *
+   * `cover` rather than the footer pattern's `repeat`: this is one card of
+   * roughly fixed proportions, not a region whose height doubles between phone
+   * and desktop, so scaling the marks with it is the intended behaviour.
+   */
+  .dl-cta-card {
+    background-color: var(--dl-deep);
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(11, 45, 114, 0.96) 0%,
+        rgba(11, 45, 114, 0.94) 46%,
+        rgba(11, 45, 114, 0.74) 68%,
+        rgba(11, 45, 114, 0.66) 100%
+      ),
+      url('/marketing/cta-card.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
 
     color: var(--ft-ink);
   }

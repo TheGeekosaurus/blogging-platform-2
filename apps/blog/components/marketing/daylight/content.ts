@@ -96,3 +96,26 @@ export const NAV_CTA = {
   heading: 'One application, every option.',
   body: 'Approvals from $15,000 to $5,000,000, with a soft credit check.',
 } as const;
+
+/**
+ * The CTA card at the head of the footer, which replaced the flat navy band.
+ *
+ * Modelled on the Haven Home Equity card Denis sent — a dark card on a white
+ * section, copy left, button right, one reassuring line under the button. The
+ * shape is theirs and the green is theirs; the words and the navy are ours.
+ *
+ * ALL THREE LINES ARE ALREADY ON THE PAGE, deliberately, because a CTA that
+ * appears under every page must not be the one place a new promise is made:
+ *
+ *   - the heading is the band's own, carried over unchanged;
+ *   - the body is the difference band's support row, verbatim from
+ *     DIFFERENCE.rows — "in-house loan advisor" is the term this site uses and
+ *     the one that is ours to make, per the note there;
+ *   - the reassurance is the pair the hero's amount card already prints under
+ *     its button, joined into one line.
+ */
+export const FOOTER_CTA = {
+  heading: 'We Can Secure The Capital You Need For Your Business',
+  body: 'Speak with an in-house loan advisor who works your file from application to funding.',
+  reassurance: 'Soft credit check only. No obligation.',
+} as const;

@@ -3,7 +3,8 @@ import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
-import { CONTACT, FUNDING_PROGRAMS, LOCAL_IMAGES, POLICY_LINKS } from '../brand';
+import { CONTACT, FUNDING_PROGRAMS, INDUSTRIES, LOCAL_IMAGES, POLICY_LINKS } from '../brand';
+import { FOOTER_CTA } from './content';
 import { CONTAINER, CtaButton } from './primitives';
 
 /**
@@ -31,92 +32,176 @@ import { CONTAINER, CtaButton } from './primitives';
  * logo black": `logoDark` is the ink wordmark drawn for a white ground, and the
  * ground under this one is navy. Same rule, other side of it.
  *
+ * THE CTA IS PART OF THIS COMPONENT, not of the homepage, and that is the point
+ * of it living here: Denis asked for the card to travel with the footer, so
+ * every page that gains this footer gains the card with it. It sits on a WHITE
+ * section rather than being a full-bleed navy band — the white around it is
+ * what makes it read as a card at all.
+ *
  * WHAT IS DELIBERATELY MISSING: the /get-funded check. The shared footer wraps
  * its CTA band in a client component so the band can hide itself on the
  * application page, where the same sentence is already the <h1>. Daylight
- * serves one route today and that route is not /get-funded, so the band is
+ * serves one route today and that route is not /get-funded, so the card is
  * plain markup and this footer ships no JavaScript at all. Restore the check
- * when this build gains a second page.
+ * when this build gains a second page — it matters more now the card is
+ * bigger than the band was.
  */
+/**
+ * One link column in the navy footer.
+ *
+ * Four of these where there were two, so they stopped being worth writing out:
+ * the heading, an optional page of its own behind it, and a list. The heading
+ * takes --ft-accent, which `.dl-footer` points at the brand gold.
+ */
+function FooterColumn({
+  heading,
+  href,
+  links,
+}: {
+  heading: string;
+  href?: string;
+  links: readonly { label: string; href: string }[];
+}) {
+  const headingClass = 'text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ft-accent)]';
+
+  return (
+    <div>
+      {href ? (
+        <Link href={href} className={`${headingClass} no-underline hover:text-[var(--ft-ink)]`}>
+          {heading}
+        </Link>
+      ) : (
+        <p className={headingClass}>{heading}</p>
+      )}
+
+      <ul className="mt-4 flex flex-col gap-2 text-sm text-[var(--ft-muted)]">
+        {links.map((link) => (
+          <li key={link.href}>
+            {/*
+              `tel:` is not in-app navigation, so those rows are plain anchors —
+              next/link is for routes, not for handing a URI scheme to the OS.
+            */}
+            {link.href.startsWith('tel:') ? (
+              <a href={link.href} className="no-underline hover:text-[var(--ft-ink)]">
+                {link.label}
+              </a>
+            ) : (
+              <Link href={link.href} className="no-underline hover:text-[var(--ft-ink)]">
+                {link.label}
+              </Link>
+            )}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function DaylightFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="dl-footer border-t border-[var(--ft-line)] text-[var(--ft-ink)]">
-      <div className="border-b border-[var(--ft-line)]">
+    <footer className="border-t border-[var(--ft-line)]">
+      {/*
+        The CTA card, on white. Copy in ./content.ts, which records the line
+        each part of it was already saying elsewhere on the page.
+      */}
+      <div className={`${CONTAINER} py-14 lg:py-20`}>
+        <div className="dl-cta-card overflow-hidden rounded-2xl px-7 py-9 sm:px-10 sm:py-11 lg:px-14 lg:py-12">
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between lg:gap-14">
+            <div className="max-w-[34rem]">
+              <h2 className="font-[family-name:var(--font-headline)] text-[clamp(1.5rem,3vw,2.125rem)] font-semibold leading-[1.15] text-[var(--ft-ink)]">
+                {FOOTER_CTA.heading}
+              </h2>
+              <p className="mt-4 text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+                {FOOTER_CTA.body}
+              </p>
+            </div>
+
+            {/*
+              The button and its reassurance line, right-hand side. `text-center`
+              only once they sit under a centred button — stacked on a phone they
+              are a left-aligned column under the paragraph.
+            */}
+            <div className="flex shrink-0 flex-col items-start gap-4 lg:items-center lg:text-center">
+              <CtaButton className="!px-10 !py-4" />
+              {/*
+                White, not --ft-muted, and that is what lets the artwork show:
+                this line is the only text in the card's right half, so the
+                scrim there only has to clear white. See `.dl-cta-card`.
+              */}
+              <p className="max-w-[18rem] text-[0.9375rem] leading-snug text-[var(--ft-ink)]">
+                {FOOTER_CTA.reassurance}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="dl-footer text-[var(--ft-ink)]">
+        {/*
+          Five tracks: the brand block, then the four link columns. Two columns
+          on a tablet and one on a phone, which is what the arbitrary track list
+          is for — `lg:grid-cols-5` would give the brand block the same width as
+          a link column and leave its paragraph in a 200px gutter.
+        */}
         <div
-          className={`${CONTAINER} flex flex-col items-center gap-6 py-12 text-center lg:flex-row lg:justify-between lg:text-left`}
+          className={`${CONTAINER} grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr_1fr] lg:gap-8`}
         >
-          <h2 className="font-[family-name:var(--font-headline)] text-2xl leading-tight sm:text-3xl">
-            We Can Secure The Capital You Need For Your Business
-          </h2>
-          <CtaButton className="shrink-0" />
-        </div>
-      </div>
+          <div>
+            {/* The light original, because the footer ground is navy again. */}
+            <Image
+              src={LOCAL_IMAGES.logo}
+              alt="Nanotom Capital"
+              width={190}
+              height={56}
+              className="h-11 w-auto"
+            />
+            <p className="mt-6 max-w-sm text-sm leading-[1.8] text-[var(--ft-muted)]">
+              At Nanotom Capital, we empower businesses to unlock the funding they need. Our
+              streamlined approach delivers fast, hassle-free access to capital, letting you
+              focus on building what you love.
+            </p>
+          </div>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr] lg:px-8">
-        <div>
-          {/* The light original, because the footer ground is navy again. */}
-          <Image
-            src={LOCAL_IMAGES.logo}
-            alt="Nanotom Capital"
-            width={190}
-            height={56}
-            className="h-11 w-auto"
-          />
-          <p className="mt-6 max-w-sm text-sm leading-[1.8] text-[var(--ft-muted)]">
-            At Nanotom Capital, we empower businesses to unlock the funding they need. Our
-            streamlined approach delivers fast, hassle-free access to capital, letting you
-            focus on building what you love.
-          </p>
-        </div>
-
-        <div>
           {/*
-            The heading is itself the link to /funding-solutions, which is how
-            that page keeps its place now the column below it is the five
-            individual programs.
-          */}
-          <Link
-            href="/funding-solutions"
-            className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ft-accent)] no-underline hover:text-[var(--ft-ink)]"
-          >
-            Funding Solutions
-          </Link>
-          <ul className="mt-4 flex flex-col gap-2 text-sm text-[var(--ft-muted)]">
-            {FUNDING_PROGRAMS.map((program) => (
-              <li key={program.href}>
-                <Link href={program.href} className="no-underline hover:text-[var(--ft-ink)]">
-                  {program.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+            A heading links to the section's own page where there IS one, which
+            is how those pages keep their place now the columns below them are
+            the individual entries. The headings are gold rather than the brand
+            cyan — see --ft-accent in `.dl-footer`.
 
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ft-accent)]">
-            Resources
-          </p>
-          <ul className="mt-4 flex flex-col gap-2 text-sm text-[var(--ft-muted)]">
-            <li>
-              <Link href={blogIndexPath()} className="no-underline hover:text-[var(--ft-ink)]">
-                Blog
-              </Link>
-            </li>
-            <li>
-              <Link href="/calc" className="no-underline hover:text-[var(--ft-ink)]">
-                Loan Calculator
-              </Link>
-            </li>
-            <li>
-              <Link href="/programs" className="no-underline hover:text-[var(--ft-ink)]">
-                Programs
-              </Link>
-            </li>
-          </ul>
+            INDUSTRIES HAS NO `href`, and that is not an oversight. /industries
+            is a static route belonging to the Labs deployment and calls
+            notFound() on Capital, so it answers 404 here — checked against the
+            running build, not assumed. Its two child pages are real. The header
+            still points its Industries trigger at that path; fixing that means
+            editing NAV, which the dark site reads too, so it is Denis's call
+            rather than a change to make in passing.
+          */}
+          <FooterColumn heading="Funding Solutions" href="/funding-solutions" links={FUNDING_PROGRAMS} />
+          <FooterColumn heading="Industries" links={INDUSTRIES} />
+          <FooterColumn
+            heading="About Us"
+            href="/about-us"
+            links={[
+              { label: 'Get Funded', href: '/get-funded' },
+              /*
+               * The phone as its own row rather than a "Contact" label, because
+               * the number IS the contact route — this site has no contact form,
+               * and a link reading "Contact" that opens a dialer is a surprise.
+               */
+              { label: CONTACT.phone, href: CONTACT.phoneHref },
+            ]}
+          />
+          <FooterColumn
+            heading="Resources"
+            links={[
+              { label: 'Blog', href: blogIndexPath() },
+              { label: 'Loan Calculator', href: '/calc' },
+              { label: 'Programs', href: '/programs' },
+            ]}
+          />
         </div>
-      </div>
 
       <div className="border-t border-[var(--ft-line)]">
         <div className="mx-auto max-w-7xl space-y-5 px-5 py-10 text-xs leading-relaxed text-[var(--ft-subtle)] lg:px-8">
@@ -188,6 +273,7 @@ export function DaylightFooter() {
           <p className="text-center">©{year} Nanotom Capital. All rights reserved.</p>
 
           <p className="text-center">{CONTACT.address}</p>
+        </div>
         </div>
       </div>
     </footer>

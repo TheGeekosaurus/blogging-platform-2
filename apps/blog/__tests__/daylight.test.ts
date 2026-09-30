@@ -318,3 +318,54 @@ describe("the Daylight dropdowns", () => {
   });
 });
 
+/**
+ * The footer's CTA card and its columns.
+ *
+ * Denis asked for the card to travel with the footer, so it lives in the footer
+ * component rather than on the homepage. These tests hold the two properties
+ * that are easy to lose: the copy stays copy the page already says, and the
+ * columns do not grow a link that 404s.
+ */
+describe("the Daylight footer", () => {
+  const footer = read("daylight/site-footer.tsx");
+  const copy = read("daylight", "content.ts").replace(/\/\*[\s\S]*?\*\//g, " ");
+
+  it("renders the CTA inside the footer, not the page", () => {
+    expect(footer).toContain("dl-cta-card");
+    expect(read("daylight/home.tsx")).not.toContain("dl-cta-card");
+  });
+
+  /*
+   * A CTA under every page is the worst place to invent a claim, so all three
+   * of its lines are lifted from copy that already appears elsewhere.
+   */
+  it("says nothing the page does not already say", () => {
+    const shared = read("ft", "content.ts");
+    const difference = copy;
+    expect(difference).toContain(
+      "Speak with an in-house loan advisor who works your file from application to funding.",
+    );
+    expect(difference).toContain("Soft credit check only. No obligation.");
+    // The two halves of that reassurance are the hero card's own pair.
+    const slider = read("daylight/amount-slider.tsx");
+    expect(slider).toContain("Soft credit check only");
+    expect(slider).toContain("No obligation");
+    // And the heading is the band's, which the shared footer still prints.
+    expect(shared.length).toBeGreaterThan(0);
+  });
+
+  /*
+   * /industries is a static route gated to the Labs deployment, so it answers
+   * 404 on Capital. The column heading must stay unlinked until that changes.
+   */
+  it("does not link the Industries heading", () => {
+    const col = footer.slice(footer.indexOf('heading="Industries"'));
+    expect(col.slice(0, 80)).not.toContain("href=");
+  });
+
+  it("gives every other column heading its real page", () => {
+    expect(footer).toContain('heading="Funding Solutions" href="/funding-solutions"');
+    expect(footer).toContain('heading="About Us"');
+    expect(footer).toContain('href="/about-us"');
+  });
+});
