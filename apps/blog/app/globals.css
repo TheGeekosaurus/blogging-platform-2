@@ -2466,25 +2466,26 @@
  * "Read More" on every blog row and the "View All" in two section headers, none
  * of which this design's own files write out.
  */
-.dl-surface .ft-ghost {
-  border-radius: 0.375rem;
-}
-
 /*
- * The blog rows' "Read More", solid navy.
+ * Every ghost button on the page, filled navy.
  *
- * Scoped to an <article> inside the blog list on purpose. `.ft-ghost` is worn
- * by four things on this page — the two "View All" buttons in section headers,
- * the FAQ's "Ask a Question" and this — and Denis asked for the blog one.
- * Filling all four would have turned two section-header actions into primary
- * buttons and left "View All Testimonials" looking different from "View All
- * Blogs" directly below it.
+ * It was scoped to `.dl-bloglist article` when only Read More wore the fill,
+ * on the argument that filling the section headers' "View All" buttons would
+ * promote them to primary actions. Denis looked at it and asked for the
+ * opposite: the two View All buttons should match the Read More beneath them.
  *
- * `article` is PostRow's own wrapper and the only one inside this section, so
- * the selector reaches every post row and nothing else. The class it hangs off
- * is on Daylight's own section element rather than on a shared component.
+ * There are exactly five `.ft-ghost` elements on this page — checked in the
+ * browser, not counted from the source — and all five are now meant to look
+ * the same, so the scope drops rather than growing into a list.
+ *
+ * The consequence worth knowing: anything that wears this marker on a Daylight
+ * page in future is navy too, including the FAQ's "Ask a Question" if that
+ * column's blurb ever comes back. That is a consistent answer rather than an
+ * accident, but it is why this rule is deliberately broad.
  */
-.dl-surface .dl-bloglist article .ft-ghost {
+.dl-surface .ft-ghost {
+  /* Denis's rectangle-with-a-small-radius, as every button on the live site. */
+  border-radius: 0.375rem;
   border-color: var(--ft-ink);
   background-color: var(--ft-ink);
   color: #ffffff;
@@ -2499,10 +2500,24 @@
   --ft-accent: var(--dl-pop);
 }
 
-.dl-surface .dl-bloglist article .ft-ghost:hover {
+.dl-surface .ft-ghost:hover {
   border-color: #123a8f;
   background-color: #123a8f;
   color: #ffffff;
+}
+
+/*
+ * The homepage blog rows, tightened.
+ *
+ * PostRow is shared with the blog index, where a row is the page's whole
+ * content and can afford 48px of air above and 64px at desktop. On the homepage
+ * it is three rows inside a section that already carries its own 80px top and
+ * bottom, and Denis asked for the stack back. Scoped to `.dl-bloglist`, so the
+ * index keeps its own rhythm.
+ */
+.dl-surface .dl-bloglist article > div {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 /*

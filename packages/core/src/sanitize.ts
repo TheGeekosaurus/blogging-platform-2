@@ -288,21 +288,39 @@ export function sanitizePostHtml(dirty: string): string {
 }
 
 /**
+ * Decode the handful of HTML entities that turn up in text that is NOT html.
+ *
+ * WordPress serves plain-text fields — a category name, a tag name — already
+ * escaped, and the importer stores them that way, so a category called
+ * "Business Funding & Financing" sits in the database as
+ * "Business Funding &amp; Financing". React escapes on render, so the page
+ * printed the entity itself.
+ *
+ * `&amp;` LAST is not cosmetic. Decoding it first would turn a stored
+ * "&amp;lt;" into "&lt;" and then into "<", inventing a tag out of text that
+ * was correctly double-escaped. Every other entity resolves to a character
+ * that cannot start another one.
+ */
+export function decodeTextEntities(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*39;|&apos;|&#x0*27;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&amp;/g, '&');
+}
+
+/**
  * Strip every tag, for excerpts and meta descriptions.
  * Also collapses whitespace and decodes the handful of entities that matter.
  */
 export function htmlToPlainText(html: string): string {
   if (!html) return '';
   const stripped = sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} });
-  return stripped
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
-    .replace(/\s+/g, ' ')
-    .trim();
+  return decodeTextEntities(stripped).replace(/\s+/g, ' ').trim();
 }
 
 /** Truncate on a word boundary, for generated excerpts. */

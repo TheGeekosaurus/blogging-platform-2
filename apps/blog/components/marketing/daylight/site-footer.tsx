@@ -62,7 +62,18 @@ function FooterColumn({
   href?: string;
   links: readonly { label: string; href: string }[];
 }) {
-  const headingClass = 'text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ft-accent)]';
+  /*
+   * `block w-fit` is what makes the four headings line up.
+   *
+   * A linked heading is an <a>, which is inline, so it sits on a line box with
+   * leading above it; an unlinked one is a <p>, which is block and starts at
+   * the cell's top edge. Measured in the browser, that put Funding Solutions
+   * and About Us exactly 5px below Industries and Resources. `block` removes
+   * the line box, and `w-fit` keeps the click target the width of the words
+   * rather than the whole column.
+   */
+  const headingClass =
+    'block w-fit text-xs font-semibold uppercase tracking-[0.2em] text-[var(--ft-accent)]';
 
   return (
     <div>

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { altTextWarning } from '../content';
 import {
   LINK_SCHEMES,
+  decodeTextEntities,
   htmlToPlainText,
   normaliseLinkHref,
   sanitizeAuthorHtml,
@@ -537,5 +538,32 @@ describe('sanitizeAuthorHtml — links in a title or bio', () => {
     const stored = sanitizeAuthorHtml('Founder at <a href="https://nanotom.test">Nanotom</a>');
 
     expect(htmlToPlainText(stored)).toBe('Founder at Nanotom');
+  });
+});
+
+describe('decodeTextEntities', () => {
+  it('decodes the entities WordPress escapes plain text with', () => {
+    expect(decodeTextEntities('Business Funding &amp; Financing')).toBe(
+      'Business Funding & Financing',
+    );
+    expect(decodeTextEntities('Tom &amp; Jerry&nbsp;win')).toBe('Tom & Jerry win');
+    expect(decodeTextEntities('It&#39;s here')).toBe("It's here");
+    expect(decodeTextEntities('&quot;Quoted&quot;')).toBe('"Quoted"');
+  });
+
+  it('leaves clean text alone, and is idempotent', () => {
+    expect(decodeTextEntities('Business Funding & Financing')).toBe(
+      'Business Funding & Financing',
+    );
+    expect(decodeTextEntities(decodeTextEntities('A &amp; B'))).toBe('A & B');
+  });
+
+  /*
+   * The ordering guard. "&amp;lt;" is a correctly double-escaped "&lt;" — text
+   * that should read "&lt;", not a tag. Decoding &amp; before &lt; would turn
+   * it into "<" and invent markup out of content.
+   */
+  it('does not manufacture a tag out of double-escaped text', () => {
+    expect(decodeTextEntities('&amp;lt;script&amp;gt;')).toBe('&lt;script&gt;');
   });
 });

@@ -34,7 +34,17 @@ const read = (...parts: string[]) =>
  */
 describe("the two footers state the same legal text", () => {
   function legalParagraphs(source: string): string[] {
-    const withoutComments = source.replace(/\{\/\*[\s\S]*?\*\/\}/g, " ");
+    /*
+     * BOTH comment forms, and the second one is not hypothetical: a plain block
+     * comment in daylight/site-footer.tsx explains the heading alignment and
+     * mentions "<p>" in passing, which this regex then read as the start of a
+     * paragraph and ran to the next real </p> a hundred lines below. Prose
+     * about markup is not markup. JSX comments go first, because the plain
+     * pattern would leave their braces behind.
+     */
+    const withoutComments = source
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, " ")
+      .replace(/\/\*[\s\S]*?\*\//g, " ");
 
     return (
       [...withoutComments.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]

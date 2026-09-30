@@ -562,7 +562,7 @@ function BlogPosts({
       <CategoryPills categories={categories} />
 
       {posts.map((post) => (
-        <PostRow key={post.id} post={post} locale={locale} />
+        <PostRow key={post.id} post={post} locale={locale} showAuthor={false} />
       ))}
     </section>
   );

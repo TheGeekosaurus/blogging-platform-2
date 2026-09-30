@@ -163,10 +163,25 @@ export function CategoryPills({
   );
 }
 
-/** One post in the list: author on the left, the post in the middle, CTA right. */
-export function PostRow({ post, locale }: { post: PostSummary; locale: string }) {
+/**
+ * One post in the list: author on the left, the post in the middle, CTA right.
+ *
+ * `showAuthor` is off on the Daylight homepage, where three rows of byline and
+ * role under three thumbnails is more about us than about the posts. It stays
+ * ON everywhere else — the blog index is where the author belongs, and a
+ * default of false would strip it from the live site.
+ */
+export function PostRow({
+  post,
+  locale,
+  showAuthor = true,
+}: {
+  post: PostSummary;
+  locale: string;
+  showAuthor?: boolean;
+}) {
   const image = post.featured_image;
-  const author = postAuthorName(post);
+  const author = showAuthor ? postAuthorName(post) : null;
   const avatar = post.byline?.avatar ?? null;
 
   return (
