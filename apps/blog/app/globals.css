@@ -2262,6 +2262,195 @@
   }
 
   /*
+   * The header's opening sequence.
+   *
+   * Three beats, in the order Denis described them: the island starts as a
+   * small centred pill holding only the wordmark, widens to full width with
+   * the CTA riding out from behind the logo, and only once it is open do the
+   * nav items arrive one at a time, right to left, each rising out of the
+   * depth.
+   *
+   * NO JAVASCRIPT. The shell is already a client component for the scroll
+   * treatment, so this is not about saving a bundle — it is that staged timing
+   * is the obvious reason to reach for state and does not need it. CSS delays
+   * start on first paint, earlier and steadier than anything an effect can
+   * schedule, and there is nothing here for React to own.
+   *
+   * It plays once per page load rather than per navigation: the App Router
+   * keeps the layout mounted between routes, so nothing restarts.
+   *
+   * THE WHOLE BLOCK IS INSIDE prefers-reduced-motion, so the animation is
+   * purely additive. A visitor who has asked for less motion gets the header
+   * fully open on first paint with none of these rules in effect, rather than
+   * a "reduced" variant that still moves.
+   */
+  .dl-surface {
+    --dl-open-duration: 720ms;
+    --dl-item-duration: 420ms;
+    --dl-item-step: 80ms;
+    /*
+     * The closed pill. The wordmark is 163px wide at its 48px cap, plus the
+     * row's 24px of padding each side, plus air.
+     */
+    --dl-closed-width: 236px;
+    /*
+     * Two curves, because the halves do different jobs. The bar gets
+     * easeOutCubic: on expo-out it was 83% open at 28% of its duration, so the
+     * CTA arrived and then sat still waiting for a tail nobody can see moving.
+     * The items keep expo-out — each is 420ms of its own and wants to snap.
+     */
+    --dl-ease-open: cubic-bezier(0.33, 1, 0.68, 1);
+    --dl-ease-item: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The logo sits above the CTA, which is what makes "from behind" literal. */
+  .dl-headmark {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+     * The island, squeezed to a centred pill and released.
+     *
+     * MARGIN RATHER THAN WIDTH, because the end value has to be
+     * breakpoint-independent. A percentage margin resolves against the
+     * wrapper's content box, so `calc(50% - 118px)` on both sides leaves
+     * exactly 236px in the middle at any viewport, and the open state is plain
+     * `0` — no measuring, and nothing to keep in step with the wrapper's own
+     * padding, which changes at `lg`. Animating width would have needed the
+     * open width in pixels, and px cannot interpolate to 100%.
+     */
+    .dl-headbar {
+      animation: dl-head-open var(--dl-open-duration) var(--dl-ease-open) both;
+    }
+
+    @keyframes dl-head-open {
+      from {
+        margin-inline: calc(50% - (var(--dl-closed-width) / 2));
+        /*
+         * Clipped while it opens, so the CTA is hidden BY the island's own
+         * edge until there is room for it. `overflow` is discrete: it would
+         * flip at the halfway mark if the two values sat at `from` and `to`,
+         * so the switch is pinned to the last percent instead.
+         *
+         * It has to return to `visible`, or the dropdown panels and the mobile
+         * drawer — absolutely positioned inside this element — are swallowed.
+         */
+        overflow: hidden;
+      }
+      99% {
+        overflow: hidden;
+      }
+      to {
+        margin-inline: 0;
+        overflow: visible;
+      }
+    }
+
+    /*
+     * The CTA, out from behind the logo.
+     *
+     * It runs for the FULL opening rather than a slice, because Denis asked
+     * for it to be visible the whole way. Most of the movement is the island's
+     * rather than its own: the nav beside it is collapsed to nothing at this
+     * point, so `ml-auto` parks the CTA hard against the right edge and the
+     * island carries it outward as it grows. The keyframe adds the fade, and a
+     * leftward offset at the start that puts it under the wordmark.
+     */
+    .dl-headcta {
+      animation: dl-head-cta var(--dl-open-duration) var(--dl-ease-open) both;
+    }
+
+    @keyframes dl-head-cta {
+      from {
+        opacity: 0;
+        transform: translateX(-72px) scale(0.88);
+      }
+      45% {
+        opacity: 1;
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /*
+     * THE NAV TAKES NO WIDTH until its turn, and this is the piece that makes
+     * the CTA read as coming from the logo rather than from the far right.
+     *
+     * Its items are only transparent during the first two beats, and a
+     * transparent element still occupies its track — a nav of four items and
+     * three 32px gaps is some 600px of it. Left in flow, the CTA would start
+     * 600px right of the wordmark and simply sit there. Collapsed, the CTA
+     * begins beside the logo and the island carries it out.
+     *
+     * Restoring `auto` at the end is not animated and does not need to be: the
+     * island is already at full width by then, and `ml-auto` pins the CTA to
+     * the right edge, so the nav expanding pushes the NAV leftwards into the
+     * space rather than moving anything the eye is following.
+     */
+    .dl-headnav {
+      width: 0;
+      overflow: hidden;
+      animation: dl-head-nav-room 1ms linear var(--dl-open-duration) both;
+    }
+
+    @keyframes dl-head-nav-room {
+      to {
+        width: auto;
+        overflow: visible;
+      }
+    }
+
+    /*
+     * The nav items, from the back to the front.
+     *
+     * A real Z translation under a perspective, not a scale imitating one:
+     * items further back are smaller AND drawn to the vanishing point of the
+     * row they belong to, which a uniform scale cannot reproduce. The blur is
+     * the depth of field that sells it.
+     *
+     * `both` fill: the `from` state holds through the delay, so nothing shows
+     * before its turn, and the last frame sticks after.
+     */
+    .dl-headnav ul {
+      perspective: 620px;
+    }
+
+    .dl-headitem {
+      animation: dl-head-item var(--dl-item-duration) var(--dl-ease-item) both;
+      animation-delay: calc(
+        var(--dl-open-duration) + var(--dl-i, 0) * var(--dl-item-step)
+      );
+    }
+
+    @keyframes dl-head-item {
+      from {
+        opacity: 0;
+        transform: translateZ(-180px);
+        filter: blur(3px);
+      }
+      to {
+        opacity: 1;
+        /*
+         * `none`, NOT `translateZ(0)` and `blur(0)`.
+         *
+         * `both` fill holds this frame forever, and a filter or a transform —
+         * even an identity one — creates a stacking context and a containing
+         * block on every nav <li>. The dropdown panels are absolutely
+         * positioned inside those <li>s, so each would be trapped in its own
+         * context and could paint under the item beside it. `none` computes to
+         * nothing and leaves the row exactly as it was.
+         */
+        transform: none;
+        filter: none;
+      }
+    }
+  }
+
+  /*
    * The hero's amount slider.
    *
    * A native <input type="range"> carries dragging, arrow-key stepping, touch
