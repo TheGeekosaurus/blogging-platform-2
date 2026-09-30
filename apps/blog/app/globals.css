@@ -2293,16 +2293,19 @@
      *   pause   fully open, before the menu starts
      *   step    one item per beat, right to left
      *
-     * Denis set these deliberately slow. Worth knowing what it adds up to:
-     * hold + open + pause + 4 steps is about eleven seconds before the
-     * leftmost item lands, and the nav is not reachable until then. It runs on
-     * every full page load, not once per visitor.
+     * hold + open + pause + 4 steps puts the leftmost item at about 6.5s, and
+     * the nav is not reachable until then. It runs on every full page load,
+     * not once per visitor.
+     *
+     * The item duration is longer than the step on purpose: at 500ms apart and
+     * 700ms each, two items are in flight at once, which is what makes a
+     * stagger read as a cascade rather than as four separate events.
      */
-    --dl-closed-hold: 3000ms;
-    --dl-open-duration: 3000ms;
+    --dl-closed-hold: 1500ms;
+    --dl-open-duration: 2500ms;
     --dl-open-pause: 1000ms;
     --dl-item-duration: 700ms;
-    --dl-item-step: 1000ms;
+    --dl-item-step: 500ms;
     /*
      * The closed pill. The wordmark is 163px wide at its 48px cap, plus the
      * row's 24px of padding each side, plus air.
@@ -2410,9 +2413,19 @@
      * island is already at full width by then, and `ml-auto` pins the CTA to
      * the right edge, so the nav expanding pushes the NAV leftwards into the
      * space rather than moving anything the eye is following.
+     *
+     * `height: 0` AS WELL AS `width: 0`, and this one is not belt and braces —
+     * it is the fix for a real jump. Squeezed to no width, the nav does not
+     * vanish: its labels wrap, so the <ul> stood 88px tall against the 68px it
+     * settles at, and being the tallest thing in the row it set the bar's
+     * height. The island opened at 90px and snapped to 74px the moment the nav
+     * was released, taking the whole page below it along. Collapsed in both
+     * axes it contributes nothing, the wordmark sets the height throughout,
+     * and that height is the open one.
      */
     .dl-headnav {
       width: 0;
+      height: 0;
       overflow: hidden;
       animation: dl-head-nav-room 1ms linear
         calc(var(--dl-closed-hold) + var(--dl-open-duration)) both;
@@ -2421,6 +2434,7 @@
     @keyframes dl-head-nav-room {
       to {
         width: auto;
+        height: auto;
         overflow: visible;
       }
     }
