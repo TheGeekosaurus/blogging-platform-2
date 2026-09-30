@@ -41,7 +41,26 @@
  * the disclosures would be a reference to nothing.
  */
 export const DIFFERENCE = {
-  heading: 'The Nanotom Capital difference',
+  /*
+   * The label carries the old headline. "The Nanotom Capital difference" was
+   * doing the job of a section label — naming the section rather than saying
+   * anything — so it moved to the chip, where naming the section is the job,
+   * and the headline got to make a point instead. Nothing is lost.
+   */
+  label: 'The Nanotom Difference',
+  /*
+   * THE HEADLINE IS THE FIRST TWO ROWS, ARGUING WITH EACH OTHER. "We move
+   * fast" and "we protect your credit score" are the two claims below it, and
+   * the tension between them is the actual pitch: everything about this is
+   * quick except the one thing a borrower does not want touched.
+   *
+   * It is a joke that has to stay true, so both halves are claims the page
+   * already makes and the footer's disclaimer already covers — same-day
+   * decisions in HOW_IT_WORKS, and the soft credit check in the funding
+   * disclaimer and the FAQ. If either ever stops being true this line is the
+   * first thing to change.
+   */
+  heading: 'Everything Moves Fast. Except Your Credit Score.',
   rows: [
     {
       icon: 'speed',

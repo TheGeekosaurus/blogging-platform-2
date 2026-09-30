@@ -22,7 +22,7 @@ import {
   MarketingIcon,
   PayrollIcon,
 } from './icons';
-import { CONTAINER, SectionHead } from './primitives';
+import { CONTAINER, Chip, SectionHead } from './primitives';
 
 /*
  * The sections that appear on more than one page of this design.
@@ -296,11 +296,16 @@ function Answer({ runs }: { runs: readonly AnswerRun[] }) {
  * Daylight drops both — the questions are the section, and a second invitation
  * to ask one sits a few hundred pixels above a footer whose whole job is the
  * same CTA. Off by default it would change the live site, so it is on.
+ *
+ * `label` puts a section chip beside the icon. Every other Daylight section
+ * carries one; this was the last that did not. Undefined means no chip, which
+ * is what the dark site renders today.
  */
 export function Faq({
   exclusive = false,
   blurb = true,
-}: { exclusive?: boolean; blurb?: boolean } = {}) {
+  label,
+}: { exclusive?: boolean; blurb?: boolean; label?: string } = {}) {
   return (
     <section aria-labelledby="ft-faq" className="border-t border-[var(--ft-line)]">
       {/* Columns centred against each other, with the divider on the right
@@ -312,7 +317,20 @@ export function Faq({
           off; see the rule in globals.css.
         */}
         <div className="ft-faq-aside py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
-          <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+          {/*
+            The chip sits to the LEFT of the icon, which Denis asked for and is
+            the reverse of the usual order. `items-center` rather than baseline:
+            the icon is a 40px square with no text baseline of its own, so
+            aligning the two on one would drop the chip below its centre.
+          */}
+          {label ? (
+            <div className="flex items-center gap-3">
+              <Chip>{label}</Chip>
+              <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+            </div>
+          ) : (
+            <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+          )}
 
           <h2
             id="ft-faq"

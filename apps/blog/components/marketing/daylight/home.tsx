@@ -477,7 +477,7 @@ function Testimonials() {
   const lastRowFrom = reviews.length - lastRow;
 
   return (
-    <section aria-labelledby="dl-testimonials">
+    <section aria-labelledby="dl-testimonials" className="border-t border-[var(--ft-line)]">
       <div className={`${CONTAINER} py-14 lg:py-20`}>
         <SectionIntro
           id="dl-testimonials"
@@ -548,7 +548,7 @@ function BlogPosts({
   if (posts.length === 0) return null;
 
   return (
-    <section aria-labelledby="dl-blog" className="dl-bloglist">
+    <section aria-labelledby="dl-blog" className="dl-bloglist border-t border-[var(--ft-line)]">
       <div className={`${CONTAINER} pb-10 pt-14 lg:pb-12 lg:pt-20`}>
         <SectionIntro
           id="dl-blog"
@@ -615,7 +615,7 @@ export function DaylightHome({
       <BlogPosts posts={posts} categories={categories} locale={locale} />
       {/* One row at a time, and no second Ask-a-Question beside the list — see
           the notes on both props in ft/shared-sections. */}
-      <Faq exclusive blurb={false} />
+      <Faq exclusive blurb={false} label="FAQ" />
       <DaylightFooter />
     </div>
   );
