@@ -291,14 +291,27 @@ function Answer({ runs }: { runs: readonly AnswerRun[] }) {
  * It is a prop rather than the default because this section is shared with the
  * live dark site, where the rows open independently today and nobody has asked
  * for that to change.
+ *
+ * `blurb` is the paragraph and the Ask a Question button under the heading.
+ * Daylight drops both — the questions are the section, and a second invitation
+ * to ask one sits a few hundred pixels above a footer whose whole job is the
+ * same CTA. Off by default it would change the live site, so it is on.
  */
-export function Faq({ exclusive = false }: { exclusive?: boolean } = {}) {
+export function Faq({
+  exclusive = false,
+  blurb = true,
+}: { exclusive?: boolean; blurb?: boolean } = {}) {
   return (
     <section aria-labelledby="ft-faq" className="border-t border-[var(--ft-line)]">
       {/* Columns centred against each other, with the divider on the right
           column — see the long note on the same pattern in funding-solutions. */}
       <div className={`${CONTAINER} lg:flex lg:gap-0`}>
-        <div className="py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
+        {/*
+          `ft-faq-aside` is a styles-free marker. Daylight pins this column to
+          the top rather than centring it, which only matters once `blurb` is
+          off; see the rule in globals.css.
+        */}
+        <div className="ft-faq-aside py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
           <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
 
           <h2
@@ -308,28 +321,33 @@ export function Faq({ exclusive = false }: { exclusive?: boolean } = {}) {
             {FAQ.heading}
           </h2>
 
-          <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
-            {FAQ.body}
-          </p>
+          {blurb ? (
+            <>
+              <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+                {FAQ.body}
+              </p>
 
-          {/*
-            A plain anchor, not GhostButton: this is a `tel:` href, and
-            GhostButton routes a non-external href through next/link, which is
-            for in-app navigation and not for handing a URI scheme to the OS.
-          */}
-          <a
-            href={FAQ.cta.href}
-            /*
-             * `ft-ghost` even though this is not GhostButton: it is that
-             * button's class list copied out, so it should answer to the same
-             * marker. Without it the Daylight build squares off every button on
-             * the page except this one.
-             */
-            className="ft-ghost mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
-          >
-            {FAQ.cta.label}
-            <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
-          </a>
+              {/*
+                A plain anchor, not GhostButton: this is a `tel:` href, and
+                GhostButton routes a non-external href through next/link, which
+                is for in-app navigation and not for handing a URI scheme to the
+                OS.
+              */}
+              <a
+                href={FAQ.cta.href}
+                /*
+                 * `ft-ghost` even though this is not GhostButton: it is that
+                 * button's class list copied out, so it should answer to the
+                 * same marker. Without it the Daylight build squares off every
+                 * button on the page except this one.
+                 */
+                className="ft-ghost mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+              >
+                {FAQ.cta.label}
+                <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+              </a>
+            </>
+          ) : null}
         </div>
 
         <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">

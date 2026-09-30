@@ -613,8 +613,9 @@ export function DaylightHome({
       <DaylightDifference />
       <Testimonials />
       <BlogPosts posts={posts} categories={categories} locale={locale} />
-      {/* One row at a time — see the note on the prop in ft/shared-sections. */}
-      <Faq exclusive />
+      {/* One row at a time, and no second Ask-a-Question beside the list — see
+          the notes on both props in ft/shared-sections. */}
+      <Faq exclusive blurb={false} />
       <DaylightFooter />
     </div>
   );

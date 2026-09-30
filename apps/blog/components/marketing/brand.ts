@@ -122,6 +122,16 @@ export type NavItem = {
   href?: string;
   external?: boolean;
   children?: readonly NavItem[];
+  /*
+   * A glyph for this entry, as a key rather than a component: this module is
+   * data and importing JSX into it would make every consumer of the nav pull
+   * an icon set it may not draw. Each design maps the key to its own mark — see
+   * NAV_ICONS in daylight/site-header.tsx.
+   *
+   * Only dropdown children carry one today, and only the Daylight header reads
+   * them; the dark header and the footer ignore the field entirely.
+   */
+  icon?: string;
 };
 
 /**
@@ -152,12 +162,38 @@ export type NavItem = {
  * nav has promised them since launch, and a footer that lists four of five
  * because one has no copy yet is a worse inconsistency than a thin page.
  */
-export const FUNDING_PROGRAMS: readonly { label: string; href: string }[] = [
-  { label: 'Business Loans', href: '/funding-solutions/business-loans' },
-  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
-  { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
-  { label: 'Working Capital', href: '/funding-solutions/working-capital' },
-  { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
+export const FUNDING_PROGRAMS: readonly {
+  label: string;
+  href: string;
+  icon: string;
+}[] = [
+  { label: 'Business Loans', href: '/funding-solutions/business-loans', icon: 'coins' },
+  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit', icon: 'cash-flow' },
+  {
+    label: 'Revenue-Based Financing',
+    href: '/funding-solutions/revenue-based-financing',
+    icon: 'growth',
+  },
+  { label: 'Working Capital', href: '/funding-solutions/working-capital', icon: 'wallet' },
+  {
+    label: 'Equipment Financing',
+    href: '/funding-solutions/equipment-financing',
+    icon: 'equipment',
+  },
+];
+
+/*
+ * Lifted out of NAV so the footer's Industries column and the header's
+ * Industries menu are the same two entries. They were inline until the footer
+ * grew a column for them, which is the moment a copied array starts drifting.
+ */
+export const INDUSTRIES: readonly { label: string; href: string; icon: string }[] = [
+  { label: 'Food Business', href: '/industries/food-business', icon: 'storefront' },
+  {
+    label: 'Construction Business',
+    href: '/industries/construction-business',
+    icon: 'hard-hat',
+  },
 ];
 
 export const NAV: readonly NavItem[] = [
@@ -169,10 +205,7 @@ export const NAV: readonly NavItem[] = [
   {
     label: 'Industries',
     href: '/industries',
-    children: [
-      { label: 'Food Business', href: '/industries/food-business' },
-      { label: 'Construction Business', href: '/industries/construction-business' },
-    ],
+    children: INDUSTRIES,
   },
   { label: 'Loan Calculator', href: '/calc' },
   { label: 'Programs', href: '/programs' },
@@ -207,9 +240,25 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    * now — app/funding-solutions/[product]/page.tsx — and a static segment beats
    * the catch-all, so leaving them would have been a map nothing ever read.
    */
+  /*
+   * DEAD, and left here only so it is not re-added. app/industries/page.tsx is
+   * a static route, a static segment beats the catch-all, and that route is
+   * gated to Labs — so /industries answers 404 on Capital and never reaches
+   * this map. Same trap as `about` below.
+   */
   industries: 'Industries',
   'industries/food-business': 'Food Business',
   'industries/construction-business': 'Construction Business',
+
+  /*
+   * Added when the footer gained an About Us column. NOT `about`: that path is
+   * a static route belonging to the Labs deployment, and a static segment beats
+   * the catch-all, so /about on Capital would 404 rather than land here.
+   *
+   * It is a heading and nothing else, and it should not stay that way — this is
+   * the one link in the new footer with no content behind it.
+   */
+  'about-us': 'About Us',
 };
 
 /** Footer policy row. Every one of these is a real, live page. */

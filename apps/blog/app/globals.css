@@ -2197,8 +2197,66 @@
     --ft-ink: #ffffff;
     --ft-muted: #bcccea;
     --ft-subtle: #9fb4dd;
-    --ft-accent: var(--dl-pop);
+    /*
+     * GOLD, not the brand cyan. Denis asked for the column headings to be gold,
+     * and --ft-accent is the only thing in this footer that reads as an accent,
+     * so re-pointing it here catches all four without a class on each. Gold on
+     * the navy is 6.03:1.
+     */
+    --ft-accent: var(--dl-gold);
     --ft-line: rgba(255, 255, 255, 0.16);
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * The CTA card at the head of the footer.
+   *
+   * A dark card on a white section, which is the shape of the reference Denis
+   * sent: copy on the left, button on the right, the brand mark showing through
+   * as texture. It is NOT the full-bleed navy band it replaced — the white
+   * section around it is what makes it read as a card.
+   *
+   * THE SCRIM IS A LEFT-TO-RIGHT RAMP, not a flat wash, because Denis asked for
+   * the overlay to sit on the left where the text is. The artwork's marks are
+   * far from flat — its brightest pixel is 0.53 relative luminance against a
+   * ground of 0.038 — so text anywhere on it needs cover, and how much depends
+   * on what sits there:
+   *
+   *   left  0.96   the heading and body, and the pattern all but gone
+   *   right 0.66   the button and the line under it, pattern clearly visible
+   *
+   * 0.66 IS A FLOOR, NOT A PREFERENCE, and what sets it is the button rather
+   * than any text. Measured against the brightest pixel in the artwork's right
+   * half: white is 6.83 there and would survive 0.55, but the gold fill's own
+   * edge against the card is 2.96 at 0.62 and 3.20 at 0.66, and a control has
+   * to clear 3:1 against its surround to read as one.
+   *
+   * It was 0.74, because --ft-muted needs about 0.72 to clear 4.5 and the line
+   * under the button was muted. Making that one line white instead bought the
+   * artwork most of what the scrim was taking from it.
+   *
+   * `cover` rather than the footer pattern's `repeat`: this is one card of
+   * roughly fixed proportions, not a region whose height doubles between phone
+   * and desktop, so scaling the marks with it is the intended behaviour.
+   */
+  .dl-cta-card {
+    background-color: var(--dl-deep);
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(11, 45, 114, 0.96) 0%,
+        rgba(11, 45, 114, 0.94) 46%,
+        rgba(11, 45, 114, 0.74) 68%,
+        rgba(11, 45, 114, 0.66) 100%
+      ),
+      url('/marketing/cta-card.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
 
     color: var(--ft-ink);
   }
@@ -2309,51 +2367,63 @@
 }
 
 /*
- * The FAQ rows, closed.
+ * The FAQ rows: navy header, pale answer.
  *
- * Denis asked for the retracted banner to be dark blue, so a shut row is a
- * solid navy bar and an open one is the pale card it always was. That gives the
- * list a state you can read from across the page without looking at the little
- * +/- glyph: navy means shut, pale means open.
+ * Denis asked for the bar to stay dark blue once a row is open, so the navy
+ * moved off the <details> and onto the <summary>, which is the bar itself. A
+ * shut row is therefore navy end to end (a shut <details> IS its summary) and
+ * an open one is a navy header over the pale card the answer always had.
  *
- * It paints the <details> rather than the <summary> because a shut <details> IS
- * its summary — one box, no inner edge to get the radius wrong on — and because
- * the rule then has somewhere to re-point the tokens the row's own markup
- * reads. The heading takes --ft-ink and the glyph takes --ft-accent, so both
- * follow the ground without the shared component knowing this rule exists.
+ * `overflow: hidden` is what lets the summary be a plain rectangle: the row's
+ * 16px radius lives on the <details>, and without clipping the navy would sit
+ * square-cornered inside it. Clipping also means the radius stays correct in
+ * both states without a rule that knows which state it is in.
  *
- * White on the navy is 12.86:1. The glyph goes to the brand cyan, 6.12:1 here
- * against 2.10:1 if it had kept the teal tuned for the white card — the same
- * correction the blog list's Read More button needs for the same reason.
+ * The border goes navy too. A grey hairline around a navy bar reads as a mistake
+ * when the row is shut; navy makes it vanish there and frame the card when open.
+ *
+ * WHY THE TOKENS ARE RE-POINTED ON THE SUMMARY AND NOT THE ROW. The heading
+ * takes --ft-ink and the glyph takes --ft-accent shut and --ft-muted open, so
+ * all three have to be the dark-ground values inside the bar — but the answer
+ * below takes --ft-muted too, and it is on the pale card, where #BCCCEA would be
+ * 1.3:1. Scoping to `> summary` is the whole difference between those two.
+ *
+ *   white on navy     12.86      the question
+ *   #0ac4e0 on navy    6.12      the + glyph, shut
+ *   #bcccea on navy    7.94      the - glyph, open
  *
  * Unlayered, like every rule in this block: the class list it is overriding is
  * Tailwind utilities, and the utilities layer outranks @layer components.
  */
-.dl-surface .ft-faq-item:not([open]) {
-  background-color: var(--dl-deep);
+.dl-surface .ft-faq-item {
+  overflow: hidden;
   border-color: var(--dl-deep);
+}
+
+.dl-surface .ft-faq-item > summary {
+  background-color: var(--dl-deep);
 
   --ft-ink: #ffffff;
   --ft-accent: var(--dl-pop);
-
-  /*
-   * The answer's tokens, which nothing paints today: a shut row's content is
-   * laid out but not rendered. They are here for the day this list gets an
-   * animated disclosure — closing, the attribute drops before the content
-   * finishes collapsing, so for those frames the answer IS on the navy.
-   * Without these it would flash #45557F on #0B2D72, which is 1.75:1.
-   */
   --ft-muted: #bcccea;
-  --ft-subtle: #9fb4dd;
+}
+
+/* The bar lightens under the pointer — the one hover on the page that moves the
+   ground rather than the text, because white on navy has nowhere to go. */
+.dl-surface .ft-faq-item > summary:hover {
+  background-color: #123a8c;
 }
 
 /*
- * A shut row lightens slightly under the pointer. `--ft-ink` stays white, so
- * this is the one hover on the page that moves the ground instead of the text.
+ * The column beside the list, pinned to the top.
+ *
+ * Shared markup centres it, which is right on the dark site where it carries a
+ * paragraph and a button under the heading. Daylight renders it without those
+ * (see the `blurb` prop), so an icon and two lines of heading were floating in
+ * the middle of a column as tall as seven accordion rows.
  */
-.dl-surface .ft-faq-item:not([open]):hover {
-  background-color: #123a8c;
-  border-color: #123a8c;
+.dl-surface .ft-faq-aside {
+  justify-content: flex-start;
 }
 
 /*

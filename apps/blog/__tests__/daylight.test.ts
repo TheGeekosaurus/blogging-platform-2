@@ -196,7 +196,14 @@ describe("the preview route is kept out of the index", () => {
 describe("the shared components only gained markers", () => {
   const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
 
-  it.each(["ft-avatar", "nc-cta", "ft-chip", "ft-ghost", "ft-faq-item"])(
+  it.each([
+    "ft-avatar",
+    "nc-cta",
+    "ft-chip",
+    "ft-ghost",
+    "ft-faq-item",
+    "ft-faq-aside",
+  ])(
     "%s is styled only under .dl-surface",
     (marker) => {
       const rules = [
@@ -228,9 +235,18 @@ describe("the shared components only gained markers", () => {
   });
 
   it("Daylight is the only caller that asks for it", () => {
-    expect(read("daylight/home.tsx")).toContain("<Faq exclusive />");
-    // The dark homepage renders the same section with no prop at all.
+    expect(read("daylight/home.tsx")).toContain("<Faq exclusive blurb={false} />");
+    // The dark homepage renders the same section with no props at all.
     expect(read("ft/home-v2.tsx")).toContain("<Faq />");
+  });
+
+  /*
+   * `blurb` defaults ON for the same reason `exclusive` defaults off: the
+   * paragraph and the Ask a Question button are on the live site today, and a
+   * default of false would delete them from it.
+   */
+  it("keeps the FAQ blurb unless a caller drops it", () => {
+    expect(read("ft/shared-sections.tsx")).toContain("blurb = true");
   });
 
   it("the CTA marker adds no colour of its own in the component", () => {
@@ -238,5 +254,118 @@ describe("the shared components only gained markers", () => {
     // gold and the white live in `styles`, and this marker must not join them.
     const cta = read("cta-button.tsx");
     expect(cta).toContain("'nc-cta inline-block");
+  });
+});
+
+/**
+ * The header dropdowns.
+ *
+ * NAV is shared with the dark header, so the `icon` keys landed in brand.ts —
+ * data both designs can see, which only this one draws. These tests hold the
+ * two halves together: every entry has a key, and every key has a mark.
+ */
+describe("the Daylight dropdowns", () => {
+  const header = read("daylight/site-header.tsx");
+  const brand = readFileSync(join(marketing, "brand.ts"), "utf8");
+
+  it("gives every dropdown entry an icon key", () => {
+    /*
+     * Parsed from the source rather than by importing NAV, because brand.ts
+     * pulls in next/image transitively through the module graph this file
+     * already reads as text elsewhere. A child is any object literal with an
+     * href under /funding-solutions/ or /industries/ — the two dropdowns.
+     */
+    const children = [
+      ...brand.matchAll(/\{[^{}]*href: '\/(?:funding-solutions|industries)\/[^']*'[^{}]*\}/g),
+    ].map(([entry]) => entry);
+
+    expect(children.length).toBe(7);
+    for (const entry of children) {
+      expect(entry, `${entry} has no icon key`).toMatch(/icon: '[a-z-]+'/);
+    }
+  });
+
+  it("maps every icon key the nav uses", () => {
+    const keys = [...brand.matchAll(/icon: '([a-z-]+)'/g)].map(([, k]) => k ?? "");
+    const mapped = header.slice(
+      header.indexOf("const NAV_ICONS = {"),
+      header.indexOf("} as const;", header.indexOf("const NAV_ICONS = {")),
+    );
+    for (const key of new Set(keys)) {
+      expect(mapped, `NAV_ICONS has no entry for '${key}'`).toContain(key);
+    }
+  });
+
+  /*
+   * Denis asked for the reference's layout without its section headings. They
+   * are easy to reintroduce by reflex, since every other panel-like thing on
+   * the page has a label above it.
+   */
+  it("prints no section heading over a dropdown list", () => {
+    const panel = header.slice(header.indexOf("{item.children.map"));
+    expect(panel).not.toMatch(/uppercase/);
+  });
+
+  /*
+   * The CTA band must not carry the reference's ceiling, which is a different
+   * company's limit. Ours is stated site-wide as $15,000 to $5,000,000.
+   */
+  it("quotes our funding range and not the reference's", () => {
+    const copy = readFileSync(join(marketing, "daylight", "content.ts"), "utf8")
+      .replace(/\/\*[\s\S]*?\*\//g, " ");
+    expect(copy).toContain("$15,000 to $5,000,000");
+    expect(copy).not.toContain("$600,000");
+  });
+});
+
+/**
+ * The footer's CTA card and its columns.
+ *
+ * Denis asked for the card to travel with the footer, so it lives in the footer
+ * component rather than on the homepage. These tests hold the two properties
+ * that are easy to lose: the copy stays copy the page already says, and the
+ * columns do not grow a link that 404s.
+ */
+describe("the Daylight footer", () => {
+  const footer = read("daylight/site-footer.tsx");
+  const copy = read("daylight", "content.ts").replace(/\/\*[\s\S]*?\*\//g, " ");
+
+  it("renders the CTA inside the footer, not the page", () => {
+    expect(footer).toContain("dl-cta-card");
+    expect(read("daylight/home.tsx")).not.toContain("dl-cta-card");
+  });
+
+  /*
+   * A CTA under every page is the worst place to invent a claim, so all three
+   * of its lines are lifted from copy that already appears elsewhere.
+   */
+  it("says nothing the page does not already say", () => {
+    const shared = read("ft", "content.ts");
+    const difference = copy;
+    expect(difference).toContain(
+      "Speak with an in-house loan advisor who works your file from application to funding.",
+    );
+    expect(difference).toContain("Soft credit check only. No obligation.");
+    // The two halves of that reassurance are the hero card's own pair.
+    const slider = read("daylight/amount-slider.tsx");
+    expect(slider).toContain("Soft credit check only");
+    expect(slider).toContain("No obligation");
+    // And the heading is the band's, which the shared footer still prints.
+    expect(shared.length).toBeGreaterThan(0);
+  });
+
+  /*
+   * /industries is a static route gated to the Labs deployment, so it answers
+   * 404 on Capital. The column heading must stay unlinked until that changes.
+   */
+  it("does not link the Industries heading", () => {
+    const col = footer.slice(footer.indexOf('heading="Industries"'));
+    expect(col.slice(0, 80)).not.toContain("href=");
+  });
+
+  it("gives every other column heading its real page", () => {
+    expect(footer).toContain('heading="Funding Solutions" href="/funding-solutions"');
+    expect(footer).toContain('heading="About Us"');
+    expect(footer).toContain('href="/about-us"');
   });
 });
