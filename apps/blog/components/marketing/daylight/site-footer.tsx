@@ -20,16 +20,16 @@ import { CONTAINER, CtaButton } from './primitives';
  * this file must not paraphrase, tighten or shorten any of it. If any of it
  * changes, it changes in both footers together.
  *
- * IT SITS ON THE NAVY TILE, so the page has a floor. A white footer under a
- * white page is the page simply running out, which is the one thing the dark
- * design never had to think about; it was the pale band tone until Denis sent
- * the tiled mark, and `.dl-footer` in globals.css now carries both the artwork
- * and the token inversion that a dark ground needs.
+ * IT SITS ON FLAT NAVY, so the page has a floor. A white footer under a white
+ * page is the page simply running out, which is the one thing the dark design
+ * never had to think about. It was the pale band tone, then briefly the tiled
+ * Nanotom mark, which Denis took off; `.dl-footer` in globals.css is now the
+ * ground colour and the token inversion a dark ground needs.
  *
  * Which is also why the wordmark here is LOCAL_IMAGES.logo, the light original,
  * where the header still uses `logoDark`. That is not a reversal of "leave the
  * logo black": `logoDark` is the ink wordmark drawn for a white ground, and the
- * ground under this one is navy again. Same rule, other side of it.
+ * ground under this one is navy. Same rule, other side of it.
  *
  * WHAT IS DELIBERATELY MISSING: the /get-funded check. The shared footer wraps
  * its CTA band in a client component so the band can hide itself on the

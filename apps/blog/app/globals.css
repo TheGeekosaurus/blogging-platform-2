@@ -2167,67 +2167,33 @@
   }
 
   /*
-   * The footer, on the tiled Nanotom mark.
+   * The footer, on flat navy.
    *
-   * THE ARTWORK IS A TILE, not a picture. Denis supplied a 1920x1080 PNG of the
-   * mark repeated on navy; measuring it found a period of 186x326, so what
-   * ships is one period cut out of it (`footer-pattern.png`, 8KB against the
-   * source's 776KB) laid down with `repeat`. That is not only a size win: a
-   * single frame stretched with `cover` would scale with the footer, and the
-   * footer is roughly twice as tall on a phone as on a desktop — the marks
-   * would have been a third of the width of a 390px screen. A tile is drawn at
-   * its own size on every viewport.
+   * It carried the tiled Nanotom mark for one round and Denis took it off, so
+   * what is left is the token inversion — the same two-level arrangement as
+   * `.dl-deep`/`.dl-card`, except nothing inside takes the tokens back, because
+   * the whole footer is on the navy.
    *
-   * Cutting the tile was measured, not eyeballed: across the two seams of a 3x3
-   * layup the step is 0.06 and 0.00 grey levels, against a mean step of 0.40
-   * and 0.33 between ordinary neighbouring columns and rows inside the pattern.
-   * The join is quieter than the texture it joins.
+   * It exists as a class rather than Tailwind utilities on the element for that
+   * reason: the footer's markup names --ft-ink, --ft-muted, --ft-subtle and
+   * --ft-line throughout, so re-pointing four variables in one place inverts
+   * every line of it without touching a single className.
    *
-   * The tile's flat ground was #0C2D73 and the token is #0B2D72, so the whole
-   * tile was shifted one level down on red and blue when it was cut. The
-   * background-color underneath is now exactly the artwork's own ground, which
-   * is what makes the fallback invisible rather than nearly invisible.
+   * Ratios against the ground:
+   *
+   *   ink     #ffffff   12.86
+   *   muted   #bcccea    7.94
+   *   subtle  #9fb4dd    6.15
+   *   accent  #0ac4e0    6.12
+   *
+   * --ft-accent is the brand cyan, and this is the one place on the page it
+   * gets to be TEXT. It is 2.10:1 on white, which is why the light surface
+   * spends three separate tokens keeping it out of body copy; on navy it is
+   * 6.12:1 and does the job it was picked for.
    */
   .dl-footer {
     background-color: var(--dl-deep);
 
-    /*
-     * A FLAT SCRIM OVER THE TILE, and this one is about the legal block.
-     *
-     * The marks are not flat: each has a lit bevel face, and the lightest pixel
-     * in the tile is 0.0697 against the ground's 0.0316. Text is placed by the
-     * layout, not by the pattern, so any run can land on one — and measured
-     * against that worst pixel the 12px legal text came out at 4.20:1 and the
-     * cyan column headings at 4.17:1, both under the 4.5 floor.
-     *
-     * 45% of the ground over the tile lifts those to 4.98 and 4.95 while
-     * costing the pattern a little under half its amplitude, which it can
-     * afford — it is a watermark, and the alternative was lightening two tokens
-     * away from the values the rest of the page uses. Same device as `.dl-art`
-     * above, flat rather than a gradient because there is no one band to cover.
-     */
-    background-image: linear-gradient(rgba(11, 45, 114, 0.45), rgba(11, 45, 114, 0.45)),
-      url('/marketing/footer-pattern.png');
-    background-repeat: repeat;
-
-    /*
-     * The tokens, inverted for a dark ground — the same two-level arrangement
-     * as `.dl-deep`/`.dl-card`, except nothing inside takes them back, because
-     * the whole footer is on the navy.
-     *
-     * Ratios against the flat ground, and in brackets against that worst lit
-     * bevel pixel with the scrim on:
-     *
-     *   ink     #ffffff   12.86  (10.44)
-     *   muted   #bcccea    7.94  ( 6.44)
-     *   subtle  #9fb4dd    6.15  ( 4.98)
-     *   accent  #0ac4e0    6.12  ( 4.95)
-     *
-     * --ft-accent is the brand cyan here, and this is the one place on the page
-     * it gets to be TEXT. It is 2.10:1 on white, which is why the light surface
-     * spends three separate tokens to keep it out of body copy; on navy it is
-     * 6.12:1 and does the job it was picked for.
-     */
     --ft-ink: #ffffff;
     --ft-muted: #bcccea;
     --ft-subtle: #9fb4dd;
