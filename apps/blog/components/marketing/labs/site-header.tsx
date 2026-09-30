@@ -1,6 +1,15 @@
+import type { CSSProperties } from 'react';
 import Link from 'next/link';
 
 import { LOGO, NAV, type NavItem } from './brand';
+
+/*
+ * The nav, split the way the opening sequence moves it: the CTA travels with
+ * the bar, the rest wait for it. Derived rather than written out, so NAV stays
+ * the only list.
+ */
+const MENU_ITEMS = NAV.filter((item) => !item.cta);
+const CTA_ITEM = NAV.find((item) => item.cta);
 
 /**
  * Nanotom Labs' header.
@@ -20,7 +29,21 @@ import { LOGO, NAV, type NavItem } from './brand';
  *
  * The bar is `sticky`, not `fixed`: fixed would take the header out of flow
  * and require the page below to reserve its height, which is exactly the kind
- * of duplicated constant that drifts.
+ * of duplicated constant that drifts. It is also an ISLAND — inset from all
+ * three edges and rounded — rather than a bar attached to the top of the page,
+ * which is what lets it shrink to a centred pill for the opening sequence.
+ *
+ * THAT SEQUENCE IS PURE CSS, in globals.css under `prefers-reduced-motion`.
+ * The bar opens from a pill holding only the wordmark, the CTA rides out from
+ * behind the logo as it widens, and the menu items arrive afterwards one at a
+ * time from the right. The only thing this file contributes is the marker
+ * classes and `--nl-i`, the per-item index — counted from the right, because
+ * that is the direction the run travels.
+ *
+ * No state, no effect, no client boundary: this component is in the root
+ * layout, so making it interactive would ship a bundle to every route on the
+ * site including the blog, and the animation needs nothing that CSS delays do
+ * not already give.
  */
 
 /**
@@ -77,7 +100,12 @@ function NavLink({ item }: { item: NavItem }) {
 
 function Wordmark() {
   return (
-    <Link href="/" className="flex shrink-0 items-center" aria-label={LOGO.alt}>
+    <Link
+      href="/"
+      /* `nl-header-mark` only raises it above the CTA — see globals.css. */
+      className="nl-header-mark flex shrink-0 items-center"
+      aria-label={LOGO.alt}
+    >
       {/*
         * A plain <img>, hotlinked — see LOGO in ./brand.ts for why it is not
         * next/image and not committed to the repo.
@@ -109,22 +137,52 @@ function Wordmark() {
 export function LabsHeader() {
   return (
     <div className="sticky top-0 z-40 px-4 pt-4 lg:px-[50px] lg:pt-[30px]">
-      <header className="rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
+      <header className="nl-header-bar rounded-[var(--nl-radius-card-lg)] border border-[var(--nl-line)] bg-[var(--nl-card)]/95 backdrop-blur">
         <div className="flex items-center justify-between gap-4 px-5 py-3 lg:px-6 lg:py-3">
           <Wordmark />
 
-          {/* Desktop: the full bar. */}
-          <nav aria-label="Primary" className="hidden items-center gap-4 xl:flex">
-            {NAV.map((item) => (
-              <NavLink key={item.label} item={item} />
-            ))}
-          </nav>
+          {/*
+            Desktop: the full bar.
+
+            The CTA is rendered OUTSIDE the <nav> list because the two move at
+            different times — it is out and visible for the whole opening,
+            while the menu items wait for the bar to finish. Both still come
+            from the one NAV array, so nothing is written twice and an item
+            added there still appears here.
+
+            `--nl-i` counts from the right: the rightmost menu item is 0 and
+            leads the run, so the sequence reads right to left.
+          */}
+          <div className="hidden items-center gap-4 xl:flex">
+            <nav aria-label="Primary" className="nl-header-nav flex items-center gap-4">
+              {MENU_ITEMS.map((item, i) => (
+                <span
+                  key={item.label}
+                  className="nl-header-item inline-flex"
+                  style={{ '--nl-i': MENU_ITEMS.length - 1 - i } as CSSProperties}
+                >
+                  <NavLink item={item} />
+                </span>
+              ))}
+            </nav>
+
+            {CTA_ITEM ? (
+              <span className="nl-header-cta inline-flex">
+                <NavLink item={CTA_ITEM} />
+              </span>
+            ) : null}
+          </div>
 
           {/*
            * Mobile: a <details> drawer. `group` on the element lets the
            * summary's icon respond to [open] without a class toggle in JS.
            */}
-          <details className="group relative xl:hidden">
+          {/*
+            Below xl the whole menu is this one button, so it takes the item
+            animation with index 0 — it arrives in the same beat the rightmost
+            desktop item would. The drawer inside it is untouched.
+          */}
+          <details className="nl-header-item group relative xl:hidden">
             <summary
               className="nl-label flex cursor-pointer list-none items-center gap-2 rounded-[var(--nl-radius-control)] border border-[var(--nl-line)] px-4 py-2 text-xs text-[var(--nl-ink)] [&::-webkit-details-marker]:hidden"
               aria-label="Open menu"
