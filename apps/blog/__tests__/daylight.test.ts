@@ -196,7 +196,14 @@ describe("the preview route is kept out of the index", () => {
 describe("the shared components only gained markers", () => {
   const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
 
-  it.each(["ft-avatar", "nc-cta", "ft-chip", "ft-ghost", "ft-faq-item"])(
+  it.each([
+    "ft-avatar",
+    "nc-cta",
+    "ft-chip",
+    "ft-ghost",
+    "ft-faq-item",
+    "ft-faq-aside",
+  ])(
     "%s is styled only under .dl-surface",
     (marker) => {
       const rules = [
@@ -228,9 +235,18 @@ describe("the shared components only gained markers", () => {
   });
 
   it("Daylight is the only caller that asks for it", () => {
-    expect(read("daylight/home.tsx")).toContain("<Faq exclusive />");
-    // The dark homepage renders the same section with no prop at all.
+    expect(read("daylight/home.tsx")).toContain("<Faq exclusive blurb={false} />");
+    // The dark homepage renders the same section with no props at all.
     expect(read("ft/home-v2.tsx")).toContain("<Faq />");
+  });
+
+  /*
+   * `blurb` defaults ON for the same reason `exclusive` defaults off: the
+   * paragraph and the Ask a Question button are on the live site today, and a
+   * default of false would delete them from it.
+   */
+  it("keeps the FAQ blurb unless a caller drops it", () => {
+    expect(read("ft/shared-sections.tsx")).toContain("blurb = true");
   });
 
   it("the CTA marker adds no colour of its own in the component", () => {
