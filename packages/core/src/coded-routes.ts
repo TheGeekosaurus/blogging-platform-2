@@ -89,6 +89,21 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
    * the light design is either promoted onto '/' or dropped.
    */
   { path: 'daylight', title: 'Daylight (homepage preview)', index: false },
+  /*
+   * The DSCR calculator. index: TRUE, unlike `daylight` above — this is its own
+   * content at its own URL, not the homepage at a second one, and a free tool
+   * for a term people search is exactly what a sitemap should carry.
+   *
+   * The page says in as many words that Nanotom does not offer DSCR loans yet,
+   * so indexing it does not advertise a product that does not exist. If that
+   * ever stops being true on the page, it is the page's copy that changes, not
+   * this flag.
+   */
+  {
+    path: 'calculators/dscr-calculator',
+    title: 'DSCR Calculator For Investment Property',
+    index: true,
+  },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.
