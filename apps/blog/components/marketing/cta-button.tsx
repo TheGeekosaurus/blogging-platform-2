@@ -32,6 +32,26 @@ export function CtaButton({
       ? 'bg-[var(--color-gold)] text-white hover:bg-[var(--color-gold-hover)]'
       : 'border-2 border-white text-white hover:bg-white hover:text-[var(--color-brand)]';
 
+  /*
+   * A plain anchor when the href is not an in-app route.
+   *
+   * next/link is for navigation inside the app; handing it a `tel:` or
+   * `mailto:` is handing a URI scheme to a router that has no use for it. The
+   * FAQ's call button already makes this point and solves it by copying this
+   * component's class list onto an <a> — which is how a second copy of the
+   * brand button gets created, and then drifts.
+   *
+   * Additive: every caller today passes CTA_HREF, so this branch is inert on
+   * the live site and exists for the callers that dial.
+   */
+  if (!href.startsWith('/')) {
+    return (
+      <a href={href} className={`${base} ${styles} ${className}`}>
+        {children}
+      </a>
+    );
+  }
+
   return (
     <Link href={href} className={`${base} ${styles} ${className}`}>
       {children}
