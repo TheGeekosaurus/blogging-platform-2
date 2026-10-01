@@ -30,6 +30,8 @@
  * to keep in step.
  */
 
+import { FUNDING_PROGRAMS, type FundingSlug } from '../brand';
+
 /** Every "Get Funded" on the page. */
 export const APPLY_LABEL = 'Get Funded';
 
@@ -58,7 +60,7 @@ export const HERO = {
       icon: 'coins',
       title: 'Explore Funding Options',
       subtitle: 'Find Your Fit',
-      note: '$15K to $5M across 6 funding types',
+      note: '$15K to $5M across 9 funding types',
       href: '/funding-solutions',
     },
     {
@@ -124,136 +126,352 @@ export const HOW_IT_WORKS = {
   ],
 } as const;
 
+/**
+ * THE NINE CORE FUNDING OPTIONS, as the homepage cards and the
+ * /funding-solutions list.
+ *
+ * ⚠ READ THE NOTE ON FIGURES BELOW BEFORE CHANGING A NUMBER HERE. ⚠
+ *
+ * Built FROM FUNDING_PROGRAMS rather than written as its own list, which is the
+ * whole point of this rewrite. Before it, four surfaces each kept their own
+ * idea of what the business funds — see the note above FUNDING_PROGRAMS in
+ * ../brand — and the homepage led with two named programs from one lender where
+ * the menu listed categories. Keying the copy to the slug makes that
+ * impossible: a program with no card does not compile, and a card with no
+ * program has nowhere to go.
+ *
+ * The CTA href is the program's, not the card's. Four of the nine have a
+ * dedicated page; the other five link to their own section of
+ * /funding-solutions, for the route-segment reason set out in ../brand. Neither
+ * fact is visible here on purpose — this file is copy, and where a product
+ * lives is navigation.
+ *
+ * WHAT LEFT. The first two cards used to be "The Ultimate Revolving Line of
+ * Credit" and "Pay Only The Interest For Up To A Year" — BANKROLL's two
+ * programs, carrying that lender's real and verified terms. Denis called them
+ * "just specifications", which is exactly right: they are one lender's version
+ * of a line of credit, not a kind of funding a business shops for. Their terms
+ * are still live at /funding-solutions/line-of-credit and
+ * /funding-solutions/revenue-based-financing and nothing here deletes them.
+ */
+
+/* ---------------------------------------------------------------------------
+ * ⚠⚠ WHICH FIGURES BELOW ARE REAL ⚠⚠
+ *
+ * This matters more than it used to, because the list went from four products
+ * to nine and only two of the four were ever verified.
+ *
+ * VERIFIED — the business's own programs:
+ *   line-of-credit          $1,500,000 limit, 36-month terms, no payoff fee.
+ *                           BANKROLL's actual sheet.
+ *
+ * PUBLISHED BY A THIRD PARTY — not ours to set, and checkable:
+ *   sba-loans               The 7(a) ceiling, the maturity limits, the rate cap
+ *                           and the Express ceiling are the SBA's published
+ *                           program rules, not a range invented here. They are
+ *                           the SAFEST numbers on this page. They are also the
+ *                           reason this card says "weeks, not hours" — an SBA
+ *                           file genuinely does not fund the same day, and the
+ *                           rest of the site's same-day promise must not be
+ *                           read onto it.
+ *
+ * INDUSTRY-STANDARD RANGES — Denis asked for these explicitly on 2026-10-01
+ * when the alternative was nine menu items pointing at empty pages. They are
+ * how each category is normally sized and written, chosen to sit inside limits
+ * this site already states ($15,000 to $5,000,000 in the hero, 551 FICO and 30
+ * days in business in REQUIREMENTS), so nothing contradicts anything. That
+ * makes them plausible. It does not make them Nanotom's:
+ *
+ *   working-capital       equipment-financing     merchant-cash-advance
+ *   business-loans        inventory-financing     receivables-financing
+ *   bridge-loans
+ *
+ * These are advertised terms for credit products, on pages that take live
+ * applications. Check every one against the real lender sheets and cut anything
+ * that cannot be honoured.
+ *
+ * ONE FIGURE IS DELIBERATELY UNFLATTERING. The merchant cash advance card says
+ * in its own last point that it is the most expensive money on the page and to
+ * compare it against a term loan first, and its stat row on /funding-solutions
+ * spends a box saying the price is a factor rate rather than an APR. Neither is
+ * a hedge to be tidied away in a copy pass: an MCA is the one product here
+ * whose cost is not a rate, and a reader comparing it against the other eight
+ * without knowing that will misjudge it by a wide margin.
+ * ------------------------------------------------------------------------- */
+
+type FundingCard = {
+  readonly title: string;
+  readonly body: string;
+  /** Each point leads with a bolded label, so they are split rather than parsed. */
+  readonly points: readonly { readonly label: string; readonly body: string }[];
+  /** An italic aside beside the CTA. Null on every card today. */
+  readonly tag: string | null;
+};
+
+/**
+ * Keyed by slug, so TypeScript requires exactly the nine in FUNDING_PROGRAMS —
+ * no more, no fewer. Adding a program without copy, or copy without a program,
+ * is a build failure rather than a page that silently shows eight.
+ */
+const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
+  'working-capital': {
+    title: 'Working Capital When Timing Is Everything',
+    body:
+      'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory ' +
+      'and the gaps between invoicing and getting paid. Approval looks at how your business ' +
+      'actually performs, not only at your credit file.',
+    points: [
+      { label: 'Right-Sized Amounts', body: 'From $15,000 to $2,000,000' },
+      { label: 'Short and Clear', body: 'Terms from 3 to 36 months, no open-ended balance' },
+      {
+        label: 'Payments That Fit',
+        body: 'Daily, weekly or monthly, matched to your cash cycle',
+      },
+      { label: 'Revenue-Led Underwriting', body: 'Recent deposits carry more weight than FICO' },
+      { label: 'Early Payoff Discounts', body: 'Settle ahead of schedule and pay less interest' },
+      { label: 'Same-Day Funding', body: 'Available once your file is complete' },
+    ],
+    tag: null,
+  },
+
+  /*
+   * THE CATEGORY, not BANKROLL. This card used to be "The Ultimate Revolving
+   * Line of Credit" and named that lender in its first sentence, which is why
+   * the homepage and the menu read as two different companies. The figures are
+   * still BANKROLL's, because they are the line this business actually places
+   * and they are the only verified numbers on the page — what changed is that
+   * the card now describes what a line of credit IS, and the program's name and
+   * its specifics stay on /funding-solutions/line-of-credit.
+   */
+  'line-of-credit': {
+    title: 'A Credit Line That Refills As You Repay',
+    body:
+      'An approved limit you draw from, pay down, and draw from again — with interest ' +
+      'charged only on the balance you actually have out. The money is in place before you ' +
+      'need it, so a slow month does not start with an application.',
+    points: [
+      { label: 'Revolving Limit', body: 'Approvals up to $1,500,000, reusable as you repay' },
+      {
+        label: 'Interest On What You Use',
+        body: 'Nothing accrues on the part of the limit you leave alone',
+      },
+      { label: 'Draw On Demand', body: 'Funds move to your account without a new application' },
+      { label: 'Predictable Payments', body: 'Fixed weekly payments over terms up to 36 months' },
+      { label: 'No Early Payoff Fee', body: 'Clear the balance whenever it suits you' },
+      {
+        label: 'Open It Before You Need It',
+        body: 'Lines are easiest to approve while trading is good',
+      },
+    ],
+    tag: null,
+  },
+
+  /*
+   * The SBA's rules, not ours. Every figure here is published by the agency and
+   * can be checked against sba.gov; see the note above. The last point exists
+   * because the rest of this site promises a same-day decision and this is the
+   * one product where that is not true — leaving it out would make the site's
+   * general claim into a specific false one.
+   */
+  'sba-loans': {
+    title: 'The Longest Terms Available Anywhere',
+    body:
+      'Loans partly guaranteed by the U.S. Small Business Administration, which caps what a ' +
+      'lender may charge and allows terms no conventional product matches. The trade is ' +
+      'time: an SBA file takes weeks rather than hours, and asks for the paperwork to match.',
+    points: [
+      { label: 'Up To $5,000,000', body: "The 7(a) program's ceiling" },
+      {
+        label: 'Terms To 25 Years',
+        body: 'Ten years for working capital and equipment, twenty-five for real estate',
+      },
+      {
+        label: 'Capped Rates',
+        body: 'The SBA limits the spread a lender may add over the base rate',
+      },
+      { label: 'Less Cash Down', body: 'Usually less equity up front than a conventional loan' },
+      {
+        label: 'SBA Express',
+        body: 'Up to $500,000 on a shorter review, where speed matters more than size',
+      },
+      {
+        label: 'Weeks, Not Hours',
+        body: 'The one option here that is not a same-day decision — plan the timeline in',
+      },
+    ],
+    tag: null,
+  },
+
+  'equipment-financing': {
+    title: 'Equipment Financing That Pays for Itself',
+    body:
+      'Finance the machine, vehicle or system your business runs on and let it earn while ' +
+      'you pay for it. The equipment secures the loan, so approvals lean on what you are ' +
+      'buying rather than on the collateral you already own.',
+    points: [
+      { label: 'New or Used', body: 'Dealer, private-party and auction purchases all qualify' },
+      {
+        label: 'Application Only',
+        body: 'No financial statements required on most requests under $250,000',
+      },
+      { label: 'Terms to Match the Asset', body: 'Repayment from 12 to 84 months' },
+      {
+        label: 'Self-Collateralizing',
+        body: 'The equipment is the security — no blanket lien on other assets',
+      },
+      { label: 'Section 179 Eligible', body: 'Most financed equipment can be written off' },
+      { label: 'Fast Turnaround', body: 'Approvals in hours, funding often within two days' },
+    ],
+    tag: null,
+  },
+
+  /*
+   * The honest version. An MCA is the easiest money on this page to get and the
+   * most expensive to carry, and the single thing a borrower most often gets
+   * wrong is reading a factor rate as an interest rate. The last point says so
+   * in the card rather than in a footnote, and it should survive any copy pass
+   * that tries to make the nine read evenly.
+   */
+  'merchant-cash-advance': {
+    title: 'An Advance Against Sales You Have Not Made Yet',
+    body:
+      'Not a loan — a purchase of a slice of your future receipts, repaid automatically as a ' +
+      'share of what comes in. The payment rises and falls with the business, which is the ' +
+      'point, and the total cost is agreed up front rather than accruing.',
+    points: [
+      { label: 'Revenue-Led Approval', body: 'Recent deposits decide it; credit history rarely does' },
+      { label: 'Sized To Your Volume', body: 'From $5,000 to $500,000 against card and bank receipts' },
+      {
+        label: 'Repaid As A Share Of Sales',
+        body: 'A holdback of roughly 5% to 20% of daily takings',
+      },
+      { label: 'Slow Weeks Cost Less', body: 'The payment moves with revenue, not against it' },
+      { label: 'Funded In Days', body: 'Among the fastest options here once statements are in' },
+      {
+        label: 'Priced As A Factor, Not An APR',
+        body:
+          'A fixed total cost set before you sign. It is the most expensive money on this ' +
+          'page — compare it against a term loan first.',
+      },
+    ],
+    tag: null,
+  },
+
+  /*
+   * "Business Loans", not "Term Loans". Denis's list used the second name and
+   * he chose to keep the first, which is also the page that already exists at
+   * this slug — so the figures below are condensed from LOAN_PAGES'
+   * business-loans entry and must stay in step with it.
+   */
+  'business-loans': {
+    title: 'A Lump Sum Now, On Terms You Can Plan Around',
+    body:
+      'A fixed amount up front and a fixed schedule to repay it — the simplest way to fund ' +
+      'something whose cost you already know. The amount, the term and the payment are all ' +
+      'settled before you sign, so there is nothing to discover later.',
+    points: [
+      { label: 'Sized To The Job', body: 'From $15,000 to $5,000,000' },
+      { label: 'Terms To 60 Months', body: 'Longer than most revenue-led options run' },
+      { label: 'The Payment Does Not Move', body: 'Fixed weekly or monthly, first to last' },
+      {
+        label: 'Nothing Left Open',
+        body: 'The balance only goes down — no facility to manage afterwards',
+      },
+      {
+        label: 'Trading History Counts',
+        body: 'Approval leans on how the business performs, not on FICO alone',
+      },
+      { label: 'Pay Ahead, Pay Less', body: 'Settling early reduces what the loan costs overall' },
+    ],
+    tag: null,
+  },
+
+  'inventory-financing': {
+    title: 'Buy The Stock Before The Season Needs It',
+    body:
+      'Funding secured by the goods it buys, so you can take a bulk price, cover a long lead ' +
+      'time, or fill the shelves ahead of a season without draining the account that pays ' +
+      'the staff.',
+    points: [
+      { label: 'The Stock Is The Security', body: 'The inventory itself collateralises the facility' },
+      { label: 'Scaled To Turnover', body: 'From $25,000 to $1,000,000' },
+      { label: 'Advance Against Cost', body: "Typically 50% to 80% of the inventory's cost" },
+      { label: 'Timed To Your Season', body: 'Terms from 3 to 24 months, matched to when stock sells' },
+      { label: 'Revolving Available', body: 'Repay as goods sell and draw again for the next order' },
+      {
+        label: 'Take The Bulk Price',
+        body: 'Volume discounts usually outrun what the facility costs',
+      },
+    ],
+    tag: null,
+  },
+
+  'receivables-financing': {
+    title: 'Get Paid Now For Invoices Due Later',
+    body:
+      'Your unpaid business-to-business invoices, advanced as cash instead of waiting out a ' +
+      '30-, 60- or 90-day term. The facility grows as your sales do, because the limit is ' +
+      'set by your receivables rather than by a fixed approval.',
+    points: [
+      { label: '80% To 90% Up Front', body: 'The balance, less the fee, lands when your customer pays' },
+      {
+        label: "Your Customer's Credit, Not Yours",
+        body: 'Underwriting looks hardest at who owes you the money',
+      },
+      {
+        label: 'A Limit That Grows',
+        body: 'More invoices means more available funding, with no new application',
+      },
+      { label: 'Priced Per 30 Days', body: 'Typically 1% to 3% of face value for each 30 days out' },
+      {
+        label: 'No New Debt On The Books',
+        body: 'You are advancing money already owed to you, not borrowing against it',
+      },
+      { label: 'B2B Only', body: 'It needs commercial invoices — consumer sales do not qualify' },
+    ],
+    tag: null,
+  },
+
+  'bridge-loans': {
+    title: 'Cover The Gap Between One Deal And The Next',
+    body:
+      'Short-term money for a timing problem rather than a cash flow one — a purchase that ' +
+      'must close before a sale completes, a refinance still in underwriting, a contract ' +
+      'that needs funding before the first payment arrives.',
+    points: [
+      { label: 'Closes Fast', body: 'Days, rather than the weeks a conventional facility takes' },
+      { label: '3 To 24 Months', body: 'Built to be repaid and retired, not carried' },
+      { label: 'Interest-Only Common', body: 'Keeps the monthly cost down until the exit lands' },
+      {
+        label: 'Secured Against An Asset',
+        body: 'Property, equipment or receivables carry the risk',
+      },
+      { label: 'Sized To The Gap', body: 'From $50,000 to $5,000,000' },
+      {
+        label: 'Needs A Clear Exit',
+        body:
+          'You are underwritten on how it gets repaid, so the sale, refinance or contract ' +
+          'has to be real and dated',
+      },
+    ],
+    tag: null,
+  },
+};
+
 export const FUNDING_OPTIONS = {
   label: 'The Nanotom Capital Advantage',
   heading: 'Funding Options Built To Work For You.',
-  cards: [
-    {
-      title: 'The Ultimate Revolving Line of Credit',
-      body:
-        "Get the financial flexibility your business demands with BANKROLL's " +
-        'industry-leading revolving credit line. Access up to $1,500,000 in capital with ' +
-        'the freedom to draw funds when you need them and pay down principal when cash ' +
-        'flow allows.',
-      /** Each point leads with a bolded label, so they are split rather than parsed. */
-      points: [
-        { label: 'Massive Credit Limits', body: 'Approvals up to $1,500,000' },
-        {
-          label: 'True Flexibility',
-          body: 'Unlimited draws and paydowns of $5,000+ during your 1-year revolving period',
-        },
-        { label: 'Predictable Payments', body: 'Fixed weekly payments over terms up to 36 months' },
-        {
-          label: 'Complete Control',
-          body: 'You decide when to borrow, how much to pay, and when to pay off',
-        },
-        { label: 'No Penalties', body: 'Early payoff available anytime without fees' },
-        {
-          label: 'Smart Financing',
-          body: 'Pay interest only on what you use, with no minimum finance charges',
-        },
-      ],
-      tag: 'Great for keeping funds on hand',
-      cta: { label: 'Learn More', href: '/funding-solutions/line-of-credit' },
-    },
-    {
-      title: 'Pay Only The Interest For Up To A Year',
-      body:
-        'Access up to $750,000 with the ultimate cash flow solution. Pay only interest for ' +
-        'up to one full year while enjoying unlimited access to additional funds through ' +
-        'your built-in line of credit.',
-      points: [
-        { label: 'Lower Entry Point', body: 'Start with just $50,000 (reduced from $150,000)' },
-        { label: 'Interest-Only Freedom', body: 'Pay only interest for up to 52 weeks' },
-        {
-          label: 'Built-In Line of Credit',
-          body: 'Unlimited draws of $25,000+ during your interest-only period',
-        },
-        {
-          label: 'Maximum Flexibility',
-          body: 'Take your initial loan in multiple draws across consecutive business days',
-        },
-        {
-          label: 'Safety Net Included',
-          body: 'Built-in rollover amortization option up to 2 years',
-        },
-        {
-          label: 'Smart Structure',
-          body: 'Your credit line equals the difference between your approval and initial draw',
-        },
-      ],
-      tag: null,
-      /*
-       * The interest-only product is the closest fit among the five funding
-       * types in the nav; there is no dedicated page for it yet.
-       */
-      cta: { label: 'Learn More', href: '/funding-solutions/revenue-based-financing' },
-    },
-
-    /*
-     * TERMS NOT YET CONFIRMED AGAINST NANOTOM'S LENDER SHEETS.
-     *
-     * These two replaced the lorem ipsum placeholders. They are the two funding
-     * types the nav already promises that the carousel did not cover — the first
-     * two cards are the line of credit and the interest-only product — so the
-     * four now map onto four real /funding-solutions pages rather than repeating.
-     *
-     * The FIGURES, however, are industry-standard ranges taken from how the
-     * category is normally written and sized, NOT from Nanotom's own programs.
-     * Every number below is deliberately inside limits this site already states
-     * elsewhere — the hero's "$15K to $5M", the 551 FICO and 30-days-in-business
-     * minimums in REQUIREMENTS — so nothing here contradicts the page. That makes
-     * them plausible, not verified.
-     *
-     * These are advertised terms for consumer-facing credit products on a page
-     * that collects live applications. Check each figure against the real program
-     * before this is treated as finished copy, and cut anything that cannot be
-     * honoured. The first two cards are BANKROLL's actual terms and are safe.
-     */
-    {
-      title: 'Equipment Financing That Pays for Itself',
-      body:
-        'Finance the machine, vehicle or system your business runs on and let it earn while ' +
-        'you pay for it. The equipment secures the loan, so approvals lean on what you are ' +
-        'buying rather than on the collateral you already own.',
-      points: [
-        { label: 'New or Used', body: 'Dealer, private-party and auction purchases all qualify' },
-        {
-          label: 'Application Only',
-          body: 'No financial statements required on most requests under $250,000',
-        },
-        { label: 'Terms to Match the Asset', body: 'Repayment from 12 to 84 months' },
-        {
-          label: 'Self-Collateralizing',
-          body: 'The equipment is the security — no blanket lien on other assets',
-        },
-        { label: 'Section 179 Eligible', body: 'Most financed equipment can be written off' },
-        { label: 'Fast Turnaround', body: 'Approvals in hours, funding often within two days' },
-      ],
-      tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions/equipment-financing' },
-    },
-    {
-      title: 'Working Capital When Timing Is Everything',
-      body:
-        'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory ' +
-        'and the gaps between invoicing and getting paid. Approval looks at how your business ' +
-        'actually performs, not only at your credit file.',
-      points: [
-        { label: 'Right-Sized Amounts', body: 'From $15,000 to $2,000,000' },
-        { label: 'Short and Clear', body: 'Terms from 3 to 36 months, no open-ended balance' },
-        {
-          label: 'Payments That Fit',
-          body: 'Daily, weekly or monthly, matched to your cash cycle',
-        },
-        { label: 'Revenue-Led Underwriting', body: 'Recent deposits carry more weight than FICO' },
-        { label: 'Early Payoff Discounts', body: 'Settle ahead of schedule and pay less interest' },
-        { label: 'Same-Day Funding', body: 'Available once your file is complete' },
-      ],
-      tag: null,
-      cta: { label: 'Learn More', href: '/funding-solutions/working-capital' },
-    },
-  ],
+  /**
+   * In FUNDING_PROGRAMS order, which is Denis's order. Each card carries its
+   * program's `slug`, `icon`, `label` and `href` as well as its copy, so a
+   * consumer never has to join the two lists back together itself — which is
+   * what /funding-solutions used to do, keyed on the CTA's URL.
+   */
+  cards: FUNDING_PROGRAMS.map((program) => ({
+    ...program,
+    ...FUNDING_CARDS[program.slug],
+    cta: { label: 'Learn More', href: program.href },
+  })),
 } as const;
 
 export const QUALIFIER = {
@@ -499,34 +717,43 @@ export const CALCULATOR = {
  * tagline aimed at that competitor's market is not something to do by accident —
  * so this takes the strategy and leaves the phrasing.
  *
- * No count in the headline on purpose. The homepage's funding tile says "6
- * funding types", the nav lists five, and FUNDING_OPTIONS carries four; a
- * headline promising a number would be contradicted by the list beneath it
- * until those three agree.
+ * THE HEADLINE AND THE BAND BELOW IT NOW CARRY A COUNT, which they could not
+ * before. The homepage tile claimed six funding types, the nav listed five and
+ * this page showed four, so any number in a heading would have been
+ * contradicted by the list under it. All four surfaces read FUNDING_PROGRAMS
+ * now — nine of them — and a test fails if a heading's number and that array's
+ * length disagree. Say a number only while that stays true.
  * ------------------------------------------------------------------------- */
 
 export const LOANS = {
   hero: {
     eyebrow: 'Funding Solutions',
     heading: 'Every Way To Fund Your Business. One Application.',
+    /*
+     * "Most come back the same day", not "get a decision the same day". The
+     * list this sentence introduces now includes SBA loans, which take weeks —
+     * a blanket same-day promise over a list containing one is a general claim
+     * turned into a specific false one. The SBA card says so itself; this says
+     * it before a reader gets there.
+     */
     body:
-      'Compare business loans, lines of credit, revenue-based financing, working capital ' +
-      'and equipment finance side by side. Apply once, in minutes, and get a decision the ' +
-      'same day — with approvals from $15,000 to $5,000,000.',
+      'Nine ways to fund a business, side by side — working capital, lines of credit, SBA ' +
+      'loans, equipment finance and five more. Apply once, in minutes, and most come back ' +
+      'the same day, with approvals from $15,000 to $5,000,000.',
   },
 
   /*
    * The grey header band over the product list, the same one the homepage puts
    * over each of its sections.
    *
-   * No count in it, for the reason given above the hero: the homepage tile says
-   * six funding types, the nav lists five and there are four sections below
-   * this band. A band reading "Four ways…" would be contradicted by the header
-   * directly above it.
+   * THE NUMBER IN THIS HEADING IS LOAD-BEARING. It is only safe because one
+   * array now feeds the menu, the footer, the homepage cards and the list under
+   * this band; the moment a tenth program is added it is wrong, so a test
+   * asserts the word here against FUNDING_PROGRAMS.length and fails instead.
    */
   optionsHead: {
     label: 'Our Funding Options',
-    heading: 'Compare Every Option We Fund.',
+    heading: 'All Nine, Side By Side.',
   },
 
   /** The pill on the first product in the list. Only the first one gets it. */
@@ -535,37 +762,8 @@ export const LOANS = {
   bestForLabel: 'Best for',
 } as const;
 
-/**
- * The extra copy each funding product needs to fill a section on this page.
- *
- * WHAT IS NOT HERE, on purpose: the title, the description and the CTA. Those
- * are read from the matching FUNDING_OPTIONS card, so the homepage carousel and
- * this page cannot end up describing one product two different ways.
- *
- * WHY THE STATS ARE RESTATED ANYWAY. The source is prose — a card's points read
- * "Approvals up to $1,500,000" and "Repayment from 12 to 84 months", not
- * numbers a component can format into a box. Each figure below is condensed
- * from one specific point of its own card and has to agree with it: change one,
- * change both. Three per product, and never a figure the section's `lead`
- * already says, so the row adds facts instead of repeating them.
- *
- * The carousel on the homepage shows all six points of each card. This page
- * shows three figures instead, which is the difference between a teaser and a
- * reference — if these ever grow into the full six, the two become the same
- * block in two layouts and one of them should go.
- *
- * TERMS FOR EQUIPMENT FINANCING AND WORKING CAPITAL ARE STILL UNVERIFIED, for
- * the reason set out at length above their cards in FUNDING_OPTIONS: those two
- * products' figures are industry-standard ranges, not Nanotom's own program
- * sheets. The stats below inherit that exactly — they are condensations of
- * unverified numbers, so they are unverified too.
- *
- * `icon` keys map to the icons in ./icons via the map in funding-solutions.tsx,
- * the same indirection HERO.tiles uses, so this file stays free of JSX.
- */
 type ProductDetail = {
-  icon: 'coins' | 'growth' | 'equipment' | 'cashflow';
-  /** Reworded from the card's `tag` where it has one — see the note below. */
+  /** Reworded from the card's `tag` where it had one — see the note below. */
   bestFor: string;
   /** The section's own heading, above the card's description. */
   lead: string;
@@ -573,30 +771,43 @@ type ProductDetail = {
 };
 
 /**
- * Keyed by the product's own page, not by position.
+ * The extra copy /funding-solutions needs beyond the card, keyed by slug.
  *
- * The Record's key type is the union of the cards' CTA hrefs, so adding a fifth
- * card to FUNDING_OPTIONS without writing its section copy is a compile error
- * rather than a product that silently vanishes from this page. Keying by index
- * would pair them by list order and mis-pair them the first time someone
- * reorders the carousel.
+ * NO `icon` ANY MORE. It used to be declared here as well as on the nav entry,
+ * which meant a product could carry one glyph in the header's dropdown and a
+ * different one on its own section of this page. Both now read
+ * FUNDING_PROGRAMS, so there is one answer. Keying this record by `FundingSlug`
+ * rather than by the CTA's URL is the same move: the URL changes when a product
+ * gains its own page, and pairing copy to a thing that moves is how the pairing
+ * breaks.
  *
- * Four entries, where the nav promises five funding types. BUSINESS LOANS is
- * the missing one: it has no card in FUNDING_OPTIONS, no figures anywhere in
- * this repo, and nothing on the live GoHighLevel site to take them from. It is
- * left out rather than written from the category's general shape, because this
- * page takes live credit applications and an invented term is a term somebody
- * gets held to. Add the card first, and this map will demand the copy.
+ * The stats are CONDENSED FROM THE CARD'S POINTS and have to agree with them.
+ * The source is prose — a point reads "Approvals up to $1,500,000", not a
+ * number a component can box — so each figure here restates one specific point
+ * of its own card. Change one, change both. Three per product, and never a
+ * figure the section's `lead` already gives, so the row adds facts rather than
+ * repeating them.
+ *
+ * WHICH OF THESE NUMBERS ARE REAL is set out at length above FUNDING_CARDS.
+ * Short version: the line of credit's are BANKROLL's own, the SBA's are the
+ * agency's published rules, and the other seven products' are industry-standard
+ * ranges Denis approved as a stopgap. Treat the seven as unverified.
  */
-export const LOAN_PRODUCTS: Readonly<
-  Record<(typeof FUNDING_OPTIONS.cards)[number]['cta']['href'], ProductDetail>
-> = {
-  '/funding-solutions/line-of-credit': {
-    icon: 'coins',
+export const LOAN_PRODUCTS: Readonly<Record<FundingSlug, ProductDetail>> = {
+  'working-capital': {
+    bestFor: 'Covering payroll, inventory and invoice gaps',
+    lead: 'One lump sum, a fixed payoff, and a payment matched to your cash cycle.',
+    stats: [
+      { label: 'Amounts', value: '$15,000 to $2,000,000' },
+      { label: 'Terms', value: '3 to 36 months' },
+      { label: 'Funding', value: 'Same day' },
+    ],
+  },
+  'line-of-credit': {
     /*
-     * The carousel's tag for this product reads "Great for keeping funds on
+     * The card's tag for this product used to read "Great for keeping funds on
      * hand" as a standalone pill. Under a "Best for" label that becomes "Best
-     * for: Great for…", so the phrase is reworded here rather than the tag
+     * for: Great for…", so the phrase is reworded here rather than the card
      * being changed under the homepage.
      */
     bestFor: 'Keeping funds on hand',
@@ -607,18 +818,19 @@ export const LOAN_PRODUCTS: Readonly<
       { label: 'Early payoff', value: 'No fees' },
     ],
   },
-  '/funding-solutions/revenue-based-financing': {
-    icon: 'growth',
-    bestFor: 'Protecting cash flow while you ramp',
-    lead: 'Pay interest only for up to a year, and draw more whenever you need it.',
+  'sba-loans': {
+    bestFor: 'The longest term and the lowest payment',
+    lead: 'A federal guarantee, a capped rate, and a term no conventional loan will match.',
     stats: [
-      { label: 'Approval up to', value: '$750,000' },
-      { label: 'Interest-only period', value: 'Up to 52 weeks' },
-      { label: 'Rollover option', value: 'Up to 2 years' },
+      { label: 'Approval up to', value: '$5,000,000' },
+      { label: 'Terms', value: 'Up to 25 years' },
+      /* Not a stat so much as a warning, and it belongs in the row with the
+         other two: a reader comparing these boxes across nine products is
+         exactly the reader who would otherwise assume same-day. */
+      { label: 'Decision', value: 'Weeks, not hours' },
     ],
   },
-  '/funding-solutions/equipment-financing': {
-    icon: 'equipment',
+  'equipment-financing': {
     bestFor: 'Buying the asset the work depends on',
     lead: 'The equipment secures the loan, so it earns while you pay for it.',
     stats: [
@@ -627,14 +839,62 @@ export const LOAN_PRODUCTS: Readonly<
       { label: 'Funding', value: 'Often within two days' },
     ],
   },
-  '/funding-solutions/working-capital': {
-    icon: 'cashflow',
-    bestFor: 'Covering payroll, inventory and invoice gaps',
-    lead: 'One lump sum, a fixed payoff, and a payment matched to your cash cycle.',
+  'merchant-cash-advance': {
+    bestFor: "Turning tomorrow's sales into today's cash",
+    lead: 'Fast, revenue-led, and repaid as a share of what comes in.',
     stats: [
-      { label: 'Amounts', value: '$15,000 to $2,000,000' },
-      { label: 'Terms', value: '3 to 36 months' },
-      { label: 'Funding', value: 'Same day' },
+      { label: 'Amounts', value: '$5,000 to $500,000' },
+      { label: 'Holdback', value: '5% to 20% of receipts' },
+      /*
+       * THIS ROW REPLACED "Funding: Within days", which the `lead` already
+       * says, and it is the most important box on this page.
+       *
+       * /funding-solutions is where someone sets nine products beside each
+       * other and reads the stat rows across. Every other product's cost is an
+       * interest rate; this one's is a factor, and a reader who carries the
+       * habit across — 1.35 read as 35% a year rather than 35% of the
+       * principal, full stop — will badly underestimate it. The card's sixth
+       * point says so in prose, but the Daylight homepage renders only the
+       * first point and this page renders none of them, so without this box the
+       * warning reaches almost nobody.
+       */
+      { label: 'Priced as', value: 'A factor rate, not an APR' },
+    ],
+  },
+  'business-loans': {
+    bestFor: 'A cost you know before you sign',
+    lead: 'A fixed amount, a fixed schedule, and a payment that never moves.',
+    stats: [
+      { label: 'Amounts', value: '$15,000 to $5,000,000' },
+      { label: 'Terms', value: '3 to 60 months' },
+      { label: 'Repayment', value: 'Fixed weekly or monthly' },
+    ],
+  },
+  'inventory-financing': {
+    bestFor: 'Stocking up ahead of the season',
+    lead: 'The goods secure the facility, so the shelves fill without draining the account.',
+    stats: [
+      { label: 'Amounts', value: '$25,000 to $1,000,000' },
+      { label: 'Advance', value: '50% to 80% of cost' },
+      { label: 'Terms', value: '3 to 24 months' },
+    ],
+  },
+  'receivables-financing': {
+    bestFor: 'Not waiting out a 60-day invoice',
+    lead: 'Your unpaid invoices, advanced as cash, on a limit that grows as sales do.',
+    stats: [
+      { label: 'Advance', value: '80% to 90% up front' },
+      { label: 'Fee', value: '1% to 3% per 30 days' },
+      { label: 'Qualifies on', value: "Your customer's credit" },
+    ],
+  },
+  'bridge-loans': {
+    bestFor: 'A timing gap, not a cash flow one',
+    lead: 'Short-term money that closes fast and retires on a known exit.',
+    stats: [
+      { label: 'Amounts', value: '$50,000 to $5,000,000' },
+      { label: 'Terms', value: '3 to 24 months' },
+      { label: 'Structure', value: 'Interest-only available' },
     ],
   },
 };

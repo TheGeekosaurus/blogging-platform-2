@@ -106,11 +106,151 @@ describe('brand constants', () => {
         expect(href, item.label).toMatch(/^https?:\/\//);
         continue;
       }
+      /*
+       * Fragment stripped before the lookup. Five of the nine funding programs
+       * have no page of their own and link to their block on /funding-solutions
+       * instead; what makes that resolve is the page, so that is what is
+       * checked here. The block existing is a separate assertion below, because
+       * a URL that loads the right page and lands nowhere is its own bug.
+       */
+      const path = href.split('#')[0] as string;
       expect(
-        coded.has(href) || stubs.has(href),
+        coded.has(path) || stubs.has(path),
         `${item.label} -> ${href} resolves to a coded page or a stub`,
       ).toBe(true);
     }
+  });
+
+  /*
+   * The anchored programs, end to end.
+   *
+   * This is the one genuinely new way the menu can break after the nine core
+   * funding options landed. `/funding-solutions/<slug>` is a route segment and
+   * a route segment beats the pages catch-all, so a program with no LOAN_PAGES
+   * entry cannot be given a STUB_PAGES fallback — it would hard-404. The five
+   * without a page therefore point at `#ft-loans-<slug>` on /funding-solutions,
+   * and two separate files have to agree for that to land: brand.ts builds the
+   * href, ft/funding-solutions.tsx builds the id.
+   *
+   * They agree today because both derive from the same slug. This test is here
+   * for the day one of them stops.
+   */
+  it('gives every anchored funding program a block to land on', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { FUNDING_PROGRAMS } = await import('../components/marketing/brand');
+    const { FUNDING_OPTIONS, LOAN_PRODUCTS } = await import(
+      '../components/marketing/ft/content'
+    );
+
+    const page = readFileSync(
+      join(__dirname, '..', 'components', 'marketing', 'ft', 'funding-solutions.tsx'),
+      'utf8',
+    );
+
+    /* The id is built from the slug in a template literal, so the assertion is
+       on the shape rather than on nine rendered strings. */
+    expect(page).toContain('`ft-loans-${product.slug}`');
+
+    const anchored = FUNDING_PROGRAMS.filter((program) => !program.hasPage);
+    expect(anchored.length).toBeGreaterThan(0);
+
+    for (const program of anchored) {
+      expect(program.href, program.label).toBe(
+        `/funding-solutions#ft-loans-${program.slug}`,
+      );
+
+      /* And the block is rendered, which means the product has copy in both
+         halves — the card the section's title and body come from, and the
+         detail its stat row comes from. */
+      expect(
+        FUNDING_OPTIONS.cards.some((card) => card.slug === program.slug),
+        `${program.label} has no card`,
+      ).toBe(true);
+      expect(LOAN_PRODUCTS[program.slug], `${program.label} has no detail`).toBeDefined();
+    }
+  });
+
+  /*
+   * Two bugs the anchored programs introduced, both found on screen rather than
+   * in the diff, both invisible to a test that only checks the href.
+   *
+   * 1. The link landed UNDER THE STICKY HEADER. `#ft-loans-<slug>` was on the
+   *    <h3>, so following it put the heading's own top edge at y=0 and a 73px
+   *    header covered it — a reader arriving from the menu could not see the
+   *    name of the product they had just clicked. The id moved to the <article>
+   *    and the block carries scroll-margin.
+   *
+   * 2. The block's own CTA POINTED AT ITSELF. `product.cta.href` is the anchor
+   *    for these five, so on /funding-solutions "Learn More" linked to the
+   *    paragraph beside it. It is the application now.
+   */
+  it('does not hide an anchored block under the header, or link it to itself', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+
+    const page = readFileSync(
+      join(__dirname, '..', 'components', 'marketing', 'ft', 'funding-solutions.tsx'),
+      'utf8',
+    );
+
+    /*
+     * The opening tag, found by its newline: a block comment above it says
+     * "An <article> rather than a <section>" in prose, and a bare indexOf
+     * finds that first — the same trap the legal-parity extractor hit.
+     */
+    const open = page.indexOf('<article\n');
+    expect(open, 'the product block is a multi-line <article>').toBeGreaterThan(-1);
+    const article = page.slice(open, page.indexOf('>', open));
+    expect(article).toContain('id={blockId}');
+    expect(article).toContain('scroll-mt-');
+
+    /* The heading keeps a DIFFERENT id, so aria-labelledby still resolves. */
+    expect(page).toContain('const headingId = `${blockId}-title`');
+
+    /* And the CTA is conditional on the product actually having a page. */
+    expect(page).toContain('product.hasPage ? product.cta.href : CTA_HREF');
+  });
+
+  /*
+   * One list, four surfaces. This is the whole point of the 2026-10-01
+   * restructure: the header dropdown, both footers' first column, the homepage
+   * cards and the /funding-solutions list had drifted to four different answers
+   * — five programs, five, four and a hero tile claiming six.
+   */
+  it('shows the same funding options in the menu and on the page', async () => {
+    const { FUNDING_PROGRAMS, NAV } = await import('../components/marketing/brand');
+    const { FUNDING_OPTIONS, HERO, LOANS } = await import(
+      '../components/marketing/ft/content'
+    );
+
+    const dropdown = NAV.find((item) => item.href === '/funding-solutions')?.children ?? [];
+    expect(dropdown.map((item) => item.label)).toEqual(
+      FUNDING_PROGRAMS.map((program) => program.label),
+    );
+
+    /* Same products, same order — someone arriving from the menu meets them as
+       they last saw them. */
+    expect(FUNDING_OPTIONS.cards.map((card) => card.slug)).toEqual(
+      FUNDING_PROGRAMS.map((program) => program.slug),
+    );
+
+    /*
+     * And the two places that state a COUNT in prose. Both were wrong before
+     * this — the tile said six against a menu of five and a page of four — and
+     * a number in copy is exactly what nobody re-reads when the list changes.
+     */
+    const spelled = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+      'eight', 'nine', 'ten'][FUNDING_PROGRAMS.length];
+
+    const tile = HERO.tiles.find((item) => item.href === '/funding-solutions');
+    expect(tile?.note, 'the hero tile counts the funding types').toContain(
+      `${FUNDING_PROGRAMS.length} funding types`,
+    );
+    expect(
+      LOANS.optionsHead.heading.toLowerCase(),
+      'the /funding-solutions band counts the options',
+    ).toContain(spelled);
   });
 
   /*

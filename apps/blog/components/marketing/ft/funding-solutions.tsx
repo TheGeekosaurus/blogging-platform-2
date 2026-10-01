@@ -1,12 +1,18 @@
 import Link from 'next/link';
 
-import { FUNDING_OPTIONS, LOAN_PRODUCTS, LOANS } from './content';
+import { CTA_HREF } from '../brand';
+import { APPLY_LABEL, FUNDING_OPTIONS, LOAN_PRODUCTS, LOANS } from './content';
 import {
   ArrowUpRightIcon,
+  BankIcon,
+  BridgeIcon,
   CashFlowIcon,
   CoinsIcon,
   EquipmentIcon,
   GrowthIcon,
+  InventoryIcon,
+  InvoiceIcon,
+  WalletIcon,
 } from './icons';
 import { Chip, CONTAINER, SectionHead } from './primitives';
 import { Faq, HowItWorks, Qualifier, UseCases } from './shared-sections';
@@ -62,11 +68,24 @@ function Hero() {
  * ------------------------------------------------------------------------- */
 
 /** Resolves LOAN_PRODUCTS' `icon` keys, the way the homepage resolves tiles'. */
+/*
+ * The nine product glyphs, keyed by the `icon` string on each FUNDING_PROGRAMS
+ * entry — the same keys ../daylight/site-header.tsx maps for the dropdown, so a
+ * product cannot wear one mark in the menu and a different one here. This map
+ * used to carry its own four keys, one of them spelled `cashflow` against the
+ * nav's `cash-flow`, which is the kind of near-miss that only shows up as a
+ * missing icon on a page nobody opened that week.
+ */
 const ICONS = {
   coins: CoinsIcon,
   growth: GrowthIcon,
   equipment: EquipmentIcon,
-  cashflow: CashFlowIcon,
+  'cash-flow': CashFlowIcon,
+  wallet: WalletIcon,
+  bank: BankIcon,
+  inventory: InventoryIcon,
+  invoice: InvoiceIcon,
+  bridge: BridgeIcon,
 } as const;
 
 /**
@@ -91,10 +110,9 @@ function StatBox({ label, value }: { label: string; value: string }) {
  * One funding product, in the template's feature block.
  *
  * `product` is the card from FUNDING_OPTIONS — read, not restated, because the
- * homepage carousel leads with these same four and two hand-written
- * descriptions of one credit line is how they drift apart. Everything this
- * layout needs beyond the card comes from LOAN_PRODUCTS, keyed by the product's
- * own page.
+ * homepage leads with these same nine and two hand-written descriptions of one
+ * credit line is how they drift apart. Everything this layout needs beyond the
+ * card comes from LOAN_PRODUCTS, keyed by the same slug.
  *
  * The template's right column opens with the podcast's artwork. There is no
  * product photography for a credit line, and the gradient panel that stood in
@@ -109,12 +127,28 @@ function Product({
   product: (typeof FUNDING_OPTIONS.cards)[number];
   featured: boolean;
 }) {
-  const detail = LOAN_PRODUCTS[product.cta.href];
-  const Icon = ICONS[detail.icon];
+  const detail = LOAN_PRODUCTS[product.slug];
+  const Icon = ICONS[product.icon as keyof typeof ICONS];
 
-  /* The block's heading is its own label, so the id is derived from the page
-     the product links to — unique per product and stable across reordering. */
-  const headingId = `ft-loans-${product.cta.href.split('/').pop()}`;
+  /*
+   * THE ID IS THE CONTRACT, not decoration. Five of the nine products have no
+   * page of their own yet, and the header, the footer and their own homepage
+   * cards all link to `/funding-solutions#ft-loans-<slug>` — this block. The
+   * anchor is built from the same slug in ../brand, so the two cannot drift,
+   * and a test asserts every anchored program has a block here.
+   *
+   * It used to be derived from the CTA's URL, which was fine while every
+   * product had a page and breaks the moment one links to an anchor instead.
+   *
+   * ON THE ARTICLE, NOT ON THE HEADING, and that is the fix for a real bug
+   * rather than a tidier structure. With the id on the <h3>, following the link
+   * put the heading's own top edge at y=0 — directly under a sticky header 73px
+   * tall, which covered it. A reader arriving from the menu landed on a product
+   * whose name they could not see. The heading keeps its own id for
+   * aria-labelledby, which is all it ever needed one for.
+   */
+  const blockId = `ft-loans-${product.slug}`;
+  const headingId = `${blockId}-title`;
 
   return (
     /*
@@ -122,7 +156,16 @@ function Product({
       description of one product, and they now sit INSIDE the section the header
       band labels rather than being siblings of it.
     */
-    <article aria-labelledby={headingId} className="border-b border-[var(--ft-line)]">
+    <article
+      id={blockId}
+      aria-labelledby={headingId}
+      /*
+        `scroll-mt-24` is 96px against a 73px desktop / 67px mobile sticky
+        header, so the block's top rule clears it with air to spare at both
+        sizes. Measured, not guessed — see the note on `blockId`.
+      */
+      className="scroll-mt-24 border-b border-[var(--ft-line)]"
+    >
       {/*
         The template's divider runs the full height between the columns, so it
         is a border on the right column rather than a rule between two cards —
@@ -175,11 +218,22 @@ function Product({
                 {detail.bestFor}
               </p>
             </div>
+            {/*
+              NOT product.cta ON THIS PAGE, for the five products whose CTA is
+              an anchor to this very block. "Learn More" pointing at the
+              paragraph you are already reading is a dead control that looks
+              like a live one — and on the homepage the same card's CTA is
+              correct, which is why this is fixed here rather than in the data.
+
+              What replaces it is the application, which is what someone who
+              has just read all there is to read about a product would want
+              next. Products with a page keep "Learn More" and their page.
+            */}
             <Link
-              href={product.cta.href}
+              href={product.hasPage ? product.cta.href : CTA_HREF}
               className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card-raised)] px-5 py-3 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
             >
-              {product.cta.label}
+              {product.hasPage ? product.cta.label : APPLY_LABEL}
               <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
             </Link>
           </div>
@@ -223,12 +277,18 @@ export function FundingSolutions() {
         />
 
         {/*
-          In carousel order, so someone arriving from the homepage meets the
-          products in the order they last saw them. The first is the flagship
-          and is the only one that carries the "Featured" pill.
+          In FUNDING_PROGRAMS order, so someone arriving from the homepage or
+          the menu meets the products in the order they last saw them — all
+          three read the same array. The first is the one Denis put first and is
+          the only one that carries the "Featured" pill.
+
+          This is also the landing place for the five programs with no page of
+          their own: the header and the footer link straight to a block in this
+          run. Keyed by slug rather than by title so renaming a product does not
+          silently remount every block after it.
         */}
         {FUNDING_OPTIONS.cards.map((card, index) => (
-          <Product key={card.title} product={card} featured={index === 0} />
+          <Product key={card.slug} product={card} featured={index === 0} />
         ))}
       </section>
 

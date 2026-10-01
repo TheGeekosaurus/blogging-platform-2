@@ -113,34 +113,6 @@ export function PersonIcon({ className }: IconProps) {
  * funding menu needs is already there and is reused; only these two are drawn.
  */
 
-/**
- * Working Capital — a wallet.
- *
- * ft/icons.tsx has no mark for money on hand. Its nearest candidates are drawn
- * for the "what can you do with funding" grid and say the wrong thing beside a
- * product name: PayrollIcon is two people and reads as "team", InventoryIcon is
- * stacked boxes and reads as "stock". Working capital is neither of those, it
- * is the cash that covers them.
- */
-export function WalletIcon({ className }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H17v3" />
-      <path d="M3 7.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2.5" />
-      <path d="M21 14.5v-3a1 1 0 0 0-1-1h-3.2a2.5 2.5 0 0 0 0 5H20a1 1 0 0 0 1-1Z" />
-    </svg>
-  );
-}
-
 /** Food Business — an awning over a counter. */
 export function StorefrontIcon({ className }: IconProps) {
   return (
