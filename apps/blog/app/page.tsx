@@ -11,7 +11,7 @@ import {
   truncateWords,
 } from '@blog/core';
 
-import { HomeV2 } from '@/components/marketing/ft/home-v2';
+import { DaylightHome } from '@/components/marketing/daylight/home';
 import { LabsHome } from '@/components/marketing/labs/home';
 import { HERO as LABS_HERO } from '@/components/marketing/labs/content';
 import { PageBody } from '@/components/page-body';
@@ -29,6 +29,23 @@ import { getClient, getSite } from '@/lib/site';
  * Every other site keeps the database-driven behaviour — the page named by
  * homepage_page_id, falling back to a short post list so a freshly-created site
  * is never a blank page.
+ *
+ * CAPITAL IS DAYLIGHT NOW. Denis promoted the light build on 2026-10-02, which
+ * is the outcome the /daylight preview route existed to decide; that route is
+ * gone in the same change rather than left as a byte-identical copy of this
+ * page at a second URL. The rest of Capital is still dark and will be converted
+ * page by page.
+ *
+ * REVERTING IS THIS IMPORT AND THE ONE JSX TAG BELOW. ft/home-v2.tsx is
+ * untouched and still carries the dark homepage, so nothing here is one-way.
+ *
+ * ONE THING FOLLOWED DAYLIGHT ONTO THE FRONT DOOR AND SHOULD NOT STAY: the
+ * `body:has(.dl-surface)` rule in globals.css, which hides the dark header and
+ * footer this route's own layout renders around it. That note says in as many
+ * words that it is acceptable for a preview route and not for a shipped
+ * homepage, and it is now a shipped homepage. The fix is the route-group split
+ * described there, and it belongs with the rest of the pages rather than in
+ * front of them.
  */
 export const dynamic = 'force-static';
 export const revalidate = false;
@@ -120,7 +137,7 @@ export default async function HomePage() {
     ]);
 
     return (
-      <HomeV2
+      <DaylightHome
         posts={posts}
         categories={categories.slice(0, HOMEPAGE_CATEGORIES)}
         locale={site.locale}

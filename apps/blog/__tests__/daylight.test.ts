@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -6,12 +6,15 @@ import { describe, expect, it } from "vitest";
 import { CODED_SITES, NNTM_CAPITAL_SLUG } from "@blog/core";
 
 /**
- * Daylight — the light-theme homepage preview at /daylight.
+ * Daylight — the light build, which is the Nanotom Capital homepage as of
+ * 2026-10-02.
  *
- * A parallel build of the Nanotom Capital homepage, living beside the dark one
- * so the two can be compared without the live page moving. Everything here
- * guards a property that is easy to break silently and expensive to break: the
- * compliance text, the noindex, and the dark site staying exactly as it was.
+ * It began as a parallel design at /daylight so the two could be compared
+ * without the live page moving, and Denis promoted it. What these tests guard
+ * is unchanged by that: the properties that are easy to break silently and
+ * expensive to break — the compliance text matching the dark footer word for
+ * word, the subhead colour carrying its own contrast, and the dark site, which
+ * still serves every other route, staying exactly as it was.
  */
 
 const marketing = join(__dirname, "..", "components", "marketing");
@@ -150,44 +153,41 @@ describe('the difference band says what is true of us', () => {
 });
 
 /**
- * The preview must not compete with the page it previews.
+ * Daylight is the homepage now, and the preview URL is gone.
  *
- * /daylight renders the homepage's copy at a second URL. Indexed, that is
- * textbook duplicate content on a domain whose entire migration was for SEO.
- * Two things have to agree for it to stay out of the index — the route's own
- * robots directive and the registry's `index` flag — and the failure mode is
- * flipping one and not the other, which leaves either an unlisted page or a
- * sitemap entry pointing at a page that asks not to be indexed.
+ * While both existed, /daylight carried the homepage's copy at a second URL and
+ * was held out of the index by two flags that had to agree — the route's robots
+ * directive and the registry's `index`. Promotion retires that whole problem,
+ * and the thing worth asserting flips with it: not "the duplicate is noindexed"
+ * but "there is no duplicate". A /daylight route restored later without a
+ * robots directive would be exactly the duplicate-content trap the original
+ * route was written to avoid, on a domain whose migration was for SEO.
  */
-describe("the preview route is kept out of the index", () => {
-  const route = readFileSync(
-    join(__dirname, "..", "app", "daylight", "page.tsx"),
-    "utf8",
-  );
+describe("the light build is the homepage, not a second copy of it", () => {
+  const home = readFileSync(join(__dirname, "..", "app", "page.tsx"), "utf8");
 
-  it("sets robots noindex on the route", () => {
-    expect(route).toMatch(/robots:\s*\{\s*index:\s*false/);
+  it("renders Daylight at '/'", () => {
+    expect(home).toContain("DaylightHome");
+    expect(home).toContain("daylight/home");
   });
 
-  it("follows links out of it, so nothing downstream loses its referral", () => {
-    expect(route).toMatch(/follow:\s*true/);
+  /*
+   * The dark homepage is unrouted, not deleted. It is the revert path — one
+   * import and one tag — and several tests still read it as the reference the
+   * light build was derived from.
+   */
+  it("keeps the dark homepage in the tree, just not on a route", () => {
+    expect(home).not.toContain("<HomeV2");
+    expect(existsSync(join(marketing, "ft", "home-v2.tsx"))).toBe(true);
   });
 
-  it("is registered, so it is visible in the admin rather than appearing absent", () => {
+  it("no longer serves the preview route", () => {
+    expect(existsSync(join(__dirname, "..", "app", "daylight", "page.tsx"))).toBe(false);
+  });
+
+  it("drops its registry entry with it, so the admin lists no phantom page", () => {
     const paths = CODED_SITES[NNTM_CAPITAL_SLUG]?.map((r) => r.path) ?? [];
-    expect(paths).toContain("daylight");
-  });
-
-  it("is registered as NOT indexable, agreeing with the route", () => {
-    const entry = CODED_SITES[NNTM_CAPITAL_SLUG]?.find(
-      (r) => r.path === "daylight",
-    );
-    expect(entry?.index).toBe(false);
-  });
-
-  it("is gated on the Capital slug like every other coded route", () => {
-    expect(route).toContain("isNntmCapital()");
-    expect(route).toContain("notFound()");
+    expect(paths).not.toContain("daylight");
   });
 });
 

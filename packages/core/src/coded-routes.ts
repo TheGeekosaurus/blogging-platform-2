@@ -76,23 +76,18 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
   { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
   /*
-   * The light-theme homepage preview — see apps/blog/app/daylight/page.tsx.
+   * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
    *
-   * index: false BECAUSE IT IS THE HOMEPAGE'S CONTENT AT A SECOND URL. Listing
-   * it as indexable would submit a page that already sets `robots: noindex`,
-   * and would put two pages carrying the same copy in front of a crawler on a
-   * domain whose whole migration was for SEO. The two flags have to agree;
-   * flip neither on its own.
+   * It carried the light-theme homepage at a second URL while Denis decided
+   * between the two designs, listed index: false so a crawler never saw the
+   * same copy twice. He promoted it onto '/' on 2026-10-02, so the route and
+   * this entry went together — leaving either behind would have meant serving a
+   * byte-identical duplicate of the front page.
    *
-   * It is here at all so the page is visible in the admin's Pages screen
-   * rather than appearing not to exist. Delete this entry with the route, once
-   * the light design is either promoted onto '/' or dropped.
-   */
-  { path: 'daylight', title: 'Daylight (homepage preview)', index: false },
-  /*
-   * The DSCR calculator. index: TRUE, unlike `daylight` above — this is its own
-   * content at its own URL, not the homepage at a second one, and a free tool
-   * for a term people search is exactly what a sitemap should carry.
+   * The DSCR calculator below is index: TRUE, which is the distinction that
+   * mattered: it is its own content at its own URL, not the homepage at a
+   * second one, and a free tool for a term people search is exactly what a
+   * sitemap should carry.
    *
    * The page says in as many words that Nanotom does not offer DSCR loans yet,
    * so indexing it does not advertise a product that does not exist. If that
