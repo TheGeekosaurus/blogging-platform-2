@@ -285,6 +285,15 @@
     --ft-muted: #98989a;
     --ft-subtle: #7e7e81;
 
+    /*
+     * The steel blue under each funding product's name — Denis's #5792A8,
+     * exact. See the long note where .dl-surface declares the same token: on
+     * this near-black it is 5.70:1 on the ground and 5.04:1 on the raised
+     * cards, so it clears AA for body text at any size here. The light theme is
+     * where it has to be handled with care.
+     */
+    --ft-subhead: #5792a8;
+
     --ft-accent: #e0a840;
 
     background-color: var(--ft-bg);
@@ -1963,6 +1972,36 @@
      * Ink on it is 10.01:1.
      */
     --dl-pop-tint: #c9f2f8;
+    /**
+     * THE SUBHEAD UNDER EACH FUNDING PRODUCT'S NAME. Denis's #5792A8, used
+     * exactly as he gave it — and the size it is set at is doing real work.
+     *
+     * Measured against every ground in this theme:
+     *
+     *   white  --ft-bg          3.45:1
+     *   card   --ft-card        3.24:1
+     *   band   --ft-band        3.18:1
+     *   raised --ft-card-raised 2.97:1
+     *
+     * None of those reaches the 4.5:1 AA needs for BODY text, and the last
+     * misses even the 3:1 large-text floor. So this colour is not a body
+     * colour here, and nothing should start using it as one.
+     *
+     * Every subhead that wears it is therefore set at 19px/700 — WCAG counts
+     * 18.66px bold as large text, where the floor is 3:1, which 3.45 clears on
+     * the white the cards actually sit on. That is why those lines are bold
+     * rather than the lighter weight a subhead would normally take: the weight
+     * is what makes the colour legal, not a styling preference, and dropping it
+     * to 500 or shrinking it below 19px puts the page under AA.
+     *
+     * If the subhead ever needs to be small or light, the colour has to change
+     * with it. #4B7D90 is the same hue and saturation two steps darker and
+     * measures 4.51:1 on white, which would pass at any size.
+     *
+     * On the dark site the same token is comfortable at any size — see the copy
+     * of it in `.ft-surface` above.
+     */
+    --ft-subhead: #5792a8;
     /** The hero's accent word, and nothing else. */
     --dl-display: #0794ab;
     /** Brand gold: the one warm CTA, and the review stars. */
@@ -2734,6 +2773,25 @@
   border-color: #123a8f;
   background-color: #123a8f;
   color: #ffffff;
+}
+
+/*
+ * The blog category filters, squared off.
+ *
+ * They are drawn as 42px lozenges in ft/post-list.tsx — a full pill at that
+ * height — which is the one shape on the Daylight blog section that belongs to
+ * no other control. Denis, 2026-10-02: make them match the buttons.
+ *
+ * 0.375rem, which is the same radius `.ft-ghost` above takes and the same one
+ * the solid buttons are built with, so the filter row and the Read More beside
+ * it are now cut from one shape rather than two.
+ *
+ * Only here. CategoryPills is shared with the live dark site's blog index,
+ * where the lozenge stays until Denis says otherwise — hence a marker class
+ * rather than changing the component's own radius.
+ */
+.dl-surface .ft-catpill {
+  border-radius: 0.375rem;
 }
 
 /*

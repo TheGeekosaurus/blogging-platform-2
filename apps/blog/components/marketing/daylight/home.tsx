@@ -379,12 +379,30 @@ function FundingOptions() {
 
             return (
               <li
-                key={card.title}
+                key={card.slug}
                 className="rounded-2xl bg-[var(--ft-bg)] p-6 shadow-[0_10px_26px_-12px_rgba(11,45,114,0.38)] lg:p-8"
               >
-                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2vw,1.5rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
-                  {card.title}
+                {/*
+                  The product's name, read off the program as `label` — the
+                  same string as the menu item and the footer link, so the
+                  three cannot drift apart.
+                */}
+                <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.375rem,2.2vw,1.75rem)] font-semibold leading-[1.2] text-[var(--ft-ink)]">
+                  {card.label}
                 </h3>
+
+                {/*
+                  THE 19px AND THE BOLD ARE NOT A STYLE CHOICE. --ft-subhead is
+                  Denis's #5792A8, which is 3.45:1 on this white card — under
+                  the 4.5:1 AA wants for body text and over the 3:1 it wants for
+                  large text. WCAG counts 18.66px bold as large, so at
+                  19px/700 this line is compliant and at 17px/500 it is not.
+                  The long note in globals.css has the measurements and the
+                  darker alternative if this ever needs to be smaller.
+                */}
+                <p className="mt-2 text-[1.1875rem] font-bold leading-[1.3] text-[var(--ft-subhead)]">
+                  {card.subtitle}
+                </p>
 
                 <p className="mt-3 text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
                   {card.body}

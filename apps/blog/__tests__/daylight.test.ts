@@ -422,3 +422,85 @@ describe("the Daylight footer", () => {
     expect(footer).toContain('href="/about-us"');
   });
 });
+
+/**
+ * The funding subhead, and why its weight is a contrast rule rather than taste.
+ *
+ * Denis gave #5792A8 for the line under each product name. It measures 3.45:1
+ * on this theme's white — under the 4.5:1 AA wants for body text, over the 3:1
+ * it wants for large text. WCAG counts 18.66px bold as large, so the colour is
+ * compliant at 19px/700 and non-compliant at anything smaller or lighter.
+ *
+ * That is invisible in a screenshot and the exact kind of thing a later "make
+ * the subhead a bit lighter" pass removes without noticing, so it is asserted.
+ */
+describe("the funding subhead carries its own contrast", () => {
+  const USERS = [
+    "daylight/home.tsx",
+    "ft/home-v2.tsx",
+    "ft/funding-solutions.tsx",
+  ];
+
+  it("sets every --ft-subhead run at 19px or more, and bold", () => {
+    for (const file of USERS) {
+      const source = read(file);
+      const runs = [...source.matchAll(/className="([^"]*--ft-subhead[^"]*)"/g)].map(
+        ([, cls]) => cls ?? "",
+      );
+
+      expect(runs.length, `${file} uses --ft-subhead`).toBeGreaterThan(0);
+
+      for (const cls of runs) {
+        expect(cls, `${file}: --ft-subhead run is not bold`).toContain("font-bold");
+
+        const size = cls.match(/text-\[([\d.]+)rem\]/);
+        expect(size, `${file}: --ft-subhead run has no explicit size`).not.toBeNull();
+        /* 1.1875rem = 19px, over WCAG's 18.66px large-text threshold. */
+        expect(
+          Number(size?.[1]),
+          `${file}: --ft-subhead run is below the large-text threshold`,
+        ).toBeGreaterThanOrEqual(1.1875);
+      }
+    }
+  });
+
+  /*
+   * And the token is declared on BOTH surfaces. The dark site's blocks use it
+   * too, where it is 5.70:1 and safe at any size; a token that resolved to
+   * nothing there would render the subhead in inherited ink and look merely
+   * dull rather than broken.
+   */
+  it("declares the token on both themes", () => {
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+    const declarations = [...css.matchAll(/--ft-subhead:\s*([^;]+);/g)].map(([, v]) =>
+      (v ?? "").trim(),
+    );
+
+    expect(declarations.length).toBe(2);
+    for (const value of declarations) expect(value).toBe("#5792a8");
+  });
+});
+
+/**
+ * The blog category filters match the buttons beside them, on Daylight only.
+ */
+describe("the category filters", () => {
+  it("squares off under .dl-surface without moving the dark site", () => {
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+    const list = read("ft/post-list.tsx");
+
+    /* The marker is on the component and carries no radius of its own there. */
+    expect(list).toContain("ft-catpill");
+    /* The lozenge is still what the shared component ships. */
+    expect(list).toContain("rounded-[42px]");
+
+    /* And the square-off is scoped to the light theme. */
+    expect(css).toContain(".dl-surface .ft-catpill");
+    const rule = css.slice(
+      css.indexOf(".dl-surface .ft-catpill"),
+      css.indexOf("}", css.indexOf(".dl-surface .ft-catpill")),
+    );
+    /* The same radius .ft-ghost and the solid buttons take. */
+    expect(rule).toContain("border-radius: 0.375rem");
+  });
+});
