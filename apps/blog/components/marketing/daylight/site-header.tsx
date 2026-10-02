@@ -3,10 +3,20 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 import { LOCAL_IMAGES, NAV, type NavItem } from '../brand';
-import { CashFlowIcon, CoinsIcon, EquipmentIcon, GrowthIcon } from '../ft/icons';
+import {
+  BankIcon,
+  BridgeIcon,
+  CashFlowIcon,
+  CoinsIcon,
+  EquipmentIcon,
+  GrowthIcon,
+  InventoryIcon,
+  InvoiceIcon,
+  WalletIcon,
+} from '../ft/icons';
 import { NAV_CTA } from './content';
 import { DaylightHeaderShell } from './header-shell';
-import { HardHatIcon, StorefrontIcon, WalletIcon } from './icons';
+import { HardHatIcon, StorefrontIcon } from './icons';
 import { DaylightMobileNav } from './mobile-nav';
 import { CtaButton } from './primitives';
 
@@ -44,19 +54,29 @@ const TRIGGER_CLASS =
 /*
  * The dropdown glyphs, keyed by the `icon` string on each NAV child.
  *
- * Four of the seven are marks ft/icons.tsx already draws; the wallet and the
- * two industries are new, because its set is built around what funding is spent
- * ON rather than which product it is or who buys it, and its nearest stand-ins
- * said the wrong thing beside a product name. Mapping here rather than in
- * brand.ts keeps that module free of JSX — see the note on NavItem.icon.
+ * The nine funding marks come from ft/icons.tsx, which is the shared set and is
+ * where product glyphs belong — /funding-solutions draws the same nine from the
+ * same keys, so a product cannot wear one mark in the menu and another on the
+ * page. Only the two industry marks are Daylight's own. Mapping here rather
+ * than in brand.ts keeps that module free of JSX — see the note on
+ * NavItem.icon.
+ *
+ * Every key in FUNDING_PROGRAMS and INDUSTRIES must appear here; a test in
+ * __tests__/daylight.test.ts fails if one does not, because a missing key
+ * renders the row with no tile rather than with a wrong one, which is quiet.
  */
 const NAV_ICONS = {
   coins: CoinsIcon,
   /* Draw and repay, draw again — the revolving arrows are the line of credit. */
   'cash-flow': CashFlowIcon,
+  /* Revenue-led, so the rising chart: an advance repaid out of sales. */
   growth: GrowthIcon,
   wallet: WalletIcon,
   equipment: EquipmentIcon,
+  bank: BankIcon,
+  inventory: InventoryIcon,
+  invoice: InvoiceIcon,
+  bridge: BridgeIcon,
   storefront: StorefrontIcon,
   'hard-hat': HardHatIcon,
 } as const;

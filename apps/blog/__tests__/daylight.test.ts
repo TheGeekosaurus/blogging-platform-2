@@ -285,33 +285,67 @@ describe("the shared components only gained markers", () => {
  */
 describe("the Daylight dropdowns", () => {
   const header = read("daylight/site-header.tsx");
-  const brand = readFileSync(join(marketing, "brand.ts"), "utf8");
+  /*
+   * Read through NAV rather than scraped out of brand.ts. It used to be a regex
+   * over the source, on the belief that importing the module pulled next/image
+   * in transitively; brand.ts imports nothing, and the regex quietly stopped
+   * seeing anything the moment FUNDING_PROGRAMS was built by .map() instead of
+   * written as nine literals. It reported 2 children where there are 11, which
+   * is the failure mode of testing source text instead of values.
+   */
+  it("gives every dropdown entry an icon key", async () => {
+    const { NAV } = await import("../components/marketing/brand");
 
-  it("gives every dropdown entry an icon key", () => {
-    /*
-     * Parsed from the source rather than by importing NAV, because brand.ts
-     * pulls in next/image transitively through the module graph this file
-     * already reads as text elsewhere. A child is any object literal with an
-     * href under /funding-solutions/ or /industries/ — the two dropdowns.
-     */
-    const children = [
-      ...brand.matchAll(/\{[^{}]*href: '\/(?:funding-solutions|industries)\/[^']*'[^{}]*\}/g),
-    ].map(([entry]) => entry);
+    const children = NAV.flatMap((item) => item.children ?? []);
 
-    expect(children.length).toBe(7);
-    for (const entry of children) {
-      expect(entry, `${entry} has no icon key`).toMatch(/icon: '[a-z-]+'/);
+    expect(children.length).toBe(11);
+    for (const child of children) {
+      expect(child.icon, `${child.label} has no icon key`).toMatch(/^[a-z-]+$/);
     }
   });
 
-  it("maps every icon key the nav uses", () => {
-    const keys = [...brand.matchAll(/icon: '([a-z-]+)'/g)].map(([, k]) => k ?? "");
-    const mapped = header.slice(
-      header.indexOf("const NAV_ICONS = {"),
-      header.indexOf("} as const;", header.indexOf("const NAV_ICONS = {")),
+  /*
+   * Both glyph maps, against the one list of keys.
+   *
+   * A missing key is quiet in a way a wrong one is not: DropdownRow renders a
+   * row with no tile rather than with a stand-in mark, and ICONS on the loans
+   * page would hand `undefined` to JSX. The two maps are also the place the
+   * `cashflow` / `cash-flow` near-miss lived, so they are checked together
+   * against the same source.
+   */
+  it("maps every icon key the nav uses, in both glyph maps", async () => {
+    const { NAV } = await import("../components/marketing/brand");
+    const loans = read("ft/funding-solutions.tsx");
+
+    const slice = (source: string, open: string) =>
+      source.slice(source.indexOf(open), source.indexOf("} as const;", source.indexOf(open)));
+
+    const navIcons = slice(header, "const NAV_ICONS = {");
+    const loanIcons = slice(loans, "const ICONS = {");
+
+    const keys = new Set(
+      NAV.flatMap((item) => item.children ?? [])
+        .map((child) => child.icon)
+        .filter((key): key is string => Boolean(key)),
     );
-    for (const key of new Set(keys)) {
-      expect(mapped, `NAV_ICONS has no entry for '${key}'`).toContain(key);
+
+    /* Hyphenated keys are quoted in both maps and bare ones are not, so the
+       match has to allow either rather than assume one. */
+    const declares = (map: string, key: string) =>
+      new RegExp(`(^|[{,\\s])'?${key}'?\\s*:`, "m").test(map);
+
+    expect(keys.size).toBeGreaterThan(0);
+    for (const key of keys) {
+      expect(declares(navIcons, key), `NAV_ICONS has no entry for '${key}'`).toBe(true);
+    }
+
+    /* The loans page draws only the nine funding marks, not the industries. */
+    const { FUNDING_PROGRAMS } = await import("../components/marketing/brand");
+    for (const program of FUNDING_PROGRAMS) {
+      expect(
+        declares(loanIcons, program.icon),
+        `ICONS has no entry for '${program.icon}'`,
+      ).toBe(true);
     }
   });
 

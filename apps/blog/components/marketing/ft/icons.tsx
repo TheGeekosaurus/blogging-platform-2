@@ -263,3 +263,84 @@ export function ConsolidateIcon({ className }: IconProps) {
     </Line>
   );
 }
+
+/* --- The funding-product glyphs ------------------------------------------
+ *
+ * Distinct from the eight above, which answer "what will the money be spent
+ * on?" — these answer "what kind of money is it?". The two sets were allowed to
+ * share marks until the core list grew to nine and the nearest stand-ins
+ * started saying the wrong thing beside a product name: stacked boxes read as
+ * "stock", which is right for Inventory Financing and wrong for everything
+ * else.
+ *
+ * Keyed from FUNDING_PROGRAMS in ../brand and drawn by the maps in
+ * ./funding-solutions.tsx and ../daylight/site-header.tsx. Both maps must cover
+ * every key in that array; a test holds them to it.
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Working Capital — a wallet.
+ *
+ * Lives here rather than in daylight/icons.tsx, where it was first drawn for
+ * the dropdown. It is a product mark, not a Daylight one, and the
+ * /funding-solutions list needs it too — a glyph in the light theme's folder
+ * that the dark theme's page imports is the wrong way round.
+ */
+export function WalletIcon({ className }: IconProps) {
+  return (
+    <Line className={className}>
+      <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5H17v3" />
+      <path d="M3 7.5V17a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2.5" />
+      <path d="M21 14.5v-3a1 1 0 0 0-1-1h-3.2a2.5 2.5 0 0 0 0 5H20a1 1 0 0 0 1-1Z" />
+    </Line>
+  );
+}
+
+/**
+ * SBA Loans — a pediment over columns.
+ *
+ * The institutional building, which is what distinguishes an SBA loan from
+ * every other row in the menu: the terms are set by a federal agency rather
+ * than by the lender. ExpandIcon is also a building and is NOT reused here — it
+ * is a house gable with a door, drawn for "expand the premises", and the two
+ * sitting three rows apart in the same dropdown would read as the same idea.
+ */
+export function BankIcon({ className }: IconProps) {
+  return (
+    <Line className={className}>
+      <path d="m3 9 9-5 9 5" />
+      <path d="M3.5 9.5h17" />
+      <path d="M6 12v6M10 12v6M14 12v6M18 12v6" />
+      <path d="M3 20.5h18" />
+    </Line>
+  );
+}
+
+/** Receivables Financing — an invoice with a line of figures. */
+export function InvoiceIcon({ className }: IconProps) {
+  return (
+    <Line className={className}>
+      <path d="M6 3h9l4 4v12.5l-2.2-1.4-2.3 1.4-2.3-1.4-2.3 1.4L5.7 18V4.3" />
+      <path d="M15 3v4h4" />
+      <path d="M8.5 10.5h7M8.5 14h4.5" />
+    </Line>
+  );
+}
+
+/**
+ * Bridge Loans — a span on two piers.
+ *
+ * The literal reading of the name, and the literal one is right: a bridge loan
+ * is the crossing between one financing and the next, so the mark carries the
+ * product's whole idea rather than decorating it.
+ */
+export function BridgeIcon({ className }: IconProps) {
+  return (
+    <Line className={className}>
+      <path d="M2 10h20" />
+      <path d="M2 10v8M22 10v8" />
+      <path d="M6 10v4M18 10v4" />
+      <path d="M2 14c4.5 0 6.5-4 10-4s5.5 4 10 4" />
+    </Line>
+  );
+}

@@ -151,36 +151,107 @@ export type NavItem = {
  * domain transfer, not here.
  */
 /**
- * The individual funding programs.
+ * THE CORE FUNDING OPTIONS — the one list, read by every surface.
  *
- * Its own const because the header's dropdown and the footer's first column are
- * the same five links, and a footer that quietly falls behind the nav is how a
- * site ends up advertising a program it no longer offers. Both read this.
+ * Denis set these nine on 2026-10-01, after the site had drifted into four
+ * different answers to "what do you fund?": the header and footer listed five
+ * programs, the homepage carousel showed four, the hero tile claimed six, and
+ * two of the carousel's four were not categories at all but named programs from
+ * one particular lender. A visitor who read the menu and then the homepage saw
+ * two different companies.
  *
- * All five are still STUB_PAGES below — they resolve as noindex headings until
- * someone writes them. Linking them from the footer anyway is deliberate: the
- * nav has promised them since launch, and a footer that lists four of five
- * because one has no copy yet is a worse inconsistency than a thin page.
+ * So this array is the source and the others are derived. The header dropdown,
+ * both footers' Funding Solutions column, the homepage cards and the
+ * /funding-solutions list all read it or are keyed to its slugs, and
+ * FUNDING_OPTIONS.cards in ft/content.ts is typed as a record over `slug` —
+ * adding a tenth program here is a COMPILE ERROR until its copy exists. That is
+ * the point: the drift above happened because four lists could disagree in
+ * silence.
+ *
+ * ORDER IS DENIS'S, not alphabetical and not by popularity. The first entry is
+ * also the one /funding-solutions marks "Featured", so reordering this array
+ * moves that pill.
+ *
+ * "Business Loans" is the term-loan category. Denis's list called it "Term
+ * Loans"; he chose to keep the existing name, which is also the name of the
+ * page that already exists at that slug.
+ *
+ * BANKROLL AND THE INTEREST-ONLY PROGRAM ARE DELIBERATELY ABSENT. They were the
+ * first two homepage cards. They are specifications of one lender's offer — in
+ * Denis's words, "just specifications" — rather than kinds of money a business
+ * can ask for, so they do not belong in a list of categories. Their terms are
+ * not lost: BANKROLL's are the whole of /funding-solutions/line-of-credit, and
+ * the interest-only program's are /funding-solutions/revenue-based-financing.
+ * Folding them into the relevant product pages as named programs is the next
+ * job and is Denis's call on where.
  */
-export const FUNDING_PROGRAMS: readonly {
-  label: string;
-  href: string;
-  icon: string;
-}[] = [
-  { label: 'Business Loans', href: '/funding-solutions/business-loans', icon: 'coins' },
-  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit', icon: 'cash-flow' },
-  {
-    label: 'Revenue-Based Financing',
-    href: '/funding-solutions/revenue-based-financing',
-    icon: 'growth',
-  },
-  { label: 'Working Capital', href: '/funding-solutions/working-capital', icon: 'wallet' },
-  {
-    label: 'Equipment Financing',
-    href: '/funding-solutions/equipment-financing',
-    icon: 'equipment',
-  },
-];
+const CORE_PROGRAMS = [
+  { label: 'Working Capital', slug: 'working-capital', icon: 'wallet' },
+  { label: 'Business Line of Credit', slug: 'line-of-credit', icon: 'cash-flow' },
+  { label: 'SBA Loans', slug: 'sba-loans', icon: 'bank' },
+  { label: 'Equipment Financing', slug: 'equipment-financing', icon: 'equipment' },
+  { label: 'Merchant Cash Advance', slug: 'merchant-cash-advance', icon: 'growth' },
+  { label: 'Business Loans', slug: 'business-loans', icon: 'coins' },
+  { label: 'Inventory Financing', slug: 'inventory-financing', icon: 'inventory' },
+  { label: 'Receivables Financing', slug: 'receivables-financing', icon: 'invoice' },
+  { label: 'Bridge Loans', slug: 'bridge-loans', icon: 'bridge' },
+] as const;
+
+export type FundingSlug = (typeof CORE_PROGRAMS)[number]['slug'];
+
+/**
+ * The slugs that have a dedicated page at /funding-solutions/<slug> today.
+ *
+ * The other five link to their own section of /funding-solutions instead, and
+ * that is not a placeholder dodge — it is the only destination that currently
+ * exists. app/funding-solutions/[product]/page.tsx is a ROUTE SEGMENT, and a
+ * route segment beats the pages catch-all, so an unknown product slug never
+ * reaches STUB_PAGES below: it hits that route, finds no LOAN_PAGES entry and
+ * calls notFound(). Pointing the five new programs at /funding-solutions/<slug>
+ * would therefore put five hard 404s in the header and the footer.
+ *
+ * Their sections on /funding-solutions carry the same copy the four with pages
+ * get above the fold — what it is, what it suits, three figures — so the link
+ * lands on real content either way.
+ *
+ * WHEN A PRODUCT PAGE IS WRITTEN: add its slug here and add its LOAN_PAGES
+ * entry in ft/content.ts. Nothing else changes; every href that mentions it is
+ * derived below.
+ */
+const SLUGS_WITH_PAGE: ReadonlySet<string> = new Set<FundingSlug>([
+  'working-capital',
+  'line-of-credit',
+  'equipment-financing',
+  'business-loans',
+]);
+
+export type FundingProgram = {
+  readonly label: string;
+  readonly slug: FundingSlug;
+  /** Key into the glyph maps — see the note on NavItem.icon. */
+  readonly icon: string;
+  /** The product page where one exists, else that product's section anchor. */
+  readonly href: string;
+  /** False for the five still waiting on a product page. */
+  readonly hasPage: boolean;
+};
+
+/**
+ * The nine, with their destinations resolved.
+ *
+ * The anchor matches the id ft/funding-solutions.tsx puts on each product
+ * block, which is derived from the same slug — see `headingId` there.
+ */
+export const FUNDING_PROGRAMS: readonly FundingProgram[] = CORE_PROGRAMS.map((program) => {
+  const hasPage = SLUGS_WITH_PAGE.has(program.slug);
+  return {
+    ...program,
+    hasPage,
+    href: hasPage
+      ? `/funding-solutions/${program.slug}`
+      : `/funding-solutions#ft-loans-${program.slug}`,
+  };
+});
 
 /*
  * Lifted out of NAV so the footer's Industries column and the header's
