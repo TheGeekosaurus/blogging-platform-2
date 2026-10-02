@@ -127,6 +127,12 @@ export function ImageSlot({ className }: { className?: string }) {
  * points; the homepage sends it to /blog, and /blog sends it to itself so the
  * row still reads as a complete set of filters rather than losing its first
  * item on the one page where it is already true.
+ *
+ * `ft-catpill` CARRIES NO STYLES HERE. It is a marker for one rule in
+ * globals.css, which squares the corners off under `.dl-surface` so the row
+ * matches the buttons beside it — Denis asked for that on the light build, and
+ * this component is shared with the live dark site, where the 42px pill stays.
+ * Same idiom as ft-ghost and ft-faq-item.
  */
 export function CategoryPills({
   categories,
@@ -143,7 +149,7 @@ export function CategoryPills({
         <li>
           <Link
             href={all}
-            className="inline-block rounded-[42px] bg-[var(--ft-bg)] px-7 py-3.5 text-[0.9375rem] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)] transition-colors hover:ring-[var(--ft-accent)]"
+            className="ft-catpill inline-block rounded-[42px] bg-[var(--ft-bg)] px-7 py-3.5 text-[0.9375rem] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)] transition-colors hover:ring-[var(--ft-accent)]"
           >
             All
           </Link>
@@ -152,7 +158,7 @@ export function CategoryPills({
           <li key={category.id}>
             <Link
               href={categoryPath(category.slug)}
-              className="inline-block rounded-[42px] px-7 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)] transition-colors hover:text-[var(--ft-ink)] hover:ring-[var(--ft-accent)]"
+              className="ft-catpill inline-block rounded-[42px] px-7 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)] transition-colors hover:text-[var(--ft-ink)] hover:ring-[var(--ft-accent)]"
             >
               {category.name}
             </Link>

@@ -200,7 +200,21 @@ export const HOW_IT_WORKS = {
  * ------------------------------------------------------------------------- */
 
 type FundingCard = {
-  readonly title: string;
+  /**
+   * The line UNDER the product's name — never the name itself.
+   *
+   * Each card used to carry a `title` that was a whole sentence: "Working
+   * Capital When Timing Is Everything", "A Lump Sum Now, On Terms You Can Plan
+   * Around". Denis's note on 2026-10-02: the heading should be the product, not
+   * a sentence about it. Someone scanning nine cards for the thing they already
+   * know they want should find the words they are looking for, not a slogan
+   * that happens to contain them.
+   *
+   * So the heading is now the program's own `label` — the same string as the
+   * menu item and the footer link, which means the three cannot drift — and the
+   * sentence lives here, set under it in --ft-subhead.
+   */
+  readonly subtitle: string;
   readonly body: string;
   /** Each point leads with a bolded label, so they are split rather than parsed. */
   readonly points: readonly { readonly label: string; readonly body: string }[];
@@ -215,7 +229,7 @@ type FundingCard = {
  */
 const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
   'working-capital': {
-    title: 'Working Capital When Timing Is Everything',
+    subtitle: 'When Timing Is Everything',
     body:
       'A lump sum up front with a fixed, predictable payoff — built for payroll, inventory ' +
       'and the gaps between invoicing and getting paid. Approval looks at how your business ' +
@@ -244,7 +258,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
    * its specifics stay on /funding-solutions/line-of-credit.
    */
   'line-of-credit': {
-    title: 'A Credit Line That Refills As You Repay',
+    subtitle: 'A Credit Line That Refills As You Repay',
     body:
       'An approved limit you draw from, pay down, and draw from again — with interest ' +
       'charged only on the balance you actually have out. The money is in place before you ' +
@@ -274,7 +288,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
    * general claim into a specific false one.
    */
   'sba-loans': {
-    title: 'The Longest Terms Available Anywhere',
+    subtitle: 'The Longest Terms Available Anywhere',
     body:
       'Loans partly guaranteed by the U.S. Small Business Administration, which caps what a ' +
       'lender may charge and allows terms no conventional product matches. The trade is ' +
@@ -303,7 +317,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
   },
 
   'equipment-financing': {
-    title: 'Equipment Financing That Pays for Itself',
+    subtitle: 'Financing That Pays For Itself',
     body:
       'Finance the machine, vehicle or system your business runs on and let it earn while ' +
       'you pay for it. The equipment secures the loan, so approvals lean on what you are ' +
@@ -333,7 +347,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
    * that tries to make the nine read evenly.
    */
   'merchant-cash-advance': {
-    title: 'An Advance Against Sales You Have Not Made Yet',
+    subtitle: 'An Advance Against Sales You Have Not Made Yet',
     body:
       'Not a loan — a purchase of a slice of your future receipts, repaid automatically as a ' +
       'share of what comes in. The payment rises and falls with the business, which is the ' +
@@ -364,7 +378,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
    * business-loans entry and must stay in step with it.
    */
   'business-loans': {
-    title: 'A Lump Sum Now, On Terms You Can Plan Around',
+    subtitle: 'A Lump Sum Now, On Terms You Can Plan Around',
     body:
       'A fixed amount up front and a fixed schedule to repay it — the simplest way to fund ' +
       'something whose cost you already know. The amount, the term and the payment are all ' +
@@ -387,7 +401,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
   },
 
   'inventory-financing': {
-    title: 'Buy The Stock Before The Season Needs It',
+    subtitle: 'Buy The Stock Before The Season Needs It',
     body:
       'Funding secured by the goods it buys, so you can take a bulk price, cover a long lead ' +
       'time, or fill the shelves ahead of a season without draining the account that pays ' +
@@ -407,7 +421,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
   },
 
   'receivables-financing': {
-    title: 'Get Paid Now For Invoices Due Later',
+    subtitle: 'Get Paid Now For Invoices Due Later',
     body:
       'Your unpaid business-to-business invoices, advanced as cash instead of waiting out a ' +
       '30-, 60- or 90-day term. The facility grows as your sales do, because the limit is ' +
@@ -433,7 +447,7 @@ const FUNDING_CARDS: Readonly<Record<FundingSlug, FundingCard>> = {
   },
 
   'bridge-loans': {
-    title: 'Cover The Gap Between One Deal And The Next',
+    subtitle: 'Cover The Gap Between One Deal And The Next',
     body:
       'Short-term money for a timing problem rather than a cash flow one — a purchase that ' +
       'must close before a sale completes, a refinance still in underwriting, a contract ' +

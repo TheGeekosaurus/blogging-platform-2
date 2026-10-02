@@ -184,12 +184,14 @@ function Product({
 
           <div className="mt-8 flex flex-wrap items-center gap-4">
             {/* h3, under the band's h2 — the level follows the grouping, not
-                the size, and the size is unchanged. */}
+                the size, and the size is unchanged. The text is the product's
+                NAME now, read off the program as `label`, so this heading, the
+                menu item and the footer link are one string. */}
             <h3
               id={headingId}
               className="font-[family-name:var(--font-headline)] text-[clamp(1.5rem,2.6vw,2rem)] font-medium leading-[1.15] text-[var(--ft-ink)]"
             >
-              {product.title}
+              {product.label}
             </h3>
             {featured ? (
               <span className="shrink-0 rounded-full bg-[var(--ft-card-raised)] px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-[var(--ft-accent)]">
@@ -197,6 +199,18 @@ function Product({
               </span>
             ) : null}
           </div>
+
+          {/*
+            The sentence that used to be this block's heading, now set under the
+            product's name. 19px/700 for the reason spelled out in globals.css
+            where --ft-subhead is declared — on the light theme that weight is
+            what keeps this colour above AA. This page is the dark theme, where
+            it measures 5.70:1 and would pass at any size, but the two are set
+            the same so one copy of the rule covers both.
+          */}
+          <p className="mt-3 text-[1.1875rem] font-bold leading-[1.3] text-[var(--ft-subhead)]">
+            {product.subtitle}
+          </p>
 
           {/*
             The template puts a labelled fact and the section's button together
