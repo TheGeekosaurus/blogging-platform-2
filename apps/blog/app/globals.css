@@ -2189,7 +2189,8 @@
    * the card. The tokens go back to their light values inside, so a component
    * dropped in a card is identical to the same component elsewhere on the page.
    */
-  .dl-deep .dl-card {
+  .dl-deep .dl-card,
+  .dl-cardfield .dl-card {
     background-color: #ffffff;
     border-radius: 20px;
     box-shadow: 0 18px 40px -20px rgba(4, 16, 46, 0.55);
@@ -2203,6 +2204,66 @@
     --ft-card-raised: #e8eff4;
 
     color: var(--ft-ink);
+  }
+
+  /*
+   * THE CARD FIELD — the funding products on artwork that holds still.
+   *
+   * Denis, 2026-10-04: "mimic the way the cards scroll without the background
+   * moving". That is `background-attachment: fixed`, which anchors the image
+   * to the VIEWPORT rather than to this element, so the cards travel over a
+   * picture that does not. The image is his, the same tiled Nanotom mark the
+   * footer's CTA card uses — already in the repo, so this adds no asset.
+   *
+   * THE SCRIM IS 0.6 AND THAT NUMBER IS MEASURED, not chosen. The artwork is
+   * mostly deep navy, but the raised faces of the mark run up to
+   * rgb(180, 196, 223) — and white on that is 1.76:1, which would put the
+   * heading somewhere between hard to read and invisible depending on where
+   * `cover` happens to crop at a given width. Every pixel of the image was
+   * checked, worst case taken, and the navy laid over it until white cleared
+   * AA for BODY text rather than merely for large:
+   *
+   *     scrim 0.00  ->  1.76:1      scrim 0.50  ->  4.40:1
+   *     scrim 0.40  ->  3.59:1      scrim 0.55  ->  4.89:1
+   *     scrim 0.60  ->  5.44:1   <- here
+   *
+   * It is flat rather than the top-weighted gradient `.dl-art` uses, because
+   * that section puts text only at the top and this one has cards running the
+   * whole height: anything that fades would leave the lower cards' shadows
+   * sitting on bare artwork.
+   *
+   * `background-attachment: fixed` IS DISABLED ON TOUCH AND UNDER REDUCED
+   * MOTION. iOS Safari has never supported it and paints the image at the
+   * wrong scale instead of ignoring the declaration, which looks like a bug
+   * rather than a missing flourish; and a background that slides against the
+   * content is exactly the kind of parallax that reduced-motion exists to turn
+   * off. Both fall back to `scroll`, which is the same picture, just travelling
+   * with the section.
+   */
+  .dl-cardfield {
+    background-color: var(--dl-deep);
+    background-image:
+      linear-gradient(rgba(11, 45, 114, 0.6), rgba(11, 45, 114, 0.6)),
+      url('/marketing/cta-card.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    /*
+     * The heading, which is the only thing placed directly on the artwork —
+     * the cards take their own tokens back through `.dl-card` above, and the
+     * chip re-points its own ink in `.dl-surface .ft-chip`.
+     */
+    --ft-ink: #ffffff;
+    --ft-muted: #c6d3ec;
+    --ft-line: rgba(255, 255, 255, 0.16);
+  }
+
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .dl-cardfield {
+      background-attachment: scroll;
+    }
   }
 
   /*

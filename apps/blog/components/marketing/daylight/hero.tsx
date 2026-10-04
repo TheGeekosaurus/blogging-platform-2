@@ -105,7 +105,16 @@ export function DaylightHero({
             >
               <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
                 {stat.value}
-                <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
+                {/*
+                  `pre-wrap`, not `pre`. The unit carries a LEADING SPACE —
+                  " Stars" — which is why it cannot be plain text, and `pre`
+                  kept that space at the cost of forbidding a line break at it:
+                  at 390px the three columns are 76px wide and "4.7 Stars"
+                  wanted 100, so it overflowed its cell by 24px onto the rule
+                  beside it. `pre-wrap` keeps the space and lets the unit drop
+                  to a second line instead.
+                */}
+                <span className="whitespace-pre-wrap text-[var(--ft-accent)]">{stat.unit}</span>
               </dd>
               <dt className="mt-3 max-w-[22ch] text-sm text-[var(--ft-muted)] lg:text-base">
                 {stat.label}

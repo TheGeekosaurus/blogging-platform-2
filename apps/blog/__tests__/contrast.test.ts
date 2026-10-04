@@ -313,9 +313,19 @@ describe('the Daylight palette meets AA on every ground', () => {
  * without noticing.
  */
 describe('the Daylight dark region meets AA', () => {
+  /*
+   * The declarations of the rule `selector` appears in.
+   *
+   * The optional `,[^{}]*` tail is what lets this find a selector that shares
+   * its rule with others. `.dl-deep .dl-card` gained a second ground when the
+   * funding products moved onto fixed artwork — `.dl-deep .dl-card,
+   * .dl-cardfield .dl-card { … }` — and without the tail this returned an
+   * empty string for both, which the guard below turned into five failures
+   * rather than five silent skips. That is exactly what that guard is for.
+   */
   function block(selector: string): string {
     const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return CSS.match(new RegExp(`${escaped}\\s*\\{([^}]*)\\}`))?.[1] ?? '';
+    return CSS.match(new RegExp(`${escaped}\\s*(?:,[^{}]*)?\\{([^}]*)\\}`))?.[1] ?? '';
   }
 
   function tokenIn(selector: string, name: string): string {
@@ -331,9 +341,11 @@ describe('the Daylight dark region meets AA', () => {
     return found[1];
   }
 
-  it('finds both blocks, so a rename fails here rather than skipping silently', () => {
+  it('finds every block, so a rename fails here rather than skipping silently', () => {
     expect(block('.dl-deep')).not.toBe('');
     expect(block('.dl-deep .dl-card')).not.toBe('');
+    expect(block('.dl-cardfield')).not.toBe('');
+    expect(block('.dl-cardfield .dl-card')).not.toBe('');
   });
 
   it.each(['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'])('--%s on the navy', (name) => {
@@ -348,6 +360,40 @@ describe('the Daylight dark region meets AA', () => {
       );
     },
   );
+
+  /*
+   * The funding products' artwork ground.
+   *
+   * Its heading is white over a PICTURE, so the ratio that matters cannot be
+   * computed from two tokens — it depends on the brightest pixel the image puts
+   * under a glyph, which is why the scrim over it was measured from the file
+   * (worst pixel rgb(180,196,223), white 1.76:1 bare, 5.44:1 under the 0.6
+   * navy) and is checked in the browser by the contrast sweep.
+   *
+   * What CAN be asserted here is that the scrim is still there and still opaque
+   * enough, because deleting or lightening it is a one-character edit that
+   * nothing else would catch.
+   */
+  it('keeps a scrim dark enough for white over the card-field artwork', () => {
+    const field = block('.dl-cardfield');
+    const alpha = field.match(/rgba\(11,\s*45,\s*114,\s*([\d.]+)\)/);
+    expect(alpha?.[1], 'the navy scrim over the artwork is gone').toBeDefined();
+    expect(Number(alpha?.[1])).toBeGreaterThanOrEqual(0.55);
+  });
+
+  /*
+   * And the fixed attachment has its escape hatches. iOS Safari paints a fixed
+   * background at the wrong scale rather than ignoring it, and a background
+   * that slides against the content is what reduced-motion exists to stop.
+   */
+  it('falls back from a fixed background on touch and under reduced motion', () => {
+    expect(CSS).toContain('background-attachment: fixed');
+    const guard = CSS.match(
+      /@media \(hover: none\), \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.dl-cardfield\s*\{([^}]*)\}/,
+    );
+    expect(guard?.[1], 'no touch / reduced-motion fallback').toBeDefined();
+    expect(guard?.[1]).toContain('background-attachment: scroll');
+  });
 
   /*
    * The one genuinely nice thing the navy buys, asserted so it cannot be

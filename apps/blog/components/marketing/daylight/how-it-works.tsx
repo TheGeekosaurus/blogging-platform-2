@@ -49,7 +49,18 @@ const STEP_ICONS = [
 
 export function DaylightHowItWorks() {
   return (
-    <section aria-labelledby="dl-how">
+    /*
+      `border-t` — Denis asked for a divider ahead of this section on
+      2026-10-04. It is on the section rather than on whatever precedes it so
+      every page that drops this in gets the rule without having to remember,
+      which is how the homepage and /funding-solutions stay in step.
+
+      It shows against a white neighbour and is simply covered by a dark one —
+      on /funding-solutions the products now sit on navy artwork, so there the
+      edge is the artwork's and this rule does nothing. That is the right
+      failure: a hairline that disappears where it is not needed.
+    */
+    <section aria-labelledby="dl-how" className="border-t border-[var(--ft-line)]">
       <div className={`${CONTAINER} py-14 lg:py-20`}>
         <SectionIntro
           id="dl-how"
