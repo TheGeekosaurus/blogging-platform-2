@@ -1470,4 +1470,337 @@ export const LOAN_PAGES: readonly LoanPage[] = [
       ],
     },
   },
+
+  /* ----------------------------------------------------------------------- */
+  /*
+   * THE FIVE ADDED ON 2026-10-05, completing the core nine.
+   *
+   * Every figure below already appears on this product's card in
+   * FUNDING_CARDS, and the compare widget sets two products' facts side by
+   * side — so a number that drifts between the two is visible on screen. Change
+   * one, change both.
+   *
+   * THEIR TERMS ARE INDUSTRY-STANDARD RANGES, not Nanotom's own, except SBA's,
+   * which are the agency's published program rules. Denis approved the ranges
+   * on 2026-10-01 as a stopgap; the long warning over this array applies to all
+   * five.
+   */
+  {
+    slug: 'sba-loans',
+    navLabel: 'SBA Loans',
+    description:
+      'Loans partly guaranteed by the U.S. Small Business Administration — up to ' +
+      '$5,000,000, terms to 25 years, and a cap on what a lender may charge.',
+    hero: {
+      eyebrow: 'SBA Loans',
+      heading: 'The Longest Terms Available Anywhere.',
+      blurb:
+        'A federal guarantee lets a lender say yes on terms no conventional product ' +
+        'matches — up to $5,000,000, repaid over as long as 25 years, at a rate the SBA ' +
+        'caps. The trade is time: this is the one program here that does not fund in days.',
+    },
+    whatIs: {
+      heading: 'What Is an SBA Loan?',
+      body:
+        'An SBA loan is made by a lender and partly guaranteed by the U.S. Small Business ' +
+        'Administration. The agency does not hand over the money; it stands behind a share ' +
+        'of it, which lowers the lender’s risk and in exchange lets the SBA set the rules — ' +
+        'how long the term can run, how much the lender may charge over the base rate, and ' +
+        'who qualifies. The 7(a) program is the general-purpose one and reaches $5,000,000.',
+    },
+    whyChoose: {
+      heading: 'Why Choose an SBA Loan',
+      body:
+        'Because nothing else stretches this far. Ten years for working capital and ' +
+        'equipment and twenty-five for real estate turn a payment that would strain the ' +
+        'business into one it can carry, and the SBA’s cap on the lender’s spread means the ' +
+        'rate is not simply whatever the market will bear. It usually asks for less cash ' +
+        'down than a conventional loan of the same size.',
+    },
+    how: {
+      heading: 'How Does an SBA Loan Work?',
+      body:
+        'You apply through a lender rather than through the agency, and the file is built ' +
+        'to the SBA’s standard: business and personal financials, tax returns, a debt ' +
+        'schedule and a use of proceeds. The lender underwrites it, the SBA reviews the ' +
+        'guarantee, and the loan closes. Expect weeks rather than hours — if the money is ' +
+        'needed this week, one of the faster programs on this site is the honest answer, ' +
+        'and an advisor will say so.',
+    },
+    facts: {
+      amount: 'Up to $5,000,000',
+      term: 'Up to 10 years, 25 for real estate',
+      repayment: 'Fixed monthly',
+      fundingTime: 'Weeks, not hours',
+      /*
+       * NOT `ENTRY_REQUIREMENT`. 551 FICO and 30 days in business is this
+       * site's floor for its revenue-led programs and is NOT what the SBA
+       * asks: eligibility is set by the agency, leans on trading history and
+       * credit, and requires the business to have sought other financing
+       * first. Printing the revenue-led floor on this page would be a
+       * qualification claim the program does not support.
+       */
+      requirements: 'SBA eligibility — a for-profit U.S. business, and a trading record',
+      pros: [
+        'The longest terms available anywhere',
+        'A cap on what the lender may charge over the base rate',
+        'Usually less cash down than a conventional loan',
+        'Large amounts without leaving the small-business market',
+      ],
+      cons: [
+        'Weeks to fund, where every other program here takes days',
+        'The heaviest documentation on this site',
+        'Eligibility is the SBA’s to set, not ours',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'merchant-cash-advance',
+    navLabel: 'Merchant Cash Advance',
+    description:
+      'An advance against future card and bank receipts, repaid as a share of what comes ' +
+      'in. $5,000 to $500,000, funded in days, priced as a factor rate.',
+    hero: {
+      eyebrow: 'Merchant Cash Advance',
+      heading: 'An Advance Against Sales You Have Not Made Yet.',
+      blurb:
+        'Not a loan — a purchase of a slice of your future receipts, repaid automatically ' +
+        'as a share of what comes in. The payment rises and falls with the business, and ' +
+        'the whole cost is agreed before you sign.',
+    },
+    whatIs: {
+      heading: 'What Is a Merchant Cash Advance?',
+      body:
+        'A merchant cash advance is a purchase, not a loan: a funder buys a fixed dollar ' +
+        'amount of your future receipts at a discount and collects it as a percentage of ' +
+        'each day’s or week’s takings. Because it is a purchase there is no interest rate ' +
+        'and no fixed term — the advance is repaid when the agreed amount has been ' +
+        'collected, which happens sooner in a strong month and later in a weak one.',
+    },
+    whyChoose: {
+      heading: 'Why Choose a Merchant Cash Advance',
+      body:
+        'Because it is the easiest money on this site to qualify for and the quickest to ' +
+        'arrive, and because the payment moves with the business rather than against it: a ' +
+        'slow week costs less, automatically, with nothing to renegotiate. Approval leans ' +
+        'on recent deposits, so a thin credit file rarely ends the conversation.',
+    },
+    how: {
+      heading: 'How Does a Merchant Cash Advance Work?',
+      body:
+        'You send a few months of statements and a funder sizes the advance against your ' +
+        'volume. You agree two numbers: the amount advanced and the total to be repaid — ' +
+        'their ratio is the factor rate. A holdback, usually between 5% and 20%, is then ' +
+        'taken from each day’s receipts until the total is met. THAT FACTOR IS NOT AN ' +
+        'INTEREST RATE: 1.35 means 35% of the principal, in full, however fast it is ' +
+        'repaid. Compare it against a term loan before you sign.',
+    },
+    facts: {
+      amount: '$5,000 to $500,000',
+      term: 'Typically 3 to 18 months, by volume',
+      repayment: '5% to 20% of daily receipts',
+      fundingTime: 'Within days',
+      requirements: ENTRY_REQUIREMENT,
+      pros: [
+        'Approval leans on deposits rather than on your credit file',
+        'The payment falls automatically in a slow week',
+        'Among the fastest money on this site',
+        'No fixed schedule to default against',
+      ],
+      cons: [
+        'The most expensive option here — compare it against a term loan',
+        'Priced as a factor rate, which is not comparable to an APR',
+        'A daily holdback tightens cash flow while it runs',
+        'Paying it off early saves nothing: the total is fixed',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'inventory-financing',
+    navLabel: 'Inventory Financing',
+    description:
+      'Funding secured by the stock it buys — $25,000 to $1,000,000, advancing 50% to 80% ' +
+      'of cost, on terms timed to when the goods sell.',
+    hero: {
+      eyebrow: 'Inventory Financing',
+      heading: 'Buy The Stock Before The Season Needs It.',
+      blurb:
+        'Funding secured by the goods it buys, so you can take a bulk price, cover a long ' +
+        'lead time, or fill the shelves ahead of a season without draining the account that ' +
+        'pays the staff.',
+    },
+    whatIs: {
+      heading: 'What Is Inventory Financing?',
+      body:
+        'Inventory financing is a facility secured by the stock it pays for. The goods are ' +
+        'the collateral, so the lender is underwriting what you are buying and how reliably ' +
+        'it sells rather than only what the business already owns. It is usually advanced ' +
+        'as a percentage of the inventory’s cost, and it can be a one-off purchase order or ' +
+        'a revolving line you draw on each time you restock.',
+    },
+    whyChoose: {
+      heading: 'Why Choose Inventory Financing',
+      body:
+        'Because the alternative is paying for stock out of the account that also covers ' +
+        'payroll and rent, months before the stock turns into revenue. This moves that ' +
+        'timing: the goods secure their own funding, the repayment is set against when they ' +
+        'sell, and the volume discount on a bulk order usually outruns what the facility ' +
+        'costs to carry.',
+    },
+    how: {
+      heading: 'How Does Inventory Financing Work?',
+      body:
+        'You bring the purchase order or the supplier invoice and recent trading figures. ' +
+        'The lender advances a share of the cost — commonly 50% to 80%, depending on how ' +
+        'readily the goods resell — and pays the supplier or reimburses you. Repayment runs ' +
+        'over three to twenty-four months, timed to the selling season. On a revolving ' +
+        'facility, what you repay becomes available again for the next order.',
+    },
+    facts: {
+      amount: '$25,000 to $1,000,000',
+      term: '3 to 24 months',
+      repayment: 'Monthly, timed to the selling season',
+      fundingTime: 'Within days of the purchase order',
+      requirements: `${ENTRY_REQUIREMENT}, plus the stock as security`,
+      pros: [
+        'The stock secures itself — no blanket lien on other assets',
+        'Take a bulk price instead of buying hand to mouth',
+        'Repayment timed to when the goods actually sell',
+        'Revolving facilities restore as you repay',
+      ],
+      cons: [
+        'Only as good as the goods: slow-moving stock advances less',
+        'The lender has a claim on inventory you have not sold yet',
+        'Not a fit for a business that holds no stock',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'receivables-financing',
+    navLabel: 'Receivables Financing',
+    description:
+      'Your unpaid B2B invoices advanced as cash — 80% to 90% up front, on a limit that ' +
+      'grows with your sales rather than a fixed approval.',
+    hero: {
+      eyebrow: 'Receivables Financing',
+      heading: 'Get Paid Now For Invoices Due Later.',
+      blurb:
+        'Your unpaid business-to-business invoices, advanced as cash instead of waiting out ' +
+        'a 30-, 60- or 90-day term. The facility grows as your sales do, because the limit ' +
+        'is set by your receivables rather than by a fixed approval.',
+    },
+    whatIs: {
+      heading: 'What Is Receivables Financing?',
+      body:
+        'Receivables financing advances the money your customers already owe you. You sell ' +
+        'or assign an unpaid invoice, the funder advances most of its face value ' +
+        'immediately, and the balance — less a fee — follows when your customer pays. ' +
+        'Because the money is already owed to you, this is not new debt on the balance ' +
+        'sheet in the way a loan is; it is your own revenue, early.',
+    },
+    whyChoose: {
+      heading: 'Why Choose Receivables Financing',
+      body:
+        'Because the limit moves with the business. A loan is approved once at a number ' +
+        'that is right for the day it was written; a receivables facility is worth whatever ' +
+        'you have invoiced, so a month of strong sales funds the next month of work with no ' +
+        'new application. And underwriting looks hardest at your customers’ credit, which ' +
+        'helps a young business selling to established ones.',
+    },
+    how: {
+      heading: 'How Does Receivables Financing Work?',
+      body:
+        'You submit invoices to creditworthy business customers. The funder checks those ' +
+        'customers rather than only you, and advances 80% to 90% of the face value, usually ' +
+        'within a day or two. When the invoice is paid, you receive the remainder minus the ' +
+        'fee — commonly 1% to 3% for each 30 days the invoice stayed outstanding, so a ' +
+        'customer who pays slowly costs more than one who pays on time.',
+    },
+    facts: {
+      amount: 'Set by your receivables, not a fixed limit',
+      term: 'Per invoice — typically 30 to 90 days',
+      repayment: 'Settled when your customer pays',
+      fundingTime: 'Within days of the first invoice',
+      requirements: 'Commercial invoices to creditworthy business customers',
+      pros: [
+        'A limit that grows with sales, without a new application',
+        'Underwritten on your customers’ credit as much as your own',
+        'Advancing money already owed rather than taking on a loan',
+        'Fastest route out of a 60- or 90-day payment term',
+      ],
+      cons: [
+        'Business-to-business only — consumer sales do not qualify',
+        'A customer who pays slowly costs you more',
+        'The funder may contact your customers to verify invoices',
+      ],
+    },
+  },
+
+  /* ----------------------------------------------------------------------- */
+  {
+    slug: 'bridge-loans',
+    navLabel: 'Bridge Loans',
+    description:
+      'Short-term funding for a timing gap — $50,000 to $5,000,000 over 3 to 24 months, ' +
+      'secured against an asset and repaid on a dated exit.',
+    hero: {
+      eyebrow: 'Bridge Loans',
+      heading: 'Cover The Gap Between One Deal And The Next.',
+      blurb:
+        'Short-term money for a timing problem rather than a cash flow one — a purchase ' +
+        'that must close before a sale completes, a refinance still in underwriting, a ' +
+        'contract that needs funding before the first payment lands.',
+    },
+    whatIs: {
+      heading: 'What Is a Bridge Loan?',
+      body:
+        'A bridge loan is short-term funding that exists to be repaid by a specific event ' +
+        'rather than out of trading over years. It is secured against an asset — property, ' +
+        'equipment, receivables — and it is underwritten on the exit: the sale, the ' +
+        'refinance or the contract payment that will clear it. The term is short by design, ' +
+        'because it is bridging a gap and not funding a decade.',
+    },
+    whyChoose: {
+      heading: 'Why Choose a Bridge Loan',
+      body:
+        'Because some opportunities do not wait for a conventional timetable. When a ' +
+        'purchase has to close before the thing that funds it completes, a bridge keeps the ' +
+        'deal alive — days rather than the weeks a longer facility takes, often ' +
+        'interest-only so the monthly cost stays low, and gone again as soon as the exit ' +
+        'lands.',
+    },
+    how: {
+      heading: 'How Does a Bridge Loan Work?',
+      body:
+        'You bring the asset and the exit. The lender values the security and tests the ' +
+        'exit — how certain it is and when it lands — and sizes the loan against both. ' +
+        'Payments are commonly interest-only over three to twenty-four months, with the ' +
+        'balance cleared in one payment when the sale, refinance or contract completes. If ' +
+        'the exit slips, the loan does not: plan the timetable with room in it.',
+    },
+    facts: {
+      amount: '$50,000 to $5,000,000',
+      term: '3 to 24 months',
+      repayment: 'Interest-only, balance at exit',
+      fundingTime: 'Days, not weeks',
+      requirements: 'An asset as security and a dated, credible exit',
+      pros: [
+        'Closes in days, where a conventional facility takes weeks',
+        'Interest-only keeps the monthly cost down while it runs',
+        'Sized against the asset rather than only trading history',
+        'Designed to be retired, not carried',
+      ],
+      cons: [
+        'Costs more per month than the long-term facility it bridges',
+        'Needs a real, dated exit — not an intention',
+        'An asset is at risk if that exit does not arrive',
+      ],
+    },
+  },
 ];

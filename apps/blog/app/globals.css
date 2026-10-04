@@ -1716,15 +1716,37 @@
 .ft-compare-radio[data-i='0']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='0'],
 .ft-compare-radio[data-i='1']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='1'],
 .ft-compare-radio[data-i='2']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='2'],
-.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'] {
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'],
+.ft-compare-radio[data-i='4']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='4'],
+.ft-compare-radio[data-i='5']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='5'],
+.ft-compare-radio[data-i='6']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='6'],
+.ft-compare-radio[data-i='7']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='7'],
+.ft-compare-radio[data-i='8']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='8'],
+.ft-compare-radio[data-i='9']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='9'] {
   display: grid;
 }
 
-/* The selected tab. Mirrors the "All" pill on the blog's category row. */
+/*
+ * TEN INDICES, because there are ten product pages and a page compares against
+ * every other one. It was four, written when there were five products — and
+ * five was exactly four others, so it fitted precisely and silently stopped
+ * fitting the moment Denis added the rest of the core nine. An index past the
+ * end has no rule at all: its panel never displays and its tab never
+ * highlights, with nothing in the build to say so. A test counts these against
+ * LOAN_PAGES.
+ *
+ * The selected tab. Mirrors the "All" pill on the blog's category row.
+ */
 .ft-compare-radio[data-i='0']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
 .ft-compare-radio[data-i='1']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
 .ft-compare-radio[data-i='2']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
-.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'],
+.ft-compare-radio[data-i='4']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='4'],
+.ft-compare-radio[data-i='5']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='5'],
+.ft-compare-radio[data-i='6']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='6'],
+.ft-compare-radio[data-i='7']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='7'],
+.ft-compare-radio[data-i='8']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='8'],
+.ft-compare-radio[data-i='9']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='9'] {
   background: var(--ft-card-raised);
   color: var(--ft-ink);
   font-weight: 500;
@@ -1739,7 +1761,13 @@
 .ft-compare-radio[data-i='0']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
 .ft-compare-radio[data-i='1']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
 .ft-compare-radio[data-i='2']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
-.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'],
+.ft-compare-radio[data-i='4']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='4'],
+.ft-compare-radio[data-i='5']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='5'],
+.ft-compare-radio[data-i='6']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='6'],
+.ft-compare-radio[data-i='7']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='7'],
+.ft-compare-radio[data-i='8']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='8'],
+.ft-compare-radio[data-i='9']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='9'] {
   outline: 2px solid var(--ft-accent);
   outline-offset: 3px;
 }

@@ -76,6 +76,24 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
   { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
   /*
+   * The five added on 2026-10-05, completing the core nine. Every one has a
+   * LOAN_PAGES entry; a path here without one is a 404 in the sitemap, so a
+   * test asserts this list and that array agree.
+   */
+  { path: 'funding-solutions/sba-loans', title: 'SBA Loans', index: true },
+  {
+    path: 'funding-solutions/merchant-cash-advance',
+    title: 'Merchant Cash Advance',
+    index: true,
+  },
+  { path: 'funding-solutions/inventory-financing', title: 'Inventory Financing', index: true },
+  {
+    path: 'funding-solutions/receivables-financing',
+    title: 'Receivables Financing',
+    index: true,
+  },
+  { path: 'funding-solutions/bridge-loans', title: 'Bridge Loans', index: true },
+  /*
    * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
    *
    * It carried the light-theme homepage at a second URL while Denis decided
