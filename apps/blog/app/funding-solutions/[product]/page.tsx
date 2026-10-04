@@ -2,11 +2,15 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
 import { LOAN_PAGES } from '@/components/marketing/ft/content';
-import { LoanProduct } from '@/components/marketing/ft/loan-product';
+import { DaylightLoanProduct } from '@/components/marketing/daylight/loan-product';
 import { isNntmCapital } from '@/lib/marketing';
 
 /*
  * /funding-solutions/<product> — the five individual funding products.
+ *
+ * DAYLIGHT, since 2026-10-05. The dark build is still in
+ * components/marketing/ft/loan-product.tsx and is the revert path — one import
+ * and one tag, the same way the homepage and the funding index were promoted.
  *
  * ONE dynamic route rather than five files. The pages differ only in copy, all
  * of which lives in LOAN_PAGES, so five routes would be five copies of the same
@@ -81,5 +85,5 @@ export default async function LoanProductPage({
    */
   const others = LOAN_PAGES.filter((other) => other.slug !== page.slug);
 
-  return <LoanProduct page={page} others={others} />;
+  return <DaylightLoanProduct page={page} others={others} />;
 }

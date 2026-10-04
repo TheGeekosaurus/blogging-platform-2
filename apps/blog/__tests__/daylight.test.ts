@@ -655,3 +655,85 @@ describe("the Daylight funding-solutions page", () => {
     expect(guard).toContain("prefers-reduced-motion: no-preference");
   });
 });
+
+/**
+ * The individual product pages, /funding-solutions/<slug>.
+ */
+describe("the Daylight loan-product page", () => {
+  const page = read("daylight/loan-product.tsx");
+
+  it("is what the route renders", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "funding-solutions", "[product]", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightLoanProduct");
+  });
+
+  /*
+   * The shared bands, in the order every other converted page uses them. The
+   * review wall is part of that order now — the dark file's note says a product
+   * page "ends the way every other page on this site ends", and since the
+   * homepage and the funding index moved, that ending has the reviews in it.
+   */
+  it("ends the way the other converted pages end", () => {
+    for (const section of [
+      "DaylightHowItWorks",
+      "DaylightUseCases",
+      "DaylightTestimonials",
+    ]) {
+      expect(page, `${section} is missing`).toContain(section);
+    }
+    /* The same FAQ props the homepage and the funding index pass. */
+    expect(page).toContain("exclusive");
+    expect(page).toContain("blurb={false}");
+    /* Use of funds sits on the band artwork, as elsewhere. */
+    expect(page).toContain("dl-art");
+  });
+
+  /*
+   * THE GLYPH IS THE PRODUCT'S OWN. The dark page draws CoinsIcon on all five —
+   * a credit line and a piece of equipment finance both illustrated with a
+   * stack of coins. These read the same `icon` key the nav and the funding
+   * index use, so a product cannot wear one mark in the menu and another on its
+   * own page.
+   */
+  it("gives each product its own mark rather than coins for all five", () => {
+    expect(page).toContain("iconFor");
+    expect(page).toContain("FUNDING_PROGRAMS.find");
+  });
+
+  /*
+   * And the fallback is reachable, not decorative: `revenue-based-financing`
+   * has a LOAN_PAGES entry but no FUNDING_PROGRAMS entry — it is the
+   * interest-only BANKROLL program, which left the core nine and kept its page.
+   */
+  it("still renders a product that is not one of the core nine", async () => {
+    const { LOAN_PAGES } = await import("../components/marketing/ft/content");
+    const { FUNDING_PROGRAMS } = await import("../components/marketing/brand");
+
+    const orphans = LOAN_PAGES.filter(
+      (lp) => !FUNDING_PROGRAMS.some((p) => p.slug === lp.slug),
+    );
+    expect(orphans.length, "the fallback has nothing to cover").toBeGreaterThan(0);
+    expect(page, "no fallback for a product with no program").toMatch(/\?\?\s*CoinsIcon/);
+  });
+
+  /*
+   * The compare tabs are the blog's category filters in another place — same
+   * 42px lozenge, same job — so they take the same marker and square off
+   * together. Denis asked for that shape on the blog on 2026-10-02.
+   */
+  it("squares the compare tabs with the same marker the blog filters use", () => {
+    expect(page).toContain("ft-compare-tab ft-catpill");
+  });
+
+  /*
+   * No accent on the last word of the hero heading. That treatment works on the
+   * homepage and the funding index because both end on the word the sentence is
+   * about; these end on "Repay", "Around", "Itself".
+   */
+  it("does not colour the last word of a heading that ends on a preposition", () => {
+    expect(page).not.toContain("dl-display");
+  });
+});
