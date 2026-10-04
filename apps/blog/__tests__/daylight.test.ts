@@ -612,32 +612,46 @@ describe("the Daylight funding-solutions page", () => {
   });
 
   /*
-   * THE STICKY RAIL, which is the shape Denis asked for: the heading holds
-   * still while the products scroll past it.
+   * THE CARD DECK. Denis asked three times for one thing and I built two
+   * others first, so this pins what it actually is: the cards keep the full
+   * width and the header keeps its place above them, and the motion belongs to
+   * the cards — each pins at the top and the next slides over it.
    *
-   * `self-start` is the part that fails silently. A grid item stretches to the
-   * row height by default, which leaves a sticky element no room to move
-   * inside its own track — so it sticks to nothing and the rail simply scrolls
-   * away, with no error and nothing visibly wrong until you look. The same
-   * trap the site header hit when it was wrapped in a plain div.
-   *
-   * `top-28` is 112px against a header that is 94px tall when stuck.
+   * What fails silently here is the OFFSET. `position: sticky` with every card
+   * on the same `top` still works, it just stops reading as a stack — every
+   * card lands in the same place and it becomes a slideshow. The per-card step
+   * is the whole effect, and it depends on an inline `--dl-i` that Tailwind
+   * cannot generate, so it is easy to drop in a refactor and see nothing break.
    */
-  it("pins the heading rail while the cards scroll", () => {
-    const rail = page.slice(page.indexOf("lg:sticky"), page.indexOf("</h2>"));
-    expect(page, "the rail is not sticky").toContain("lg:sticky");
-    expect(rail, "sticky inside a grid needs self-start").toContain("lg:self-start");
-    expect(rail, "the rail must clear the sticky header").toContain("lg:top-28");
-    /* Two columns, rail narrower than the cards. */
-    expect(page).toContain("lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]");
+  it("stacks the cards rather than putting the heading in a side column", () => {
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+
+    /* The list is the deck, and each card carries its index. */
+    expect(page).toContain("dl-stack");
+    expect(page).toContain("'--dl-i' as string");
+
+    /* Full width: no side rail, no re-split of the card's own columns. */
+    expect(page, "the heading went back into a side column").not.toContain("lg:sticky");
+    expect(page).not.toContain("lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]");
+
+    const rule = css.slice(css.indexOf(".dl-stack > li"), css.indexOf("}", css.indexOf(".dl-stack > li")));
+    expect(rule).toContain("position: sticky");
+    /* The step per card — without it the deck is a slideshow. */
+    expect(rule).toMatch(/var\(--dl-i[^)]*\)\s*\*/);
   });
 
   /*
-   * And the cards are one column inside that narrower track. They carried a
-   * 38% sub-column for a day, from the full-bleed dark layout; at half the
-   * page wide that is ~230px and every product heading broke over three lines.
+   * And the deck is off where it would hurt: below 1024px the card's columns
+   * stack and it grows taller than the viewport, so pinning would hold content
+   * off-screen that the reader is scrolling towards.
    */
-  it("does not re-split the cards inside the scrolling column", () => {
-    expect(page).not.toContain("lg:w-[38%]");
+  it("only stacks where a pinned card still fits on screen", () => {
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+    const guard = css.slice(
+      css.lastIndexOf("@media", css.indexOf(".dl-stack > li")),
+      css.indexOf(".dl-stack > li"),
+    );
+    expect(guard).toContain("min-width: 1024px");
+    expect(guard).toContain("prefers-reduced-motion: no-preference");
   });
 });

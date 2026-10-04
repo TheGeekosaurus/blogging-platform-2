@@ -2267,6 +2267,69 @@
   }
 
   /*
+   * THE CARD DECK — each product pins at the top and the next slides over it.
+   *
+   * Denis, 2026-10-05: keep the cards full width and the header where it is,
+   * and give the cards themselves the scrolling motion. `position: sticky` on
+   * every item of the list does exactly that with no JavaScript and no scroll
+   * listener: each card holds at `top` until the next one, further down the
+   * document and therefore painted above it, rises and covers it.
+   *
+   * PAINT ORDER IS THE DOM'S, deliberately. No z-index anywhere — later
+   * siblings in the same stacking context already paint over earlier ones,
+   * which is the order a deck needs. Adding z-index would be a second source
+   * of truth for something the markup already says.
+   *
+   * THE PER-CARD OFFSET is what makes it read as a stack rather than a
+   * replace. Card n pins 6px lower than card n-1, so the top edge of each one
+   * underneath stays visible: nine cards leave a 48px band of stacked edges,
+   * each delineated by the shadow `.dl-card` already carries. Without it every
+   * card lands in exactly the same place and the effect is a slideshow.
+   *
+   * 7rem IS 112px, against a site header that is 94px tall when stuck. The
+   * last card therefore pins at 160px, which still leaves 740px of an 900px
+   * viewport — the cards measure well under that, so a pinned card is never
+   * cut off at the bottom.
+   *
+   * LG AND UP ONLY. Below 1024px the card's two columns stack and it grows
+   * taller than the viewport, so pinning it would hold content off-screen
+   * that the reader is trying to scroll to. Under 1024px the list is ordinary
+   * flow, which is the same content in the same order.
+   *
+   * AND NOT UNDER REDUCED MOTION. Nothing here is an animation in the CSS
+   * sense, so no `animation` or `transition` query would catch it — but a
+   * scroll-linked effect that holds elements against the scroll is exactly
+   * what that preference is asked for, and the fallback is the plain list.
+   */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .dl-stack > li {
+      position: sticky;
+      top: calc(7rem + var(--dl-i, 0) * 0.375rem);
+    }
+
+    /*
+     * AN UPWARD SHADOW, and without it the whole effect looks like a bug.
+     *
+     * `.dl-card` casts downward, which is right everywhere else on the site:
+     * a white card on navy, lit from above. In the deck the thing a card
+     * arrives over is ANOTHER WHITE CARD, so its leading edge is white on
+     * white — the rounded corners have nothing behind them to show, and two
+     * cards mid-slide read as one continuous slab with a seam through it
+     * rather than as one passing in front of the other. Checked on screen,
+     * which is the only place it shows.
+     *
+     * So the deck's cards cast up as well as down. The upward half is softer
+     * and tighter than the downward one, because it is doing a different job:
+     * not lifting the card off a ground, just drawing the edge that is moving.
+     */
+    .dl-stack > li .dl-card {
+      box-shadow:
+        0 -10px 26px -12px rgba(4, 16, 46, 0.42),
+        0 18px 40px -20px rgba(4, 16, 46, 0.55);
+    }
+  }
+
+  /*
    * The footer, on flat navy.
    *
    * It carried the tiled Nanotom mark for one round and Denis took it off, so
