@@ -10,8 +10,8 @@ import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
 import { LabsHeader } from '@/components/marketing/labs/site-header';
-import { SiteFooter } from '@/components/marketing/site-footer';
-import { SiteHeader } from '@/components/marketing/site-header';
+import { DaylightFooter } from '@/components/marketing/daylight/site-footer';
+import { DaylightHeader } from '@/components/marketing/daylight/site-header';
 import { getSite } from '@/lib/site';
 import { THEME_SCRIPT } from '@/lib/theme';
 import { codedSite } from '@/lib/marketing';
@@ -293,7 +293,51 @@ export default async function RootLayout({
         </a>
 
         <div className="flex min-h-screen w-full flex-col">
-          {marketing ? <SiteHeader /> : null}
+          {/*
+            CAPITAL'S CHROME IS DAYLIGHT, SITE-WIDE — Denis, 2026-10-04, while
+            the pages themselves are still being converted one at a time.
+
+            This replaces the `body:has(.dl-surface)` rule that used to hide the
+            dark pair on a light page. That rule was always a stopgap, and its
+            own note said so: it left 14KB of hidden markup and 55 duplicate
+            links in the HTML of whatever page wore it, which was tolerable for
+            a preview route and not for the homepage. Rendering the right
+            chrome once, here, is the fix — no second header exists to hide.
+
+            `.dl-surface` ON A WRAPPER, NOT ON THE WHOLE TREE. The header and
+            footer need the light tokens; the page between them must not get
+            them, because a dark page nested inside `.dl-surface` would pick up
+            every `.dl-surface .ft-*` marker rule in globals.css and quietly
+            restyle itself — the navy ghost buttons, the squared category
+            filters, the navy FAQ. Two small wrappers keep those rules where
+            they were aimed.
+
+            `contents` — display: contents — AND THAT IS LOAD-BEARING, not
+            tidiness. A `position: sticky` element can only stick while its
+            PARENT BLOCK is in view, so a plain wrapper div, which is exactly
+            as tall as the header, unstuck the header the moment you scrolled
+            past it: measured at -1822px on a long page, i.e. gone. `contents`
+            generates no box, so the sticky header's containing block is the
+            flex column again and it sticks for the whole page, as it did when
+            it was a direct child.
+
+            It also means these wrappers paint nothing, which is what we want
+            anyway: the header is a floating island and on a page that is still
+            dark it should float over that page's own ground rather than sit on
+            a white band cut across the top of it. Custom properties still
+            inherit through a display: contents element, which is the whole
+            reason this can be a wrapper rather than a class on the header.
+
+            A SIDE EFFECT WORTH HAVING: the opening animation lives in the
+            layout now, so it plays once per full page load rather than once
+            per navigation. Moving between pages in the client keeps the header
+            mounted and the animation does not restart.
+          */}
+          {marketing ? (
+            <div className="dl-surface contents">
+              <DaylightHeader />
+            </div>
+          ) : null}
           {labs ? <LabsHeader /> : null}
           {coded ? null : <DefaultHeader name={site.name} />}
 
@@ -301,7 +345,11 @@ export default async function RootLayout({
             {children}
           </main>
 
-          {marketing ? <SiteFooter /> : null}
+          {marketing ? (
+            <div className="dl-surface contents">
+              <DaylightFooter />
+            </div>
+          ) : null}
           {labs ? <LabsFooter /> : null}
           {coded ? null : (
             <footer className="mx-auto w-full max-w-3xl border-t border-[var(--color-line)] px-5 py-7 text-sm text-[var(--color-ink-muted)]">

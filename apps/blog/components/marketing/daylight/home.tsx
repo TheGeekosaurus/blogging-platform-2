@@ -20,12 +20,10 @@ import {
   REQUIREMENTS,
   TESTIMONIALS,
 } from '../ft/content';
-import { AmountSlider } from './amount-slider';
 import { DaylightDifference } from './difference';
+import { DaylightHero } from './hero';
 import { DaylightHowItWorks } from './how-it-works';
 import { DaylightUseCases } from './use-cases';
-import { DaylightFooter } from './site-footer';
-import { DaylightHeader } from './site-header';
 import { ArrowDisc, CONTAINER, Chip, CtaButton, SectionIntro, SolidButton } from './primitives';
 
 /*
@@ -217,80 +215,6 @@ function DestinationTiles() {
  * the card out of the fold. They are now a full-width row directly beneath, so
  * nothing is lost and the hero keeps the reference's composition.
  */
-function Hero() {
-  /*
-   * The last word carries the accent colour, as in the reference. Split off the
-   * end of the existing string rather than adding a second field to content.ts:
-   * the dark homepage renders HERO.heading whole, and a `headingAccent` there
-   * would be a field one of the two designs always ignores.
-   */
-  const words = HERO.heading.split(' ');
-  const lead = words.slice(0, -1).join(' ');
-  const accent = words[words.length - 1];
-
-  return (
-    <section aria-labelledby="dl-hero" className="border-b border-[var(--ft-line)]">
-      <div
-        className={`${CONTAINER} grid items-center gap-12 py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-16 lg:py-20`}
-      >
-        <div className="flex flex-col items-start gap-7">
-          {/*
-            The rating badge. Dark blue on a cyan tint at 10.45:1 — the cyan
-            itself is a fill here, never the text, for the reason set out over
-            the palette in globals.css.
-
-            Built from HERO.stats rather than written out, so the day the rating
-            changes it changes in one place and both designs follow.
-          */}
-          <p className="rounded-lg bg-[var(--dl-pop-tint)] px-4 py-2 text-[0.8125rem] font-semibold uppercase tracking-[0.12em] text-[var(--ft-ink)]">
-            {HERO.stats[2]?.value}-Star Average Rating
-          </p>
-
-          <h1
-            id="dl-hero"
-            className="max-w-[13ch] font-[family-name:var(--font-headline)] text-[clamp(2.75rem,6.2vw,4.5rem)] font-bold leading-[1.02] tracking-[-0.02em] text-[var(--ft-ink)]"
-          >
-            {lead}{' '}
-            <span className="text-[var(--dl-display)]">{accent}</span>
-          </h1>
-
-          <p className="max-w-[54ch] text-[clamp(1.0625rem,1.5vw,1.1875rem)] leading-[1.7] text-[var(--ft-muted)]">
-            <strong className="font-semibold text-[var(--ft-ink)]">{REQUIREMENTS.note}</strong>{' '}
-            {HERO.body}
-          </p>
-        </div>
-
-        {/* The amount card. A client island; see ./amount-slider. */}
-        <AmountSlider />
-      </div>
-
-      {/*
-        The three figures the left column used to carry, given the full width.
-        Same markup as the dark hero's <dl>, one row lower.
-      */}
-      <dl className="border-t border-[var(--ft-line)]">
-        <div className={`${CONTAINER} grid grid-cols-3`}>
-          {HERO.stats.map((stat, i) => (
-            <div
-              key={stat.label}
-              className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
-            >
-              <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
-                {stat.value}
-                <span className="whitespace-pre text-[var(--ft-accent)]">{stat.unit}</span>
-              </dd>
-              <dt className="mt-3 max-w-[22ch] text-sm text-[var(--ft-muted)] lg:text-base">
-                {stat.label}
-              </dt>
-            </div>
-          ))}
-        </div>
-      </dl>
-
-    </section>
-  );
-}
-
 /**
  * The funding options, as a sticky rail beside a scrolling column of products.
  *
@@ -598,9 +522,14 @@ export function DaylightHome({
   locale: string;
 }) {
   return (
+    /*
+      NO HEADER OR FOOTER HERE. Both are in the root layout now, which renders
+      Daylight's pair for every Capital route — see the note there. This used to
+      draw its own and rely on a CSS rule to hide the layout's dark pair.
+    */
     <div className="dl-surface">
-      <DaylightHeader />
-      <Hero />
+      {/* Shared with /funding-solutions — see ./hero.tsx. */}
+      <DaylightHero heading={HERO.heading} lead={REQUIREMENTS.note} body={HERO.body} />
 
       {/*
         One navy band, carrying the three destination cards and nothing else.
@@ -634,7 +563,6 @@ export function DaylightHome({
       {/* One row at a time, and no second Ask-a-Question beside the list — see
           the notes on both props in ft/shared-sections. */}
       <Faq exclusive blurb={false} label="FAQ" />
-      <DaylightFooter />
     </div>
   );
 }

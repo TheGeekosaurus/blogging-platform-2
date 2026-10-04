@@ -143,14 +143,21 @@ describe('brand constants', () => {
       '../components/marketing/ft/content'
     );
 
-    const page = readFileSync(
-      join(__dirname, '..', 'components', 'marketing', 'ft', 'funding-solutions.tsx'),
-      'utf8',
+    /*
+     * BOTH builds. Daylight is what /funding-solutions serves since
+     * 2026-10-04; the dark file is the revert path and would have to honour
+     * the same anchors the moment it was routed again.
+     */
+    const pages = ['daylight', 'ft'].map((dir) =>
+      readFileSync(
+        join(__dirname, '..', 'components', 'marketing', dir, 'funding-solutions.tsx'),
+        'utf8',
+      ),
     );
 
     /* The id is built from the slug in a template literal, so the assertion is
        on the shape rather than on nine rendered strings. */
-    expect(page).toContain('`ft-loans-${product.slug}`');
+    for (const page of pages) expect(page).toContain('`ft-loans-${product.slug}`');
 
     const anchored = FUNDING_PROGRAMS.filter((program) => !program.hasPage);
     expect(anchored.length).toBeGreaterThan(0);
@@ -189,9 +196,11 @@ describe('brand constants', () => {
     const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
 
-    const page = readFileSync(
-      join(__dirname, '..', 'components', 'marketing', 'ft', 'funding-solutions.tsx'),
-      'utf8',
+    const pages = ['daylight', 'ft'].map((dir) =>
+      readFileSync(
+        join(__dirname, '..', 'components', 'marketing', dir, 'funding-solutions.tsx'),
+        'utf8',
+      ),
     );
 
     /*
@@ -199,17 +208,27 @@ describe('brand constants', () => {
      * "An <article> rather than a <section>" in prose, and a bare indexOf
      * finds that first — the same trap the legal-parity extractor hit.
      */
-    const open = page.indexOf('<article\n');
-    expect(open, 'the product block is a multi-line <article>').toBeGreaterThan(-1);
-    const article = page.slice(open, page.indexOf('>', open));
-    expect(article).toContain('id={blockId}');
-    expect(article).toContain('scroll-mt-');
+    for (const page of pages) {
+      const open = page.indexOf('<article\n');
+      expect(open, 'the product block is a multi-line <article>').toBeGreaterThan(-1);
+      const article = page.slice(open, page.indexOf('>', open));
+      expect(article).toContain('id={blockId}');
+      /*
+       * 32, not merely "some scroll margin". The header is global and light
+       * now and measures 94px desktop / 84px mobile when stuck; 24 was tuned
+       * against the old 73px dark header and leaves a 2px gap under this one,
+       * which reads as the block jammed under the bar.
+       */
+      expect(article).toContain('scroll-mt-32');
+    }
 
     /* The heading keeps a DIFFERENT id, so aria-labelledby still resolves. */
-    expect(page).toContain('const headingId = `${blockId}-title`');
+    for (const page of pages)
+      expect(page).toContain('const headingId = `${blockId}-title`');
 
     /* And the CTA is conditional on the product actually having a page. */
-    expect(page).toContain('product.hasPage ? product.cta.href : CTA_HREF');
+    for (const page of pages)
+      expect(page).toContain('product.hasPage ? product.cta.href : CTA_HREF');
   });
 
   /*

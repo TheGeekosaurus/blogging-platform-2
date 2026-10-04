@@ -160,11 +160,13 @@ function Product({
       id={blockId}
       aria-labelledby={headingId}
       /*
-        `scroll-mt-24` is 96px against a 73px desktop / 67px mobile sticky
-        header, so the block's top rule clears it with air to spare at both
-        sizes. Measured, not guessed — see the note on `blockId`.
+        `scroll-mt-32` is 128px. The header is global and light now — see
+        app/layout.tsx — and measures 94px desktop / 84px mobile when stuck,
+        so this clears it by 34px and 44px. It was 24 (96px) against the old
+        dark header's 73px; left alone it would have given this page a 2px gap
+        if it is ever routed again.
       */
-      className="scroll-mt-24 border-b border-[var(--ft-line)]"
+      className="scroll-mt-32 border-b border-[var(--ft-line)]"
     >
       {/*
         The template's divider runs the full height between the columns, so it

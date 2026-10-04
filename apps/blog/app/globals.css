@@ -2827,34 +2827,21 @@
 }
 
 /*
- * The shared dark header and footer, hidden on a Daylight page.
+ * THE CHROME-SUPPRESSION STOPGAP IS GONE, and this note is here so nobody
+ * reinvents it.
  *
- * THIS IS THE ONE STOPGAP IN THE DAYLIGHT BUILD, and it is worth being plain
- * about. The root layout renders <SiteHeader> and <SiteFooter> around every
- * Capital route, and it cannot do otherwise: an App Router root layout has no
- * access to the current path, and threading one down would take the whole
- * marketing site off `force-static`. So Daylight renders its own chrome inside
- * <main> and this rule removes the dark pair.
+ * A `body:has(.dl-surface) > div > header` rule used to hide the dark header
+ * and footer that the root layout rendered around every Capital route, so a
+ * Daylight page could draw its own. It worked, and it cost 14,272 bytes, 145
+ * nodes and 55 duplicate links in the HTML of every page that used it — fine
+ * for the preview route it was written for, not fine once Daylight was the
+ * homepage.
  *
- * `display: none` takes them out of the accessibility tree as well as the
- * picture, so the page has exactly one banner and one contentinfo landmark —
- * but their markup is still in the HTML, and HeaderShell still hydrates behind
- * it. That cost is acceptable for a preview route and is NOT acceptable for a
- * shipped homepage.
+ * Denis made the light chrome site-wide on 2026-10-04, which removed the
+ * problem rather than hiding it: app/layout.tsx renders Daylight's header and
+ * footer once, for every Capital route, and no second pair exists.
  *
- * THE FIX, when Daylight is either promoted or dropped: move the chrome out of
- * the root layout into a route-group layout — app/(dark)/layout.tsx and
- * app/(light)/layout.tsx — so each group renders its own and nothing is
- * rendered to be hidden. Route groups do not change URLs, so that refactor is
- * invisible from outside. It is deliberately not being done now, because it
- * touches every route in the app to serve one page that may not survive the
- * comparison.
- *
- * The child combinators matter: `> div >` names only the layout's own flex
- * wrapper, so Daylight's own <header> and <footer>, which are nested deeper
- * inside <main>, are untouched.
+ * If a page ever needs different chrome again, the answer is route groups —
+ * app/(dark)/layout.tsx and app/(light)/layout.tsx, which do not change URLs —
+ * and not a rule that renders markup in order to hide it.
  */
-body:has(.dl-surface) > div > header,
-body:has(.dl-surface) > div > footer {
-  display: none;
-}

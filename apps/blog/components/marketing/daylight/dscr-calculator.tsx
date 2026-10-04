@@ -3,8 +3,6 @@ import Link from 'next/link';
 import { CONTACT } from '../brand';
 import { DscrCalculatorEmbed } from './calc-embed';
 import { DSCR } from './dscr-content';
-import { DaylightFooter } from './site-footer';
-import { DaylightHeader } from './site-header';
 import { CONTAINER, Chip, CtaButton } from './primitives';
 
 /**
@@ -29,10 +27,9 @@ import { CONTAINER, Chip, CtaButton } from './primitives';
  * investor into a business-funding application.
  */
 export function DscrCalculatorPage() {
+  /* Header and footer come from the root layout — see the note there. */
   return (
     <div className="dl-surface">
-      <DaylightHeader />
-
       <section aria-labelledby="dscr-title">
         <div className={`${CONTAINER} flex flex-col items-start gap-5 py-14 lg:py-20`}>
           <Chip>{DSCR.label}</Chip>
@@ -269,7 +266,6 @@ export function DscrCalculatorPage() {
         </div>
       </section>
 
-      <DaylightFooter />
     </div>
   );
 }
