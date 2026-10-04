@@ -200,29 +200,35 @@ const CORE_PROGRAMS = [
 export type FundingSlug = (typeof CORE_PROGRAMS)[number]['slug'];
 
 /**
- * The slugs that have a dedicated page at /funding-solutions/<slug> today.
+ * The slugs that have a dedicated page at /funding-solutions/<slug>.
  *
- * The other five link to their own section of /funding-solutions instead, and
- * that is not a placeholder dodge — it is the only destination that currently
- * exists. app/funding-solutions/[product]/page.tsx is a ROUTE SEGMENT, and a
- * route segment beats the pages catch-all, so an unknown product slug never
- * reaches STUB_PAGES below: it hits that route, finds no LOAN_PAGES entry and
- * calls notFound(). Pointing the five new programs at /funding-solutions/<slug>
- * would therefore put five hard 404s in the header and the footer.
+ * ALL NINE, since 2026-10-05. It was four for four days, and the other five
+ * linked to their own block on /funding-solutions instead — not as a
+ * placeholder but because app/funding-solutions/[product]/page.tsx is a ROUTE
+ * SEGMENT, which beats the pages catch-all, so a slug with no LOAN_PAGES entry
+ * could not be given a STUB_PAGES fallback: it hit that route, found nothing
+ * and called notFound(). Pointing the menu at it would have been five hard
+ * 404s in the header and the footer.
  *
- * Their sections on /funding-solutions carry the same copy the four with pages
- * get above the fold — what it is, what it suits, three figures — so the link
- * lands on real content either way.
+ * The anchors those five used are still rendered on /funding-solutions, and
+ * deliberately so — nothing links to them now, but the machinery that builds
+ * them from the slug is what a tenth product would need on the day it is added
+ * before its page exists.
  *
- * WHEN A PRODUCT PAGE IS WRITTEN: add its slug here and add its LOAN_PAGES
- * entry in ft/content.ts. Nothing else changes; every href that mentions it is
- * derived below.
+ * KEEP THIS IN STEP WITH LOAN_PAGES. A slug listed here with no LOAN_PAGES
+ * entry is a 404 in the navigation; a test asserts the two agree rather than
+ * leaving it to be noticed in production.
  */
 const SLUGS_WITH_PAGE: ReadonlySet<string> = new Set<FundingSlug>([
   'working-capital',
   'line-of-credit',
+  'sba-loans',
   'equipment-financing',
+  'merchant-cash-advance',
   'business-loans',
+  'inventory-financing',
+  'receivables-financing',
+  'bridge-loans',
 ]);
 
 export type FundingProgram = {
