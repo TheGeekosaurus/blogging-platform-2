@@ -22,6 +22,7 @@ import {
 import { Faq } from '../ft/shared-sections';
 import { DaylightHero } from './hero';
 import { DaylightHowItWorks } from './how-it-works';
+import { DaylightTestimonials } from './testimonials';
 import { DaylightUseCases } from './use-cases';
 import { CONTAINER, Chip } from './primitives';
 
@@ -127,13 +128,23 @@ function Product({
   const headingId = `${blockId}-title`;
 
   return (
+    /*
+      A CARD, not a full-bleed band. Denis, 2026-10-04: turn the products into
+      cards, keep them large, and float them over artwork that holds still.
+
+      `dl-card` is the existing two-level token idiom — the ground re-points
+      --ft-* to its light-on-navy values and this class re-points them back —
+      so everything inside renders exactly as it would on a white page, with no
+      per-element overrides. The same class the homepage's navy band uses; see
+      globals.css, where its selector now names both grounds.
+    */
     <article
       id={blockId}
       aria-labelledby={headingId}
-      className="scroll-mt-32 border-t border-[var(--ft-line)]"
+      className="dl-card scroll-mt-32 overflow-hidden"
     >
-      <div className={`${CONTAINER} lg:flex lg:gap-0`}>
-        <div className="py-12 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-16 lg:pr-12">
+      <div className="lg:flex lg:gap-0">
+        <div className="p-8 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:p-12">
           {/*
             The glyph on the chip tint rather than bare, matching the dropdown's
             tiles — on white a hairline mark floats, where the tinted square
@@ -163,12 +174,22 @@ function Product({
             {product.subtitle}
           </p>
 
-          <div className="mt-7 flex flex-wrap items-center justify-between gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:flex-nowrap">
+          {/*
+            STACKED UNTIL `sm`, side by side after.
+
+            It was a wrapping row at every width, and the wrap never fired:
+            `flex-1 min-w-0` lets the text shrink indefinitely rather than push
+            the button down, so at 390px "Turning tomorrow's sales into today's
+            cash" was squeezed into 77px — six words on six lines beside a
+            button, and 13px of it spilling out anyway. Below `sm` the two now
+            stack and the text gets the full width.
+          */}
+          <div className="mt-7 flex flex-col items-start gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:flex-row sm:items-center sm:justify-between">
             {/*
-              `min-w-0` keeps the button on the same line as the fact: without
-              it the text block's min-content width is the whole unwrapped
-              phrase, which shoves the button onto its own row on every product
-              whose "Best for" runs long.
+              `min-w-0` keeps the button on the same line as the fact once they
+              are side by side: without it the text block's min-content width is
+              the whole unwrapped phrase, which shoves the button onto its own
+              row on every product whose "Best for" runs long.
             */}
             <div className="min-w-0 flex-1">
               <p className="text-sm text-[var(--ft-muted)]">{LOANS.bestForLabel}</p>
@@ -193,7 +214,7 @@ function Product({
           </div>
         </div>
 
-        <div className="border-t border-[var(--ft-line)] py-12 lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:py-16 lg:pl-12">
+        <div className="border-t border-[var(--ft-line)] p-8 lg:flex lg:min-w-0 lg:flex-1 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:p-12">
           <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.25rem,2.2vw,1.625rem)] font-semibold leading-[1.25] text-[var(--ft-ink)]">
             {detail.lead}
           </h3>
@@ -226,7 +247,14 @@ export function DaylightFundingSolutions() {
       */}
       <DaylightHero heading={LOANS.hero.heading} body={LOANS.hero.body} id="dl-loans-hero" />
 
-      <section aria-labelledby="ft-loans-options">
+      {/*
+        THE PRODUCTS, ON ARTWORK THAT DOES NOT MOVE. `dl-cardfield` pins the
+        background to the viewport with `background-attachment: fixed`, so the
+        cards travel over it — see globals.css for the rule, the measured scrim
+        that keeps the heading legible over the mark's light faces, and the
+        touch / reduced-motion fallbacks.
+      */}
+      <section aria-labelledby="ft-loans-options" className="dl-cardfield">
         {/*
           The chip-over-headline the rest of Daylight uses, where the dark page
           had a grey band. Written out rather than taken from SectionIntro only
@@ -238,7 +266,7 @@ export function DaylightFundingSolutions() {
           is — no new copy was invented for it, and the count in the heading is
           still the one a test holds against FUNDING_PROGRAMS.length.
         */}
-        <div className={`${CONTAINER} flex flex-col items-start gap-5 py-14 lg:py-20`}>
+        <div className={`${CONTAINER} flex flex-col items-start gap-5 pb-10 pt-14 lg:pb-12 lg:pt-20`}>
           <Chip>{LOANS.optionsHead.label}</Chip>
           <h2
             id="ft-loans-options"
@@ -253,9 +281,11 @@ export function DaylightFundingSolutions() {
           menu lists them in. This run is also where the five products with no
           page of their own land when the header or the footer links to them.
         */}
-        {FUNDING_OPTIONS.cards.map((card, index) => (
-          <Product key={card.slug} product={card} featured={index === 0} />
-        ))}
+        <div className={`${CONTAINER} flex flex-col gap-8 pb-16 lg:gap-10 lg:pb-24`}>
+          {FUNDING_OPTIONS.cards.map((card, index) => (
+            <Product key={card.slug} product={card} featured={index === 0} />
+          ))}
+        </div>
       </section>
 
       <DaylightHowItWorks />
@@ -270,6 +300,10 @@ export function DaylightFundingSolutions() {
       <div className="dl-art">
         <DaylightUseCases />
       </div>
+
+      {/* The review wall, above the FAQ — Denis, 2026-10-04. The homepage's
+          own section, shared rather than copied; see ./testimonials.tsx. */}
+      <DaylightTestimonials />
 
       {/* One row at a time, and no second Ask-a-Question beside the list —
           the same props the homepage gives it. */}
