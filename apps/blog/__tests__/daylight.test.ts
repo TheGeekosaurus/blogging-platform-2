@@ -610,4 +610,34 @@ describe("the Daylight funding-solutions page", () => {
   it("does not embed the dark-painted survey on a white page", () => {
     expect(page).not.toContain("Qualifier");
   });
+
+  /*
+   * THE STICKY RAIL, which is the shape Denis asked for: the heading holds
+   * still while the products scroll past it.
+   *
+   * `self-start` is the part that fails silently. A grid item stretches to the
+   * row height by default, which leaves a sticky element no room to move
+   * inside its own track — so it sticks to nothing and the rail simply scrolls
+   * away, with no error and nothing visibly wrong until you look. The same
+   * trap the site header hit when it was wrapped in a plain div.
+   *
+   * `top-28` is 112px against a header that is 94px tall when stuck.
+   */
+  it("pins the heading rail while the cards scroll", () => {
+    const rail = page.slice(page.indexOf("lg:sticky"), page.indexOf("</h2>"));
+    expect(page, "the rail is not sticky").toContain("lg:sticky");
+    expect(rail, "sticky inside a grid needs self-start").toContain("lg:self-start");
+    expect(rail, "the rail must clear the sticky header").toContain("lg:top-28");
+    /* Two columns, rail narrower than the cards. */
+    expect(page).toContain("lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]");
+  });
+
+  /*
+   * And the cards are one column inside that narrower track. They carried a
+   * 38% sub-column for a day, from the full-bleed dark layout; at half the
+   * page wide that is ~230px and every product heading broke over three lines.
+   */
+  it("does not re-split the cards inside the scrolling column", () => {
+    expect(page).not.toContain("lg:w-[38%]");
+  });
 });
