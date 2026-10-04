@@ -504,3 +504,110 @@ describe("the category filters", () => {
     expect(rule).toContain("border-radius: 0.375rem");
   });
 });
+
+/**
+ * The chrome is global, and the wrapper that carries its tokens generates no box.
+ *
+ * Denis made the light header site-wide on 2026-10-04. Two things have to stay
+ * true for that to work, and both failed silently when they were first written:
+ *
+ * 1. `display: contents` ON THE WRAPPER. A `position: sticky` element can only
+ *    stick while its parent block is in view, and a plain wrapper div is
+ *    exactly as tall as the header — so the header unstuck the moment you
+ *    scrolled past it. Measured at -1822px on a long page, i.e. gone, with
+ *    nothing on screen to say so. `contents` generates no box, which gives the
+ *    sticky header the flex column as its containing block again.
+ *
+ * 2. THE TOKENS STAY ON A WRAPPER rather than going on the column itself. A
+ *    dark page nested inside `.dl-surface` would pick up every
+ *    `.dl-surface .ft-*` marker rule in globals.css — the navy ghost buttons,
+ *    the squared category filters, the navy FAQ — and restyle itself.
+ */
+describe("the site-wide Daylight chrome", () => {
+  const layout = readFileSync(join(__dirname, "..", "app", "layout.tsx"), "utf8");
+
+  it("renders Daylight's header and footer for Capital", () => {
+    expect(layout).toContain("DaylightHeader");
+    expect(layout).toContain("DaylightFooter");
+  });
+
+  it("keeps the sticky header's containing block with display: contents", () => {
+    const wrappers = [...layout.matchAll(/className="dl-surface([^"]*)"/g)].map(
+      ([, rest]) => rest,
+    );
+    expect(wrappers.length, "the chrome wrappers carry .dl-surface").toBe(2);
+    for (const rest of wrappers) {
+      expect(rest, "a chrome wrapper is missing `contents`").toContain("contents");
+    }
+  });
+
+  it("does not put the light tokens on the whole column", () => {
+    /* The flex column that holds header, main and footer must not itself be a
+       Daylight surface — see reason 2 above. */
+    expect(layout).not.toMatch(/className="dl-surface[^"]*flex min-h-screen/);
+    expect(layout).not.toMatch(/className="flex min-h-screen[^"]*dl-surface/);
+  });
+
+  /*
+   * And the pages do not draw their own. Two headers would be two banner
+   * landmarks; the old answer was a CSS rule that hid one, which is the stopgap
+   * this replaced.
+   */
+  it("leaves the pages to render only their own content", () => {
+    for (const file of ["daylight/home.tsx", "daylight/funding-solutions.tsx", "daylight/dscr-calculator.tsx"]) {
+      const source = read(file);
+      expect(source, `${file} still draws a header`).not.toContain("<DaylightHeader");
+      expect(source, `${file} still draws a footer`).not.toContain("<DaylightFooter");
+    }
+  });
+
+  it("no longer hides chrome with CSS", () => {
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+    /* The phrase survives in a note explaining why it is gone; what must not
+       come back is the rule, which needs a declaration block. */
+    expect(css).not.toMatch(/body:has\(\.dl-surface\)[^{]*\{/);
+  });
+});
+
+/**
+ * /funding-solutions is Daylight, and wears the homepage's hero.
+ */
+describe("the Daylight funding-solutions page", () => {
+  const page = read("daylight/funding-solutions.tsx");
+
+  it("is what the route renders", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "funding-solutions", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightFundingSolutions");
+  });
+
+  /*
+   * Denis: "same as main, but keep the headline on this current page." The
+   * same component, not a second copy of it — a copy is the same hero only on
+   * the day it is written.
+   */
+  it("shares the homepage's hero component, with its own headline", () => {
+    expect(page).toContain("DaylightHero");
+    expect(page).toContain("LOANS.hero.heading");
+    expect(read("daylight/home.tsx")).toContain("DaylightHero");
+  });
+
+  it("uses the Daylight versions of the sections the homepage also has", () => {
+    expect(page).toContain("DaylightHowItWorks");
+    expect(page).toContain("DaylightUseCases");
+    /* The same FAQ props the homepage passes. */
+    expect(page).toContain("exclusive");
+    expect(page).toContain("blurb={false}");
+  });
+
+  /*
+   * The qualifier survey is deliberately absent: it is a GoHighLevel iframe
+   * whose own Custom CSS paints its html/body #141414, so it cannot sit on a
+   * white page. The homepage dropped it for the same reason.
+   */
+  it("does not embed the dark-painted survey on a white page", () => {
+    expect(page).not.toContain("Qualifier");
+  });
+});
