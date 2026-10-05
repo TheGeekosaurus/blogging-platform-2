@@ -1,24 +1,15 @@
-import Link from 'next/link';
-
-import { FUNDING_PROGRAMS } from '../brand';
-import { FUNDING_OPTIONS, LOAN_PRODUCTS } from '../ft/content';
+import { FUNDING_OPTIONS } from '../ft/content';
 import {
-  ArrowUpRightIcon,
-  BankIcon,
-  BridgeIcon,
   CashFlowIcon,
-  CoinsIcon,
   EquipmentIcon,
   ExpandIcon,
-  GrowthIcon,
   InventoryIcon,
-  InvoiceIcon,
   MarketingIcon,
   PayrollIcon,
-  WalletIcon,
 } from '../ft/icons';
 import { Faq } from '../ft/shared-sections';
 import type { IndustryPage } from './industry-content';
+import { DaylightFundingRail } from './funding-rail';
 import { DaylightHero } from './hero';
 import { DaylightHowItWorks } from './how-it-works';
 import { DaylightTestimonials } from './testimonials';
@@ -57,26 +48,6 @@ import { CONTAINER, SectionIntro } from './primitives';
  */
 
 /*
- * Product glyphs, keyed by the `icon` on each FUNDING_PROGRAMS entry — the same
- * map ./funding-solutions and the header dropdown use, so a product cannot wear
- * one mark in the menu and another here. Only the nine core keys, because only
- * core slugs can reach this file: IndustryPage.products.slugs is typed
- * FundingSlug, so a key that is not in this map fails the build rather than
- * rendering nothing.
- */
-const PRODUCT_ICONS = {
-  coins: CoinsIcon,
-  growth: GrowthIcon,
-  equipment: EquipmentIcon,
-  'cash-flow': CashFlowIcon,
-  wallet: WalletIcon,
-  bank: BankIcon,
-  inventory: InventoryIcon,
-  invoice: InvoiceIcon,
-  bridge: BridgeIcon,
-} as const;
-
-/*
  * Glyphs for the `needs` cells. A separate map from the one above because these
  * are reasons to borrow rather than products, and the two lists only happen to
  * overlap: `equipment` means the fryer here and the product there.
@@ -94,75 +65,26 @@ const NEED_ICONS = {
   'cash-flow': CashFlowIcon,
 } as const;
 
-/** The cards by slug, so a product's copy is looked up rather than retyped. */
-const CARDS_BY_SLUG = new Map(FUNDING_OPTIONS.cards.map((card) => [card.slug, card]));
-
 /**
- * One recommended product.
+ * The shortlist's cards, IN THE RECORD'S ORDER rather than the menu's.
  *
- * A SHORT CARD, not the full block /funding-solutions draws. That page is where
- * someone compares all nine at length; here the product is an answer to the
- * problem described in the section above it, and the card's job is to say which
- * one and get out of the way. Everything it prints — the name, the subhead, the
- * "best for" line — is read from the shared copy, so this page cannot describe
- * a product a fourth way.
+ * `FUNDING_OPTIONS.cards.filter(...)` would have been shorter and is wrong
+ * here: it returns them in FUNDING_PROGRAMS order, which is Denis's order for
+ * the menu and the index — a stable global ranking that says nothing about any
+ * one trade. A record lists its products most-relevant-first (a food business
+ * is shown equipment finance before a line of credit), and that ordering is the
+ * editorial judgement the page exists to make.
  *
- * Every one of the nine has a page of its own now, so `href` is always a real
- * destination and there is no anchor-to-itself case to guard, the way the
- * funding index still has to.
+ * A slug with no card is dropped rather than crashing the page. It cannot
+ * happen today — `slugs` is typed FundingSlug and every program has a card — so
+ * this is only here to keep that a render bug rather than a 500 if the two ever
+ * come apart.
  */
-function ProductCard({ slug }: { slug: (typeof FUNDING_PROGRAMS)[number]['slug'] }) {
-  const card = CARDS_BY_SLUG.get(slug);
-  const detail = LOAN_PRODUCTS[slug];
-  if (!card) return null;
-
-  const Icon = PRODUCT_ICONS[card.icon as keyof typeof PRODUCT_ICONS];
-
-  return (
-    /*
-      `dl-card` re-points --ft-* back to their light values inside the card, so
-      everything below renders as it would on a white page even though the
-      section around it is navy. The same two-level idiom the homepage's
-      destination cards use; see globals.css.
-
-      `h-full` with the grid's `items-stretch` default keeps five cards in a
-      three-up grid the same height, so the bottom row's two do not come out
-      short beside the gap.
-    */
-    <li className="dl-card flex h-full flex-col p-7 lg:p-8">
-      <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--dl-pop-tint)]">
-        <Icon className="h-6 w-6 text-[var(--ft-ink)]" />
-      </span>
-
-      <h3 className="mt-6 font-[family-name:var(--font-headline)] text-[1.375rem] font-semibold leading-[1.2] text-[var(--ft-ink)]">
-        {card.label}
-      </h3>
-
-      {/* 19px/700 — the weight is what carries --ft-subhead over AA on white.
-          See the note where the token is declared in globals.css, and the two
-          other call sites that a test holds to the same size and weight. */}
-      <p className="mt-2 text-[1.1875rem] font-bold leading-[1.3] text-[var(--ft-subhead)]">
-        {card.subtitle}
-      </p>
-
-      <div className="mt-5 rounded-xl bg-[var(--ft-card)] px-5 py-4">
-        <p className="text-sm text-[var(--ft-muted)]">Best for</p>
-        <p className="mt-1 text-[1.0625rem] leading-[1.35] text-[var(--ft-ink)]">
-          {detail.bestFor}
-        </p>
-      </div>
-
-      {/* `mt-auto` pins the link to the bottom edge whatever the card above it
-          measures, so the five links sit on two straight lines. */}
-      <Link
-        href={card.href}
-        className="mt-auto inline-flex items-center gap-2 pt-6 text-[0.9375rem] font-semibold text-[var(--ft-ink)] no-underline hover:text-[var(--ft-accent)]"
-      >
-        {card.cta.label}
-        <ArrowUpRightIcon className="h-4 w-4" />
-      </Link>
-    </li>
-  );
+function cardsFor(page: IndustryPage) {
+  const bySlug = new Map(FUNDING_OPTIONS.cards.map((card) => [card.slug, card]));
+  return page.products.slugs
+    .map((slug) => bySlug.get(slug))
+    .filter((card) => card !== undefined);
 }
 
 export function DaylightIndustry({ page }: { page: IndustryPage }) {
@@ -227,48 +149,35 @@ export function DaylightIndustry({ page }: { page: IndustryPage }) {
       </section>
 
       {/*
-        THE SHORTLIST. White cards want something to float on — the same
-        argument that put the homepage's three destination cards on this ground
-        — and it breaks up what would otherwise be three white card grids in a
-        row between the hero and the FAQ.
+        THE SHORTLIST, as the homepage's products section — Denis, 2026-10-05:
+        "mimic the main page with products, title on the left, product cards
+        scrolling on the right."
 
-        THE HEADING STAYS ON WHITE AND ONLY THE CARDS GO ON THE ARTWORK, which
-        is the one thing about this section that was got wrong first and is
-        worth stating plainly. `.dl-deep`'s note in globals.css says it is safe
-        to put a picture behind that band BECAUSE nothing on it is text; this
-        header was on it for a round, and measured against the rendered pixels
-        the white heading came out at 2.20:1 and the standfirst at 1.29:1 where
-        the artwork's gold curve runs under them from 1024px up. The in-browser
-        contrast sweep passed it, because that sweep reads background-COLOR and
-        cannot see a background-image — so the only thing that catches this is
-        photographing the ground with the glyphs made transparent.
+        THE SAME COMPONENT, not a copy of it. ./funding-rail.tsx was the
+        homepage's own `FundingOptions` until this page asked for it; it moved
+        out so both call it, the way ./hero.tsx is shared. This page hands it
+        its own chip, headline and standfirst, and the handful of products this
+        trade usually wants instead of all nine.
 
-        A navy scrim would have fixed it and was costed: 0.70 alpha, the point
-        where the dimmer standfirst colour finally clears 4.5:1. That leaves 30%
-        of a picture Denis chose, to carry two lines that read perfectly well on
-        white one block earlier. So the header moved instead and the artwork
-        kept its strength.
+        THE SECTION CARRIES ITS OWN `border-t`, which is the divider Denis
+        asked for between this and the block above. It is on the rail rather
+        than on the needs grid for the reason the How It Works rule is on How
+        It Works: every page that drops this section in gets the edge without
+        having to remember.
+
+        IT IS ON WHITE, AND THE NAVY BAND THAT WAS HERE IS GONE. That band
+        carried the heading on `.dl-deep`'s artwork for a round and the type
+        measured 2.20:1 and 1.29:1 over the gold curve — the note in globals.css
+        over `.dl-deep` has the numbers and why the sweep missed them. Mimicking
+        the main page settles it: the main page's section is on white.
       */}
-      <section aria-labelledby="dl-fit">
-        <div className={`${CONTAINER} pt-14 lg:pt-20`}>
-          <SectionIntro id="dl-fit" label={page.products.label} heading={page.products.heading} />
-
-          <p className="mt-6 max-w-[62ch] text-[1.0625rem] leading-[1.7] text-[var(--ft-muted)]">
-            {page.products.body}
-          </p>
-        </div>
-
-        {/* Nothing in here is text — five opaque cards, exactly what the band
-            was built to carry. Each card's `.dl-card` puts the light tokens
-            back inside it. */}
-        <div className="dl-deep mt-12 lg:mt-14">
-          <ul className={`${CONTAINER} grid gap-6 py-14 sm:grid-cols-2 lg:grid-cols-3 lg:py-20`}>
-            {page.products.slugs.map((slug) => (
-              <ProductCard key={slug} slug={slug} />
-            ))}
-          </ul>
-        </div>
-      </section>
+      <DaylightFundingRail
+        id="dl-fit"
+        label={page.products.label}
+        heading={page.products.heading}
+        body={page.products.body}
+        cards={cardsFor(page)}
+      />
 
       {/* Shared from here down. The divider above How It Works is on that
           section itself, so every page that drops it in gets the rule. */}
