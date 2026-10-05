@@ -94,6 +94,18 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   },
   { path: 'funding-solutions/bridge-loans', title: 'Bridge Loans', index: true },
   /*
+   * The industry pages. `industries` ITSELF IS DELIBERATELY ABSENT: that path
+   * is a static route belonging to the Labs deployment and calls notFound() on
+   * Capital, so listing it here would put a 404 in Capital's sitemap. The
+   * children are real pages and do not go through it.
+   *
+   * `industries/construction-business` is absent for the other reason — it is
+   * still a noindex stub, and listing a page that asks not to be indexed is the
+   * trap the funding products sat in above. Add it the day it gets a record in
+   * daylight/industry-content.ts.
+   */
+  { path: 'industries/food-business', title: 'Food Business', index: true },
+  /*
    * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
    *
    * It carried the light-theme homepage at a second URL while Denis decided
