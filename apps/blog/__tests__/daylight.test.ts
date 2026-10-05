@@ -435,8 +435,15 @@ describe("the Daylight footer", () => {
  * the subhead a bit lighter" pass removes without noticing, so it is asserted.
  */
 describe("the funding subhead carries its own contrast", () => {
+  /*
+   * `daylight/funding-rail.tsx` is where the homepage's run went when that
+   * section was lifted out so the industry pages could wear it too. The list is
+   * written out rather than globbed so a NEW call site has to be added here
+   * deliberately — the point is that nobody introduces a fourth subhead at a
+   * size the colour does not survive.
+   */
   const USERS = [
-    "daylight/home.tsx",
+    "daylight/funding-rail.tsx",
     "ft/home-v2.tsx",
     "ft/funding-solutions.tsx",
   ];
@@ -880,9 +887,12 @@ describe("the Daylight industry page", () => {
    * index, another on its own page and a third here is the drift this prevents.
    */
   it("reads its product copy from the shared source", () => {
+    /* The record stores slugs; the cards come from the one place the index and
+       the product pages already read. A product described one way here and
+       another there is the drift this prevents. */
     expect(page).toContain("FUNDING_OPTIONS.cards");
-    expect(page).toContain("LOAN_PRODUCTS");
     expect(content).not.toContain("Best for");
+    expect(content).not.toContain("subtitle");
   });
 
   /*
@@ -906,23 +916,42 @@ describe("the Daylight industry page", () => {
   });
 
   /*
-   * The subhead at 19px/700. The third call site for --ft-subhead, and the
-   * weight is what carries it over AA on white — see the note over the token.
+   * THE SHORTLIST IS THE HOMEPAGE'S SECTION, not a copy of it — Denis asked it
+   * to "mimic the main page with products, title on the left, product cards
+   * scrolling on the right", and a copy mimics the main page only on the day it
+   * is written.
    */
-  it("keeps the subhead at the weight its contrast depends on", () => {
-    expect(page).toMatch(
-      /text-\[1\.1875rem\] font-bold leading-\[1\.3\] text-\[var\(--ft-subhead\)\]/,
+  it("shares the homepage's products section rather than redrawing it", () => {
+    expect(page).toContain("DaylightFundingRail");
+    expect(read("daylight/home.tsx")).toContain("DaylightFundingRail");
+
+    /* And the rail really is the sticky one. */
+    const rail = read("daylight/funding-rail.tsx");
+    expect(rail).toContain("lg:sticky");
+    expect(rail).toMatch(/lg:grid-cols-\[minmax\(0,0\.8fr\)_minmax\(0,1\.2fr\)\]/);
+  });
+
+  /*
+   * The divider Denis asked for between "what they borrow for" and the
+   * shortlist. It is on the rail, not on the needs grid, so every page that
+   * drops that section in gets the edge — the same reasoning that puts How It
+   * Works' rule on How It Works.
+   */
+  it("rules off the shortlist from the block above it", () => {
+    expect(read("daylight/funding-rail.tsx")).toContain(
+      'className="border-t border-[var(--ft-line)]"',
     );
   });
 
   /*
-   * NOTHING BUT CARDS ON THE BAND ARTWORK.
+   * NO TEXT ON THE BAND ARTWORK — and on this page that is now settled by there
+   * being no band at all.
    *
-   * `.dl-deep` paints a picture behind itself, and globals.css permits that
-   * only because the band carries opaque cards and no type. This section had
-   * its header on it for a round: measured against the rendered pixels the
-   * white heading came out at 2.20:1 and the standfirst at 1.29:1 where the
-   * artwork's gold curve runs under them from 1024px up.
+   * It is worth leaving the guard. `.dl-deep` paints a picture behind itself,
+   * and globals.css permits that only because the band carries opaque cards and
+   * no type. This section had its header on it for a round: measured against
+   * the rendered pixels the white heading came out at 2.20:1 and the standfirst
+   * at 1.29:1 where the artwork's gold curve runs under them from 1024px up.
    *
    * The in-browser contrast sweep does NOT catch this — it resolves a
    * background-COLOR up the ancestor chain and cannot see a background-image —
@@ -930,14 +959,40 @@ describe("the Daylight industry page", () => {
    */
   it("puts no text on the band artwork", () => {
     const at = page.indexOf('"dl-deep');
-    expect(at, "the band is gone").toBeGreaterThan(-1);
+    if (at === -1) return;
 
-    /* From the wrapper to the end of its opening children: a list, not a
-       heading. SectionIntro and the standfirst live above it, on white. */
     const band = page.slice(at, page.indexOf("</div>", at));
     expect(band, "a heading is sitting on the picture").not.toContain("SectionIntro");
     expect(band, "prose is sitting on the picture").not.toMatch(/<p[\s>]/);
-    expect(band).toContain("<ul");
+  });
+
+  /*
+   * The shortlist is ordered by the record, not by the menu. A food business is
+   * shown equipment finance first; FUNDING_PROGRAMS order would have led with
+   * working capital, which is the global ranking and says nothing about the
+   * trade.
+   */
+  it("keeps the shortlist in the record's order, not the menu's", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    const { FUNDING_PROGRAMS } = await import("../components/marketing/brand");
+
+    /* Comments stripped: the helper's own note quotes the call it rules out. */
+    const code = page.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code, "filter() would reorder to menu order").toContain("cardsFor");
+    expect(code).not.toMatch(/FUNDING_OPTIONS\.cards\.filter/);
+
+    /* And at least one record actually disagrees with menu order, or the test
+       above is guarding nothing. */
+    const menu = FUNDING_PROGRAMS.map((p) => p.slug);
+    const disagrees = INDUSTRY_PAGES.some((entry) => {
+      const ranked = [...entry.products.slugs].sort(
+        (a, b) => menu.indexOf(a) - menu.indexOf(b),
+      );
+      return ranked.join() !== entry.products.slugs.join();
+    });
+    expect(disagrees, "no record departs from menu order").toBe(true);
   });
 
   /*

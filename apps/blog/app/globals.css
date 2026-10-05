@@ -2093,6 +2093,19 @@
      * children are three opaque white cards. The --ft-ink and --ft-muted values
      * below are inherited by the card interiors through `.dl-card`, not painted
      * on the artwork.
+     *
+     * THAT CONDITION IS LOAD-BEARING, and it has been broken once. An industry
+     * page put a section header on this ground for a round; measured against
+     * the rendered pixels the white heading came out at 2.20:1 and the dimmer
+     * standfirst at 1.29:1, where the artwork's gold curve runs under them from
+     * 1024px up. A navy scrim would fix it at 0.70 alpha — the point where the
+     * standfirst finally clears 4.5:1 — which leaves 30% of the picture.
+     *
+     * The Playwright contrast sweep DOES NOT CATCH THIS. It resolves a
+     * background-COLOR up the ancestor chain, so it reads the navy underneath
+     * and passes. The only way to check type over any of these grounds is to
+     * photograph the page with the glyphs made transparent and measure the
+     * actual pixels. So: cards on this band, headings on white above it.
      */
     background-color: var(--dl-deep);
     background-image: url('/marketing/cards-band.png');
