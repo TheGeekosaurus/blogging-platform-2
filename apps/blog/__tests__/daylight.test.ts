@@ -737,3 +737,231 @@ describe("the Daylight loan-product page", () => {
     expect(page).not.toContain("dl-display");
   });
 });
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE INDUSTRY PAGES
+ *
+ * The first one — /industries/food-business — landed on 2026-10-05, and most of
+ * what is worth guarding here is routing rather than markup. That corner of the
+ * tree has three separate traps in it: /industries itself belongs to the Labs
+ * deployment and 404s on Capital, the sibling path is still a catch-all stub,
+ * and a route segment always beats the catch-all. A change that forgets any one
+ * of them takes a live link down silently.
+ * ---------------------------------------------------------------------------
+ */
+describe("the Daylight industry page", () => {
+  const page = read("daylight/industry.tsx");
+  const content = read("daylight/industry-content.ts");
+  const route = readFileSync(
+    join(__dirname, "..", "app", "industries", "food-business", "page.tsx"),
+    "utf8",
+  );
+
+  it("is what the route renders, gated to Capital", () => {
+    expect(route).toContain("DaylightIndustry");
+    expect(route).toContain("isNntmCapital");
+  });
+
+  /*
+   * THE LOAD-BEARING ONE. `app/industries/[industry]/page.tsx` would capture
+   * every /industries/* path, and `construction-business` has no record yet —
+   * it is served by the pages catch-all and linked from both the header
+   * dropdown and the footer. A dynamic segment turns it into a hard 404 with
+   * nothing to notice.
+   *
+   * So: while any industry path is still a stub, the route must be literal.
+   * The day construction gets a record in industry-content.ts, this test stops
+   * demanding that and the route can become `[industry]`.
+   */
+  it("keeps the route literal while a sibling industry is still a stub", async () => {
+    const { STUB_PAGES } = await import("../components/marketing/brand");
+    const stubbed = Object.keys(STUB_PAGES).filter((path) =>
+      path.startsWith("industries/"),
+    );
+    if (stubbed.length === 0) return;
+
+    expect(
+      existsSync(join(__dirname, "..", "app", "industries", "[industry]")),
+      `a dynamic segment would 404 ${stubbed.join(", ")}`,
+    ).toBe(false);
+  });
+
+  /* Every record in the file has a route to render it, and vice versa. */
+  it("gives every industry record a route and every route a record", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    expect(INDUSTRY_PAGES.length).toBeGreaterThan(0);
+
+    for (const entry of INDUSTRY_PAGES) {
+      expect(
+        existsSync(join(__dirname, "..", "app", "industries", entry.slug, "page.tsx")),
+        `no route for ${entry.slug}`,
+      ).toBe(true);
+      /* And it is no longer a stub, which the catch-all would never reach. */
+      const { STUB_PAGES } = await import("../components/marketing/brand");
+      expect(
+        Object.hasOwn(STUB_PAGES, `industries/${entry.slug}`),
+        `${entry.slug} is both a route and a stub`,
+      ).toBe(false);
+    }
+  });
+
+  /*
+   * A page that renders but is missing from CODED_SITES is invisible to
+   * crawlers and to the admin, and nothing fails to say so — which is why this
+   * is asserted for every industry rather than for the one that exists today.
+   */
+  it("puts every industry page in the sitemap registry", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    const paths = new Set(CODED_SITES[NNTM_CAPITAL_SLUG]?.map((r) => r.path));
+
+    for (const entry of INDUSTRY_PAGES) {
+      expect(paths.has(`industries/${entry.slug}`), `${entry.slug} is not registered`).toBe(
+        true,
+      );
+    }
+
+    /*
+     * And `industries` itself is NOT registered: app/industries/page.tsx is
+     * gated to Labs, so on Capital that path answers 404 and listing it would
+     * submit a 404 in the sitemap.
+     */
+    expect(paths.has("industries")).toBe(false);
+  });
+
+  /*
+   * The header's Industries trigger used to point at /industries, which 404s on
+   * Capital. The footer's column heading had already been left unlinked for
+   * that reason; this is the matching fix, and both headers render an
+   * href-less parent as a dropdown trigger rather than a link.
+   */
+  it("does not point the Industries menu at a path that 404s", async () => {
+    const { NAV } = await import("../components/marketing/brand");
+    const industries = NAV.find((item) => item.label === "Industries");
+
+    expect(industries, "the Industries menu is gone").toBeTruthy();
+    expect(industries?.href, "/industries 404s on Capital").toBeUndefined();
+    expect(industries?.children?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  /* Denis: "Hero section same as main, new headline on the left side." */
+  it("wears the same hero as the homepage, with its own headline", () => {
+    expect(page).toContain("DaylightHero");
+    expect(page).toContain("page.hero.heading");
+    /*
+     * And the record carries nothing the shared hero cannot draw. An `eyebrow`
+     * field was written and removed for exactly this reason: that hero builds
+     * its badge from HERO.stats, so a per-industry eyebrow would have been a
+     * field nothing rendered.
+     */
+    expect(content).not.toContain("eyebrow");
+  });
+
+  it("ends the way the other converted pages end", () => {
+    for (const section of [
+      "DaylightHowItWorks",
+      "DaylightUseCases",
+      "DaylightTestimonials",
+    ]) {
+      expect(page, `${section} is missing`).toContain(section);
+    }
+    expect(page).toContain("exclusive");
+    expect(page).toContain("blurb={false}");
+    expect(page).toContain('className="dl-art"');
+  });
+
+  /*
+   * The recommended products are read from the shared copy, never retyped — the
+   * whole reason the record stores slugs. A product described one way on the
+   * index, another on its own page and a third here is the drift this prevents.
+   */
+  it("reads its product copy from the shared source", () => {
+    expect(page).toContain("FUNDING_OPTIONS.cards");
+    expect(page).toContain("LOAN_PRODUCTS");
+    expect(content).not.toContain("Best for");
+  });
+
+  /*
+   * Every icon key a record names has a glyph. Without this, a typo renders a
+   * cell with a hole where the mark should be and no error anywhere.
+   */
+  it("has a glyph for every icon key the content names", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    const map = page.slice(page.indexOf("const NEED_ICONS"), page.indexOf("const CARDS_BY_SLUG"));
+
+    for (const entry of INDUSTRY_PAGES) {
+      for (const item of entry.needs.items) {
+        /* Hyphenated keys are quoted in the map, bare ones are not. */
+        expect(map, `no glyph for "${item.icon}"`).toMatch(
+          new RegExp(`['"]?${item.icon}['"]?\\s*:`),
+        );
+      }
+    }
+  });
+
+  /*
+   * The subhead at 19px/700. The third call site for --ft-subhead, and the
+   * weight is what carries it over AA on white — see the note over the token.
+   */
+  it("keeps the subhead at the weight its contrast depends on", () => {
+    expect(page).toMatch(
+      /text-\[1\.1875rem\] font-bold leading-\[1\.3\] text-\[var\(--ft-subhead\)\]/,
+    );
+  });
+
+  /*
+   * NOTHING BUT CARDS ON THE BAND ARTWORK.
+   *
+   * `.dl-deep` paints a picture behind itself, and globals.css permits that
+   * only because the band carries opaque cards and no type. This section had
+   * its header on it for a round: measured against the rendered pixels the
+   * white heading came out at 2.20:1 and the standfirst at 1.29:1 where the
+   * artwork's gold curve runs under them from 1024px up.
+   *
+   * The in-browser contrast sweep does NOT catch this — it resolves a
+   * background-COLOR up the ancestor chain and cannot see a background-image —
+   * so this is the only automated guard there is.
+   */
+  it("puts no text on the band artwork", () => {
+    const at = page.indexOf('"dl-deep');
+    expect(at, "the band is gone").toBeGreaterThan(-1);
+
+    /* From the wrapper to the end of its opening children: a list, not a
+       heading. SectionIntro and the standfirst live above it, on white. */
+    const band = page.slice(at, page.indexOf("</div>", at));
+    expect(band, "a heading is sitting on the picture").not.toContain("SectionIntro");
+    expect(band, "prose is sitting on the picture").not.toMatch(/<p[\s>]/);
+    expect(band).toContain("<ul");
+  });
+
+  /*
+   * An industry page may be specific about the TRADE and not about this
+   * business's record in it. Nobody has counted the restaurants funded, so no
+   * page may imply someone has.
+   */
+  it("claims no record in the trade it describes", () => {
+    const prose = JSON.stringify(
+      INDUSTRY_PROSE_SOURCE(content),
+    ).toLowerCase();
+    for (const claim of [
+      "we have funded",
+      "we've funded",
+      "businesses funded",
+      "clients in",
+    ]) {
+      expect(prose, `"${claim}" is a count nobody has`).not.toContain(claim);
+    }
+  });
+});
+
+/* Everything the content file states as prose, with the doc comments stripped —
+   the comment above INDUSTRY_PAGES discusses the very phrases the test bans. */
+function INDUSTRY_PROSE_SOURCE(content: string): string {
+  return content.replace(/\/\*[\s\S]*?\*\//g, "");
+}

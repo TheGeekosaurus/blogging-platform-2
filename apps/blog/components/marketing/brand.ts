@@ -279,9 +279,21 @@ export const NAV: readonly NavItem[] = [
     href: '/funding-solutions',
     children: FUNDING_PROGRAMS,
   },
+  /*
+   * NO `href` ON INDUSTRIES. /industries is a static route belonging to the
+   * Labs deployment and calls notFound() on Capital, so the trigger pointed at
+   * a 404 — checked against the running build, not assumed. The footer's
+   * Industries column has been headed with plain text for the same reason; this
+   * is the matching fix on the header side.
+   *
+   * Both headers already handle a parent with no href: the Daylight one renders
+   * the trigger as a <span> and still opens the dropdown, and the mobile nav
+   * does the same. The children are where the pages are.
+   *
+   * Give it an href again the day Capital has an industries index of its own.
+   */
   {
     label: 'Industries',
-    href: '/industries',
     children: INDUSTRIES,
   },
   { label: 'Loan Calculator', href: '/calc' },
@@ -324,7 +336,16 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    * this map. Same trap as `about` below.
    */
   industries: 'Industries',
-  'industries/food-business': 'Food Business',
+  /*
+   * `industries/food-business` IS NOT HERE ANY MORE. It is a coded route now —
+   * app/industries/food-business/page.tsx — and a static segment beats the
+   * catch-all, so leaving it would have been a map nothing ever read.
+   *
+   * Construction stays a stub until it has a record in
+   * daylight/industry-content.ts. That is also why the route next door is the
+   * literal `food-business` rather than an `[industry]` segment: a dynamic
+   * segment would capture this path too and turn it into a hard 404.
+   */
   'industries/construction-business': 'Construction Business',
 
   /*
