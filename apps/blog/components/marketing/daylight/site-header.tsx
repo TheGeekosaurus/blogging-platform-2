@@ -6,6 +6,7 @@ import { LOCAL_IMAGES, NAV, type NavItem } from '../brand';
 import {
   BankIcon,
   BridgeIcon,
+  CalculatorIcon,
   CashFlowIcon,
   CoinsIcon,
   EquipmentIcon,
@@ -16,7 +17,15 @@ import {
 } from '../ft/icons';
 import { NAV_CTA } from './content';
 import { DaylightHeaderShell } from './header-shell';
-import { HardHatIcon, StorefrontIcon } from './icons';
+import {
+  CarIcon,
+  GaugeIcon,
+  HardHatIcon,
+  LedgerIcon,
+  SpineIcon,
+  StorefrontIcon,
+  WheatIcon,
+} from './icons';
 import { DaylightMobileNav } from './mobile-nav';
 import { CtaButton } from './primitives';
 
@@ -79,6 +88,13 @@ const NAV_ICONS = {
   bridge: BridgeIcon,
   storefront: StorefrontIcon,
   'hard-hat': HardHatIcon,
+  wheat: WheatIcon,
+  ledger: LedgerIcon,
+  car: CarIcon,
+  spine: SpineIcon,
+  /* The two calculators. The gauge is the DSCR one: a ratio read off a dial. */
+  calculator: CalculatorIcon,
+  gauge: GaugeIcon,
 } as const;
 
 /**

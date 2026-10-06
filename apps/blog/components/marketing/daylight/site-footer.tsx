@@ -3,7 +3,14 @@ import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
-import { CONTACT, FUNDING_PROGRAMS, INDUSTRIES, LOCAL_IMAGES, POLICY_LINKS } from '../brand';
+import {
+  CALCULATORS,
+  CONTACT,
+  FUNDING_PROGRAMS,
+  INDUSTRIES,
+  LOCAL_IMAGES,
+  POLICY_LINKS,
+} from '../brand';
 import { FOOTER_CTA } from './content';
 import { CONTAINER, CtaButton } from './primitives';
 
@@ -204,11 +211,18 @@ export function DaylightFooter() {
               { label: CONTACT.phone, href: CONTACT.phoneHref },
             ]}
           />
+          {/*
+            BOTH CALCULATORS, from the same array the header menu reads. This
+            column listed one row, "Loan Calculator", pointing at /calc — so
+            the DSCR calculator was a live page the footer never mentioned.
+            Spreading CALCULATORS keeps the two lists from drifting the way a
+            hand-written row already had.
+          */}
           <FooterColumn
             heading="Resources"
             links={[
               { label: 'Blog', href: blogIndexPath() },
-              { label: 'Loan Calculator', href: '/calc' },
+              ...CALCULATORS,
               { label: 'Programs', href: '/programs' },
             ]}
           />

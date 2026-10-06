@@ -296,9 +296,20 @@ describe("the Daylight dropdowns", () => {
   it("gives every dropdown entry an icon key", async () => {
     const { NAV } = await import("../components/marketing/brand");
 
+    const { CALCULATORS, FUNDING_PROGRAMS, INDUSTRIES } = await import(
+      "../components/marketing/brand"
+    );
     const children = NAV.flatMap((item) => item.children ?? []);
 
-    expect(children.length).toBe(11);
+    /*
+     * DERIVED, not a magic number. This read `toBe(11)` — nine products and two
+     * industries — and every time the menus grew it failed for the wrong
+     * reason. What the test is actually for is that nothing reaches a dropdown
+     * WITHOUT going through one of the three arrays, so count them.
+     */
+    expect(children.length).toBe(
+      FUNDING_PROGRAMS.length + INDUSTRIES.length + CALCULATORS.length,
+    );
     for (const child of children) {
       expect(child.icon, `${child.label} has no icon key`).toMatch(/^[a-z-]+$/);
     }
@@ -761,7 +772,7 @@ describe("the Daylight industry page", () => {
   const page = read("daylight/industry.tsx");
   const content = read("daylight/industry-content.ts");
   const route = readFileSync(
-    join(__dirname, "..", "app", "industries", "food-business", "page.tsx"),
+    join(__dirname, "..", "app", "industries", "[industry]", "page.tsx"),
     "utf8",
   );
 
@@ -771,27 +782,35 @@ describe("the Daylight industry page", () => {
   });
 
   /*
-   * THE LOAD-BEARING ONE. `app/industries/[industry]/page.tsx` would capture
-   * every /industries/* path, and `construction-business` has no record yet —
-   * it is served by the pages catch-all and linked from both the header
-   * dropdown and the footer. A dynamic segment turns it into a hard 404 with
-   * nothing to notice.
+   * THE LOAD-BEARING ONE, and it has flipped.
    *
-   * So: while any industry path is still a stub, the route must be literal.
-   * The day construction gets a record in industry-content.ts, this test stops
-   * demanding that and the route can become `[industry]`.
+   * `app/industries/[industry]/page.tsx` captures EVERY /industries/* path,
+   * because a route segment always beats the catch-all. While any industry was
+   * still a noindex STUB_PAGES entry — construction was, and was linked live
+   * from the header dropdown and the footer — that segment would have turned a
+   * working 200 into a hard 404 with nothing to notice, so the route was the
+   * literal `food-business` instead.
+   *
+   * Every industry has a record now and the stubs are gone, so the segment is
+   * dynamic. What this test guards is that the two never coexist again: a stub
+   * under this prefix is unreachable while that route exists, so adding one is
+   * silently writing a page nobody will ever be served.
    */
-  it("keeps the route literal while a sibling industry is still a stub", async () => {
+  it("never has an industry stub behind the dynamic segment", async () => {
     const { STUB_PAGES } = await import("../components/marketing/brand");
     const stubbed = Object.keys(STUB_PAGES).filter((path) =>
       path.startsWith("industries/"),
     );
-    if (stubbed.length === 0) return;
+    const dynamicRoute = existsSync(
+      join(__dirname, "..", "app", "industries", "[industry]", "page.tsx"),
+    );
 
-    expect(
-      existsSync(join(__dirname, "..", "app", "industries", "[industry]")),
-      `a dynamic segment would 404 ${stubbed.join(", ")}`,
-    ).toBe(false);
+    if (dynamicRoute) {
+      expect(
+        stubbed,
+        "a route segment beats the catch-all, so these are unreachable",
+      ).toEqual([]);
+    }
   });
 
   /* Every record in the file has a route to render it, and vice versa. */
@@ -799,19 +818,61 @@ describe("the Daylight industry page", () => {
     const { INDUSTRY_PAGES } = await import(
       "../components/marketing/daylight/industry-content"
     );
+    const { STUB_PAGES } = await import("../components/marketing/brand");
     expect(INDUSTRY_PAGES.length).toBeGreaterThan(0);
+
+    const dir = join(__dirname, "..", "app", "industries");
+    const dynamicRoute = existsSync(join(dir, "[industry]", "page.tsx"));
 
     for (const entry of INDUSTRY_PAGES) {
       expect(
-        existsSync(join(__dirname, "..", "app", "industries", entry.slug, "page.tsx")),
+        dynamicRoute || existsSync(join(dir, entry.slug, "page.tsx")),
         `no route for ${entry.slug}`,
       ).toBe(true);
-      /* And it is no longer a stub, which the catch-all would never reach. */
-      const { STUB_PAGES } = await import("../components/marketing/brand");
       expect(
         Object.hasOwn(STUB_PAGES, `industries/${entry.slug}`),
         `${entry.slug} is both a route and a stub`,
       ).toBe(false);
+    }
+
+    /* The dynamic route builds its params from the records, so a record added
+       without a CODED_SITES entry is the only way the two can part company —
+       which the sitemap test below catches. A LITERAL route left behind after
+       the switch is the other, and would serve a second copy at the same URL. */
+    if (dynamicRoute) {
+      const literals = readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && e.name !== "[industry]")
+        .map((e) => e.name);
+      expect(literals, "a literal route still shadows the segment").toEqual([]);
+    }
+  });
+
+  /*
+   * THE NAV AND THE RECORDS ARE THE SAME SIX. The header dropdown and the
+   * footer column both read INDUSTRIES; a label there with no record is a link
+   * to a 404, and a record with no entry is a page nothing links to.
+   */
+  it("lists exactly the industries that have pages", async () => {
+    const { INDUSTRIES } = await import("../components/marketing/brand");
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+
+    const navSlugs = INDUSTRIES.map((i) => i.href.replace(/^\/industries\/|\/$/g, ""));
+    const recordSlugs = INDUSTRY_PAGES.map((p) => p.slug);
+
+    expect([...navSlugs].sort()).toEqual([...recordSlugs].sort());
+
+    /* And every one carries a glyph the header can actually draw. */
+    const header = read("daylight/site-header.tsx");
+    const map = header.slice(
+      header.indexOf("const NAV_ICONS"),
+      header.indexOf("} as const;", header.indexOf("const NAV_ICONS")),
+    );
+    for (const item of INDUSTRIES) {
+      expect(map, `no glyph for "${item.icon}"`).toMatch(
+        new RegExp(`['"]?${item.icon}['"]?\\s*:`),
+      );
     }
   });
 
@@ -853,6 +914,29 @@ describe("the Daylight industry page", () => {
     expect(industries, "the Industries menu is gone").toBeTruthy();
     expect(industries?.href, "/industries 404s on Capital").toBeUndefined();
     expect(industries?.children?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  /*
+   * THE REGISTRY CANNOT OUTLIVE THE RECORDS EITHER. The sitemap test above
+   * checks every record is registered; this is the other direction — a path
+   * left in CODED_SITES after a record is renamed or dropped puts a 404 in the
+   * sitemap, which is exactly the failure that registry exists to prevent.
+   */
+  it("registers no industry path that has no record", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    const slugs = new Set(INDUSTRY_PAGES.map((p) => p.slug));
+
+    const registered = (CODED_SITES[NNTM_CAPITAL_SLUG] ?? [])
+      .map((r) => r.path)
+      .filter((path) => path.startsWith("industries/"))
+      .map((path) => path.slice("industries/".length));
+
+    expect(registered.length).toBe(INDUSTRY_PAGES.length);
+    for (const slug of registered) {
+      expect(slugs.has(slug), `${slug} is registered with no record`).toBe(true);
+    }
   });
 
   /* Denis: "Hero section same as main, new headline on the left side." */
@@ -1004,14 +1088,22 @@ describe("the Daylight industry page", () => {
     const prose = JSON.stringify(
       INDUSTRY_PROSE_SOURCE(content),
     ).toLowerCase();
-    for (const claim of [
-      "we have funded",
-      "we've funded",
-      "businesses funded",
-      "clients in",
-    ]) {
+    for (const claim of ["we have funded", "we've funded", "businesses funded"]) {
       expect(prose, `"${claim}" is a count nobody has`).not.toContain(claim);
     }
+
+    /*
+     * And no bare tally of the trade either — "180 restaurants", "400+ farms".
+     * A phrase ban alone was both too loose and too tight: "clients in" was on
+     * the list and caught "winning clients in the quiet months", which claims
+     * nothing. The number is the thing that cannot be supported.
+     */
+    expect(
+      prose,
+      "a count of the trade that nobody has made",
+    ).not.toMatch(
+      /\d[\d,]*\+?\s+(restaurants|contractors|farms|practices|shops|clients|businesses|customers)/,
+    );
   });
 });
 
@@ -1131,5 +1223,55 @@ describe("sections standing on the band artwork", () => {
       css.indexOf("  .dl-art .dl-panel") + 400,
     );
     expect(panel).toMatch(/--ft-muted:\s*#45557f/);
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE CALCULATORS MENU
+ *
+ * Denis, 2026-10-06: "change the loan calc menu in the header to be a drop down
+ * as well with our 2 calculators for now, DSCR, and business loan."
+ * ---------------------------------------------------------------------------
+ */
+describe("the Loan Calculator dropdown", () => {
+  it("is a dropdown whose trigger is not also its first child", async () => {
+    const { CALCULATORS, NAV } = await import("../components/marketing/brand");
+    const item = NAV.find((entry) => entry.label === "Loan Calculator");
+
+    expect(item, "the Loan Calculator menu is gone").toBeTruthy();
+    expect(item?.children).toEqual(CALCULATORS);
+    expect(CALCULATORS.length).toBe(2);
+
+    /*
+     * NO `href` ON THE PARENT. It pointed at /calc when that was the only
+     * calculator; leaving it there would make the trigger and its own first
+     * row the same destination, and there is no calculators index to point at
+     * instead. Both headers render an href-less parent as a trigger.
+     */
+    expect(item?.href, "the trigger duplicates its first child").toBeUndefined();
+  });
+
+  /*
+   * Both destinations are real coded routes. A menu row pointing at a path
+   * nothing serves is the failure CODED_SITES exists to make visible.
+   */
+  it("points both rows at registered pages", async () => {
+    const { CALCULATORS } = await import("../components/marketing/brand");
+    const paths = new Set((CODED_SITES[NNTM_CAPITAL_SLUG] ?? []).map((r) => r.path));
+
+    for (const entry of CALCULATORS) {
+      const path = entry.href.replace(/^\/|\/$/g, "");
+      expect(paths.has(path), `${entry.label} points at an unregistered ${path}`).toBe(true);
+    }
+  });
+
+  /*
+   * And the footer lists them from the same array. Its Resources column had a
+   * hand-written "Loan Calculator" row, so the DSCR calculator was a live page
+   * the footer never mentioned.
+   */
+  it("is the same list the footer prints", () => {
+    expect(read("daylight/site-footer.tsx")).toContain("...CALCULATORS");
   });
 });

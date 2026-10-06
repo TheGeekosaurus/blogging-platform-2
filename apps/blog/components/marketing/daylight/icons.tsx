@@ -153,3 +153,100 @@ export function HardHatIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * Agriculture — an ear of wheat on its stalk.
+ *
+ * STRAIGHT STROKES, NOT TEARDROPS. It was drawn once with curved florets
+ * overlapping the stem, which is what an ear actually looks like and which at
+ * the 20px the dropdown renders it collapsed into a blob — the curves closed up
+ * against each other and the mark lost its silhouette. Three separated pairs of
+ * straight grains read as wheat at that size and still do at 48.
+ */
+export function WheatIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 21V6.5" />
+      <path d="M12 9.2 8.6 6.6M12 9.2l3.4-2.6" />
+      <path d="M12 13.4 8.6 10.8M12 13.4l3.4-2.6" />
+      <path d="M12 17.6 8.6 15M12 17.6l3.4-2.6" />
+    </svg>
+  );
+}
+
+/**
+ * Accounting — a ledger, open at two columns of entries.
+ *
+ * NOT ft/icons.tsx's InvoiceIcon, although both are paper with ruling on them.
+ * That mark is a single torn-off sheet and it already means receivables
+ * financing in the funding menu one dropdown away; two menus on the same header
+ * printing the same glyph for two different ideas is the thing to avoid. A book
+ * with a spine reads as the practice rather than as one document.
+ */
+export function LedgerIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3.5 5.2A1.2 1.2 0 0 1 4.7 4h5.1c1.2 0 2.2 1 2.2 2.2V20a2 2 0 0 0-2-2H4.7a1.2 1.2 0 0 1-1.2-1.2V5.2Z" />
+      <path d="M20.5 5.2A1.2 1.2 0 0 0 19.3 4h-5.1A2.2 2.2 0 0 0 12 6.2V20a2 2 0 0 1 2-2h5.3a1.2 1.2 0 0 0 1.2-1.2V5.2Z" />
+      <path d="M6 8.5h3.2M6 11.5h3.2M14.8 8.5H18M14.8 11.5H18" />
+    </svg>
+  );
+}
+
+/** Auto Repair — a car under a spanner. */
+export function CarIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M4.2 17.2h15.6a1 1 0 0 0 1-1v-2.4a2 2 0 0 0-1.5-1.94l-1.4-.36-1.9-3.3a2 2 0 0 0-1.73-1H9.73a2 2 0 0 0-1.73 1l-1.9 3.3-1.4.36A2 2 0 0 0 3.2 13.8v2.4a1 1 0 0 0 1 1Z" />
+      <path d="M5.4 11.5h13.2" />
+      <circle cx="7.6" cy="17.2" r="1.8" />
+      <circle cx="16.4" cy="17.2" r="1.8" />
+    </svg>
+  );
+}
+
+/** Chiropractor — a spine, seen from the side. */
+export function SpineIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M13.4 3.2c-1.6 1.6-2.2 3-2 4.6.2 1.6 1 2.6 1 4.2 0 1.6-.8 2.6-1 4.2-.2 1.6.4 3 2 4.6" />
+      <path d="M13.9 5.4H10.2M13.2 8.6H9.5M13.1 11.9H9.4M13.2 15.2H9.5M13.9 18.4H10.2" />
+    </svg>
+  );
+}
