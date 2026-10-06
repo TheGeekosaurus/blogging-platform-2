@@ -47,9 +47,19 @@ export function DaylightMobileNav() {
         </svg>
       </summary>
 
+      {/*
+        THE SHEET SCROLLS. It lists every nav item with every child expanded —
+        nine funding products, seventeen industry rows and two calculators — and
+        with no height limit that is well over a phone screen of menu in an
+        absolutely positioned panel, so the bottom of it could not be reached.
+
+        `max-h` is measured from the sheet's own top, which sits just under the
+        header, so `100vh` minus that header and the page's top inset is the
+        room actually available; 6.5rem covers it with margin.
+      */}
       <nav
         aria-label="Mobile"
-        className="absolute right-0 top-full z-40 w-[min(20rem,calc(100vw-2.5rem))] rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-bg)] p-5 shadow-[0_24px_48px_-24px_rgba(16,24,40,0.28)]"
+        className="absolute right-0 top-full z-40 max-h-[calc(100vh-6.5rem)] w-[min(20rem,calc(100vw-2.5rem))] overflow-y-auto overscroll-contain rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-bg)] p-5 shadow-[0_24px_48px_-24px_rgba(16,24,40,0.28)]"
       >
         <ul className="flex flex-col gap-1">
           {NAV.map((item) => (

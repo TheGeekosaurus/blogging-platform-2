@@ -132,6 +132,17 @@ export type NavItem = {
    * them; the dark header and the footer ignore the field entirely.
    */
   icon?: string;
+  /*
+   * A dropdown row that must not scroll away with the rest of the list.
+   *
+   * Only the Industries menu's "And More" uses it, and the reason is specific:
+   * that row is the escape hatch for a list too long to show at once, so it is
+   * the one row that must never itself be inside the overflow. The desktop
+   * dropdown renders pinned children in a band of their own below the scrolling
+   * list; the mobile sheet and the footer scroll as a whole and ignore the flag,
+   * which is correct — nothing can hide past the end there.
+   */
+  pinned?: boolean;
 };
 
 /**
@@ -274,7 +285,48 @@ export const INDUSTRIES: readonly { label: string; href: string; icon: string }[
   { label: 'Agriculture', href: '/industries/agriculture', icon: 'wheat' },
   { label: 'Accounting', href: '/industries/accounting', icon: 'ledger' },
   { label: 'Auto Repair', href: '/industries/auto-repair', icon: 'car' },
+  { label: 'Beauty & Wellness', href: '/industries/beauty-wellness', icon: 'shears' },
   { label: 'Chiropractor', href: '/industries/chiropractor', icon: 'spine' },
+  { label: 'Dental', href: '/industries/dental', icon: 'tooth' },
+  { label: 'Electrical', href: '/industries/electrical', icon: 'bolt' },
+  { label: 'Healthcare', href: '/industries/healthcare', icon: 'pulse' },
+  { label: 'HVAC', href: '/industries/hvac', icon: 'fan' },
+  { label: 'Insurance', href: '/industries/insurance', icon: 'shield' },
+  { label: 'Landscaping', href: '/industries/landscaping', icon: 'tree' },
+  { label: 'Legal', href: '/industries/legal', icon: 'scales' },
+  { label: 'Real Estate', href: '/industries/real-estate', icon: 'house' },
+  { label: 'Restaurants', href: '/industries/restaurants', icon: 'cutlery' },
+];
+
+/**
+ * The Industries menu: every industry, then the way out to the rest.
+ *
+ * SEPARATE FROM `INDUSTRIES` ON PURPOSE. That array is the list of trades that
+ * have a page, and a test holds it against INDUSTRY_PAGES one-for-one — a label
+ * there with no record is a link to a 404 and a record with no label is a page
+ * nothing links to. "And More" is neither: it is a route to the index, so
+ * folding it into that array would make the check meaningless for the one entry
+ * most likely to be wrong.
+ *
+ * ALWAYS LAST, which Denis asked for in as many words, and which is also the
+ * only place it reads correctly: an escape hatch above the thing it escapes
+ * from is just a confusing first option.
+ */
+/*
+ * `href` is REQUIRED here, not optional as NavItem leaves it. The footer renders
+ * this same array as a link column and every row in it is a destination, so the
+ * narrower type is the true one — and it keeps the footer from having to prove
+ * it at the call site.
+ */
+export const INDUSTRIES_MENU: readonly (NavItem & { href: string })[] = [
+  ...INDUSTRIES,
+  /*
+   * `pinned`, because this row is the way out of a list that no longer fits on
+   * screen — see NavItem.pinned. Measured: sixteen industries in the desktop
+   * panel overflow its scroll cap at every width below 1440, and without the
+   * flag "And More" was the single row you had to scroll to reach.
+   */
+  { label: 'And More', href: '/industries', icon: 'more', pinned: true },
 ];
 
 /*
@@ -305,21 +357,22 @@ export const NAV: readonly NavItem[] = [
     children: FUNDING_PROGRAMS,
   },
   /*
-   * NO `href` ON INDUSTRIES. /industries is a static route belonging to the
-   * Labs deployment and calls notFound() on Capital, so the trigger pointed at
-   * a 404 — checked against the running build, not assumed. The footer's
-   * Industries column has been headed with plain text for the same reason; this
-   * is the matching fix on the header side.
+   * THE HREF IS BACK, as that note said it should be the day Capital had an
+   * industries index of its own. It does now: app/industries/page.tsx serves
+   * DaylightIndustriesIndex on this deployment instead of 404ing, so the
+   * trigger, the footer column heading and the menu's "And More" row all have
+   * somewhere real to go.
    *
-   * Both headers already handle a parent with no href: the Daylight one renders
-   * the trigger as a <span> and still opens the dropdown, and the mobile nav
-   * does the same. The children are where the pages are.
-   *
-   * Give it an href again the day Capital has an industries index of its own.
+   * Trigger and "And More" share a destination, which is deliberate rather than
+   * an oversight: Denis asked for the row explicitly, and the trigger is also
+   * the only way a keyboard user reaches the index without walking the whole
+   * dropdown. Funding Solutions has had the same shape — trigger to the index,
+   * children to the pages — since it was built.
    */
   {
     label: 'Industries',
-    children: INDUSTRIES,
+    href: '/industries',
+    children: INDUSTRIES_MENU,
   },
   {
     /*

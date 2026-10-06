@@ -18,12 +18,23 @@ import {
 import { NAV_CTA } from './content';
 import { DaylightHeaderShell } from './header-shell';
 import {
+  BoltIcon,
   CarIcon,
+  CutleryIcon,
+  FanIcon,
   GaugeIcon,
   HardHatIcon,
+  HouseIcon,
   LedgerIcon,
+  MoreGridIcon,
+  PulseIcon,
+  ScalesIcon,
+  ShearsIcon,
+  ShieldIcon,
   SpineIcon,
   StorefrontIcon,
+  ToothIcon,
+  TreeIcon,
   WheatIcon,
 } from './icons';
 import { DaylightMobileNav } from './mobile-nav';
@@ -92,6 +103,18 @@ const NAV_ICONS = {
   ledger: LedgerIcon,
   car: CarIcon,
   spine: SpineIcon,
+  shears: ShearsIcon,
+  tooth: ToothIcon,
+  bolt: BoltIcon,
+  pulse: PulseIcon,
+  fan: FanIcon,
+  shield: ShieldIcon,
+  tree: TreeIcon,
+  scales: ScalesIcon,
+  house: HouseIcon,
+  cutlery: CutleryIcon,
+  /* The row that ends the Industries menu, out to the index. */
+  more: MoreGridIcon,
   /* The two calculators. The gauge is the DSCR one: a ratio read off a dial. */
   calculator: CalculatorIcon,
   gauge: GaugeIcon,
@@ -179,7 +202,15 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
      * simply less room to the left of that trigger than the panel needs. Below
      * xl it is the narrow single column instead, which fits with room to spare.
      */
-    const wide = item.children.length > 4;
+    /*
+     * Pinned rows come out of the scrolling list and sit in a band of their
+     * own — see NavItem.pinned. `wide` counts only the rows that actually go
+     * in the grid, so a menu is not pushed into two columns by its own escape
+     * hatch.
+     */
+    const rows = item.children.filter((child) => !child.pinned);
+    const pinned = item.children.filter((child) => child.pinned);
+    const wide = rows.length > 4;
 
     return (
       <li className="dl-headitem group relative" style={stagger}>
@@ -248,11 +279,55 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
             them to be left out, and they were labelling a list whose trigger is
             six pixels above it and says the same thing.
           */}
-          <ul className={`grid gap-1 p-3 ${wide ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
-            {item.children.map((child) => (
+          {/*
+            THE LIST SCROLLS IF IT HAS TO, and that is not defensive coding —
+            it is the fix for a menu that was measured broken.
+
+            Industries went from six rows to seventeen on 2026-10-06. At 1024px
+            the two-column layout has not kicked in yet (see `wide` above: it
+            is `xl`, because a 620px panel right-anchored at this width starts
+            at x = -80), so seventeen rows stacked in one column stood 1259px
+            tall and hung 582px BELOW a 768px viewport. The panel is absolutely
+            positioned inside a sticky header, so there was nothing to scroll
+            to: the last ten trades simply could not be reached with a mouse.
+            At 1280x800 it fitted with 34px to spare, which is not spare.
+
+            The cap goes on the <ul> rather than on the panel so the call to
+            action underneath stays pinned and visible rather than scrolling
+            away with the list.
+
+            `min(calc(100vh - 22rem), 34rem)`. The viewport term keeps it inside
+            a short window and the rem term stops it becoming a full-height
+            column on a tall one — but the SUBTRACTION is measured, not guessed,
+            and it has been wrong twice. The list is not the whole panel: above
+            it sit the page inset and the 74px header, and below it the pinned
+            row and the call-to-action band. A plain `70vh` left the panel 11px
+            below a 768px viewport; 17rem was right until the pinned band was
+            added and put it 55px below. 22rem is the four of them with room,
+            and at 768 the panel now finishes 25px clear.
+          */}
+          <ul
+            className={`grid max-h-[min(calc(100vh-22rem),34rem)] gap-1 overflow-y-auto overscroll-contain p-3 ${
+              wide ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'
+            }`}
+          >
+            {rows.map((child) => (
               <DropdownRow key={child.label} item={child} />
             ))}
           </ul>
+
+          {/*
+            The pinned rows, below the scroller and above the call to action.
+            Separated by a hairline so it reads as the end of the list rather
+            than as a row that failed to scroll with it.
+          */}
+          {pinned.length > 0 ? (
+            <ul className="grid gap-1 border-t border-[var(--ft-line)] p-3">
+              {pinned.map((child) => (
+                <DropdownRow key={child.label} item={child} />
+              ))}
+            </ul>
+          ) : null}
 
           {/*
             The band at the foot of the panel. Copy in daylight/content.ts,
