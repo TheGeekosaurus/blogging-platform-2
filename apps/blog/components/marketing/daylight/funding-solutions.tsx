@@ -175,7 +175,17 @@ function Product({
           </p>
 
           {/*
-            STACKED UNTIL `sm`, side by side after.
+            STACKED UNTIL `sm`, SIDE BY SIDE, THEN STACKED AGAIN AT `lg`.
+
+            The second stack is not symmetry for its own sake — it is the same
+            squeeze returning at the other end. From `lg` this column becomes
+            `w-[38%]`, which is 267px at a 1024 viewport; the button takes most
+            of it and leaves the sentence 63px, so "Turning tomorrow's sales
+            into today's cash" needed 90 and spilled 27px over the card. By
+            `xl` the column is wide enough again and the row comes back.
+
+            Measured, not guessed: the widths below are from the rendered page
+            at 1024, 1152, 1280 and 1440.
 
             It was a wrapping row at every width, and the wrap never fired:
             `flex-1 min-w-0` lets the text shrink indefinitely rather than push
@@ -184,7 +194,7 @@ function Product({
             button, and 13px of it spilling out anyway. Below `sm` the two now
             stack and the text gets the full width.
           */}
-          <div className="mt-7 flex flex-col items-start gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-7 flex flex-col items-start gap-5 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-5 sm:flex-row sm:items-center sm:justify-between lg:flex-col lg:items-start xl:flex-row xl:items-center">
             {/*
               `min-w-0` keeps the button on the same line as the fact once they
               are side by side: without it the text block's min-content width is

@@ -75,7 +75,7 @@ export const INDUSTRY_PAGES: readonly IndustryPage[] = [
         'breaks. Funding sized to how the trade actually works, with a decision in hours.',
     },
     needs: {
-      label: 'Where It Goes',
+      label: 'Use Cases',
       heading: 'What Food Businesses Actually Borrow For.',
       body:
         'Not one big thing — a handful of recurring ones, most of which arrive with no ' +

@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -1020,3 +1020,116 @@ describe("the Daylight industry page", () => {
 function INDUSTRY_PROSE_SOURCE(content: string): string {
   return content.replace(/\/\*[\s\S]*?\*\//g, "");
 }
+
+/*
+ * ---------------------------------------------------------------------------
+ * ONE WEIGHT FOR SECTION HEADLINES
+ *
+ * Denis, 2026-10-06, pointing at the products rail: "the headline is a
+ * different weight than the others. Make all other sections headings like that
+ * the same weight as this one."
+ *
+ * The split was not a design decision, it was an accident of plumbing — the two
+ * headlines written inline in a page file were bold and every headline that
+ * went through SectionIntro was medium, so which weight a section got depended
+ * on which route it took to the screen.
+ * ---------------------------------------------------------------------------
+ */
+describe("Daylight section headlines", () => {
+  /*
+   * WHAT COUNTS AS A SECTION HEADLINE, mechanically: a headline-font run whose
+   * clamp tops out at 2.5rem or more. Everything above that line is a band's
+   * own headline; everything below is a card title or a footer sub-head, which
+   * are semibold on purpose and are not what Denis was pointing at.
+   */
+  const files = readdirSync(join(__dirname, "..", "components", "marketing", "daylight"))
+    .filter((f) => f.endsWith(".tsx"));
+
+  it("sets every one of them bold", () => {
+    const seen: string[] = [];
+
+    for (const file of files) {
+      const source = read(`daylight/${file}`);
+      const runs = source.match(/[^"]*font-\[family-name:var\(--font-headline\)\][^"]*/g) ?? [];
+
+      for (const run of runs) {
+        const max = run.match(/text-\[clamp\([^,]+,[^,]+,([\d.]+)rem\)\]/);
+        if (!max || Number(max[1] ?? 0) < 2.5) continue;
+
+        seen.push(`${file}: ${max[1]}rem`);
+        expect(run, `${file}: a section headline is not bold`).toContain("font-bold");
+      }
+    }
+
+    /* The scan has to actually find them, or this passes by finding nothing. */
+    expect(seen.length, "no section headlines matched").toBeGreaterThan(4);
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE ARTWORK GROUND
+ *
+ * `.dl-art` paints the band picture behind a whole section and re-points
+ * --ft-ink to white. Two things have to be true of anything that uses it, and
+ * both have been got wrong once.
+ * ---------------------------------------------------------------------------
+ */
+describe("sections standing on the band artwork", () => {
+  const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+
+  /*
+   * A `.dl-art` section whose content is not wrapped in `.dl-panel` prints the
+   * white --ft-ink the ground sets onto its own white cells. The panel is the
+   * other half of the token inversion, never optional.
+   */
+  it("always pairs the ground with a panel", () => {
+    const files = readdirSync(join(__dirname, "..", "components", "marketing", "daylight"))
+      .filter((f) => f.endsWith(".tsx"));
+
+    let grounds = 0;
+    for (const file of files) {
+      const source = read(`daylight/${file}`);
+      if (!source.includes("dl-art")) continue;
+      grounds += 1;
+
+      /*
+       * Either this file wraps a component that carries its own panel — which
+       * is how the homepage drops UseCases onto the artwork — or it paints the
+       * panel itself. Both are fine; neither being true is not.
+       */
+      const paintsOwn = source.includes("dl-panel");
+      const wrapsComponent = /<div className="dl-art">\s*<Daylight/.test(source);
+      expect(
+        paintsOwn || wrapsComponent,
+        `${file}: dl-art with nothing restoring the light tokens`,
+      ).toBe(true);
+    }
+
+    expect(grounds, "no dl-art sections found").toBeGreaterThan(0);
+  });
+
+  /*
+   * THE GROUND MUST CARRY THE DIM TOKENS TOO, not only --ft-ink.
+   *
+   * It did not until an industry page put a standfirst between its heading and
+   * its grid. Up to then nothing muted had ever stood on the artwork, so
+   * --ft-muted kept its light-page value — #45557F, which is dark slate on
+   * navy. The heading was fine and the sentence under it was invisible.
+   */
+  it("gives the ground a muted colour that works on navy", () => {
+    const rule = css.slice(css.indexOf("  .dl-art {"), css.indexOf("  .dl-art .dl-panel"));
+
+    expect(rule).toContain("--ft-ink: #ffffff");
+    expect(rule, "a standfirst on the artwork would be dark on dark").toMatch(
+      /--ft-muted:\s*#b9c6e4/,
+    );
+
+    /* And the panel still puts the light values back, or the grid goes pale. */
+    const panel = css.slice(
+      css.indexOf("  .dl-art .dl-panel"),
+      css.indexOf("  .dl-art .dl-panel") + 400,
+    );
+    expect(panel).toMatch(/--ft-muted:\s*#45557f/);
+  });
+});
