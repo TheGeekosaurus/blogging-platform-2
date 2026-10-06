@@ -99,12 +99,20 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
    * Capital, so listing it here would put a 404 in Capital's sitemap. The
    * children are real pages and do not go through it.
    *
-   * `industries/construction-business` is absent for the other reason — it is
-   * still a noindex stub, and listing a page that asks not to be indexed is the
-   * trap the funding products sat in above. Add it the day it gets a record in
-   * daylight/industry-content.ts.
+   * One entry per record in daylight/industry-content.ts, and a test fails if
+   * the two lists disagree — this package cannot import app code, so the slugs
+   * are necessarily written twice.
    */
   { path: 'industries/food-business', title: 'Food Business', index: true },
+  {
+    path: 'industries/construction-business',
+    title: 'Construction Business',
+    index: true,
+  },
+  { path: 'industries/agriculture', title: 'Agriculture', index: true },
+  { path: 'industries/accounting', title: 'Accounting', index: true },
+  { path: 'industries/auto-repair', title: 'Auto Repair', index: true },
+  { path: 'industries/chiropractor', title: 'Chiropractor', index: true },
   /*
    * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
    *

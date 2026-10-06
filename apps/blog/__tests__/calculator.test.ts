@@ -64,7 +64,14 @@ describe('the /calc route', () => {
     const footer = readFileSync(join(ROOT, 'components', 'marketing', 'site-footer.tsx'), 'utf8');
     const code = footer.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\{\/\*[\s\S]*?\*\/\}/g, '');
 
-    expect(NAV.some((item) => item.href === '/calc')).toBe(true);
+    /*
+     * CHILDREN TOO. /calc was a top-level nav item until there were two
+     * calculators; it is now the first entry in the Loan Calculator dropdown,
+     * whose trigger deliberately carries no href of its own. The page is still
+     * where the nav points, one level down.
+     */
+    const navHrefs = NAV.flatMap((item) => [item.href, ...(item.children ?? []).map((c) => c.href)]);
+    expect(navHrefs).toContain('/calc');
     expect(HERO.tiles.some((tile) => tile.href === '/calc')).toBe(true);
     expect(code).toContain('href="/calc"');
     // The old subdomain link, which the header never used and the footer did.

@@ -271,6 +271,31 @@ export const INDUSTRIES: readonly { label: string; href: string; icon: string }[
     href: '/industries/construction-business',
     icon: 'hard-hat',
   },
+  { label: 'Agriculture', href: '/industries/agriculture', icon: 'wheat' },
+  { label: 'Accounting', href: '/industries/accounting', icon: 'ledger' },
+  { label: 'Auto Repair', href: '/industries/auto-repair', icon: 'car' },
+  { label: 'Chiropractor', href: '/industries/chiropractor', icon: 'spine' },
+];
+
+/*
+ * The calculators, lifted out for the same reason INDUSTRIES was: the header
+ * menu and anything else that lists them should be one array.
+ *
+ * ITS PARENT HAS NO `href`. /calc was the nav item until there were two
+ * calculators, and the obvious move — leave the parent pointing at /calc and
+ * list both underneath — makes the parent and its own first child the same
+ * destination, which is the thing a dropdown should not do. There is no
+ * calculators index to point at instead, so the trigger opens the menu and the
+ * two children are where the pages are. Both headers already render an
+ * href-less parent that way.
+ */
+export const CALCULATORS: readonly { label: string; href: string; icon: string }[] = [
+  { label: 'Business Loan Calculator', href: '/calc', icon: 'calculator' },
+  {
+    label: 'DSCR Calculator',
+    href: '/calculators/dscr-calculator',
+    icon: 'gauge',
+  },
 ];
 
 export const NAV: readonly NavItem[] = [
@@ -296,7 +321,16 @@ export const NAV: readonly NavItem[] = [
     label: 'Industries',
     children: INDUSTRIES,
   },
-  { label: 'Loan Calculator', href: '/calc' },
+  {
+    /*
+     * Still "Loan Calculator", not "Calculators". Denis called it "the loan
+     * calc menu" and both children ARE loan calculators — one sizes a business
+     * loan, the other a property's debt service coverage — so the label is
+     * accurate and renaming it is a change nobody asked for.
+     */
+    label: 'Loan Calculator',
+    children: CALCULATORS,
+  },
   { label: 'Programs', href: '/programs' },
 ] as const;
 
@@ -337,16 +371,13 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    */
   industries: 'Industries',
   /*
-   * `industries/food-business` IS NOT HERE ANY MORE. It is a coded route now —
-   * app/industries/food-business/page.tsx — and a static segment beats the
-   * catch-all, so leaving it would have been a map nothing ever read.
-   *
-   * Construction stays a stub until it has a record in
-   * daylight/industry-content.ts. That is also why the route next door is the
-   * literal `food-business` rather than an `[industry]` segment: a dynamic
-   * segment would capture this path too and turn it into a hard 404.
+   * NO `industries/*` STUBS AT ALL ANY MORE, and nothing may put one back.
+   * app/industries/[industry]/page.tsx is a dynamic segment, a route segment
+   * beats the catch-all, and so every path under /industries now reaches that
+   * route or 404s — this map is unreachable from there. A new industry is a
+   * record in daylight/industry-content.ts, never an entry here. A test fails
+   * if the two are ever both present.
    */
-  'industries/construction-business': 'Construction Business',
 
   /*
    * Added when the footer gained an About Us column. NOT `about`: that path is
