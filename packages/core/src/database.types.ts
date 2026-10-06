@@ -23,6 +23,13 @@ export type PageTemplate = 'prose' | 'full';
  */
 export type LeadMagnetScope = 'site' | 'category' | 'tag' | 'post';
 
+/** Social-proof toasts — see 0015_proof_notifications.sql. */
+export type ProofTemplate = 'pill' | 'card';
+export type ProofImageMode = 'none' | 'preset' | 'custom' | 'map';
+export type ProofPosition = 'bottom-left' | 'bottom-right' | 'top-left' | 'top-right';
+export type ProofFrequency = 'every_page' | 'once_per_session';
+export type ProofTargetScope = 'site' | 'path' | 'category' | 'tag' | 'post';
+
 /** Pillar or spoke, per the cluster model. See 0013_seo.sql. */
 export type SeoPageRole = 'pillar' | 'sub';
 /**
@@ -278,6 +285,74 @@ export type LeadRow = {
   submissions: number;
   created_at: string;
   updated_at: string;
+}
+
+/** One rotating social-proof toast. See 0015_proof_notifications.sql. */
+export type ProofCampaignRow = {
+  id: string;
+  site_id: string;
+  /** Internal label for the admin list; never shown to a reader. */
+  name: string;
+  template: ProofTemplate;
+  image_mode: ProofImageMode;
+  preset_icon: string;
+  /** The only FK from this table to `media` — see 0011 for why that matters. */
+  image_id: string | null;
+  position: ProofPosition;
+  show_on_mobile: boolean;
+  initial_delay_s: number;
+  display_s: number;
+  gap_s: number;
+  max_per_view: number;
+  repeat_events: boolean;
+  frequency: ProofFrequency;
+  show_time_ago: boolean;
+  /** `#rrggbb`, or null for the default. */
+  accent: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+/** One message a campaign cycles through. */
+export type ProofEventRow = {
+  id: string;
+  campaign_id: string;
+  site_id: string;
+  sort: number;
+  name: string | null;
+  city: string | null;
+  region: string | null;
+  country: string | null;
+  action: string;
+  /** A range: the browser picks a value inside it each time it is shown. */
+  minutes_ago_min: number;
+  minutes_ago_max: number;
+  link_url: string | null;
+  image_id: string | null;
+  lat: number | null;
+  lng: number | null;
+  /** Storage path of the generated city map, in the `media` bucket. */
+  map_path: string | null;
+  /** The place string `map_path` was drawn for. */
+  map_place: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * One placement rule. `scope` says which of `term_id` / `post_id` / `pattern`
+ * is set; `exclude` turns it into a rule that suppresses the campaign.
+ */
+export type ProofCampaignTargetRow = {
+  id: string;
+  campaign_id: string;
+  scope: ProofTargetScope;
+  exclude: boolean;
+  term_id: string | null;
+  post_id: string | null;
+  pattern: string | null;
+  created_at: string;
 }
 
 export type PageRow = {
@@ -677,6 +752,83 @@ export type Database = {
           },
         ];
       };
+      proof_campaigns: {
+        Row: ProofCampaignRow;
+        Insert: Writable<ProofCampaignRow, Generated | 'template' | 'image_mode' | 'preset_icon' | 'image_id' | 'position' | 'show_on_mobile' | 'initial_delay_s' | 'display_s' | 'gap_s' | 'max_per_view' | 'repeat_events' | 'frequency' | 'show_time_ago' | 'accent' | 'active'>;
+        Update: Partial<ProofCampaignRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'proof_campaigns_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'proof_campaigns_image_id_fkey';
+            columns: ['image_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      proof_events: {
+        Row: ProofEventRow;
+        Insert: Writable<ProofEventRow, Generated | 'sort' | 'name' | 'city' | 'region' | 'country' | 'minutes_ago_min' | 'minutes_ago_max' | 'link_url' | 'image_id' | 'lat' | 'lng' | 'map_path' | 'map_place'>;
+        Update: Partial<ProofEventRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'proof_events_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'proof_campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'proof_events_site_id_fkey';
+            columns: ['site_id'];
+            isOneToOne: false;
+            referencedRelation: 'sites';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'proof_events_image_id_fkey';
+            columns: ['image_id'];
+            isOneToOne: false;
+            referencedRelation: 'media';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      proof_campaign_targets: {
+        Row: ProofCampaignTargetRow;
+        Insert: Writable<ProofCampaignTargetRow, 'id' | 'created_at' | 'exclude' | 'term_id' | 'post_id' | 'pattern'>;
+        Update: Partial<ProofCampaignTargetRow>;
+        Relationships: [
+          {
+            foreignKeyName: 'proof_campaign_targets_campaign_id_fkey';
+            columns: ['campaign_id'];
+            isOneToOne: false;
+            referencedRelation: 'proof_campaigns';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'proof_campaign_targets_term_id_fkey';
+            columns: ['term_id'];
+            isOneToOne: false;
+            referencedRelation: 'terms';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'proof_campaign_targets_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       seo_topics: {
         Row: SeoTopicRow;
         Insert: Writable<SeoTopicRow, Generated | 'pillar' | 'position' | 'notes'>;
@@ -795,6 +947,11 @@ export type Database = {
       member_role: MemberRole;
       term_kind: TermKind;
       lead_magnet_scope: LeadMagnetScope;
+      proof_template: ProofTemplate;
+      proof_image_mode: ProofImageMode;
+      proof_position: ProofPosition;
+      proof_frequency: ProofFrequency;
+      proof_target_scope: ProofTargetScope;
       seo_page_role: SeoPageRole;
       seo_page_status: SeoPageStatus;
       seo_page_priority: SeoPagePriority;

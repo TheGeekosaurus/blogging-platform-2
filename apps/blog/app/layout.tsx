@@ -6,6 +6,7 @@ import { absoluteUrl, blogIndexPath, browsePath, readSnippets } from '@blog/core
 
 import { Analytics } from '@/components/analytics';
 import { JsonLd } from '@/components/json-ld';
+import { ProofToasts } from '@/components/proof-toasts';
 import { IMAGE_ORIGIN } from '@/components/marketing/brand';
 import { LOGO_ORIGIN } from '@/components/marketing/labs/brand';
 import { LabsFooter } from '@/components/marketing/labs/site-footer';
@@ -284,6 +285,13 @@ export default async function RootLayout({
           deploy and not an edit here.
         */}
         <Analytics containerId={site.gtm_container_id} />
+
+        {/*
+          Social-proof toasts, from the admin's Social proof screen. Renders
+          nothing until the page is idle and a campaign matches this route —
+          see components/proof-toasts.tsx for how that is decided client-side.
+        */}
+        <ProofToasts />
 
         <a
           href="#content"

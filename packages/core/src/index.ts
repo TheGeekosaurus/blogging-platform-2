@@ -11,6 +11,8 @@ export * from './headings';
 export * from './links';
 export * from './breadcrumbs';
 export * from './lead-magnets';
+export * from './proof';
+export * from './proof-notifications';
 export * from './structured-data';
 export * from './analytics';
 export * from './seo';
