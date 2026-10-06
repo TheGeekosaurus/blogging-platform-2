@@ -184,6 +184,21 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
+    href: '/social-proof',
+    label: 'Social proof',
+    icon: (
+      <Icon>
+        {/* A toast in the corner of a page: the page, then the card. */}
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <rect x="6" y="13" width="10" height="4" rx="2" />
+      </Icon>
+    ),
+    children: [
+      { href: '/social-proof', label: 'All Campaigns' },
+      { href: '/social-proof/new', label: 'Add New' },
+    ],
+  },
+  {
     group: 'Configuration',
     href: '/settings',
     label: 'Settings',
