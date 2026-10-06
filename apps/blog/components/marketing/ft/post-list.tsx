@@ -37,6 +37,11 @@ import { CONTAINER, GhostButton } from './primitives';
  * The hue is derived from the name so a given person is always the same colour,
  * and the arithmetic is pure — no randomness, which would differ between the
  * server and client renders and trip hydration.
+ *
+ * `ft-avatar` carries no styles here. It is a marker for one rule in
+ * globals.css: the disc's background is an inline style and so unoverridable,
+ * which means a light surface cannot flip it and has to flip the initials
+ * instead. Same arrangement as `ft-image-slot` and `ft-band`.
  */
 export function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string; className?: string }) {
   const initials = name
@@ -49,7 +54,7 @@ export function Avatar({ name, className = 'h-10 w-10 text-sm' }: { name: string
   return (
     <span
       aria-hidden="true"
-      className={`inline-flex shrink-0 items-center justify-center rounded-full font-medium text-[var(--ft-ink)] ring-1 ring-white/15 ${className}`}
+      className={`ft-avatar inline-flex shrink-0 items-center justify-center rounded-full font-medium text-[var(--ft-ink)] ring-1 ring-white/15 ${className}`}
       style={{ backgroundColor: `hsl(${hue} 8% 30%)` }}
     >
       {initials}
@@ -122,6 +127,12 @@ export function ImageSlot({ className }: { className?: string }) {
  * points; the homepage sends it to /blog, and /blog sends it to itself so the
  * row still reads as a complete set of filters rather than losing its first
  * item on the one page where it is already true.
+ *
+ * `ft-catpill` CARRIES NO STYLES HERE. It is a marker for one rule in
+ * globals.css, which squares the corners off under `.dl-surface` so the row
+ * matches the buttons beside it — Denis asked for that on the light build, and
+ * this component is shared with the live dark site, where the 42px pill stays.
+ * Same idiom as ft-ghost and ft-faq-item.
  */
 export function CategoryPills({
   categories,
@@ -138,7 +149,7 @@ export function CategoryPills({
         <li>
           <Link
             href={all}
-            className="inline-block rounded-[42px] bg-[var(--ft-bg)] px-7 py-3.5 text-[0.9375rem] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)] transition-colors hover:ring-[var(--ft-accent)]"
+            className="ft-catpill inline-block rounded-[42px] bg-[var(--ft-bg)] px-7 py-3.5 text-[0.9375rem] font-medium text-[var(--ft-ink)] ring-1 ring-[var(--ft-line)] transition-colors hover:ring-[var(--ft-accent)]"
           >
             All
           </Link>
@@ -147,7 +158,7 @@ export function CategoryPills({
           <li key={category.id}>
             <Link
               href={categoryPath(category.slug)}
-              className="inline-block rounded-[42px] px-7 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)] transition-colors hover:text-[var(--ft-ink)] hover:ring-[var(--ft-accent)]"
+              className="ft-catpill inline-block rounded-[42px] px-7 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] ring-1 ring-[var(--ft-line)] transition-colors hover:text-[var(--ft-ink)] hover:ring-[var(--ft-accent)]"
             >
               {category.name}
             </Link>
@@ -158,10 +169,25 @@ export function CategoryPills({
   );
 }
 
-/** One post in the list: author on the left, the post in the middle, CTA right. */
-export function PostRow({ post, locale }: { post: PostSummary; locale: string }) {
+/**
+ * One post in the list: author on the left, the post in the middle, CTA right.
+ *
+ * `showAuthor` is off on the Daylight homepage, where three rows of byline and
+ * role under three thumbnails is more about us than about the posts. It stays
+ * ON everywhere else — the blog index is where the author belongs, and a
+ * default of false would strip it from the live site.
+ */
+export function PostRow({
+  post,
+  locale,
+  showAuthor = true,
+}: {
+  post: PostSummary;
+  locale: string;
+  showAuthor?: boolean;
+}) {
   const image = post.featured_image;
-  const author = postAuthorName(post);
+  const author = showAuthor ? postAuthorName(post) : null;
   const avatar = post.byline?.avatar ?? null;
 
   return (

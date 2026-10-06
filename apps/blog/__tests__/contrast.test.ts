@@ -206,3 +206,284 @@ describe('post-body links are not distinguished by colour alone', () => {
     expect(marker).toContain('var(--color-accent)');
   });
 });
+
+/**
+ * The Daylight palette.
+ *
+ * Its own describe block with its own token reader, because `token()` above
+ * matches the FIRST `--name:` in the file and `.dl-surface` deliberately
+ * re-declares the same --ft-* names `.ft-surface` does. Reading them with the
+ * shared helper would silently measure the DARK values and pass every
+ * assertion below while proving nothing.
+ *
+ * Every text tone is checked against every ground it can actually land on. The
+ * design puts body copy on the page, inside a band, inside a card and inside a
+ * chip, and a tone that clears white by a hair can fail on the chip — that is
+ * not hypothetical, it is how the blog's light link colour was caught.
+ */
+describe('the Daylight palette meets AA on every ground', () => {
+  const BLOCK = CSS.match(/\.dl-surface\s*\{([^}]*)\}/)?.[1] ?? '';
+
+  function dl(name: string): string {
+    const match = BLOCK.match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
+    if (!match?.[1]) throw new Error(`--${name} is not a literal hex in .dl-surface`);
+    return match[1];
+  }
+
+  it('finds the block, so a rename fails here rather than silently skipping', () => {
+    expect(BLOCK).not.toBe('');
+  });
+
+  /*
+   * The cyan wash behind the hero badge is in here as a ground, not treated as
+   * a special case. It is a surface text lands on, and --ft-subtle measured
+   * 4.42:1 against it while clearing all four of the others — which is the
+   * whole argument for checking every pairing rather than the obvious ones.
+   */
+  const GROUNDS = ['ft-bg', 'ft-band', 'ft-card', 'ft-card-raised', 'dl-pop-tint'];
+  const INKS = ['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'];
+
+  it.each(INKS.flatMap((ink) => GROUNDS.map((ground) => [ink, ground] as const)))(
+    '--%s on --%s',
+    (ink, ground) => {
+      expect(ratio(dl(ink), dl(ground))).toBeGreaterThanOrEqual(AA_BODY);
+    },
+  );
+
+  /*
+   * The two brand colours that cannot be text, asserted from both ends.
+   *
+   * Denis's light blue is 2.10:1 on white and brand gold is 2.13:1 — both below
+   * AA and below even the 3:1 large-text floor. So neither is --ft-accent. The
+   * tempting tidy-up is "unify the accent with the brand colour"; these refuse
+   * it, and they state WHY in the assertion itself, so the next person reads a
+   * measurement rather than a rule.
+   */
+  it.each(['dl-pop', 'dl-gold'])('keeps %s out of the text accent — it fails on white', (fill) => {
+    expect(ratio(dl(fill), dl('ft-bg'))).toBeLessThan(3);
+    expect(dl('ft-accent')).not.toBe(dl(fill));
+  });
+
+  /*
+   * Both fills still have to carry a label, and both are asserted against the
+   * ink that actually sits on them — the badge and the arrow discs put --ft-ink
+   * on the cyan, and .dl-surface .nc-cta puts its own value on the gold.
+   */
+  it('puts a readable label on the cyan fill', () => {
+    expect(ratio(dl('ft-ink'), dl('dl-pop'))).toBeGreaterThanOrEqual(AA_BODY);
+  });
+
+  /*
+   * The hero's accent word is the one piece of display type in a brand colour.
+   *
+   * It is large by construction — the clamp bottoms out at 2.75rem, well past
+   * the 24px where WCAG's large-text threshold of 3:1 applies — so it is held
+   * to 3:1 rather than 4.5:1, and to nothing less. The reference Denis worked
+   * from puts its own accent word at roughly 2.1:1, which is the mistake this
+   * assertion exists to keep out.
+   */
+  it('keeps the hero accent word above the large-text floor', () => {
+    expect(ratio(dl('dl-display'), dl('ft-bg'))).toBeGreaterThanOrEqual(3);
+  });
+
+  it('and the hero accent word is not the unreadable cyan', () => {
+    expect(dl('dl-display')).not.toBe(dl('dl-pop'));
+  });
+
+  /*
+   * Gold survives as a FILL, and a fill needs a legible label on top of it.
+   * White on gold is 2.13:1 — the defect the .dl-surface .nc-cta rule exists to
+   * correct — so the check is that whatever that rule sets clears AA.
+   */
+  it('puts a readable label on the gold fill', () => {
+    const label = CSS.match(/\.dl-surface \.nc-cta\s*\{\s*color:\s*(#[0-9a-fA-F]{6})/)?.[1];
+    expect(label, '.dl-surface .nc-cta must set a literal colour').toBeTruthy();
+    expect(ratio(label!, dl('dl-gold'))).toBeGreaterThanOrEqual(AA_BODY);
+    expect(ratio('#ffffff', dl('dl-gold'))).toBeLessThan(3);
+  });
+});
+
+/**
+ * The dark region, where the same tokens are inverted.
+ *
+ * `.dl-deep` re-points --ft-ink and friends to light-on-navy, and `.dl-card`
+ * re-points them back for the white cards floating on it. Both are grounds that
+ * text lands on, so both are measured — a palette that passes everywhere on
+ * white and fails on the one dark band is the easiest possible thing to ship
+ * without noticing.
+ */
+describe('the Daylight dark region meets AA', () => {
+  /*
+   * The declarations of the rule `selector` appears in.
+   *
+   * The optional `,[^{}]*` tail is what lets this find a selector that shares
+   * its rule with others. `.dl-deep .dl-card` gained a second ground when the
+   * funding products moved onto fixed artwork — `.dl-deep .dl-card,
+   * .dl-cardfield .dl-card { … }` — and without the tail this returned an
+   * empty string for both, which the guard below turned into five failures
+   * rather than five silent skips. That is exactly what that guard is for.
+   */
+  function block(selector: string): string {
+    const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return CSS.match(new RegExp(`${escaped}\\s*(?:,[^{}]*)?\\{([^}]*)\\}`))?.[1] ?? '';
+  }
+
+  function tokenIn(selector: string, name: string): string {
+    const found = block(selector).match(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`));
+    if (!found?.[1]) throw new Error(`--${name} is not a literal hex in ${selector}`);
+    return found[1];
+  }
+
+  /** .dl-deep paints --dl-deep, which is declared up on .dl-surface. */
+  function ground(): string {
+    const found = block('.dl-surface').match(/--dl-deep:\s*(#[0-9a-fA-F]{6})/);
+    if (!found?.[1]) throw new Error('--dl-deep is not a literal hex on .dl-surface');
+    return found[1];
+  }
+
+  it('finds every block, so a rename fails here rather than skipping silently', () => {
+    expect(block('.dl-deep')).not.toBe('');
+    expect(block('.dl-deep .dl-card')).not.toBe('');
+    expect(block('.dl-cardfield')).not.toBe('');
+    expect(block('.dl-cardfield .dl-card')).not.toBe('');
+  });
+
+  it.each(['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'])('--%s on the navy', (name) => {
+    expect(ratio(tokenIn('.dl-deep', name), ground())).toBeGreaterThanOrEqual(AA_BODY);
+  });
+
+  it.each(['ft-ink', 'ft-muted', 'ft-subtle', 'ft-accent'])(
+    '--%s inside a white card on the navy',
+    (name) => {
+      expect(ratio(tokenIn('.dl-deep .dl-card', name), '#ffffff')).toBeGreaterThanOrEqual(
+        AA_BODY,
+      );
+    },
+  );
+
+  /*
+   * The funding products' artwork ground.
+   *
+   * Its heading is white over a PICTURE, so the ratio that matters cannot be
+   * computed from two tokens — it depends on the brightest pixel the image puts
+   * under a glyph, which is why the scrim over it was measured from the file
+   * (worst pixel rgb(180,196,223), white 1.76:1 bare, 5.44:1 under the 0.6
+   * navy) and is checked in the browser by the contrast sweep.
+   *
+   * What CAN be asserted here is that the scrim is still there and still opaque
+   * enough, because deleting or lightening it is a one-character edit that
+   * nothing else would catch.
+   */
+  it('keeps a scrim dark enough for white over the card-field artwork', () => {
+    const field = block('.dl-cardfield');
+    const alpha = field.match(/rgba\(11,\s*45,\s*114,\s*([\d.]+)\)/);
+    expect(alpha?.[1], 'the navy scrim over the artwork is gone').toBeDefined();
+    expect(Number(alpha?.[1])).toBeGreaterThanOrEqual(0.55);
+  });
+
+  /*
+   * And the fixed attachment has its escape hatches. iOS Safari paints a fixed
+   * background at the wrong scale rather than ignoring it, and a background
+   * that slides against the content is what reduced-motion exists to stop.
+   */
+  it('falls back from a fixed background on touch and under reduced motion', () => {
+    expect(CSS).toContain('background-attachment: fixed');
+    const guard = CSS.match(
+      /@media \(hover: none\), \(prefers-reduced-motion: reduce\)\s*\{[^}]*\.dl-cardfield\s*\{([^}]*)\}/,
+    );
+    expect(guard?.[1], 'no touch / reduced-motion fallback').toBeDefined();
+    expect(guard?.[1]).toContain('background-attachment: scroll');
+  });
+
+  /*
+   * The one genuinely nice thing the navy buys, asserted so it cannot be
+   * quietly given up: Denis's exact #0AC4E0 is 2.10:1 on white and unusable as
+   * text there, but 6.12:1 on this ground. The dark region is the one place on
+   * the page where the real brand cyan carries type, and this states that it
+   * has to stay the real one.
+   */
+  it('uses the exact brand cyan as text, which only the navy makes possible', () => {
+    const pop = block('.dl-surface').match(/--dl-pop:\s*(#[0-9a-fA-F]{6})/)?.[1];
+
+    expect(tokenIn('.dl-deep', 'ft-accent')).toBe(pop);
+    expect(ratio(pop!, '#ffffff')).toBeLessThan(3);
+    expect(ratio(pop!, ground())).toBeGreaterThanOrEqual(AA_BODY);
+  });
+});
+
+/**
+ * Daylight components must not reach past their tokens for a colour.
+ *
+ * `.dl-surface` re-points the --ft-* set, so anything painting from those
+ * tokens comes out light for free. The failure mode is a component reaching for
+ * --color-gold or a literal `text-white` instead: on the dark design both are
+ * correct and invisible as mistakes, and on white both are unreadable. Every
+ * component in this tree shipped from a dark original, so this is the exact
+ * copy-paste this test is here to catch.
+ *
+ * --dl-gold is allowed, and is the point of the distinction: it is this
+ * palette's own token for gold as a FILL, which stays legal on white in a way
+ * gold as text does not.
+ */
+describe('Daylight components paint from tokens', () => {
+  const { readdirSync: rd } = require('node:fs') as typeof import('node:fs');
+  const dir = join(__dirname, '..', 'components', 'marketing', 'daylight');
+  const files = rd(dir).filter((f) => /\.tsx$/.test(f));
+
+  /*
+   * Comments are stripped before the scan, and that is not a convenience.
+   * These files explain themselves partly by NAMING the dark values they
+   * replaced — "the shared header writes `text-white` and `border-white/10` as
+   * literals" — so a raw substring search flags the documentation and not the
+   * code. Left in, the honest fix would have been to stop writing the
+   * explanation down.
+   */
+  function code(file: string): string {
+    return readFileSync(join(dir, file), 'utf8')
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+      .replace(/\/\*[\s\S]*?\*\//g, ' ')
+      .replace(/\/\/[^\n]*/g, ' ');
+  }
+
+  it('finds the components to check', () => {
+    expect(files.length).toBeGreaterThan(3);
+  });
+
+  it('strips comments rather than searching them', () => {
+    // The footer's prose quotes `border-white/10`; its markup must not.
+    expect(code('site-footer.tsx')).not.toContain('border-white/');
+    expect(readFileSync(join(dir, 'site-footer.tsx'), 'utf8')).toContain('border-white/');
+  });
+
+  it.each(['var(--color-gold)', 'border-white/', 'bg-white/'])('none use %s', (needle) => {
+    const offenders = files.filter((f) => code(f).includes(needle));
+    expect(offenders, `${needle} is a dark-design value and is unreadable on white`).toEqual([]);
+  });
+
+  /*
+   * White text is allowed, but only on the one dark fill this design has.
+   *
+   * This started as a flat ban, which was right until the header gained the
+   * reference's dark pill — white on --ft-ink is 11.99:1 and is the most
+   * legible control on the page. A flat ban would have had to be deleted to
+   * let that through, taking the actual guarantee with it.
+   *
+   * So the rule is narrowed rather than dropped: every class list that paints
+   * text white must also paint a dark background in the same list. That still
+   * catches the mistake worth catching — white text inherited onto white, which
+   * is what copying a class list over from the dark design produces.
+   */
+  it('only paints text white on the dark fill', () => {
+    const DARK_FILL = 'bg-[var(--ft-ink)]';
+    const offenders: string[] = [];
+
+    for (const file of files) {
+      // Every quoted or backticked class list in the file.
+      for (const [, list] of code(file).matchAll(/["'`]([^"'`]*\btext-white\b[^"'`]*)["'`]/g)) {
+        if (!list?.includes(DARK_FILL)) offenders.push(`${file}: ${list?.trim()}`);
+      }
+    }
+
+    expect(offenders, `text-white without ${DARK_FILL} in the same class list`).toEqual([]);
+  });
+});

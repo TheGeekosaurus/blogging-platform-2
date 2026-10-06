@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 
-import { slugify, type PostStatus } from '@blog/core';
+import { decodeTextEntities, slugify, type PostStatus } from '@blog/core';
 
 /**
  * WXR (WordPress eXtended RSS) parsing.
@@ -130,7 +130,14 @@ function parseTerms(raw: unknown): WxrTerm[] {
     const domain = entry['@_domain'];
     if (domain !== 'category' && domain !== 'post_tag') continue;
 
-    const name = text(entry).trim();
+    /*
+     * Decoded, because a WXR wraps these in CDATA — so "&amp;" survives XML
+     * parsing as four literal characters, and a category called
+     * "Business Funding & Financing" would otherwise be stored, and printed,
+     * with the entity showing. The slug is derived from the decoded name for
+     * the same reason.
+     */
+    const name = decodeTextEntities(text(entry).trim());
     const slug = (entry['@_nicename'] ?? '').trim() || slugifyTitle(name);
     if (!name || !slug) continue;
 
@@ -206,7 +213,7 @@ export function parseWxr(xml: string): WxrParseResult {
 
     categories.push({
       slug,
-      name: text(raw['wp:cat_name']).trim() || slug,
+      name: decodeTextEntities(text(raw['wp:cat_name']).trim()) || slug,
       // A parent of "uncategorized" would point at a category we drop, so treat
       // it as top level rather than leaving a dangling reference.
       parentSlug: parentSlug && parentSlug !== 'uncategorized' ? parentSlug : null,

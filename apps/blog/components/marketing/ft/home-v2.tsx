@@ -306,7 +306,7 @@ function FundingOptions() {
         <FundingCarousel label={FUNDING_OPTIONS.heading}>
           {FUNDING_OPTIONS.cards.map((card) => (
             <article
-              key={card.title}
+              key={card.slug}
               /*
                * The card keeps the width it had as half of a two-column grid, so
                * the carousel changes how many exist and how they move, not how
@@ -316,9 +316,20 @@ function FundingOptions() {
               className="flex w-full shrink-0 snap-start flex-col gap-6 rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] p-8 lg:w-[calc(50%-0.75rem)] lg:p-10"
             >
               <div>
+                {/*
+                  THE HEADING IS THE PRODUCT'S NAME, which is `label` — the same
+                  string the menu and the footer use, read off the program
+                  rather than restated, so a renamed product is renamed in one
+                  place. The sentence that used to be the heading is the subhead
+                  below it. Denis, 2026-10-02: a card about working capital
+                  should say "Working Capital".
+                */}
                 <h3 className="font-[family-name:var(--font-headline)] text-[clamp(1.375rem,2.4vw,1.75rem)] font-semibold leading-[1.2] text-[var(--ft-ink)]">
-                  {card.title}
+                  {card.label}
                 </h3>
+                <p className="mt-2 text-[1.1875rem] font-bold leading-[1.3] text-[var(--ft-subhead)]">
+                  {card.subtitle}
+                </p>
                 <p className="mt-4 text-[1.0625rem] leading-[1.55] text-[var(--ft-muted)]">
                   {card.body}
                 </p>

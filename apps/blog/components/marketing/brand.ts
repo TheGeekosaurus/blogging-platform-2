@@ -73,6 +73,29 @@ export const IMAGES = {
  */
 export const LOCAL_IMAGES = {
   logo: '/marketing/nanotom-capital-logo.png',
+  /*
+   * The same wordmark with the type in ink instead of white, for the Daylight
+   * build's white header and footer.
+   *
+   * `logo` above is light artwork on transparency — on white it all but
+   * disappears, and the obvious fix, a CSS `invert()`, takes the gold mark with
+   * it and turns it blue. So this is a real second file: the neutral pixels
+   * recoloured, the saturated gold ones untouched, and every antialiased edge
+   * preserved because the coverage was already in the alpha channel rather than
+   * in the colour.
+   *
+   * THE WORDMARK IS BLACK, NOT THE THEME'S BLUE. It was briefly #0B2D72 to
+   * match Daylight's ink, which is exactly the mistake worth naming: a logo is
+   * the company's and a palette is the page's, and tinting one to the other
+   * means the mark changes every time the design does. #0B0B0C is
+   * --color-brand, the near-black this codebase already declares, so this is
+   * the brand's own black rather than a value invented for the occasion.
+   *
+   * Generated from `logo`, not drawn — if the brand ever supplies an official
+   * dark-background wordmark, replace this file with it rather than
+   * regenerating.
+   */
+  logoDark: '/marketing/nanotom-capital-logo-dark.png',
   appPhone: '/marketing/photo-app-phone.png',
   cityTower: '/marketing/photo-city-tower.png',
 } as const;
@@ -99,6 +122,16 @@ export type NavItem = {
   href?: string;
   external?: boolean;
   children?: readonly NavItem[];
+  /*
+   * A glyph for this entry, as a key rather than a component: this module is
+   * data and importing JSX into it would make every consumer of the nav pull
+   * an icon set it may not draw. Each design maps the key to its own mark — see
+   * NAV_ICONS in daylight/site-header.tsx.
+   *
+   * Only dropdown children carry one today, and only the Daylight header reads
+   * them; the dark header and the footer ignore the field entirely.
+   */
+  icon?: string;
 };
 
 /**
@@ -118,23 +151,126 @@ export type NavItem = {
  * domain transfer, not here.
  */
 /**
- * The individual funding programs.
+ * THE CORE FUNDING OPTIONS — the one list, read by every surface.
  *
- * Its own const because the header's dropdown and the footer's first column are
- * the same five links, and a footer that quietly falls behind the nav is how a
- * site ends up advertising a program it no longer offers. Both read this.
+ * Denis set these nine on 2026-10-01, after the site had drifted into four
+ * different answers to "what do you fund?": the header and footer listed five
+ * programs, the homepage carousel showed four, the hero tile claimed six, and
+ * two of the carousel's four were not categories at all but named programs from
+ * one particular lender. A visitor who read the menu and then the homepage saw
+ * two different companies.
  *
- * All five are still STUB_PAGES below — they resolve as noindex headings until
- * someone writes them. Linking them from the footer anyway is deliberate: the
- * nav has promised them since launch, and a footer that lists four of five
- * because one has no copy yet is a worse inconsistency than a thin page.
+ * So this array is the source and the others are derived. The header dropdown,
+ * both footers' Funding Solutions column, the homepage cards and the
+ * /funding-solutions list all read it or are keyed to its slugs, and
+ * FUNDING_OPTIONS.cards in ft/content.ts is typed as a record over `slug` —
+ * adding a tenth program here is a COMPILE ERROR until its copy exists. That is
+ * the point: the drift above happened because four lists could disagree in
+ * silence.
+ *
+ * ORDER IS DENIS'S, not alphabetical and not by popularity. The first entry is
+ * also the one /funding-solutions marks "Featured", so reordering this array
+ * moves that pill.
+ *
+ * "Business Loans" is the term-loan category. Denis's list called it "Term
+ * Loans"; he chose to keep the existing name, which is also the name of the
+ * page that already exists at that slug.
+ *
+ * BANKROLL AND THE INTEREST-ONLY PROGRAM ARE DELIBERATELY ABSENT. They were the
+ * first two homepage cards. They are specifications of one lender's offer — in
+ * Denis's words, "just specifications" — rather than kinds of money a business
+ * can ask for, so they do not belong in a list of categories. Their terms are
+ * not lost: BANKROLL's are the whole of /funding-solutions/line-of-credit, and
+ * the interest-only program's are /funding-solutions/revenue-based-financing.
+ * Folding them into the relevant product pages as named programs is the next
+ * job and is Denis's call on where.
  */
-export const FUNDING_PROGRAMS: readonly { label: string; href: string }[] = [
-  { label: 'Business Loans', href: '/funding-solutions/business-loans' },
-  { label: 'Line of Credit', href: '/funding-solutions/line-of-credit' },
-  { label: 'Revenue-Based Financing', href: '/funding-solutions/revenue-based-financing' },
-  { label: 'Working Capital', href: '/funding-solutions/working-capital' },
-  { label: 'Equipment Financing', href: '/funding-solutions/equipment-financing' },
+const CORE_PROGRAMS = [
+  { label: 'Working Capital', slug: 'working-capital', icon: 'wallet' },
+  { label: 'Business Line of Credit', slug: 'line-of-credit', icon: 'cash-flow' },
+  { label: 'SBA Loans', slug: 'sba-loans', icon: 'bank' },
+  { label: 'Equipment Financing', slug: 'equipment-financing', icon: 'equipment' },
+  { label: 'Merchant Cash Advance', slug: 'merchant-cash-advance', icon: 'growth' },
+  { label: 'Business Loans', slug: 'business-loans', icon: 'coins' },
+  { label: 'Inventory Financing', slug: 'inventory-financing', icon: 'inventory' },
+  { label: 'Receivables Financing', slug: 'receivables-financing', icon: 'invoice' },
+  { label: 'Bridge Loans', slug: 'bridge-loans', icon: 'bridge' },
+] as const;
+
+export type FundingSlug = (typeof CORE_PROGRAMS)[number]['slug'];
+
+/**
+ * The slugs that have a dedicated page at /funding-solutions/<slug>.
+ *
+ * ALL NINE, since 2026-10-05. It was four for four days, and the other five
+ * linked to their own block on /funding-solutions instead — not as a
+ * placeholder but because app/funding-solutions/[product]/page.tsx is a ROUTE
+ * SEGMENT, which beats the pages catch-all, so a slug with no LOAN_PAGES entry
+ * could not be given a STUB_PAGES fallback: it hit that route, found nothing
+ * and called notFound(). Pointing the menu at it would have been five hard
+ * 404s in the header and the footer.
+ *
+ * The anchors those five used are still rendered on /funding-solutions, and
+ * deliberately so — nothing links to them now, but the machinery that builds
+ * them from the slug is what a tenth product would need on the day it is added
+ * before its page exists.
+ *
+ * KEEP THIS IN STEP WITH LOAN_PAGES. A slug listed here with no LOAN_PAGES
+ * entry is a 404 in the navigation; a test asserts the two agree rather than
+ * leaving it to be noticed in production.
+ */
+const SLUGS_WITH_PAGE: ReadonlySet<string> = new Set<FundingSlug>([
+  'working-capital',
+  'line-of-credit',
+  'sba-loans',
+  'equipment-financing',
+  'merchant-cash-advance',
+  'business-loans',
+  'inventory-financing',
+  'receivables-financing',
+  'bridge-loans',
+]);
+
+export type FundingProgram = {
+  readonly label: string;
+  readonly slug: FundingSlug;
+  /** Key into the glyph maps — see the note on NavItem.icon. */
+  readonly icon: string;
+  /** The product page where one exists, else that product's section anchor. */
+  readonly href: string;
+  /** False for the five still waiting on a product page. */
+  readonly hasPage: boolean;
+};
+
+/**
+ * The nine, with their destinations resolved.
+ *
+ * The anchor matches the id ft/funding-solutions.tsx puts on each product
+ * block, which is derived from the same slug — see `headingId` there.
+ */
+export const FUNDING_PROGRAMS: readonly FundingProgram[] = CORE_PROGRAMS.map((program) => {
+  const hasPage = SLUGS_WITH_PAGE.has(program.slug);
+  return {
+    ...program,
+    hasPage,
+    href: hasPage
+      ? `/funding-solutions/${program.slug}`
+      : `/funding-solutions#ft-loans-${program.slug}`,
+  };
+});
+
+/*
+ * Lifted out of NAV so the footer's Industries column and the header's
+ * Industries menu are the same two entries. They were inline until the footer
+ * grew a column for them, which is the moment a copied array starts drifting.
+ */
+export const INDUSTRIES: readonly { label: string; href: string; icon: string }[] = [
+  { label: 'Food Business', href: '/industries/food-business', icon: 'storefront' },
+  {
+    label: 'Construction Business',
+    href: '/industries/construction-business',
+    icon: 'hard-hat',
+  },
 ];
 
 export const NAV: readonly NavItem[] = [
@@ -143,13 +279,22 @@ export const NAV: readonly NavItem[] = [
     href: '/funding-solutions',
     children: FUNDING_PROGRAMS,
   },
+  /*
+   * NO `href` ON INDUSTRIES. /industries is a static route belonging to the
+   * Labs deployment and calls notFound() on Capital, so the trigger pointed at
+   * a 404 — checked against the running build, not assumed. The footer's
+   * Industries column has been headed with plain text for the same reason; this
+   * is the matching fix on the header side.
+   *
+   * Both headers already handle a parent with no href: the Daylight one renders
+   * the trigger as a <span> and still opens the dropdown, and the mobile nav
+   * does the same. The children are where the pages are.
+   *
+   * Give it an href again the day Capital has an industries index of its own.
+   */
   {
     label: 'Industries',
-    href: '/industries',
-    children: [
-      { label: 'Food Business', href: '/industries/food-business' },
-      { label: 'Construction Business', href: '/industries/construction-business' },
-    ],
+    children: INDUSTRIES,
   },
   { label: 'Loan Calculator', href: '/calc' },
   { label: 'Programs', href: '/programs' },
@@ -184,9 +329,34 @@ export const STUB_PAGES: Readonly<Record<string, string>> = {
    * now — app/funding-solutions/[product]/page.tsx — and a static segment beats
    * the catch-all, so leaving them would have been a map nothing ever read.
    */
+  /*
+   * DEAD, and left here only so it is not re-added. app/industries/page.tsx is
+   * a static route, a static segment beats the catch-all, and that route is
+   * gated to Labs — so /industries answers 404 on Capital and never reaches
+   * this map. Same trap as `about` below.
+   */
   industries: 'Industries',
-  'industries/food-business': 'Food Business',
+  /*
+   * `industries/food-business` IS NOT HERE ANY MORE. It is a coded route now —
+   * app/industries/food-business/page.tsx — and a static segment beats the
+   * catch-all, so leaving it would have been a map nothing ever read.
+   *
+   * Construction stays a stub until it has a record in
+   * daylight/industry-content.ts. That is also why the route next door is the
+   * literal `food-business` rather than an `[industry]` segment: a dynamic
+   * segment would capture this path too and turn it into a hard 404.
+   */
   'industries/construction-business': 'Construction Business',
+
+  /*
+   * Added when the footer gained an About Us column. NOT `about`: that path is
+   * a static route belonging to the Labs deployment, and a static segment beats
+   * the catch-all, so /about on Capital would 404 rather than land here.
+   *
+   * It is a heading and nothing else, and it should not stay that way — this is
+   * the one link in the new footer with no content behind it.
+   */
+  'about-us': 'About Us',
 };
 
 /** Footer policy row. Every one of these is a real, live page. */

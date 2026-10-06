@@ -17,16 +17,30 @@ import { ArrowUpRightIcon } from './icons';
 /** The centred column. Matches the site header's container exactly. */
 export const CONTAINER = 'mx-auto w-full max-w-7xl px-5 lg:px-8';
 
-/** The grey chip every section label and page eyebrow sits in. */
+/**
+ * The grey chip every section label and page eyebrow sits in.
+ *
+ * `ft-chip` carries no styles here. It is a marker for one rule in globals.css:
+ * the Daylight build wants every chip on the page tinted, and most of them are
+ * rendered by SectionHead rather than written out, so there is no prop to pass
+ * and no import to swap. Same arrangement as `ft-avatar` and `nc-cta`.
+ */
 export function Chip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
+    <span className="ft-chip inline-block rounded-lg bg-[var(--ft-card-raised)] px-3 py-1.5 text-sm font-medium uppercase tracking-[0.14em] text-[var(--ft-ink)] sm:text-[0.8125rem]">
       {children}
     </span>
   );
 }
 
-/** The dark bordered button with a gold arrow, used for every secondary action. */
+/**
+ * The dark bordered button with a gold arrow, used for every secondary action.
+ *
+ * `ft-ghost` carries no styles here. It is a marker for one rule in
+ * globals.css: the live Nanotom Capital site sets every button to a 6px
+ * radius, and the Daylight build follows it, while this component's own
+ * `rounded-xl` is the FutureTech template's. Same arrangement as `ft-chip`.
+ */
 export function GhostButton({
   children,
   href,
@@ -38,7 +52,7 @@ export function GhostButton({
   external?: boolean;
 }) {
   const className =
-    'inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]';
+    'ft-ghost inline-flex shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]';
   const label = (
     <>
       {children}

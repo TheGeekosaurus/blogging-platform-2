@@ -1,5 +1,6 @@
 import type { Client } from './supabase';
 import { SOCIAL_PLATFORMS } from './database.types';
+import { decodeTextEntities } from './sanitize';
 import { readSnippets } from './structured-data';
 import type {
   PageRow,
@@ -218,13 +219,34 @@ function toSummary(row: RawSummary): PostSummary {
   };
 }
 
+/**
+ * A term as the page should print it.
+ *
+ * WordPress serves category and tag names already HTML-escaped and the importer
+ * stores them verbatim, so "Business Funding & Financing" is
+ * "Business Funding &amp; Financing" in the database and React, escaping again
+ * on render, printed the entity. `name` is plain text — it is a heading, a
+ * breadcrumb and a pill label, never markup — so it is decoded on the way out.
+ *
+ * DECODED ON READ RATHER THAN FIXED IN THE ROWS, deliberately. A one-off UPDATE
+ * would fix today's rows and the next import would put the entities straight
+ * back; this covers both, and it is idempotent on names that were already
+ * clean. Worth doing in the importer as well, so the stored value is right.
+ *
+ * Every path that hands a TermRow to the app goes through here.
+ */
+function normaliseTerm<T extends TermRow>(term: T): T {
+  return { ...term, name: decodeTextEntities(term.name) };
+}
+
 /** Flatten the post_terms embed into the terms themselves. */
 function embeddedTerms(
   rows: Array<{ term: TermRow | TermRow[] | null }> | null | undefined,
 ): TermRow[] {
   return (rows ?? [])
     .map((entry) => one(entry.term))
-    .filter((term): term is TermRow => term !== null);
+    .filter((term): term is TermRow => term !== null)
+    .map(normaliseTerm);
 }
 
 function toByline(row: RawByline | null): Byline | null {
@@ -535,7 +557,7 @@ export async function listTerms(
     .order('name', { ascending: true });
 
   if (error) fail(`Failed to list ${kind} terms`, error);
-  return data ?? [];
+  return (data ?? []).map(normaliseTerm);
 }
 
 export async function getTermBySlug(
@@ -553,7 +575,7 @@ export async function getTermBySlug(
     .maybeSingle();
 
   if (error) fail(`Failed to load ${kind} "${slug}"`, error);
-  return data ?? null;
+  return data ? normaliseTerm(data) : null;
 }
 
 /**

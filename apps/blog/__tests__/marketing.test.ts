@@ -106,11 +106,212 @@ describe('brand constants', () => {
         expect(href, item.label).toMatch(/^https?:\/\//);
         continue;
       }
+      /*
+       * Fragment stripped before the lookup. Five of the nine funding programs
+       * have no page of their own and link to their block on /funding-solutions
+       * instead; what makes that resolve is the page, so that is what is
+       * checked here. The block existing is a separate assertion below, because
+       * a URL that loads the right page and lands nowhere is its own bug.
+       */
+      const path = href.split('#')[0] as string;
       expect(
-        coded.has(href) || stubs.has(href),
+        coded.has(path) || stubs.has(path),
         `${item.label} -> ${href} resolves to a coded page or a stub`,
       ).toBe(true);
     }
+  });
+
+  /*
+   * EVERY CORE PROGRAM HAS A PAGE, since 2026-10-05, and three lists have to
+   * agree for that to be true. They are edited in three different files, and
+   * every way they can disagree is silent in the build:
+   *
+   *   brand.ts      SLUGS_WITH_PAGE decides whether the menu links to the page
+   *                 or to an anchor. A slug listed here with no LOAN_PAGES
+   *                 entry is a hard 404 in the header and the footer, because
+   *                 app/funding-solutions/[product] is a route segment that
+   *                 beats the catch-all and calls notFound().
+   *   ft/content.ts LOAN_PAGES is what the route actually renders.
+   *   coded-routes  CODED_SITES is what the sitemap submits. A path here with
+   *                 no page is a 404 handed to a crawler.
+   */
+  it('gives every core funding program a page that exists', async () => {
+    const { FUNDING_PROGRAMS } = await import('../components/marketing/brand');
+    const { LOAN_PAGES } = await import('../components/marketing/ft/content');
+
+    const built = new Set(LOAN_PAGES.map((page) => page.slug));
+
+    for (const program of FUNDING_PROGRAMS) {
+      expect(program.hasPage, `${program.label} is not marked as having a page`).toBe(true);
+      expect(built.has(program.slug), `${program.label} has no LOAN_PAGES entry`).toBe(true);
+      expect(program.href).toBe(`/funding-solutions/${program.slug}`);
+    }
+  });
+
+  it('submits no product page to the sitemap that does not render', async () => {
+    const { codedRoutesFor, NNTM_CAPITAL_SLUG } = await import('@blog/core');
+    const { LOAN_PAGES } = await import('../components/marketing/ft/content');
+
+    const built = new Set(LOAN_PAGES.map((page) => page.slug));
+    const registered = codedRoutesFor(NNTM_CAPITAL_SLUG)
+      .map((route) => route.path)
+      .filter((path) => path.startsWith('funding-solutions/'))
+      .map((path) => path.slice('funding-solutions/'.length));
+
+    expect(registered.length).toBeGreaterThan(0);
+    for (const slug of registered) {
+      expect(built.has(slug), `${slug} is in the sitemap with no page behind it`).toBe(true);
+    }
+  });
+
+  /*
+   * And the reverse: a page nobody can reach. Every LOAN_PAGES entry should be
+   * in the sitemap — with one deliberate exception, `revenue-based-financing`,
+   * which is the interest-only BANKROLL program. It left the core nine when
+   * Denis reorganised the products and kept its page; it is registered, just
+   * not in any menu. If a SECOND exception ever appears, that is a page written
+   * and then forgotten, which this catches.
+   */
+  it('leaves no product page stranded outside the sitemap', async () => {
+    const { codedRoutesFor, NNTM_CAPITAL_SLUG } = await import('@blog/core');
+    const { LOAN_PAGES } = await import('../components/marketing/ft/content');
+
+    const registered = new Set(
+      codedRoutesFor(NNTM_CAPITAL_SLUG).map((route) => route.path),
+    );
+    for (const page of LOAN_PAGES) {
+      expect(
+        registered.has(`funding-solutions/${page.slug}`),
+        `${page.slug} renders but is in no sitemap`,
+      ).toBe(true);
+    }
+  });
+
+  /*
+   * THE COMPARE WIDGET'S CEILING, which is the thing this change was most
+   * likely to break without a sound.
+   *
+   * Its show/hide rules are hand-written CSS indexed by `data-i`, because
+   * Tailwind cannot generate a class from a variable. There were four, written
+   * when there were five products — five being exactly four others, so it
+   * fitted precisely and stopped fitting the moment the core nine landed. An
+   * index past the end has NO RULE: that panel never displays and that tab
+   * never highlights, and nothing in the build says so.
+   */
+  it('has a compare rule for every option the widget can show', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const { LOAN_PAGES } = await import('../components/marketing/ft/content');
+
+    const css = readFileSync(join(__dirname, '..', 'app', 'globals.css'), 'utf8');
+
+    /* The most options any one page can offer is everything but itself. */
+    const mostOthers = LOAN_PAGES.length - 1;
+
+    for (let i = 0; i < mostOthers; i += 1) {
+      expect(
+        css.includes(`.ft-compare-panel[data-i='${i}']`),
+        `no compare PANEL rule for option ${i} of ${mostOthers}`,
+      ).toBe(true);
+      expect(
+        css.includes(`.ft-compare-tab[data-i='${i}']`),
+        `no compare TAB rule for option ${i} of ${mostOthers}`,
+      ).toBe(true);
+    }
+  });
+
+  /*
+   * Two bugs the anchored programs introduced, both found on screen rather than
+   * in the diff, both invisible to a test that only checks the href.
+   *
+   * 1. The link landed UNDER THE STICKY HEADER. `#ft-loans-<slug>` was on the
+   *    <h3>, so following it put the heading's own top edge at y=0 and a 73px
+   *    header covered it — a reader arriving from the menu could not see the
+   *    name of the product they had just clicked. The id moved to the <article>
+   *    and the block carries scroll-margin.
+   *
+   * 2. The block's own CTA POINTED AT ITSELF. `product.cta.href` is the anchor
+   *    for these five, so on /funding-solutions "Learn More" linked to the
+   *    paragraph beside it. It is the application now.
+   */
+  it('does not hide an anchored block under the header, or link it to itself', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+
+    const pages = ['daylight', 'ft'].map((dir) =>
+      readFileSync(
+        join(__dirname, '..', 'components', 'marketing', dir, 'funding-solutions.tsx'),
+        'utf8',
+      ),
+    );
+
+    /*
+     * The opening tag, found by its newline: a block comment above it says
+     * "An <article> rather than a <section>" in prose, and a bare indexOf
+     * finds that first — the same trap the legal-parity extractor hit.
+     */
+    for (const page of pages) {
+      const open = page.indexOf('<article\n');
+      expect(open, 'the product block is a multi-line <article>').toBeGreaterThan(-1);
+      const article = page.slice(open, page.indexOf('>', open));
+      expect(article).toContain('id={blockId}');
+      /*
+       * 32, not merely "some scroll margin". The header is global and light
+       * now and measures 94px desktop / 84px mobile when stuck; 24 was tuned
+       * against the old 73px dark header and leaves a 2px gap under this one,
+       * which reads as the block jammed under the bar.
+       */
+      expect(article).toContain('scroll-mt-32');
+    }
+
+    /* The heading keeps a DIFFERENT id, so aria-labelledby still resolves. */
+    for (const page of pages)
+      expect(page).toContain('const headingId = `${blockId}-title`');
+
+    /* And the CTA is conditional on the product actually having a page. */
+    for (const page of pages)
+      expect(page).toContain('product.hasPage ? product.cta.href : CTA_HREF');
+  });
+
+  /*
+   * One list, four surfaces. This is the whole point of the 2026-10-01
+   * restructure: the header dropdown, both footers' first column, the homepage
+   * cards and the /funding-solutions list had drifted to four different answers
+   * — five programs, five, four and a hero tile claiming six.
+   */
+  it('shows the same funding options in the menu and on the page', async () => {
+    const { FUNDING_PROGRAMS, NAV } = await import('../components/marketing/brand');
+    const { FUNDING_OPTIONS, HERO, LOANS } = await import(
+      '../components/marketing/ft/content'
+    );
+
+    const dropdown = NAV.find((item) => item.href === '/funding-solutions')?.children ?? [];
+    expect(dropdown.map((item) => item.label)).toEqual(
+      FUNDING_PROGRAMS.map((program) => program.label),
+    );
+
+    /* Same products, same order — someone arriving from the menu meets them as
+       they last saw them. */
+    expect(FUNDING_OPTIONS.cards.map((card) => card.slug)).toEqual(
+      FUNDING_PROGRAMS.map((program) => program.slug),
+    );
+
+    /*
+     * And the two places that state a COUNT in prose. Both were wrong before
+     * this — the tile said six against a menu of five and a page of four — and
+     * a number in copy is exactly what nobody re-reads when the list changes.
+     */
+    const spelled = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+      'eight', 'nine', 'ten'][FUNDING_PROGRAMS.length];
+
+    const tile = HERO.tiles.find((item) => item.href === '/funding-solutions');
+    expect(tile?.note, 'the hero tile counts the funding types').toContain(
+      `${FUNDING_PROGRAMS.length} funding types`,
+    );
+    expect(
+      LOANS.optionsHead.heading.toLowerCase(),
+      'the /funding-solutions band counts the options',
+    ).toContain(spelled);
   });
 
   /*

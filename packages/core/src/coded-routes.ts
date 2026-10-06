@@ -75,6 +75,60 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   },
   { path: 'funding-solutions/working-capital', title: 'Working Capital', index: true },
   { path: 'funding-solutions/equipment-financing', title: 'Equipment Financing', index: true },
+  /*
+   * The five added on 2026-10-05, completing the core nine. Every one has a
+   * LOAN_PAGES entry; a path here without one is a 404 in the sitemap, so a
+   * test asserts this list and that array agree.
+   */
+  { path: 'funding-solutions/sba-loans', title: 'SBA Loans', index: true },
+  {
+    path: 'funding-solutions/merchant-cash-advance',
+    title: 'Merchant Cash Advance',
+    index: true,
+  },
+  { path: 'funding-solutions/inventory-financing', title: 'Inventory Financing', index: true },
+  {
+    path: 'funding-solutions/receivables-financing',
+    title: 'Receivables Financing',
+    index: true,
+  },
+  { path: 'funding-solutions/bridge-loans', title: 'Bridge Loans', index: true },
+  /*
+   * The industry pages. `industries` ITSELF IS DELIBERATELY ABSENT: that path
+   * is a static route belonging to the Labs deployment and calls notFound() on
+   * Capital, so listing it here would put a 404 in Capital's sitemap. The
+   * children are real pages and do not go through it.
+   *
+   * `industries/construction-business` is absent for the other reason — it is
+   * still a noindex stub, and listing a page that asks not to be indexed is the
+   * trap the funding products sat in above. Add it the day it gets a record in
+   * daylight/industry-content.ts.
+   */
+  { path: 'industries/food-business', title: 'Food Business', index: true },
+  /*
+   * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
+   *
+   * It carried the light-theme homepage at a second URL while Denis decided
+   * between the two designs, listed index: false so a crawler never saw the
+   * same copy twice. He promoted it onto '/' on 2026-10-02, so the route and
+   * this entry went together — leaving either behind would have meant serving a
+   * byte-identical duplicate of the front page.
+   *
+   * The DSCR calculator below is index: TRUE, which is the distinction that
+   * mattered: it is its own content at its own URL, not the homepage at a
+   * second one, and a free tool for a term people search is exactly what a
+   * sitemap should carry.
+   *
+   * The page says in as many words that Nanotom does not offer DSCR loans yet,
+   * so indexing it does not advertise a product that does not exist. If that
+   * ever stops being true on the page, it is the page's copy that changes, not
+   * this flag.
+   */
+  {
+    path: 'calculators/dscr-calculator',
+    title: 'DSCR Calculator For Investment Property',
+    index: true,
+  },
   // Still to build: programs, privacy-policy, terms-of-use,
   // cancellation-and-refund-policy, anti-spam-policy, dmca-policy,
   // earnings-disclaimer. Add each one here as it lands.

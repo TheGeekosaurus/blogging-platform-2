@@ -22,7 +22,7 @@ import {
   MarketingIcon,
   PayrollIcon,
 } from './icons';
-import { CONTAINER, SectionHead } from './primitives';
+import { CONTAINER, Chip, SectionHead } from './primitives';
 
 /*
  * The sections that appear on more than one page of this design.
@@ -278,14 +278,59 @@ function Answer({ runs }: { runs: readonly AnswerRun[] }) {
  * one closes the rest — which looks tidy and is worse: it stops anyone
  * comparing two answers, and it silently undoes a reader's own expand.
  */
-export function Faq() {
+/**
+ * The FAQ accordion.
+ *
+ * `exclusive` turns the list into a one-at-a-time accordion by giving every
+ * <details> the same `name`, which is the HTML spec's own way of doing it — no
+ * JavaScript, no state, and it survives a page with scripting off. Browsers
+ * that do not implement it (anything before Chrome 120, Safari 17.2 or Firefox
+ * 130) ignore the attribute and keep today's behaviour of opening as many rows
+ * as the reader likes, which is the right thing to degrade to.
+ *
+ * It is a prop rather than the default because this section is shared with the
+ * live dark site, where the rows open independently today and nobody has asked
+ * for that to change.
+ *
+ * `blurb` is the paragraph and the Ask a Question button under the heading.
+ * Daylight drops both — the questions are the section, and a second invitation
+ * to ask one sits a few hundred pixels above a footer whose whole job is the
+ * same CTA. Off by default it would change the live site, so it is on.
+ *
+ * `label` puts a section chip beside the icon. Every other Daylight section
+ * carries one; this was the last that did not. Undefined means no chip, which
+ * is what the dark site renders today.
+ */
+export function Faq({
+  exclusive = false,
+  blurb = true,
+  label,
+}: { exclusive?: boolean; blurb?: boolean; label?: string } = {}) {
   return (
     <section aria-labelledby="ft-faq" className="border-t border-[var(--ft-line)]">
       {/* Columns centred against each other, with the divider on the right
           column — see the long note on the same pattern in funding-solutions. */}
       <div className={`${CONTAINER} lg:flex lg:gap-0`}>
-        <div className="py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
-          <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+        {/*
+          `ft-faq-aside` is a styles-free marker. Daylight pins this column to
+          the top rather than centring it, which only matters once `blurb` is
+          off; see the rule in globals.css.
+        */}
+        <div className="ft-faq-aside py-14 lg:flex lg:w-[38%] lg:shrink-0 lg:flex-col lg:justify-center lg:py-20 lg:pr-12">
+          {/*
+            The chip sits to the LEFT of the icon, which Denis asked for and is
+            the reverse of the usual order. `items-center` rather than baseline:
+            the icon is a 40px square with no text baseline of its own, so
+            aligning the two on one would drop the chip below its centre.
+          */}
+          {label ? (
+            <div className="flex items-center gap-3">
+              <Chip>{label}</Chip>
+              <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+            </div>
+          ) : (
+            <HelpIcon className="h-10 w-10 text-[var(--ft-accent)]" />
+          )}
 
           <h2
             id="ft-faq"
@@ -294,22 +339,33 @@ export function Faq() {
             {FAQ.heading}
           </h2>
 
-          <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
-            {FAQ.body}
-          </p>
+          {blurb ? (
+            <>
+              <p className="mt-5 max-w-[42ch] text-[1.0625rem] leading-[1.6] text-[var(--ft-muted)]">
+                {FAQ.body}
+              </p>
 
-          {/*
-            A plain anchor, not GhostButton: this is a `tel:` href, and
-            GhostButton routes a non-external href through next/link, which is
-            for in-app navigation and not for handing a URI scheme to the OS.
-          */}
-          <a
-            href={FAQ.cta.href}
-            className="mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
-          >
-            {FAQ.cta.label}
-            <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
-          </a>
+              {/*
+                A plain anchor, not GhostButton: this is a `tel:` href, and
+                GhostButton routes a non-external href through next/link, which
+                is for in-app navigation and not for handing a URI scheme to the
+                OS.
+              */}
+              <a
+                href={FAQ.cta.href}
+                /*
+                 * `ft-ghost` even though this is not GhostButton: it is that
+                 * button's class list copied out, so it should answer to the
+                 * same marker. Without it the Daylight build squares off every
+                 * button on the page except this one.
+                 */
+                className="ft-ghost mt-8 inline-flex w-fit shrink-0 items-center gap-3 rounded-xl border border-[var(--ft-line)] bg-[var(--ft-card)] px-6 py-3.5 text-[0.9375rem] text-[var(--ft-muted)] no-underline transition-colors hover:border-[var(--ft-accent)] hover:text-[var(--ft-ink)]"
+              >
+                {FAQ.cta.label}
+                <ArrowUpRightIcon className="h-4 w-4 text-[var(--ft-accent)]" />
+              </a>
+            </>
+          ) : null}
         </div>
 
         <div className="border-t border-[var(--ft-line)] py-14 lg:min-w-0 lg:flex-1 lg:border-l lg:border-t-0 lg:py-20 lg:pl-12">
@@ -318,7 +374,19 @@ export function Faq() {
               <li key={item.id}>
                 <details
                   open={i === 0}
-                  className="group rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] [&_summary::-webkit-details-marker]:hidden"
+                  /*
+                   * Shared name = exclusive accordion; see the note on the prop.
+                   * `undefined` rather than `''` so the attribute is absent
+                   * entirely when it is off — an empty name still groups.
+                   */
+                  name={exclusive ? 'ft-faq' : undefined}
+                  /*
+                   * `ft-faq-item` is a styles-free marker, like `ft-chip` and
+                   * `ft-avatar`: it gives the Daylight sheet something to name
+                   * so it can paint the closed row navy without this component
+                   * knowing which design it is rendering into.
+                   */
+                  className="ft-faq-item group rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-card)] [&_summary::-webkit-details-marker]:hidden"
                 >
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-6 p-6">
                     <h3 className="text-[1.0625rem] font-medium leading-[1.35] text-[var(--ft-ink)]">

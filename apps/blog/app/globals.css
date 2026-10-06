@@ -285,6 +285,15 @@
     --ft-muted: #98989a;
     --ft-subtle: #7e7e81;
 
+    /*
+     * The steel blue under each funding product's name — Denis's #5792A8,
+     * exact. See the long note where .dl-surface declares the same token: on
+     * this near-black it is 5.70:1 on the ground and 5.04:1 on the raised
+     * cards, so it clears AA for body text at any size here. The light theme is
+     * where it has to be handled with care.
+     */
+    --ft-subhead: #5792a8;
+
     --ft-accent: #e0a840;
 
     background-color: var(--ft-bg);
@@ -1707,15 +1716,37 @@
 .ft-compare-radio[data-i='0']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='0'],
 .ft-compare-radio[data-i='1']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='1'],
 .ft-compare-radio[data-i='2']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='2'],
-.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'] {
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='3'],
+.ft-compare-radio[data-i='4']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='4'],
+.ft-compare-radio[data-i='5']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='5'],
+.ft-compare-radio[data-i='6']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='6'],
+.ft-compare-radio[data-i='7']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='7'],
+.ft-compare-radio[data-i='8']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='8'],
+.ft-compare-radio[data-i='9']:checked ~ .ft-compare-panels > .ft-compare-panel[data-i='9'] {
   display: grid;
 }
 
-/* The selected tab. Mirrors the "All" pill on the blog's category row. */
+/*
+ * TEN INDICES, because there are ten product pages and a page compares against
+ * every other one. It was four, written when there were five products — and
+ * five was exactly four others, so it fitted precisely and silently stopped
+ * fitting the moment Denis added the rest of the core nine. An index past the
+ * end has no rule at all: its panel never displays and its tab never
+ * highlights, with nothing in the build to say so. A test counts these against
+ * LOAN_PAGES.
+ *
+ * The selected tab. Mirrors the "All" pill on the blog's category row.
+ */
 .ft-compare-radio[data-i='0']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
 .ft-compare-radio[data-i='1']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
 .ft-compare-radio[data-i='2']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
-.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+.ft-compare-radio[data-i='3']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'],
+.ft-compare-radio[data-i='4']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='4'],
+.ft-compare-radio[data-i='5']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='5'],
+.ft-compare-radio[data-i='6']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='6'],
+.ft-compare-radio[data-i='7']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='7'],
+.ft-compare-radio[data-i='8']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='8'],
+.ft-compare-radio[data-i='9']:checked ~ .ft-compare-tabs > .ft-compare-tab[data-i='9'] {
   background: var(--ft-card-raised);
   color: var(--ft-ink);
   font-weight: 500;
@@ -1730,7 +1761,13 @@
 .ft-compare-radio[data-i='0']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='0'],
 .ft-compare-radio[data-i='1']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='1'],
 .ft-compare-radio[data-i='2']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='2'],
-.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'] {
+.ft-compare-radio[data-i='3']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='3'],
+.ft-compare-radio[data-i='4']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='4'],
+.ft-compare-radio[data-i='5']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='5'],
+.ft-compare-radio[data-i='6']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='6'],
+.ft-compare-radio[data-i='7']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='7'],
+.ft-compare-radio[data-i='8']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='8'],
+.ft-compare-radio[data-i='9']:focus-visible ~ .ft-compare-tabs > .ft-compare-tab[data-i='9'] {
   outline: 2px solid var(--ft-accent);
   outline-offset: 3px;
 }
@@ -1835,3 +1872,1154 @@
 .ft-light .ft-surface .ft-image-slot {
   background-image: linear-gradient(135deg, #3b4759, #2d3748 60%);
 }
+
+/* ===========================================================================
+ * DAYLIGHT — the parallel light build of Nanotom Capital.
+ *
+ * A second design living beside the dark one, not a theme switch on it. Denis's
+ * reading of the current site is "too dark, not inviting", so this is where a
+ * white version gets built and compared without the live page moving. It serves
+ * one route today, /daylight, and shares the dark site's copy.
+ *
+ * WHY THIS IS NOT `.ft-light`. That block, further up, is a different and
+ * narrower experiment — near-black sections to #2D3748, grey bands to white,
+ * switched by FT_LIGHT_TEST in app/layout.tsx and currently off. It is a
+ * whole-site override; this is a surface class on one page's root, so the two
+ * cannot collide and neither has to be deleted to try the other.
+ *
+ * IT RE-DECLARES THE SAME --ft-* NAMES `.ft-surface` DOES, deliberately. Every
+ * section of this design paints from those tokens and nothing else, so one
+ * block of values re-themes the shared sections — the timeline, the use-of-funds
+ * grid, the qualifier, the FAQ, the blog rows — with no fork of any of them. A
+ * component that reads a token gets the light value here and the dark value
+ * there, which is the whole reason the token layer exists.
+ *
+ * ---------------------------------------------------------------------------
+ * THE PALETTE IS DENIS'S TWO BLUES: #0B2D72 dark and #0AC4E0 light. The greys
+ * are tinted toward them rather than neutral — a neutral grey next to a
+ * saturated cyan reads as dirty.
+ *
+ * CONTRAST, computed rather than eyeballed. Every text tone against every
+ * ground it can land on — white, the band, the card, the raised chip, and the
+ * cyan wash behind the hero badge:
+ *
+ *              #FFFFFF   #F2F6F9   #F5F8FA   #E8EFF4   #C9F2F8
+ *   ink        12.86     11.84     12.06     11.08     10.74
+ *   muted       7.35      6.76      6.89      6.33      6.14
+ *   subtle      6.01      5.53      5.64      5.18      5.02
+ *   accent      5.92      5.44      5.55      5.09      4.94
+ *
+ * All clear the 4.5:1 body-text floor on all five, and the cyan chip tint is
+ * the tightest of them. That ground is also what decided --ft-subtle: at
+ * #5A6B95 it measured 4.42 there and failed, which is why the value is a step
+ * darker than it looks like it needs to be.
+ * __tests__/contrast.test.ts recomputes every cell and fails if a retune drops
+ * one.
+ *
+ * ---------------------------------------------------------------------------
+ * THE LIGHT BLUE CANNOT BE TEXT, and this is the one place the design has to
+ * depart from the reference rather than copy it. #0AC4E0 measures 2.10:1 on
+ * white — worse than brand gold's 2.13:1, and below even the 3:1 floor that
+ * applies to large display type. The reference makes exactly this mistake: its
+ * mint headline word sits at roughly 2.1:1 on white.
+ *
+ * So the cyan is split three ways by JOB, not by taste:
+ *
+ *   --dl-pop      #0AC4E0  FILLS ONLY. The badge, the slider track, the arrow
+ *                          discs, the check marks. Dark blue on it is 5.70:1,
+ *                          so anything sitting ON it is comfortably readable —
+ *                          which is how the reference uses its mint too.
+ *   --dl-display  #0794AB  THE ONE HEADLINE WORD. 3.60:1 on white: clears the
+ *                          large-text floor with margin while staying
+ *                          unmistakably the same cyan. This is the value to
+ *                          change to #0AC4E0 if Denis wants the reference's
+ *                          exact colour and will accept 2.10:1.
+ *   --ft-accent   #066E80  EVERY OTHER PIECE OF CYAN TEXT OR ICON, at body
+ *                          size, where the floor is 4.5:1 and this clears at
+ *                          5.92:1.
+ *
+ * --dl-gold is what is left of the brand. It plays the role the reference gives
+ * orange: the single warm CTA against a cool page, plus the review stars, where
+ * a cyan star would read as a broken gold one. Its label is ink at 8.69:1 —
+ * white on gold is 2.13:1 and is the defect .dl-surface .nc-cta corrects.
+ * =========================================================================== */
+@layer components {
+  .dl-surface {
+    /*
+     * Opts back out of the reader's dark-mode preference, exactly as
+     * `.ft-surface` and `.blog-surface` do. `.marketing-root` on <body> already
+     * forces light for Capital, so this is belt and braces — but this class is
+     * the thing that decides what the page looks like, and it should not depend
+     * on a body class it does not own.
+     */
+    color-scheme: light;
+
+    --ft-bg: #ffffff;
+    /*
+     * The bands are DARKER than the ground here, where in the dark design they
+     * are lighter (#1A1A1A on #141414). Same idea both ways round: a band is a
+     * band because it steps away from the page, and on white the only direction
+     * to step is down — a white band on a white ground is the section header
+     * losing its edges.
+     *
+     * Tinted toward the blues rather than neutral, so it sits under #0AC4E0
+     * rather than fighting it: a neutral grey beside a saturated cyan reads as
+     * dirty.
+     *
+     * These were cream (#F6E7BC) for a round, matched to the pale gold that
+     * outlined the shapes in the band artwork. Denis reverted both together —
+     * the artwork's outlines are brand gold now, so the cream had nothing left
+     * to match.
+     */
+    --ft-band: #f2f6f9;
+    --ft-card: #f5f8fa;
+    --ft-card-raised: #e8eff4;
+    /*
+     * Deliberately stronger than the #E2E8F0 a light UI usually reaches for.
+     * The hairline grids in this design are `gap-px` over a container painted
+     * --ft-line, so this colour IS the divider between two near-white cells and
+     * has nothing else holding the grid together.
+     */
+    --ft-line: #d3dee7;
+
+    /** Denis's dark blue, carrying every heading and every strong run. */
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
+
+    /** Cyan at body size. See the three-way split above. */
+    --ft-accent: #066e80;
+    /** Denis's light blue, exact, for fills only — never text. */
+    --dl-pop: #0ac4e0;
+    /*
+     * The same cyan at 22% over white, written out rather than computed with
+     * color-mix(). Two reasons, and the second is the real one: a literal is
+     * what the contrast test can read and assert against, where a color-mix()
+     * is opaque to it — and Chromium resolves color-mix() to `color(srgb ...)`
+     * in getComputedStyle, which every tool that expects rgb() mis-reads.
+     * Ink on it is 10.01:1.
+     */
+    --dl-pop-tint: #c9f2f8;
+    /**
+     * THE SUBHEAD UNDER EACH FUNDING PRODUCT'S NAME. Denis's #5792A8, used
+     * exactly as he gave it — and the size it is set at is doing real work.
+     *
+     * Measured against every ground in this theme:
+     *
+     *   white  --ft-bg          3.45:1
+     *   card   --ft-card        3.24:1
+     *   band   --ft-band        3.18:1
+     *   raised --ft-card-raised 2.97:1
+     *
+     * None of those reaches the 4.5:1 AA needs for BODY text, and the last
+     * misses even the 3:1 large-text floor. So this colour is not a body
+     * colour here, and nothing should start using it as one.
+     *
+     * Every subhead that wears it is therefore set at 19px/700 — WCAG counts
+     * 18.66px bold as large text, where the floor is 3:1, which 3.45 clears on
+     * the white the cards actually sit on. That is why those lines are bold
+     * rather than the lighter weight a subhead would normally take: the weight
+     * is what makes the colour legal, not a styling preference, and dropping it
+     * to 500 or shrinking it below 19px puts the page under AA.
+     *
+     * If the subhead ever needs to be small or light, the colour has to change
+     * with it. #4B7D90 is the same hue and saturation two steps darker and
+     * measures 4.51:1 on white, which would pass at any size.
+     *
+     * On the dark site the same token is comfortable at any size — see the copy
+     * of it in `.ft-surface` above.
+     */
+    --ft-subhead: #5792a8;
+    /** The hero's accent word, and nothing else. */
+    --dl-display: #0794ab;
+    /** Brand gold: the one warm CTA, and the review stars. */
+    --dl-gold: #e0a840;
+    /**
+     * The ground of the dark region — see `.dl-deep` below. The same navy as
+     * --ft-ink rather than a second value, because the two are the same colour
+     * doing opposite jobs: ink on white up here, ground under white cards down
+     * there. Written as its own token so `.dl-deep` can re-point --ft-ink to
+     * white without losing the navy it needs to paint itself.
+     */
+    --dl-deep: #0b2d72;
+
+    background-color: var(--ft-bg);
+    color: var(--ft-ink);
+    font-family: var(--font-body);
+    /* The design's -3% tracking, inherited the same way `.ft-surface` does it. */
+    letter-spacing: -0.03em;
+  }
+
+  .dl-surface a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* -------------------------------------------------------------------------
+   * THE TWO COLOURED BANDS, and the floating cards on them.
+   *
+   * ONE navy block, carrying the three destination cards, with white above and
+   * below it. It arrived at that over three rounds: first as a single dark
+   * region of three bands (the press marquee, the cards and How It Works), then
+   * with How It Works pulled back to white and the marquee given a cyan ground
+   * of its own, then with the marquee returned to white too. What is left is
+   * the one band that wanted a dark ground — three white cards need something
+   * to float on, and the marquee and the timeline did not.
+   *
+   * HOW THE INVERSION WORKS. `.dl-deep` re-points the same --ft-* tokens the
+   * rest of the page uses, so anything placed inside comes out light-on-dark
+   * with no component knowing where it is. `.dl-card` then re-points them BACK
+   * for the white card interiors. It is the idiom `.ft-light .ft-band` already
+   * established further up this file.
+   * ---------------------------------------------------------------------- */
+
+  .dl-deep {
+    /*
+     * The artwork Denis supplied: a navy field with two cyan blobs outlined in
+     * pale gold, 1366x768 and drawn in the brand's own colours.
+     *
+     * THE COLOUR IS NOT A FALLBACK-IN-NAME-ONLY. It is declared first and it is
+     * the same navy the image is built on, so the band looks finished rather
+     * than broken while the image loads, if it 404s, and in the crop on a
+     * narrow screen where `cover` shows a slice that is mostly flat navy
+     * anyway. Nothing about the section depends on the artwork arriving.
+     *
+     * `cover` and centred, per the brief. The band is much wider than it is
+     * tall, so a 16:9 image has to crop vertically; centring keeps both blobs
+     * in frame at desktop widths and lets the middle — the plain navy part —
+     * be what survives on a phone.
+     *
+     * Safe to put art behind this band because nothing on it is text: the only
+     * children are three opaque white cards. The --ft-ink and --ft-muted values
+     * below are inherited by the card interiors through `.dl-card`, not painted
+     * on the artwork.
+     *
+     * THAT CONDITION IS LOAD-BEARING, and it has been broken once. An industry
+     * page put a section header on this ground for a round; measured against
+     * the rendered pixels the white heading came out at 2.20:1 and the dimmer
+     * standfirst at 1.29:1, where the artwork's gold curve runs under them from
+     * 1024px up. A navy scrim would fix it at 0.70 alpha — the point where the
+     * standfirst finally clears 4.5:1 — which leaves 30% of the picture.
+     *
+     * The Playwright contrast sweep DOES NOT CATCH THIS. It resolves a
+     * background-COLOR up the ancestor chain, so it reads the navy underneath
+     * and passes. The only way to check type over any of these grounds is to
+     * photograph the page with the glyphs made transparent and measure the
+     * actual pixels. So: cards on this band, headings on white above it.
+     */
+    background-color: var(--dl-deep);
+    background-image: url('/marketing/cards-band.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    /*
+     * On the navy: white at 12.86:1, and the two dimmer tones are blue-tinted
+     * rather than grey so they read as the same family as the ground.
+     */
+    --ft-ink: #ffffff;
+    --ft-muted: #b9c6e4;
+    --ft-subtle: #a3b3d8;
+
+    /*
+     * AND HERE DENIS'S LIGHT BLUE FINALLY GETS TO BE TEXT. #0AC4E0 is 2.10:1 on
+     * white — the reason --ft-accent is a deepened teal everywhere else on this
+     * page — but on the navy it measures 6.12:1 and clears AA outright. So the
+     * dark region is the one place the exact brand cyan carries type and icons,
+     * which is also where it looks best.
+     */
+    --ft-accent: #0ac4e0;
+
+    /* A hairline that is visible on navy without becoming a stripe. */
+    --ft-line: #24499c;
+
+    /* The cards themselves, and the chips that sit directly on the ground. */
+    --ft-card: #ffffff;
+    --ft-card-raised: rgba(255, 255, 255, 0.12);
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * The band artwork again, as a section ground rather than a band.
+   *
+   * Same file as `.dl-deep`, so the browser has it cached by the time this
+   * section scrolls into view, and the two read as one motif rather than two
+   * pictures.
+   *
+   * WHAT SITS ON IT IS OPAQUE, which is the whole reason this is safe. The
+   * use-of-funds grid paints --ft-line behind cells that paint --ft-bg, and its
+   * section header paints --ft-band — so every piece of text on this section is
+   * on a flat colour, not on the artwork. Do not put bare text in here.
+   *
+   * The white fallback matters more than `.dl-deep`'s navy one did: this
+   * section's content expects a light ground, so if the image never arrives the
+   * section simply looks the way it did before.
+   */
+  .dl-art {
+    /*
+     * THE FALLBACK IS NAVY, NOT WHITE, and the reason is the heading. This
+     * section's header moved out of its banner and onto the artwork, so it is
+     * white — which makes a light fallback the one colour it must not be. If
+     * the image never arrives, a navy ground still reads; a white one would
+     * leave the heading invisible.
+     *
+     * It was white for exactly one round, when the heading was still in a pale
+     * banner above and everything on the artwork was opaque.
+     */
+    background-color: var(--dl-deep);
+    /*
+     * A scrim over the top of the artwork, under the heading.
+     *
+     * The picture is navy in the middle and cyan and gold at the edges, and
+     * white on #0AC4E0 is 2.10:1 — so a white heading is only safe over part of
+     * it, and which part depends on how `cover` crops at a given width.
+     *
+     * THE STOPS ARE IN PIXELS, NOT PERCENTAGES, and that is the whole point.
+     * Percentages are of the section's height, which grows as the grid rewraps
+     * — so the same gradient covered the heading at 390px and had faded to 30%
+     * under it at 1440px, where the worst pixel behind a glyph measured 4.02:1.
+     * Pixels track the thing that actually has to be covered: the chip and the
+     * heading, which are roughly the first 300px whatever the viewport does.
+     *
+     * Measured from the rendered page rather than reasoned about — the heading
+     * is screenshotted with its glyphs made transparent, so every pixel in the
+     * box is ground, and the worst one is checked at four widths.
+     */
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba(11, 45, 114, 0.95) 0,
+        rgba(11, 45, 114, 0.93) 300px,
+        rgba(11, 45, 114, 0.45) 430px,
+        rgba(11, 45, 114, 0) 560px
+      ),
+      url('/marketing/cards-band.png');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    /*
+     * The heading, and anything else placed directly on the artwork. The grid
+     * takes its own tokens back through `.dl-panel`.
+     */
+    --ft-ink: #ffffff;
+
+    /*
+     * THE DIMMER TWO, blue-tinted so they read as the same family as the navy
+     * rather than as grey. Added when an industry page put a standfirst between
+     * its heading and its grid: until then nothing muted had ever stood on this
+     * ground, so these kept their light-page values — #45557F, which is dark
+     * slate ON NAVY and the one thing a reader could not have seen.
+     *
+     * Safe to set here because `.dl-art .dl-panel` below re-points both back,
+     * so the grid is unaffected. The same pair `.dl-deep` uses.
+     */
+    --ft-muted: #b9c6e4;
+    --ft-subtle: #a3b3d8;
+  }
+
+  /*
+   * An opaque panel sitting on the artwork, with the light tokens restored.
+   *
+   * Same arrangement as `.dl-card` on the navy band: the ground re-points the
+   * tokens one way and the content re-points them back, so a component dropped
+   * into either is identical to the same component elsewhere on the page.
+   */
+  .dl-art .dl-panel {
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
+    --ft-accent: #066e80;
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * A card floating on the dark region.
+   *
+   * Rounded, white, and lifted by a shadow that is a DARKENED NAVY rather than
+   * black — a neutral black shadow on a saturated navy reads as grime around
+   * the card. The tokens go back to their light values inside, so a component
+   * dropped in a card is identical to the same component elsewhere on the page.
+   */
+  .dl-deep .dl-card,
+  .dl-cardfield .dl-card {
+    background-color: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 18px 40px -20px rgba(4, 16, 46, 0.55);
+
+    --ft-ink: #0b2d72;
+    --ft-muted: #45557f;
+    --ft-subtle: #53628c;
+    --ft-accent: #066e80;
+    --ft-line: #dbe3f0;
+    --ft-card: #f5f8fa;
+    --ft-card-raised: #e8eff4;
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * THE CARD FIELD — the funding products on artwork that holds still.
+   *
+   * Denis, 2026-10-04: "mimic the way the cards scroll without the background
+   * moving". That is `background-attachment: fixed`, which anchors the image
+   * to the VIEWPORT rather than to this element, so the cards travel over a
+   * picture that does not. The image is his, the same tiled Nanotom mark the
+   * footer's CTA card uses — already in the repo, so this adds no asset.
+   *
+   * THE SCRIM IS 0.6 AND THAT NUMBER IS MEASURED, not chosen. The artwork is
+   * mostly deep navy, but the raised faces of the mark run up to
+   * rgb(180, 196, 223) — and white on that is 1.76:1, which would put the
+   * heading somewhere between hard to read and invisible depending on where
+   * `cover` happens to crop at a given width. Every pixel of the image was
+   * checked, worst case taken, and the navy laid over it until white cleared
+   * AA for BODY text rather than merely for large:
+   *
+   *     scrim 0.00  ->  1.76:1      scrim 0.50  ->  4.40:1
+   *     scrim 0.40  ->  3.59:1      scrim 0.55  ->  4.89:1
+   *     scrim 0.60  ->  5.44:1   <- here
+   *
+   * It is flat rather than the top-weighted gradient `.dl-art` uses, because
+   * that section puts text only at the top and this one has cards running the
+   * whole height: anything that fades would leave the lower cards' shadows
+   * sitting on bare artwork.
+   *
+   * `background-attachment: fixed` IS DISABLED ON TOUCH AND UNDER REDUCED
+   * MOTION. iOS Safari has never supported it and paints the image at the
+   * wrong scale instead of ignoring the declaration, which looks like a bug
+   * rather than a missing flourish; and a background that slides against the
+   * content is exactly the kind of parallax that reduced-motion exists to turn
+   * off. Both fall back to `scroll`, which is the same picture, just travelling
+   * with the section.
+   */
+  .dl-cardfield {
+    background-color: var(--dl-deep);
+    background-image:
+      linear-gradient(rgba(11, 45, 114, 0.6), rgba(11, 45, 114, 0.6)),
+      url('/marketing/cta-card.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+
+    /*
+     * The heading, which is the only thing placed directly on the artwork —
+     * the cards take their own tokens back through `.dl-card` above, and the
+     * chip re-points its own ink in `.dl-surface .ft-chip`.
+     */
+    --ft-ink: #ffffff;
+    --ft-muted: #c6d3ec;
+    --ft-line: rgba(255, 255, 255, 0.16);
+  }
+
+  @media (hover: none), (prefers-reduced-motion: reduce) {
+    .dl-cardfield {
+      background-attachment: scroll;
+    }
+  }
+
+  /*
+   * THE CARD DECK — each product pins at the top and the next slides over it.
+   *
+   * Denis, 2026-10-05: keep the cards full width and the header where it is,
+   * and give the cards themselves the scrolling motion. `position: sticky` on
+   * every item of the list does exactly that with no JavaScript and no scroll
+   * listener: each card holds at `top` until the next one, further down the
+   * document and therefore painted above it, rises and covers it.
+   *
+   * PAINT ORDER IS THE DOM'S, deliberately. No z-index anywhere — later
+   * siblings in the same stacking context already paint over earlier ones,
+   * which is the order a deck needs. Adding z-index would be a second source
+   * of truth for something the markup already says.
+   *
+   * THE PER-CARD OFFSET is what makes it read as a stack rather than a
+   * replace. Card n pins 6px lower than card n-1, so the top edge of each one
+   * underneath stays visible: nine cards leave a 48px band of stacked edges,
+   * each delineated by the shadow `.dl-card` already carries. Without it every
+   * card lands in exactly the same place and the effect is a slideshow.
+   *
+   * 7rem IS 112px, against a site header that is 94px tall when stuck. The
+   * last card therefore pins at 160px, which still leaves 740px of an 900px
+   * viewport — the cards measure well under that, so a pinned card is never
+   * cut off at the bottom.
+   *
+   * LG AND UP ONLY. Below 1024px the card's two columns stack and it grows
+   * taller than the viewport, so pinning it would hold content off-screen
+   * that the reader is trying to scroll to. Under 1024px the list is ordinary
+   * flow, which is the same content in the same order.
+   *
+   * AND NOT UNDER REDUCED MOTION. Nothing here is an animation in the CSS
+   * sense, so no `animation` or `transition` query would catch it — but a
+   * scroll-linked effect that holds elements against the scroll is exactly
+   * what that preference is asked for, and the fallback is the plain list.
+   */
+  @media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+    .dl-stack > li {
+      position: sticky;
+      top: calc(7rem + var(--dl-i, 0) * 0.375rem);
+    }
+
+    /*
+     * AN UPWARD SHADOW, and without it the whole effect looks like a bug.
+     *
+     * `.dl-card` casts downward, which is right everywhere else on the site:
+     * a white card on navy, lit from above. In the deck the thing a card
+     * arrives over is ANOTHER WHITE CARD, so its leading edge is white on
+     * white — the rounded corners have nothing behind them to show, and two
+     * cards mid-slide read as one continuous slab with a seam through it
+     * rather than as one passing in front of the other. Checked on screen,
+     * which is the only place it shows.
+     *
+     * So the deck's cards cast up as well as down. The upward half is softer
+     * and tighter than the downward one, because it is doing a different job:
+     * not lifting the card off a ground, just drawing the edge that is moving.
+     */
+    .dl-stack > li .dl-card {
+      box-shadow:
+        0 -10px 26px -12px rgba(4, 16, 46, 0.42),
+        0 18px 40px -20px rgba(4, 16, 46, 0.55);
+    }
+  }
+
+  /*
+   * The footer, on flat navy.
+   *
+   * It carried the tiled Nanotom mark for one round and Denis took it off, so
+   * what is left is the token inversion — the same two-level arrangement as
+   * `.dl-deep`/`.dl-card`, except nothing inside takes the tokens back, because
+   * the whole footer is on the navy.
+   *
+   * It exists as a class rather than Tailwind utilities on the element for that
+   * reason: the footer's markup names --ft-ink, --ft-muted, --ft-subtle and
+   * --ft-line throughout, so re-pointing four variables in one place inverts
+   * every line of it without touching a single className.
+   *
+   * Ratios against the ground:
+   *
+   *   ink     #ffffff   12.86
+   *   muted   #bcccea    7.94
+   *   subtle  #9fb4dd    6.15
+   *   accent  #0ac4e0    6.12
+   *
+   * --ft-accent is the brand cyan, and this is the one place on the page it
+   * gets to be TEXT. It is 2.10:1 on white, which is why the light surface
+   * spends three separate tokens keeping it out of body copy; on navy it is
+   * 6.12:1 and does the job it was picked for.
+   */
+  .dl-footer {
+    background-color: var(--dl-deep);
+
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
+    --ft-subtle: #9fb4dd;
+    /*
+     * GOLD, not the brand cyan. Denis asked for the column headings to be gold,
+     * and --ft-accent is the only thing in this footer that reads as an accent,
+     * so re-pointing it here catches all four without a class on each. Gold on
+     * the navy is 6.03:1.
+     */
+    --ft-accent: var(--dl-gold);
+    --ft-line: rgba(255, 255, 255, 0.16);
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * The CTA card at the head of the footer.
+   *
+   * A dark card on a white section, which is the shape of the reference Denis
+   * sent: copy on the left, button on the right, the brand mark showing through
+   * as texture. It is NOT the full-bleed navy band it replaced — the white
+   * section around it is what makes it read as a card.
+   *
+   * THE SCRIM IS A LEFT-TO-RIGHT RAMP, not a flat wash, because Denis asked for
+   * the overlay to sit on the left where the text is. The artwork's marks are
+   * far from flat — its brightest pixel is 0.53 relative luminance against a
+   * ground of 0.038 — so text anywhere on it needs cover, and how much depends
+   * on what sits there:
+   *
+   *   left  0.96   the heading and body, and the pattern all but gone
+   *   right 0.66   the button and the line under it, pattern clearly visible
+   *
+   * 0.66 IS A FLOOR, NOT A PREFERENCE, and what sets it is the button rather
+   * than any text. Measured against the brightest pixel in the artwork's right
+   * half: white is 6.83 there and would survive 0.55, but the gold fill's own
+   * edge against the card is 2.96 at 0.62 and 3.20 at 0.66, and a control has
+   * to clear 3:1 against its surround to read as one.
+   *
+   * It was 0.74, because --ft-muted needs about 0.72 to clear 4.5 and the line
+   * under the button was muted. Making that one line white instead bought the
+   * artwork most of what the scrim was taking from it.
+   *
+   * `cover` rather than the footer pattern's `repeat`: this is one card of
+   * roughly fixed proportions, not a region whose height doubles between phone
+   * and desktop, so scaling the marks with it is the intended behaviour.
+   */
+  .dl-cta-card {
+    background-color: var(--dl-deep);
+    background-image:
+      linear-gradient(
+        to right,
+        rgba(11, 45, 114, 0.96) 0%,
+        rgba(11, 45, 114, 0.94) 46%,
+        rgba(11, 45, 114, 0.74) 68%,
+        rgba(11, 45, 114, 0.66) 100%
+      ),
+      url('/marketing/cta-card.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+
+    --ft-ink: #ffffff;
+    --ft-muted: #bcccea;
+
+    color: var(--ft-ink);
+  }
+
+  /*
+   * The header's opening sequence.
+   *
+   * Three beats, in the order Denis described them: the island starts as a
+   * small centred pill holding only the wordmark, widens to full width with
+   * the CTA riding out from behind the logo, and only once it is open do the
+   * nav items arrive one at a time, right to left, each rising out of the
+   * depth.
+   *
+   * NO JAVASCRIPT. The shell is already a client component for the scroll
+   * treatment, so this is not about saving a bundle — it is that staged timing
+   * is the obvious reason to reach for state and does not need it. CSS delays
+   * start on first paint, earlier and steadier than anything an effect can
+   * schedule, and there is nothing here for React to own.
+   *
+   * It plays once per page load rather than per navigation: the App Router
+   * keeps the layout mounted between routes, so nothing restarts.
+   *
+   * THE WHOLE BLOCK IS INSIDE prefers-reduced-motion, so the animation is
+   * purely additive. A visitor who has asked for less motion gets the header
+   * fully open on first paint with none of these rules in effect, rather than
+   * a "reduced" variant that still moves.
+   */
+  .dl-surface {
+    /*
+     * The tempo, and all of it lives here.
+     *
+     *   hold    the pill sits with only the wordmark
+     *   open    it widens, with the CTA out for the whole of it
+     *   pause   fully open, before the menu starts
+     *   step    one item per beat, right to left
+     *
+     * hold + open + pause + 4 steps puts the leftmost item at about 5.2s, and
+     * the nav is not reachable until then. It runs on every full page load,
+     * not once per visitor.
+     *
+     * The item duration is longer than the step on purpose: at 500ms apart and
+     * 700ms each, two items are in flight at once, which is what makes a
+     * stagger read as a cascade rather than as four separate events.
+     */
+    --dl-closed-hold: 1000ms;
+    --dl-open-duration: 2000ms;
+    /*
+     * Zero, and kept as a property rather than deleted: it is the one beat
+     * whose value has changed every round, and the delays downstream are
+     * composed from it either way.
+     */
+    --dl-open-pause: 0ms;
+    --dl-item-duration: 700ms;
+    --dl-item-step: 500ms;
+    /*
+     * The closed pill. The wordmark is 163px wide at its 48px cap, plus the
+     * row's 24px of padding each side, plus air.
+     */
+    --dl-closed-width: 236px;
+    /*
+     * Two curves, because the halves do different jobs. The bar gets
+     * easeOutCubic: on expo-out it was 83% open at 28% of its duration, so the
+     * CTA arrived and then sat still waiting for a tail nobody can see moving.
+     * That mattered more at 720ms than it does at 3s, but the curve is still
+     * the right one — over three seconds an expo tail is three seconds of
+     * almost nothing happening. The items keep expo-out: each is 700ms of its
+     * own inside a one-second beat, and wants to land rather than drift.
+     */
+    --dl-ease-open: cubic-bezier(0.33, 1, 0.68, 1);
+    --dl-ease-item: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* The logo sits above the CTA, which is what makes "from behind" literal. */
+  .dl-headmark {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /*
+     * The island, squeezed to a centred pill and released.
+     *
+     * MARGIN RATHER THAN WIDTH, because the end value has to be
+     * breakpoint-independent. A percentage margin resolves against the
+     * wrapper's content box, so `calc(50% - 118px)` on both sides leaves
+     * exactly 236px in the middle at any viewport, and the open state is plain
+     * `0` — no measuring, and nothing to keep in step with the wrapper's own
+     * padding, which changes at `lg`. Animating width would have needed the
+     * open width in pixels, and px cannot interpolate to 100%.
+     */
+    .dl-headbar {
+      animation: dl-head-open var(--dl-open-duration) var(--dl-ease-open)
+        var(--dl-closed-hold) both;
+    }
+
+    @keyframes dl-head-open {
+      from {
+        margin-inline: calc(50% - (var(--dl-closed-width) / 2));
+        /*
+         * Clipped while it opens, so the CTA is hidden BY the island's own
+         * edge until there is room for it. `overflow` is discrete: it would
+         * flip at the halfway mark if the two values sat at `from` and `to`,
+         * so the switch is pinned to the last percent instead.
+         *
+         * It has to return to `visible`, or the dropdown panels and the mobile
+         * drawer — absolutely positioned inside this element — are swallowed.
+         */
+        overflow: hidden;
+      }
+      99% {
+        overflow: hidden;
+      }
+      to {
+        margin-inline: 0;
+        overflow: visible;
+      }
+    }
+
+    /*
+     * The CTA, out from behind the logo.
+     *
+     * It runs for the FULL opening rather than a slice, because Denis asked
+     * for it to be visible the whole way. Most of the movement is the island's
+     * rather than its own: the nav beside it is collapsed to nothing at this
+     * point, so `ml-auto` parks the CTA hard against the right edge and the
+     * island carries it outward as it grows. The keyframe adds the fade, and a
+     * leftward offset at the start that puts it under the wordmark.
+     */
+    .dl-headcta {
+      animation: dl-head-cta var(--dl-open-duration) var(--dl-ease-open)
+        var(--dl-closed-hold) both;
+    }
+
+    @keyframes dl-head-cta {
+      from {
+        opacity: 0;
+        transform: translateX(-72px) scale(0.88);
+      }
+      45% {
+        opacity: 1;
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    /*
+     * THE NAV TAKES NO WIDTH until its turn, and this is the piece that makes
+     * the CTA read as coming from the logo rather than from the far right.
+     *
+     * Its items are only transparent during the first two beats, and a
+     * transparent element still occupies its track — a nav of four items and
+     * three 32px gaps is some 600px of it. Left in flow, the CTA would start
+     * 600px right of the wordmark and simply sit there. Collapsed, the CTA
+     * begins beside the logo and the island carries it out.
+     *
+     * Restoring `auto` at the end is not animated and does not need to be: the
+     * island is already at full width by then, and `ml-auto` pins the CTA to
+     * the right edge, so the nav expanding pushes the NAV leftwards into the
+     * space rather than moving anything the eye is following.
+     *
+     * `height: 0` AS WELL AS `width: 0`, and this one is not belt and braces —
+     * it is the fix for a real jump. Squeezed to no width, the nav does not
+     * vanish: its labels wrap, so the <ul> stood 88px tall against the 68px it
+     * settles at, and being the tallest thing in the row it set the bar's
+     * height. The island opened at 90px and snapped to 74px the moment the nav
+     * was released, taking the whole page below it along. Collapsed in both
+     * axes it contributes nothing, the wordmark sets the height throughout,
+     * and that height is the open one.
+     */
+    .dl-headnav {
+      width: 0;
+      height: 0;
+      overflow: hidden;
+      animation: dl-head-nav-room 1ms linear
+        calc(var(--dl-closed-hold) + var(--dl-open-duration)) both;
+    }
+
+    @keyframes dl-head-nav-room {
+      to {
+        width: auto;
+        height: auto;
+        overflow: visible;
+      }
+    }
+
+    /*
+     * The nav items, from the back to the front.
+     *
+     * A real Z translation under a perspective, not a scale imitating one:
+     * items further back are smaller AND drawn to the vanishing point of the
+     * row they belong to, which a uniform scale cannot reproduce. The blur is
+     * the depth of field that sells it.
+     *
+     * `both` fill: the `from` state holds through the delay, so nothing shows
+     * before its turn, and the last frame sticks after.
+     */
+    .dl-headnav ul {
+      perspective: 620px;
+    }
+
+    .dl-headitem {
+      animation: dl-head-item var(--dl-item-duration) var(--dl-ease-item) both;
+      animation-delay: calc(
+        var(--dl-closed-hold) + var(--dl-open-duration) + var(--dl-open-pause) +
+          var(--dl-i, 0) * var(--dl-item-step)
+      );
+    }
+
+    @keyframes dl-head-item {
+      from {
+        opacity: 0;
+        transform: translateZ(-180px);
+        filter: blur(3px);
+      }
+      to {
+        opacity: 1;
+        /*
+         * `none`, NOT `translateZ(0)` and `blur(0)`.
+         *
+         * `both` fill holds this frame forever, and a filter or a transform —
+         * even an identity one — creates a stacking context and a containing
+         * block on every nav <li>. The dropdown panels are absolutely
+         * positioned inside those <li>s, so each would be trapped in its own
+         * context and could paint under the item beside it. `none` computes to
+         * nothing and leaves the row exactly as it was.
+         */
+        transform: none;
+        filter: none;
+      }
+    }
+  }
+
+  /*
+   * The hero's amount slider.
+   *
+   * A native <input type="range"> carries dragging, arrow-key stepping, touch
+   * targets and screen-reader semantics for free, so the hero form uses one
+   * rather than a div with pointer handlers. The cost is that its parts have to
+   * be styled per engine — WebKit and Firefox expose different pseudo-elements
+   * and neither inherits from the other. Same arrangement `.ft-surface` already
+   * has for the loan calculator's sliders; the values differ because this one
+   * sits on white.
+   *
+   * The FILLED portion is painted by a gradient on the input itself, sized from
+   * a --dl-fill custom property the component sets as the value changes. WebKit
+   * has no ::-moz-range-progress equivalent, so this is the only way to show
+   * progress on both engines from one declaration.
+   */
+  .dl-surface input[type='range'] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--dl-pop) 0%,
+      var(--dl-pop) var(--dl-fill, 50%),
+      var(--ft-card-raised) var(--dl-fill, 50%),
+      var(--ft-card-raised) 100%
+    );
+    cursor: pointer;
+  }
+
+  .dl-surface input[type='range']:focus-visible {
+    outline: 2px solid var(--ft-ink);
+    outline-offset: 4px;
+  }
+
+  /*
+   * The thumb. White with a heavy ink ring rather than a filled disc: on a cyan
+   * track a cyan thumb disappears, and a dark thumb reads as a defect in the
+   * bar. 24px so it clears the 24x24 target size WCAG 2.2 asks for.
+   */
+  .dl-surface input[type='range']::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 3px solid var(--ft-ink);
+    box-shadow: 0 2px 6px rgba(45, 55, 72, 0.28);
+  }
+
+  .dl-surface input[type='range']::-moz-range-thumb {
+    height: 24px;
+    width: 24px;
+    border-radius: 999px;
+    background: #ffffff;
+    border: 3px solid var(--ft-ink);
+    box-shadow: 0 2px 6px rgba(45, 55, 72, 0.28);
+  }
+
+  /*
+   * Firefox draws its own track under the gradient above unless it is made
+   * transparent, which would otherwise hide the filled portion entirely.
+   */
+  .dl-surface input[type='range']::-moz-range-track {
+    background: transparent;
+    height: 10px;
+    border-radius: 999px;
+  }
+}
+
+/*
+ * The fallback artwork on a post with no featured image — a two-stop gradient
+ * with #1F1F22 and #141414 written into it. Left alone it is a black rectangle
+ * in the middle of a white page. The light stops are the card and raised tones,
+ * so the slot reads as a tinted panel rather than a hole.
+ *
+ * Its RayBurst overlay strokes #FFFFFF at 18% and simply disappears here. That
+ * is the intended outcome and not worth a fork of the component: what is left
+ * is a clean gradient behind the mark, which is what the burst was softening in
+ * the first place.
+ */
+.dl-surface .ft-image-slot {
+  background-image: linear-gradient(135deg, #eaf1f6, #d7e3ec 60%);
+}
+
+/*
+ * The author disc on a blog row.
+ *
+ * `Avatar` sets its background with an inline `style` — a hue derived from the
+ * name, at 30% lightness — which no stylesheet can override, and paints the
+ * initials with --ft-ink. On the dark design that is white on a dark disc; here
+ * --ft-ink is the dark blue on the same dark disc, which is unreadable.
+ *
+ * So the disc stays dark and the initials go back to white. `ft-avatar` is a
+ * marker class carrying no styles of its own, added to the shared component for
+ * this rule to have something to name — the same arrangement `ft-image-slot`
+ * and `ft-band` already use.
+ */
+.dl-surface .ft-avatar {
+  color: #ffffff;
+}
+
+/*
+ * The FAQ rows: navy header, pale answer.
+ *
+ * Denis asked for the bar to stay dark blue once a row is open, so the navy
+ * moved off the <details> and onto the <summary>, which is the bar itself. A
+ * shut row is therefore navy end to end (a shut <details> IS its summary) and
+ * an open one is a navy header over the pale card the answer always had.
+ *
+ * `overflow: hidden` is what lets the summary be a plain rectangle: the row's
+ * 16px radius lives on the <details>, and without clipping the navy would sit
+ * square-cornered inside it. Clipping also means the radius stays correct in
+ * both states without a rule that knows which state it is in.
+ *
+ * The border goes navy too. A grey hairline around a navy bar reads as a mistake
+ * when the row is shut; navy makes it vanish there and frame the card when open.
+ *
+ * WHY THE TOKENS ARE RE-POINTED ON THE SUMMARY AND NOT THE ROW. The heading
+ * takes --ft-ink and the glyph takes --ft-accent shut and --ft-muted open, so
+ * all three have to be the dark-ground values inside the bar — but the answer
+ * below takes --ft-muted too, and it is on the pale card, where #BCCCEA would be
+ * 1.3:1. Scoping to `> summary` is the whole difference between those two.
+ *
+ *   white on navy     12.86      the question
+ *   #0ac4e0 on navy    6.12      the + glyph, shut
+ *   #bcccea on navy    7.94      the - glyph, open
+ *
+ * Unlayered, like every rule in this block: the class list it is overriding is
+ * Tailwind utilities, and the utilities layer outranks @layer components.
+ */
+.dl-surface .ft-faq-item {
+  overflow: hidden;
+  border-color: var(--dl-deep);
+}
+
+.dl-surface .ft-faq-item > summary {
+  background-color: var(--dl-deep);
+
+  --ft-ink: #ffffff;
+  --ft-accent: var(--dl-pop);
+  --ft-muted: #bcccea;
+}
+
+/* The bar lightens under the pointer — the one hover on the page that moves the
+   ground rather than the text, because white on navy has nowhere to go. */
+.dl-surface .ft-faq-item > summary:hover {
+  background-color: #123a8c;
+}
+
+/*
+ * The column beside the list, pinned to the top.
+ *
+ * Shared markup centres it, which is right on the dark site where it carries a
+ * paragraph and a button under the heading. Daylight renders it without those
+ * (see the `blurb` prop), so an icon and two lines of heading were floating in
+ * the middle of a column as tall as seven accordion rows.
+ */
+.dl-surface .ft-faq-aside {
+  justify-content: flex-start;
+}
+
+/*
+ * Every section label chip, tinted.
+ *
+ * The hero's rating badge sits on a wash of the brand cyan, and Denis wanted
+ * the rest of the page's chips to match it. Doing that by swapping an import
+ * would have reached only two of them: the others are rendered inside
+ * SectionHead, which is shared with the dark site and takes no styling prop.
+ *
+ * So it is one rule on the marker class, which catches every chip on the page —
+ * the two written out here and the four inside section headers — and moves none
+ * of them anywhere else. Ink on this tint is 10.74:1.
+ */
+.dl-surface .ft-chip {
+  background-color: var(--dl-pop-tint);
+
+  /*
+   * And it re-points --ft-ink on itself, which Chip reads for its label.
+   * Without this the chip would follow whatever ink its section sets — on the
+   * use-of-funds artwork that is white, which would be white on a pale cyan
+   * tint at 1.3:1. Denis asked for that chip to stay light blue with its dark
+   * label while the heading beside it goes white; this is what holds the two
+   * apart. Ink on the tint is 10.74:1.
+   */
+  --ft-ink: #0b2d72;
+  color: var(--ft-ink);
+}
+
+/*
+ * Every button on the page at the brand's radius.
+ *
+ * The live Nanotom Capital site draws every button as a rounded rectangle at
+ * 6px, so the shape is the brand's rather than this design's to invent. The
+ * filled buttons get there through CtaButton's and SolidButton's own classes;
+ * GhostButton cannot, because its `rounded-xl` is the FutureTech template's and
+ * the dark homepage still wants it.
+ *
+ * Hence the marker, and hence a rule rather than a fork: this reaches the
+ * "Read More" on every blog row and the "View All" in two section headers, none
+ * of which this design's own files write out.
+ */
+/*
+ * Every ghost button on the page, filled navy.
+ *
+ * It was scoped to `.dl-bloglist article` when only Read More wore the fill,
+ * on the argument that filling the section headers' "View All" buttons would
+ * promote them to primary actions. Denis looked at it and asked for the
+ * opposite: the two View All buttons should match the Read More beneath them.
+ *
+ * There are exactly five `.ft-ghost` elements on this page — checked in the
+ * browser, not counted from the source — and all five are now meant to look
+ * the same, so the scope drops rather than growing into a list.
+ *
+ * The consequence worth knowing: anything that wears this marker on a Daylight
+ * page in future is navy too, including the FAQ's "Ask a Question" if that
+ * column's blurb ever comes back. That is a consistent answer rather than an
+ * accident, but it is why this rule is deliberately broad.
+ */
+.dl-surface .ft-ghost {
+  /* Denis's rectangle-with-a-small-radius, as every button on the live site. */
+  border-radius: 0.375rem;
+  border-color: var(--ft-ink);
+  background-color: var(--ft-ink);
+  color: #ffffff;
+
+  /*
+   * The arrow inside comes from GhostButton and reads --ft-accent, which is
+   * the deepened teal that exists to be legible on WHITE. On this navy fill it
+   * measures 2.17:1 and turns to mud. Re-pointing the token rather than the
+   * icon is what keeps the fix inside the button: cyan on navy is 6.12:1, the
+   * same pairing the dark card band already uses.
+   */
+  --ft-accent: var(--dl-pop);
+}
+
+.dl-surface .ft-ghost:hover {
+  border-color: #123a8f;
+  background-color: #123a8f;
+  color: #ffffff;
+}
+
+/*
+ * The blog category filters, squared off.
+ *
+ * They are drawn as 42px lozenges in ft/post-list.tsx — a full pill at that
+ * height — which is the one shape on the Daylight blog section that belongs to
+ * no other control. Denis, 2026-10-02: make them match the buttons.
+ *
+ * 0.375rem, which is the same radius `.ft-ghost` above takes and the same one
+ * the solid buttons are built with, so the filter row and the Read More beside
+ * it are now cut from one shape rather than two.
+ *
+ * Only here. CategoryPills is shared with the live dark site's blog index,
+ * where the lozenge stays until Denis says otherwise — hence a marker class
+ * rather than changing the component's own radius.
+ */
+.dl-surface .ft-catpill {
+  border-radius: 0.375rem;
+}
+
+/*
+ * The homepage blog rows, tightened.
+ *
+ * PostRow is shared with the blog index, where a row is the page's whole
+ * content and can afford 48px of air above and 64px at desktop. On the homepage
+ * it is three rows inside a section that already carries its own 80px top and
+ * bottom, and Denis asked for the stack back. Scoped to `.dl-bloglist`, so the
+ * index keeps its own rhythm.
+ */
+.dl-surface .dl-bloglist article > div {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/*
+ * The call-to-action's label.
+ *
+ * ../components/marketing/cta-button.tsx paints white on brand gold, which is
+ * 2.13:1 — below AA and below even the 3:1 large-text floor. That is true on
+ * the dark site too; it is a pre-existing defect rather than something the
+ * light palette introduced, and it is left alone there because that button is
+ * on every live page and moving it is not what this branch is for.
+ *
+ * Here it is re-pointed to ink at 8.69:1. `nc-cta` is a marker the shared
+ * button carries and nothing styles anywhere else, so this rule reaches every
+ * CTA on a Daylight page — including the two inside ft/shared-sections, which
+ * this design imports whole and could not otherwise have fixed.
+ */
+.dl-surface .nc-cta {
+  color: #1a1205;
+}
+
+/*
+ * THE CHROME-SUPPRESSION STOPGAP IS GONE, and this note is here so nobody
+ * reinvents it.
+ *
+ * A `body:has(.dl-surface) > div > header` rule used to hide the dark header
+ * and footer that the root layout rendered around every Capital route, so a
+ * Daylight page could draw its own. It worked, and it cost 14,272 bytes, 145
+ * nodes and 55 duplicate links in the HTML of every page that used it — fine
+ * for the preview route it was written for, not fine once Daylight was the
+ * homepage.
+ *
+ * Denis made the light chrome site-wide on 2026-10-04, which removed the
+ * problem rather than hiding it: app/layout.tsx renders Daylight's header and
+ * footer once, for every Capital route, and no second pair exists.
+ *
+ * If a page ever needs different chrome again, the answer is route groups —
+ * app/(dark)/layout.tsx and app/(light)/layout.tsx, which do not change URLs —
+ * and not a rule that renders markup in order to hide it.
+ */

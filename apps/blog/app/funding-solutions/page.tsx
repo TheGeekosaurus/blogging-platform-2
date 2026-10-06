@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { FundingSolutions } from '@/components/marketing/ft/funding-solutions';
+import { DaylightFundingSolutions } from '@/components/marketing/daylight/funding-solutions';
 import { isNntmCapital } from '@/lib/marketing';
 
 /*
@@ -12,9 +12,12 @@ import { isNntmCapital } from '@/lib/marketing';
  * heading-only stub in brand.ts until now, which stopped it 404ing without
  * giving anyone a reason to stay on it.
  *
- * Its five CHILDREN — /funding-solutions/business-loans and the rest — are
- * still stubs. Only the index is built, so the nav's dropdown still lands on
- * headings; those are separate pages and separate copy.
+ * DAYLIGHT, since 2026-10-04. The dark build is still in
+ * components/marketing/ft/funding-solutions.tsx and is the revert path — one
+ * import and one tag, the same way the homepage was promoted.
+ *
+ * Its four product CHILDREN — /funding-solutions/business-loans and the rest —
+ * are still dark, and so is every other page under this one. They are next.
  *
  * No data fetching: the copy is in ft/content.ts, so there is nothing here for
  * on-demand revalidation to refresh and nothing to add to
@@ -45,5 +48,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function FundingSolutionsPage() {
   if (!isNntmCapital()) notFound();
 
-  return <FundingSolutions />;
+  return <DaylightFundingSolutions />;
 }
