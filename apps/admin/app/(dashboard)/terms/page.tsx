@@ -34,7 +34,7 @@ export default async function TermsPage() {
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold">Categories</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Categories nest. A category&apos;s archive lists posts from its
           subcategories too, so tagging a post with the most specific one is enough.
           The URL stays <code className="text-xs">/blog/category/&lt;slug&gt;</code> at
@@ -42,9 +42,9 @@ export default async function TermsPage() {
         </p>
 
         {categoryTree.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">None yet.</p>
+          <p className="mt-3 text-sm text-ink-muted">None yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
+          <ul className="mt-3 divide-y divide-line border-y border-line">
             {categoryTree.map(({ term, depth }) => {
               const direct = counts.get(term.id) ?? 0;
 
@@ -55,15 +55,15 @@ export default async function TermsPage() {
                     style={{ paddingLeft: `${depth * 1.25}rem` }}
                   >
                     {depth > 0 ? (
-                      <span aria-hidden="true" className="text-slate-400">
+                      <span aria-hidden="true" className="text-ink-muted">
                         └
                       </span>
                     ) : null}
                     <span className="font-medium">{term.name}</span>
                   </span>
 
-                  <code className="text-xs text-slate-500">{categoryPath(term.slug)}</code>
-                  <span className="text-sm text-slate-500">
+                  <code className="text-xs text-ink-muted">{categoryPath(term.slug)}</code>
+                  <span className="text-sm text-ink-muted">
                     {direct} {direct === 1 ? 'post' : 'posts'}
                   </span>
 
@@ -91,17 +91,17 @@ export default async function TermsPage() {
         <h2 className="text-lg font-semibold">Tags</h2>
 
         {tags.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-600">None yet.</p>
+          <p className="mt-3 text-sm text-ink-muted">None yet.</p>
         ) : (
-          <ul className="mt-3 divide-y divide-slate-200 border-y border-slate-200">
+          <ul className="mt-3 divide-y divide-line border-y border-line">
             {tags.map((term) => {
               const used = counts.get(term.id) ?? 0;
 
               return (
                 <li key={term.id} className="flex flex-wrap items-center gap-3 py-2.5">
                   <span className="font-medium">{term.name}</span>
-                  <code className="text-xs text-slate-500">{tagPath(term.slug)}</code>
-                  <span className="text-sm text-slate-500">
+                  <code className="text-xs text-ink-muted">{tagPath(term.slug)}</code>
+                  <span className="text-sm text-ink-muted">
                     {used} {used === 1 ? 'post' : 'posts'}
                   </span>
                   <form action={deleteTerm} className="ml-auto">
@@ -117,7 +117,7 @@ export default async function TermsPage() {
         )}
       </section>
 
-      <p className="mt-8 text-sm text-slate-500">
+      <p className="mt-8 text-sm text-ink-muted">
         Deleting a term leaves its posts intact — they just lose that label. Deleting a
         parent category moves its children to the top level rather than deleting them.
       </p>

@@ -21,13 +21,20 @@ export function SiteSwitcher({
   sites: SiteRow[];
   currentId: string;
 }) {
+  /*
+   * A raised panel rather than a bare label-and-select.
+   *
+   * On a dark rail the old treatment read as part of the navigation below it,
+   * which is wrong: this is the thing that decides what the navigation points
+   * at. Giving it its own surface separates the two without a divider rule.
+   */
   if (sites.length <= 1) {
     return (
-      <div>
-        <p className="text-[0.6875rem] uppercase tracking-[0.12em] text-[var(--color-wp-nav-ink)]">
+      <div className="rounded-control bg-rail-raised px-3 py-2">
+        <p className="text-[0.625rem] uppercase tracking-[0.12em] text-rail-ink">
           Editing
         </p>
-        <p className="truncate text-sm font-semibold text-white">
+        <p className="truncate text-sm font-semibold text-rail-ink-strong">
           {sites[0]?.name ?? 'No site'}
         </p>
       </div>
@@ -35,10 +42,10 @@ export function SiteSwitcher({
   }
 
   return (
-    <form action={switchSite}>
+    <form action={switchSite} className="rounded-control bg-rail-raised px-3 py-2">
       <label
         htmlFor="site_id"
-        className="block text-[0.6875rem] uppercase tracking-[0.12em] text-[var(--color-wp-nav-ink)]"
+        className="block text-[0.625rem] uppercase tracking-[0.12em] text-rail-ink"
       >
         Editing
       </label>
@@ -46,17 +53,19 @@ export function SiteSwitcher({
         id="site_id"
         name="site_id"
         defaultValue={currentId}
-        className="mt-1 w-full rounded border border-white/15 bg-white/5 px-2 py-1.5 text-sm font-semibold text-white"
+        /* No .field here: that class is for controls on white, and its border
+           and focus shadow both disappear against the rail. */
+        className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-rail-ink-strong focus:outline-none"
       >
         {sites.map((site) => (
-          <option key={site.id} value={site.id} className="text-slate-900">
+          <option key={site.id} value={site.id} className="text-ink">
             {site.name}
           </option>
         ))}
       </select>
       <button
         type="submit"
-        className="mt-1.5 text-xs text-[var(--color-wp-nav-ink)] underline hover:text-white"
+        className="mt-1 text-xs text-rail-ink underline transition-colors hover:text-rail-ink-strong"
       >
         Switch
       </button>

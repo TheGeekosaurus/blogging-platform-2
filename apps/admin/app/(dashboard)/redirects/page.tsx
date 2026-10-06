@@ -37,7 +37,7 @@ export default async function RedirectsPage({
         a new rule is not live until the blog is rebuilt. "Flush cache" does not
         do it — that revalidates pages, and this is routing configuration.
       */}
-      <p className="mt-2 max-w-2xl text-sm text-[#50575e]">
+      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
         Sends one URL to another. Redirects are compiled into the site when it
         builds, so a new rule goes live on the next deploy — <strong>not</strong>{' '}
         when you flush the cache.
@@ -55,11 +55,11 @@ export default async function RedirectsPage({
         </h2>
 
         {total === 0 ? (
-          <p className="mt-3 text-sm text-[#50575e]">
+          <p className="mt-3 text-sm text-ink-muted">
             None yet. Add one above for any URL that has moved.
           </p>
         ) : (
-          <table className="wp-table mt-3">
+          <table className="data-table mt-3">
             <thead>
               <tr>
                 <th>From</th>

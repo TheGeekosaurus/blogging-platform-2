@@ -101,7 +101,7 @@ export function InlineTextEditor({
 
   if (!editor) {
     return (
-      <div className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm text-slate-500">
+      <div className="field mt-1 text-ink-muted">
         Loading…
       </div>
     );
@@ -113,8 +113,8 @@ export function InlineTextEditor({
   };
 
   return (
-    <div className="mt-1 rounded border border-slate-300">
-      <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-50 px-2 py-1">
+    <div className="mt-1 rounded-control border border-line">
+      <div className="flex flex-wrap items-center gap-1 border-b border-line bg-canvas px-2 py-1">
         <MarkButton
           label="Bold"
           active={editor.isActive('bold')}
@@ -138,7 +138,7 @@ export function InlineTextEditor({
         </MarkButton>
 
         {placeholder ? (
-          <span className="ml-auto text-xs text-slate-500">{placeholder}</span>
+          <span className="ml-auto text-xs text-ink-muted">{placeholder}</span>
         ) : null}
       </div>
 
@@ -147,7 +147,7 @@ export function InlineTextEditor({
         shouldShow={({ editor: instance, from, to }) =>
           editingLink || instance.isActive('link') || from !== to
         }
-        className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white p-1 shadow-lg"
+        className="flex items-center gap-1 rounded-control bg-surface p-1 shadow-raised"
       >
         {editingLink ? (
           <LinkEditor editor={editor} onClose={() => setEditingLink(false)} />
@@ -206,7 +206,7 @@ function MarkButton({
       aria-label={label}
       aria-pressed={active}
       className={`rounded px-2 py-0.5 text-sm ${
-        active ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+        active ? 'bg-brand text-white shadow-brand' : 'bg-surface text-ink-muted hover:bg-brand-softer'
       }`}
     >
       {children}

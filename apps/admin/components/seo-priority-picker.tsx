@@ -36,7 +36,7 @@ export function SeoPriorityPicker({
 
       <label
         htmlFor={`priority-${pageId}`}
-        className="text-xs font-semibold uppercase tracking-wide text-[#787c82]"
+        className="text-xs font-semibold uppercase tracking-wide text-ink-muted"
       >
         Priority
       </label>
@@ -45,7 +45,7 @@ export function SeoPriorityPicker({
         name="priority"
         defaultValue={priority ?? ''}
         disabled={pending}
-        className="rounded border border-slate-300 px-1.5 py-1 text-xs"
+        className="field field-sm field-inline"
       >
         {/* First, and empty-valued, so clearing a rank is as easy as setting
             one. `parsePriority` turns this into a null write. */}

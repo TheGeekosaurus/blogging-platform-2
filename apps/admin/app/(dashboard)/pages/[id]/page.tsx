@@ -48,13 +48,13 @@ export default async function EditPagePage({
         }}
       />
 
-      <form action={deletePage} className="mt-10 border-t border-slate-200 pt-5">
+      <form action={deletePage} className="mt-10 border-t border-line pt-5">
         <input type="hidden" name="id" value={page.id} />
         <input type="hidden" name="path" value={page.path} />
         <button type="submit" className="text-sm text-red-700 underline">
           Delete this page
         </button>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           Any pages nested beneath it are deleted too.
         </p>
       </form>

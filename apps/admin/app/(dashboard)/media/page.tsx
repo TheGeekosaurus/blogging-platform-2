@@ -30,14 +30,14 @@ export default async function MediaPage() {
       </div>
 
       {items.length === 0 ? (
-        <p className="mt-10 text-slate-600">Nothing uploaded yet.</p>
+        <p className="mt-10 text-ink-muted">Nothing uploaded yet.</p>
       ) : (
         <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {
             const url = mediaPublicUrl(item.storage_path);
 
             return (
-              <li key={item.id} className="rounded border border-slate-200 p-3">
+              <li key={item.id} className="rounded border border-line p-3">
                 {/* Plain <img>: this is a management grid, not the public site,
                     so Next image optimisation would only add cost here. */}
                 <img
@@ -58,14 +58,14 @@ export default async function MediaPage() {
                     name="alt"
                     defaultValue={item.alt ?? ''}
                     placeholder="Describe this image"
-                    className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
+                    className="field field-sm"
                   />
-                  <button type="submit" className="rounded border border-slate-300 px-2 text-sm">
+                  <button type="submit" className="btn btn-ghost btn-sm">
                     Save
                   </button>
                 </form>
 
-                <div className="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                <div className="mt-2 flex items-center gap-3 text-xs text-ink-muted">
                   <span>
                     {item.width && item.height ? `${item.width}×${item.height}` : 'unknown size'}
                   </span>
@@ -84,7 +84,7 @@ export default async function MediaPage() {
         </ul>
       )}
 
-      <p className="mt-8 text-sm text-slate-500">
+      <p className="mt-8 text-sm text-ink-muted">
         Copy an image URL, then use the editor&apos;s Image button to insert it. Alt text
         set here is for the library; the editor asks for alt text on insert.
       </p>

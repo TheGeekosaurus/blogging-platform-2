@@ -72,7 +72,7 @@ export function PageForm({
           name="title"
           required
           defaultValue={values.title}
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-lg"
+          className="field mt-1 text-lg"
         />
       </div>
 
@@ -86,7 +86,7 @@ export function PageForm({
             name="parent_id"
             value={parentId}
             onChange={(event) => setParentId(event.target.value)}
-            className="mt-1 w-full rounded border border-slate-300 px-2 py-2 text-sm"
+            className="field mt-1"
           >
             <option value="">(top level)</option>
             {parents.map((page) => (
@@ -95,7 +95,7 @@ export function PageForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             Nesting is set here, not by typing a path into the slug.
           </p>
         </div>
@@ -110,7 +110,7 @@ export function PageForm({
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="derived from the title if left blank"
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+            className="field mt-1 font-mono"
           />
           {slug.includes('/') ? (
             <p className="mt-1 text-xs text-red-700">
@@ -120,7 +120,7 @@ export function PageForm({
         </div>
       </div>
 
-      <p className="rounded bg-slate-50 px-3 py-2 text-xs text-slate-600">
+      <p className="rounded bg-canvas px-3 py-2 text-xs text-ink-muted">
         URL:{' '}
         <code>
           {site.base_url}
@@ -136,12 +136,12 @@ export function PageForm({
           id="template"
           name="template"
           defaultValue={values.template}
-          className="mt-1 rounded border border-slate-300 px-2 py-2 text-sm"
+          className="field field-inline mt-1"
         >
           <option value="prose">Prose — centred column, blog styling</option>
           <option value="full">Full width — page supplies its own layout</option>
         </select>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           Choose Full width for a landing page that brings its own CSS. Prose wraps the
           content in the site&apos;s reading column.
         </p>
@@ -162,16 +162,16 @@ export function PageForm({
           rows={22}
           defaultValue={values.content_html}
           spellCheck={false}
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-xs"
+          className="field field-sm mt-1 font-mono"
           placeholder="<section>…</section>"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           Paste HTML. <code>&lt;style&gt;</code>, classes and inline styles are kept;
           scripts and event handlers are stripped on save.
         </p>
       </div>
 
-      <details className="rounded border border-slate-200 px-4 py-3">
+      <details className="rounded border border-line px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium">SEO overrides</summary>
         <div className="mt-3 flex flex-col gap-3">
           <div>
@@ -182,7 +182,7 @@ export function PageForm({
               id="seo_title"
               name="seo_title"
               defaultValue={values.seo_title}
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              className="field mt-1"
             />
           </div>
           <div>
@@ -194,7 +194,7 @@ export function PageForm({
               name="seo_description"
               rows={2}
               defaultValue={values.seo_description}
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              className="field mt-1"
             />
           </div>
           <label className="flex items-center gap-2 text-sm">
@@ -206,7 +206,7 @@ export function PageForm({
 
       <StructuredDataPanel variant="page" defaultSnippets={values.structuredData} />
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+      <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <label htmlFor="status" className="text-sm font-medium">
           Status
         </label>
@@ -214,7 +214,7 @@ export function PageForm({
           id="status"
           name="status"
           defaultValue={values.status}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+          className="field field-sm field-inline"
         >
           <option value="draft">Draft</option>
           <option value="published">Published</option>
@@ -224,7 +224,7 @@ export function PageForm({
         <button
           type="submit"
           disabled={pending || slug.includes('/')}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? 'Saving…' : 'Save'}
         </button>

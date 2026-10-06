@@ -85,7 +85,7 @@ export function Pagination({
       : null;
 
   if (pageCount <= 1) {
-    return summary ? <p className="mt-4 text-sm text-slate-500">{summary}</p> : null;
+    return summary ? <p className="mt-4 text-sm text-ink-muted">{summary}</p> : null;
   }
 
   return (
@@ -103,7 +103,7 @@ export function Pagination({
         <span />
       )}
 
-      <span className="text-slate-500">
+      <span className="text-ink-muted">
         {summary ? `${summary} — ` : ''}page {page} of {pageCount}
       </span>
 

@@ -85,7 +85,7 @@ function ToolbarButton({
       aria-label={label}
       aria-pressed={active}
       className={`rounded px-2 py-1 text-sm ${
-        active ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-100'
+        active ? 'bg-brand text-white shadow-brand' : 'bg-surface text-ink-muted hover:bg-brand-softer'
       }`}
     >
       {children}
@@ -180,7 +180,7 @@ export function RichTextEditor({
 
   if (!editor) {
     return (
-      <div className="min-h-[24rem] rounded border border-slate-300 p-3 text-sm text-slate-500">
+      <div className="card min-h-[24rem] p-3 text-sm text-ink-muted">
         Loading editor…
       </div>
     );
@@ -212,7 +212,7 @@ export function RichTextEditor({
   };
 
   return (
-    <div className="rounded border border-slate-300">
+    <div className="rounded-control border border-line">
       {/*
         Sticky, so the controls stay reachable on a long post instead of
         scrolling away at the top. `top-0` because the dashboard has no fixed
@@ -222,8 +222,8 @@ export function RichTextEditor({
         The table row is inside the same sticky box rather than sticking on its
         own, so the two never separate and leave a floating strip behind.
       */}
-      <div className="sticky top-0 z-20 rounded-t bg-slate-50">
-      <div className="flex flex-wrap gap-1 border-b border-slate-200 bg-slate-50 p-2">
+      <div className="sticky top-0 z-20 rounded-t bg-canvas">
+      <div className="flex flex-wrap gap-1 border-b border-line bg-canvas p-2">
         <ToolbarButton
           editor={editor}
           label="Bold"
@@ -333,8 +333,8 @@ export function RichTextEditor({
         table at all.
       */}
       {editor.isActive('table') ? (
-        <div className="flex flex-wrap items-center gap-1 border-b border-slate-200 bg-slate-100 p-2">
-          <span className="mr-1 text-xs font-medium text-slate-500">Table</span>
+        <div className="flex flex-wrap items-center gap-1 border-b border-line bg-line-soft p-2">
+          <span className="mr-1 text-xs font-medium text-ink-muted">Table</span>
           <ToolbarButton
             editor={editor}
             label="Add row below"
@@ -402,7 +402,7 @@ export function RichTextEditor({
         keyboard-usable for what is a two-click task.
       */}
       {picking ? (
-        <div className="border-b border-slate-200 bg-slate-50 p-3">
+        <div className="border-b border-line bg-canvas p-3">
           <MediaPicker
             media={media}
             selectedId=""
@@ -434,7 +434,7 @@ export function RichTextEditor({
         shouldShow={({ editor: instance, from, to }) =>
           editingLink || instance.isActive('link') || from !== to
         }
-        className="flex items-center gap-1 rounded-lg border border-slate-300 bg-white p-1 shadow-lg"
+        className="flex items-center gap-1 rounded-control bg-surface p-1 shadow-raised"
       >
         {editingLink ? (
           <LinkEditor editor={editor} onClose={() => setEditingLink(false)} />

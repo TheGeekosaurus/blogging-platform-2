@@ -18,7 +18,7 @@ const STATUS_TABS: Array<{ value: PostStatus | 'all'; label: string }> = [
 
 const STATUS_STYLES: Record<PostStatus, string> = {
   published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-slate-200 text-slate-700',
+  draft: 'bg-line text-ink-muted',
   scheduled: 'bg-sky-100 text-sky-900',
   archived: 'bg-amber-100 text-amber-900',
 };
@@ -61,7 +61,7 @@ export default async function PostsPage({
         <h1 className="text-xl font-semibold tracking-tight">Posts</h1>
         <Link
           href="/posts/new"
-          className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+          className="btn btn-primary"
         >
           New post
         </Link>
@@ -73,7 +73,7 @@ export default async function PostsPage({
             <Link
               key={tab.value}
               href={`/posts${buildQuery({ status: tab.value === 'all' ? undefined : tab.value, term: termId, q: search })}`}
-              className={status === tab.value ? 'font-semibold underline' : 'text-slate-600'}
+              className={status === tab.value ? 'font-semibold underline' : 'text-ink-muted'}
             >
               {tab.label}
             </Link>
@@ -90,7 +90,7 @@ export default async function PostsPage({
             name="q"
             defaultValue={search ?? ''}
             placeholder="Search titles"
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="field field-sm field-inline"
           />
           {categories.length > 0 ? (
             <>
@@ -101,7 +101,7 @@ export default async function PostsPage({
                 id="term"
                 name="term"
                 defaultValue={termId ?? ''}
-                className="rounded border border-slate-300 px-2 py-1 text-sm"
+                className="field field-sm field-inline"
               >
                 <option value="">All categories</option>
                 {categories.map((category) => (
@@ -112,14 +112,14 @@ export default async function PostsPage({
               </select>
             </>
           ) : null}
-          <button type="submit" className="rounded border border-slate-300 px-2 py-1 text-sm">
+          <button type="submit" className="field field-sm field-inline">
             Filter
           </button>
         </form>
       </div>
 
       {posts.length === 0 ? (
-        <p className="mt-10 text-slate-600">
+        <p className="mt-10 text-ink-muted">
           No posts match. <Link href="/posts/new">Write one</Link>, or import from WordPress
           with <code>pnpm wp-import</code>.
         </p>
@@ -129,8 +129,8 @@ export default async function PostsPage({
          * table scrolls inside its own box rather than pushing the whole page
          * sideways, which is what a min-width on the table alone would do.
          */
-        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
-          <table className="wp-table">
+        <div className="card mt-6 overflow-x-auto">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">Title</th>
@@ -173,7 +173,7 @@ export default async function PostsPage({
                     {post.published_at ? (
                       formatPostDate(post.published_at, site.locale)
                     ) : (
-                      <span className="text-slate-500">
+                      <span className="text-ink-muted">
                         edited {formatPostDate(post.updated_at, site.locale)}
                       </span>
                     )}

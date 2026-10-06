@@ -56,7 +56,7 @@ export function CategoryParentPicker({
         name="parent_id"
         defaultValue={currentParentId ?? ''}
         disabled={pending}
-        className="rounded border border-slate-300 px-1.5 py-1 text-xs"
+        className="field field-sm field-inline"
       >
         <option value="">(top level)</option>
         {options.map(({ term, depth }) => (

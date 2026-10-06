@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 
 const STATUS_STYLES: Record<PostStatus, string> = {
   published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-slate-200 text-slate-700',
+  draft: 'bg-line text-ink-muted',
   scheduled: 'bg-sky-100 text-sky-900',
   archived: 'bg-amber-100 text-amber-900',
 };
@@ -59,13 +59,13 @@ export default async function PagesPage({
         <h1 className="text-xl font-semibold tracking-tight">Pages</h1>
         <Link
           href="/pages/new"
-          className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+          className="btn btn-primary"
         >
           New page
         </Link>
       </div>
 
-      <p className="mt-2 text-sm text-slate-600">
+      <p className="mt-2 text-sm text-ink-muted">
         Edited here and stored in the database.{' '}
         {coded.length > 0 ? (
           <>
@@ -76,14 +76,14 @@ export default async function PagesPage({
       </p>
 
       {total === 0 ? (
-        <p className="mt-10 text-slate-600">
+        <p className="mt-10 text-ink-muted">
           {coded.length > 0
             ? 'No pages in the database yet — add one here and it will appear in this table.'
             : 'No pages yet. Pages live at the root of the site — /about, /projects/solar — while posts live under /blog.'}
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
-          <table className="wp-table">
+        <div className="card mt-6 overflow-x-auto">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">Title</th>
@@ -113,7 +113,7 @@ export default async function PagesPage({
                           {row.title}
                         </Link>
                         {site.homepage_page_id === row.id && !homepageIsCoded ? (
-                          <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">
+                          <span className="chip chip-brand">
                             homepage
                           </span>
                         ) : null}
@@ -132,7 +132,7 @@ export default async function PagesPage({
                       </div>
                     </td>
                     <td>
-                      <code className="text-xs text-slate-500">{pagePath(row.path)}</code>
+                      <code className="text-xs text-ink-muted">{pagePath(row.path)}</code>
                     </td>
                     <td className="whitespace-nowrap">
                       {row.template === 'full' ? 'Full width' : 'Prose'}
@@ -160,18 +160,18 @@ export default async function PagesPage({
         label="page"
       />
 
-      <section className="mt-10 max-w-xl border-t border-slate-200 pt-6">
+      <section className="mt-10 max-w-xl border-t border-line pt-6">
         <h2 className="text-lg font-semibold">Homepage</h2>
 
         {homepageIsCoded ? (
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-ink-muted">
             <code>{site.base_url}/</code> is served by a{' '}
             <Link href="/pages/coded">coded route</Link>. That takes precedence over any
             page chosen here, so there is nothing to set.
           </p>
         ) : (
           <>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-ink-muted">
               Which page is served at <code>{site.base_url}/</code>. Leave it unset and the
               homepage falls back to a list of recent posts.
             </p>
@@ -184,7 +184,7 @@ export default async function PagesPage({
                 id="page_id"
                 name="page_id"
                 defaultValue={site.homepage_page_id ?? ''}
-                className="rounded border border-slate-300 px-2 py-2 text-sm"
+                className="field field-inline"
               >
                 <option value="">(recent posts)</option>
                 {allPages
@@ -197,12 +197,12 @@ export default async function PagesPage({
               </select>
               <button
                 type="submit"
-                className="rounded border border-slate-300 px-3 py-2 text-sm"
+                className="rounded-control border border-line px-3 py-2 text-sm"
               >
                 Set homepage
               </button>
             </form>
-            <p className="mt-2 text-xs text-slate-500">
+            <p className="mt-2 text-xs text-ink-muted">
               Only published pages can be the homepage — a draft would leave the front door
               showing nothing.
             </p>

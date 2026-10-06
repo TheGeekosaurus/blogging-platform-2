@@ -59,7 +59,7 @@ export default async function EditPostPage({
 
       <form
         action={deletePost}
-        className="mt-10 border-t border-slate-200 pt-5"
+        className="mt-10 border-t border-line pt-5"
       >
         <input type="hidden" name="id" value={post.id} />
         <input type="hidden" name="slug" value={post.slug} />

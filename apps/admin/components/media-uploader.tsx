@@ -29,7 +29,7 @@ export function MediaUploader() {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="btn btn-primary"
       >
         {pending ? 'Uploading…' : 'Upload'}
       </button>

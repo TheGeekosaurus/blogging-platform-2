@@ -33,7 +33,7 @@ export default async function CodedPagesPage() {
         </Link>
       </div>
 
-      <p className="mt-2 max-w-2xl text-sm text-slate-600">
+      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
         These pages are React components, not database rows, so they cannot be edited here —
         their layouts carry embedded forms and custom styling. The copy lives in{' '}
         <code className="text-xs">apps/blog/components/marketing/</code> and changing it
@@ -41,13 +41,13 @@ export default async function CodedPagesPage() {
       </p>
 
       {coded.length === 0 ? (
-        <p className="mt-10 text-slate-600">
+        <p className="mt-10 text-ink-muted">
           This site has no coded pages. Every page it serves is editable under{' '}
           <Link href="/pages">Pages</Link>.
         </p>
       ) : (
-        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
-          <table className="wp-table">
+        <div className="card mt-6 overflow-x-auto">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">Title</th>
@@ -60,9 +60,9 @@ export default async function CodedPagesPage() {
                 <tr key={route.path}>
                   <td>
                     <div className="flex items-start gap-2">
-                      <span className="font-semibold text-slate-900">{route.title}</span>
+                      <span className="font-semibold text-ink">{route.title}</span>
                       {route.path === '' ? (
-                        <span className="rounded bg-slate-900 px-1.5 py-0.5 text-xs text-white">
+                        <span className="chip chip-brand">
                           homepage
                         </span>
                       ) : null}
@@ -75,13 +75,13 @@ export default async function CodedPagesPage() {
                     </div>
                   </td>
                   <td>
-                    <code className="text-xs text-slate-500">{pagePath(route.path)}</code>
+                    <code className="text-xs text-ink-muted">{pagePath(route.path)}</code>
                   </td>
                   <td className="whitespace-nowrap">
                     {route.index ? (
                       'Listed'
                     ) : (
-                      <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-900">
+                      <span className="chip chip-warning">
                         not in sitemap
                       </span>
                     )}

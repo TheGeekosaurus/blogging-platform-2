@@ -86,11 +86,11 @@ export function MediaPicker({
         upload(event.dataTransfer.files?.[0]);
       }}
       className={`rounded border p-4 ${
-        dragging ? 'border-slate-900 bg-slate-50' : 'border-slate-200'
+        dragging ? 'border-ink bg-canvas' : 'border-line'
       }`}
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-ink-muted">
           {label ?? 'Click an image to choose it, or drop a file here to upload.'}
         </p>
         <label className="text-sm">
@@ -100,7 +100,7 @@ export function MediaPicker({
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
             placeholder="Filter…"
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="field field-sm field-inline"
           />
         </label>
       </div>
@@ -111,7 +111,7 @@ export function MediaPicker({
             type="button"
             onClick={() => fileInput.current?.click()}
             disabled={pending}
-            className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded border-2 border-dashed border-slate-300 text-xs text-slate-600 hover:border-slate-500 disabled:opacity-60"
+            className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded border-2 border-dashed border-line text-xs text-ink-muted hover:border-brand disabled:opacity-60"
           >
             <span aria-hidden="true" className="text-lg leading-none">
               +
@@ -136,8 +136,8 @@ export function MediaPicker({
               aria-pressed={selectedId === ''}
               className={`aspect-square w-full rounded border text-xs ${
                 selectedId === ''
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-200 text-slate-600 hover:border-slate-400'
+                  ? 'border-brand bg-brand text-white'
+                  : 'border-line text-ink-muted hover:border-line'
               }`}
             >
               No image
@@ -156,7 +156,7 @@ export function MediaPicker({
                 aria-pressed={isSelected}
                 title={item.alt?.trim() || item.name}
                 className={`relative block aspect-square w-full overflow-hidden rounded border-2 ${
-                  isSelected ? 'border-slate-900' : 'border-transparent hover:border-slate-400'
+                  isSelected ? 'border-ink' : 'border-transparent hover:border-line'
                 }`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -169,7 +169,7 @@ export function MediaPicker({
                 {isSelected ? (
                   <span
                     aria-hidden="true"
-                    className="absolute bottom-1 right-1 rounded-full bg-slate-900 px-1.5 text-xs text-white"
+                    className="absolute bottom-1 right-1 rounded-full bg-brand px-1.5 text-xs text-white"
                   >
                     ✓
                   </span>
@@ -181,11 +181,11 @@ export function MediaPicker({
       </ul>
 
       {shown.length === 0 && filter.trim() ? (
-        <p className="mt-3 text-sm text-slate-600">Nothing matches “{filter.trim()}”.</p>
+        <p className="mt-3 text-sm text-ink-muted">Nothing matches “{filter.trim()}”.</p>
       ) : null}
 
       {media.total > items.length ? (
-        <p className="mt-3 text-xs text-slate-500">
+        <p className="mt-3 text-xs text-ink-muted">
           Showing the {items.length} most recent of {media.total} images. Older ones are in
           Media.
         </p>
@@ -245,11 +245,11 @@ function AltField({
   }
 
   return (
-    <div className="mt-4 border-t border-slate-200 pt-3">
+    <div className="mt-4 border-t border-line pt-3">
       <label htmlFor={`alt-${item.id}`} className="block text-sm font-medium">
         Alt text
       </label>
-      <p className="mt-1 text-xs text-slate-500">
+      <p className="mt-1 text-xs text-ink-muted">
         Describes the image for screen readers and search engines. Leave empty only if it
         is purely decorative.
       </p>
@@ -262,9 +262,9 @@ function AltField({
             setState('idle');
           }}
           onBlur={save}
-          className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          className="field"
         />
-        <span className="w-16 shrink-0 text-xs text-slate-500">
+        <span className="w-16 shrink-0 text-xs text-ink-muted">
           {state === 'saving' ? 'Saving…' : state === 'saved' ? 'Saved' : ''}
         </span>
       </div>
