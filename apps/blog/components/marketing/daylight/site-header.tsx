@@ -192,10 +192,30 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
             {chevron}
           </Link>
         ) : (
-          <span className={`${TRIGGER_CLASS} cursor-default`}>
+          /*
+            A BUTTON, NOT A SPAN, and that is a fix rather than a flourish.
+            This branch renders the trigger for a menu with no page of its own —
+            Industries and Loan Calculator, both of which lost their `href`
+            deliberately. A <span> is not focusable, so the panel below could be
+            opened by hover and by nothing else: the `focus-within` half of the
+            selector could never fire, and the eight pages behind those two
+            menus were unreachable from the header without a mouse. Measured, in
+            a browser, by tabbing the header and watching focus skip them.
+
+            A button is focusable natively and announced as something you can
+            operate, and focusing it satisfies `:focus-within` on the <li>, so
+            the CSS-only mechanism works unchanged.
+
+            NO `aria-expanded`, which is the honest gap here. The menu's open
+            state lives in CSS, so there is no boolean to report, and an
+            attribute that always said "false" would be worse than none. Making
+            it accurate means making the dropdown stateful; that is a bigger
+            change than restoring reachability and has not been asked for.
+          */
+          <button type="button" className={`${TRIGGER_CLASS} cursor-default`}>
             {item.label}
             {chevron}
-          </span>
+          </button>
         )}
 
         {/*
@@ -218,7 +238,7 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
           without repeating it.
         */}
         <div
-          className={`invisible absolute right-0 top-full z-40 ${
+          className={`dl-menu invisible absolute right-0 top-full z-40 ${
             wide ? 'w-[360px] xl:w-[620px]' : 'w-[360px]'
           } overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-bg)] opacity-0 shadow-[0_24px_48px_-24px_rgba(16,24,40,0.28)] transition-[opacity,visibility] group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100`}
         >

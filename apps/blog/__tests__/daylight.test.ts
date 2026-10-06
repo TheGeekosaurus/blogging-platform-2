@@ -581,9 +581,19 @@ describe("the site-wide Daylight chrome", () => {
 
   it("no longer hides chrome with CSS", () => {
     const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
-    /* The phrase survives in a note explaining why it is gone; what must not
-       come back is the rule, which needs a declaration block. */
-    expect(css).not.toMatch(/body:has\(\.dl-surface\)[^{]*\{/);
+
+    /*
+     * COMMENTS STRIPPED FIRST. The phrase survives in a note explaining why the
+     * rule is gone, and what must not come back is the rule itself.
+     *
+     * This read `/body:has\(\.dl-surface\)[^{]*\{/` against the raw file, which
+     * passed only because that note happened to be the last thing in it — the
+     * pattern finds the next `{` anywhere downstream, so the first rule
+     * appended after the note turned a note into a match. Stripping comments
+     * tests what the test is named for.
+     */
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code).not.toContain("body:has(.dl-surface)");
   });
 });
 
@@ -1273,5 +1283,88 @@ describe("the Loan Calculator dropdown", () => {
    */
   it("is the same list the footer prints", () => {
     expect(read("daylight/site-footer.tsx")).toContain("...CALCULATORS");
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * CLOSING THE MENUS
+ *
+ * Denis, 2026-10-06: "it's so fast, and the header doesn't move, that it almost
+ * looks like you didn't click the menu — there is no effect. Can we just have
+ * the drop-down menu close upon clicking on something?"
+ * ---------------------------------------------------------------------------
+ */
+describe("the header menus close when a link in them is clicked", () => {
+  const header = read("daylight/site-header.tsx");
+  const hook = read("daylight/use-dismiss-menus.ts");
+  const shell = read("daylight/header-shell.tsx");
+  const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+
+  it("runs the dismissal from the shell, which is already a client component", () => {
+    expect(shell).toContain("useDismissMenusOnNavigate");
+    /* On the <header> itself, not the document — the listener is scoped. */
+    expect(shell).toContain("ref={header}");
+    /* And no second client boundary was opened to do it. */
+    expect(hook).not.toContain("'use client'");
+  });
+
+  /*
+   * Only a link dismisses. The desktop trigger IS a link when the section has
+   * an index page (Funding Solutions), so a listener that fired on any click
+   * inside the header would close the panel at the moment it opened.
+   */
+  it("dismisses on a link, not on any click in the header", () => {
+    expect(hook).toContain("a[href]");
+    expect(hook).toContain(".dl-headitem");
+    /* The mobile sheet is DOM state and is turned off directly. */
+    expect(hook).toContain("details[open]");
+    /* Focus has to be dropped too, or focus-within reopens the panel. */
+    expect(hook).toContain("blur()");
+  });
+
+  /*
+   * THE RULE MUST BE UNLAYERED. Everything else in globals.css sits in
+   * `@layer base` or `@layer components`, and Tailwind's `utilities` layer
+   * outranks both — so the same rule written inside a layer would lose to
+   * `group-hover:visible` no matter how specific it is. Layer order is decided
+   * before specificity.
+   */
+  it("hides the dismissed panel from outside every cascade layer", () => {
+    const marker = ".dl-headitem[data-dismissed] .dl-menu";
+    const at = css.indexOf(marker);
+    expect(at, "the dismissal rule is gone").toBeGreaterThan(-1);
+
+    /* Brace depth at that point: zero means no enclosing @layer block. */
+    let depth = 0;
+    for (const ch of css.slice(0, at)) {
+      if (ch === "{") depth += 1;
+      else if (ch === "}") depth -= 1;
+    }
+    expect(depth, "the rule is inside a @layer and will lose to utilities").toBe(0);
+
+    /* And the panel carries the marker the rule selects. */
+    expect(header).toContain("dl-menu");
+  });
+
+  /*
+   * EVERY TRIGGER HAS TO BE FOCUSABLE, or `focus-within` — half of what opens
+   * the panel — can never fire.
+   *
+   * This was broken for a while and measured in a browser: the href-less
+   * branch rendered a <span>, which is not focusable, so tabbing the header
+   * skipped Industries and Loan Calculator entirely and the eight pages behind
+   * those two menus could not be reached without a mouse.
+   */
+  it("gives an href-less dropdown trigger a focusable element", async () => {
+    const { NAV } = await import("../components/marketing/brand");
+    const hrefless = NAV.filter((item) => item.children && !item.href);
+    expect(hrefless.length, "nothing exercises this branch").toBeGreaterThan(0);
+
+    /* The branch that runs when there is no href renders a button. */
+    expect(header).toMatch(/<button type="button" className=\{`\$\{TRIGGER_CLASS\}/);
+    expect(header, "a span trigger is not keyboard reachable").not.toMatch(
+      /<span className=\{`\$\{TRIGGER_CLASS\}[^`]*`\}>/,
+    );
   });
 });

@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+
+import { useDismissMenusOnNavigate } from './use-dismiss-menus';
 
 /**
  * Daylight's header chrome, which changes with scroll position.
@@ -54,9 +56,14 @@ export function DaylightHeaderShell({ children }: { children: React.ReactNode })
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  /* Closes the dropdowns and the mobile sheet on a link click — see the hook. */
+  const header = useRef<HTMLElement>(null);
+  useDismissMenusOnNavigate(header);
+
   return (
     <div className="sticky top-0 z-50 mx-auto w-full max-w-7xl px-5 pt-4 lg:px-8 lg:pt-5">
       <header
+        ref={header}
         data-scrolled={scrolled ? 'true' : 'false'}
         className="dl-headbar rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-bg)] transition-[background-color,box-shadow] duration-200 data-[scrolled=true]:bg-[rgba(255,255,255,0.86)] data-[scrolled=true]:shadow-[0_18px_40px_-28px_rgba(11,45,114,0.45)] data-[scrolled=true]:backdrop-blur-[14px]"
       >
