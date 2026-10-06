@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { DaylightIndustriesIndex } from '@/components/marketing/daylight/industries-index';
 import { LabsIndustries } from '@/components/marketing/labs/industries';
-import { isNntmLabs } from '@/lib/marketing';
+import { isNntmCapital, isNntmLabs } from '@/lib/marketing';
 
 /*
  * Nanotom Labs' Industries page — the sixth coded route on that deployment.
@@ -25,6 +26,16 @@ export const dynamic = 'force-static';
 export const revalidate = false;
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (isNntmCapital()) {
+    return {
+      title: 'Industries',
+      description:
+        'Business funding by trade — restaurants, construction, healthcare, legal, HVAC and ' +
+        'more. What each one borrows for, and which of the nine options usually fits.',
+      alternates: { canonical: '/industries' },
+    };
+  }
+
   return {
     title: 'Industries',
     description:
@@ -36,7 +47,15 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function IndustriesPage() {
-  if (!isNntmLabs()) notFound();
+  /*
+   * TWO SITES, ONE PATH. This was Labs-only and called notFound() on Capital,
+   * which is why Capital's Industries menu trigger had no href and its footer
+   * column no linked heading. Denis asked for an "And More" row pointing here,
+   * so Capital needs its own index — a different page for a different business
+   * at the same URL, which is exactly what the slug gate is for.
+   */
+  if (isNntmCapital()) return <DaylightIndustriesIndex />;
+  if (isNntmLabs()) return <LabsIndustries />;
 
-  return <LabsIndustries />;
+  notFound();
 }

@@ -94,15 +94,17 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   },
   { path: 'funding-solutions/bridge-loans', title: 'Bridge Loans', index: true },
   /*
-   * The industry pages. `industries` ITSELF IS DELIBERATELY ABSENT: that path
-   * is a static route belonging to the Labs deployment and calls notFound() on
-   * Capital, so listing it here would put a 404 in Capital's sitemap. The
-   * children are real pages and do not go through it.
+   * The industry index, and one entry per record in
+   * daylight/industry-content.ts. A test fails if the two lists disagree —
+   * this package cannot import app code, so the slugs are written twice.
    *
-   * One entry per record in daylight/industry-content.ts, and a test fails if
-   * the two lists disagree — this package cannot import app code, so the slugs
-   * are necessarily written twice.
+   * `industries` ITSELF IS HERE NOW, which it deliberately was not before.
+   * app/industries/page.tsx used to be a Labs-only route that called
+   * notFound() on Capital, so listing it would have put a 404 in Capital's
+   * sitemap. It serves both deployments since 2026-10-06 — Denis asked the
+   * menu's "And More" row to go there — so it is a real page on this site.
    */
+  { path: 'industries', title: 'Industries', index: true },
   { path: 'industries/food-business', title: 'Food Business', index: true },
   {
     path: 'industries/construction-business',
@@ -112,7 +114,17 @@ const NNTM_CAPITAL_ROUTES: readonly CodedRoute[] = [
   { path: 'industries/agriculture', title: 'Agriculture', index: true },
   { path: 'industries/accounting', title: 'Accounting', index: true },
   { path: 'industries/auto-repair', title: 'Auto Repair', index: true },
+  { path: 'industries/beauty-wellness', title: 'Beauty & Wellness', index: true },
   { path: 'industries/chiropractor', title: 'Chiropractor', index: true },
+  { path: 'industries/dental', title: 'Dental', index: true },
+  { path: 'industries/electrical', title: 'Electrical', index: true },
+  { path: 'industries/healthcare', title: 'Healthcare', index: true },
+  { path: 'industries/hvac', title: 'HVAC', index: true },
+  { path: 'industries/insurance', title: 'Insurance', index: true },
+  { path: 'industries/landscaping', title: 'Landscaping', index: true },
+  { path: 'industries/legal', title: 'Legal', index: true },
+  { path: 'industries/real-estate', title: 'Real Estate', index: true },
+  { path: 'industries/restaurants', title: 'Restaurants', index: true },
   /*
    * `daylight` WAS HERE, and its removal is the point rather than a tidy-up.
    *

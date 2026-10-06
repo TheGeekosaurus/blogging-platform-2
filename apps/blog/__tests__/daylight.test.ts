@@ -296,7 +296,7 @@ describe("the Daylight dropdowns", () => {
   it("gives every dropdown entry an icon key", async () => {
     const { NAV } = await import("../components/marketing/brand");
 
-    const { CALCULATORS, FUNDING_PROGRAMS, INDUSTRIES } = await import(
+    const { CALCULATORS, FUNDING_PROGRAMS, INDUSTRIES_MENU } = await import(
       "../components/marketing/brand"
     );
     const children = NAV.flatMap((item) => item.children ?? []);
@@ -308,7 +308,7 @@ describe("the Daylight dropdowns", () => {
      * WITHOUT going through one of the three arrays, so count them.
      */
     expect(children.length).toBe(
-      FUNDING_PROGRAMS.length + INDUSTRIES.length + CALCULATORS.length,
+      FUNDING_PROGRAMS.length + INDUSTRIES_MENU.length + CALCULATORS.length,
     );
     for (const child of children) {
       expect(child.icon, `${child.label} has no icon key`).toMatch(/^[a-z-]+$/);
@@ -422,9 +422,14 @@ describe("the Daylight footer", () => {
    * /industries is a static route gated to the Labs deployment, so it answers
    * 404 on Capital. The column heading must stay unlinked until that changes.
    */
-  it("does not link the Industries heading", () => {
-    const col = footer.slice(footer.indexOf('heading="Industries"'));
-    expect(col.slice(0, 80)).not.toContain("href=");
+  /*
+   * THE INDUSTRIES HEADING IS LINKED AGAIN. It was plain text for as long as
+   * /industries was a Labs-only route that answered 404 on Capital; that route
+   * serves this deployment its own index now, so every one of the four column
+   * headings has a real page behind it.
+   */
+  it("links the Industries heading now that the index exists", () => {
+    expect(footer).toContain('heading="Industries" href="/industries"');
   });
 
   it("gives every other column heading its real page", () => {
@@ -879,7 +884,8 @@ describe("the Daylight industry page", () => {
       header.indexOf("const NAV_ICONS"),
       header.indexOf("} as const;", header.indexOf("const NAV_ICONS")),
     );
-    for (const item of INDUSTRIES) {
+    const { INDUSTRIES_MENU } = await import("../components/marketing/brand");
+    for (const item of INDUSTRIES_MENU) {
       expect(map, `no glyph for "${item.icon}"`).toMatch(
         new RegExp(`['"]?${item.icon}['"]?\\s*:`),
       );
@@ -908,22 +914,80 @@ describe("the Daylight industry page", () => {
      * gated to Labs, so on Capital that path answers 404 and listing it would
      * submit a 404 in the sitemap.
      */
-    expect(paths.has("industries")).toBe(false);
+    expect(paths.has("industries")).toBe(true);
   });
 
   /*
-   * The header's Industries trigger used to point at /industries, which 404s on
-   * Capital. The footer's column heading had already been left unlinked for
-   * that reason; this is the matching fix, and both headers render an
-   * href-less parent as a dropdown trigger rather than a link.
+   * The Industries trigger pointed at /industries, which 404d on Capital, so it
+   * carried no href for a while. The index exists on this deployment now, so
+   * the href is back — and what this guards is that it points at a page the
+   * registry actually knows about rather than at a path that merely looks right.
    */
-  it("does not point the Industries menu at a path that 404s", async () => {
+  it("points the Industries menu at a registered page", async () => {
     const { NAV } = await import("../components/marketing/brand");
     const industries = NAV.find((item) => item.label === "Industries");
 
     expect(industries, "the Industries menu is gone").toBeTruthy();
-    expect(industries?.href, "/industries 404s on Capital").toBeUndefined();
     expect(industries?.children?.length ?? 0).toBeGreaterThan(0);
+
+    const paths = new Set((CODED_SITES[NNTM_CAPITAL_SLUG] ?? []).map((r) => r.path));
+    const path = (industries?.href ?? "").replace(/^\/|\/$/g, "");
+    expect(paths.has(path), `the trigger points at an unregistered /${path}`).toBe(true);
+  });
+
+  /*
+   * "AND MORE" IS LAST, AND IT IS PINNED. Denis asked for the row at the end of
+   * the menu, going to the index directly.
+   *
+   * Pinned is the part that is not cosmetic. Sixteen industries overflow the
+   * desktop panel's scroll cap at every width below 1440 — measured: seventeen
+   * rows in one column stood 1259px tall against a 768px viewport — so without
+   * the flag the one row that exists to escape a too-long list was itself the
+   * row you had to scroll to find.
+   */
+  it("ends the Industries menu with a pinned route to the index", async () => {
+    const { INDUSTRIES, INDUSTRIES_MENU } = await import("../components/marketing/brand");
+
+    expect(INDUSTRIES_MENU.length).toBe(INDUSTRIES.length + 1);
+
+    const last = INDUSTRIES_MENU[INDUSTRIES_MENU.length - 1];
+    expect(last?.label).toBe("And More");
+    expect(last?.href).toBe("/industries");
+    expect(last?.pinned, "the escape hatch can scroll out of reach").toBe(true);
+
+    /* Every other row is a trade, and none of them is pinned. */
+    for (const row of INDUSTRIES_MENU.slice(0, -1)) {
+      expect(row.pinned, `${row.label} is pinned`).toBeUndefined();
+    }
+
+    /* And the panel renders pinned rows outside the scrolling list. */
+    const header = read("daylight/site-header.tsx");
+    expect(header).toContain("const pinned = item.children.filter((child) => child.pinned)");
+    expect(header).toMatch(/overflow-y-auto/);
+  });
+
+  /*
+   * The index is a real page on both deployments, serving a different one to
+   * each. A slug gate that falls through to notFound() is what makes one path
+   * safe to share between two sites.
+   */
+  it("serves an industries index to Capital as well as Labs", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "industries", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightIndustriesIndex");
+    expect(route).toContain("LabsIndustries");
+    expect(route).toContain("notFound()");
+
+    /* The index lists the trades, not the menu — the menu's last row points
+       back here, and a page linking to itself at the end of its own grid is a
+       loop with no exit. */
+    /* Comments stripped: the file's own note explains which list it reads and
+       why, so it names the one it does not use. */
+    const page = read("daylight/industries-index.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(page).toContain("INDUSTRIES");
+    expect(page).not.toContain("INDUSTRIES_MENU");
   });
 
   /*

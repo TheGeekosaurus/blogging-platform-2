@@ -250,3 +250,249 @@ export function SpineIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/*
+ * The 2026-10-06 intake: ten more industries and the "And More" row that ends
+ * the menu. Same 24-unit grid and 1.6 stroke as everything above, and each one
+ * is checked at 20px — the size the dropdown actually renders — because that is
+ * where a mark either keeps its silhouette or turns into a smudge.
+ */
+
+/** Beauty & Wellness — shears. */
+export function ShearsIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="6.5" cy="18" r="2.6" />
+      <circle cx="17.5" cy="18" r="2.6" />
+      <path d="M8.3 16.1 18.5 3.6M15.7 16.1 5.5 3.6" />
+    </svg>
+  );
+}
+
+/** Dental — a molar. */
+export function ToothIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M7.4 3.5c1.6 0 2.2.8 4.6.8s3-.8 4.6-.8c2.3 0 3.6 1.8 3.4 4.4-.2 2.4-1.2 3.6-1.7 5.6-.4 1.6-.5 3.4-1 5.3-.3 1.3-.9 1.9-1.7 1.9-1 0-1.4-.9-1.6-2.2l-.5-3.1c-.2-1-.7-1.5-1.5-1.5s-1.3.5-1.5 1.5l-.5 3.1c-.2 1.3-.6 2.2-1.6 2.2-.8 0-1.4-.6-1.7-1.9-.5-1.9-.6-3.7-1-5.3C5.2 11.5 4.2 10.3 4 7.9c-.2-2.6 1.1-4.4 3.4-4.4Z" />
+    </svg>
+  );
+}
+
+/** Electrical — a bolt. */
+export function BoltIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M13.4 2.5 4.8 13.1a.6.6 0 0 0 .47.98h5.2l-.87 7.42 8.6-10.6a.6.6 0 0 0-.47-.98h-5.2l.87-7.42Z" />
+    </svg>
+  );
+}
+
+/**
+ * Healthcare — a trace crossing a heart.
+ *
+ * Not the bare cross: a cross on a tinted tile reads as a pharmacy or, at this
+ * weight, as a plus sign in a list of other marks. The pulse line is unmistakably
+ * clinical and shares no silhouette with anything else in either dropdown.
+ */
+export function PulseIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M20.5 12.5c.9-1.4 1.2-2.9.9-4.3-.5-2.4-2.5-3.9-4.7-3.6-1.9.2-3.2 1.5-4.7 3.3-1.5-1.8-2.8-3.1-4.7-3.3-2.2-.3-4.2 1.2-4.7 3.6-.3 1.4 0 2.9.9 4.3" />
+      <path d="M2.8 13.6h4l1.6-3.2 2.6 6.2 2-4 1.2 2.4h4" />
+      <path d="M5.4 15.2c1.9 2.3 4.6 4.1 6.6 5.3 1.3-.8 2.9-1.8 4.3-3.1" />
+    </svg>
+  );
+}
+
+/** HVAC — a fan in its housing. */
+export function FanIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="1.7" />
+      <path d="M12 10.3c0-2.6-.9-4.6-2.6-5.4-1 1.9-.4 4.1 1.3 5.1" />
+      <path d="M13.5 12.9c2.2 1.3 4.4 1.4 5.7.1-1.5-1.6-3.7-1.6-5.2-.6" />
+      <path d="M10.5 12.9c-2.2 1.3-3.5 3.1-3.3 4.9 2.1-.3 3.4-2.1 3.5-3.9" />
+    </svg>
+  );
+}
+
+/** Insurance — a shield with a tick. */
+export function ShieldIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 3 4.5 6v5.6c0 4.2 3 7.6 7.5 9.4 4.5-1.8 7.5-5.2 7.5-9.4V6L12 3Z" />
+      <path d="m9 12 2.2 2.2L15.3 10" />
+    </svg>
+  );
+}
+
+/** Legal — a balance. */
+export function ScalesIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 4.2v16M8 20.2h8M4.6 7.2h14.8" />
+      <path d="M4.6 7.2 2 13.2h5.2L4.6 7.2Z" />
+      <path d="M19.4 7.2 16.8 13.2H22l-2.6-6Z" />
+      <path d="M12 4.2a1.3 1.3 0 1 0 0-.1Z" />
+    </svg>
+  );
+}
+
+/** Landscaping — a tree. */
+export function TreeIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 21v-6.2" />
+      <path d="M12 14.8a5.1 5.1 0 0 0 4.3-7.8A4.4 4.4 0 0 0 12 2.8a4.4 4.4 0 0 0-4.3 4.2A5.1 5.1 0 0 0 12 14.8Z" />
+      <path d="m12 17.4 2.9-2.3M12 19.1l-2.9-2.3" />
+    </svg>
+  );
+}
+
+/**
+ * Real Estate — a house with a pitched roof.
+ *
+ * Distinct from ft/icons.tsx's ExpandIcon, which is also a gable: that one is a
+ * building with an arrow and means "expand or renovate" in the use-of-funds
+ * grid. This is a whole dwelling with a door, and the two never appear in the
+ * same list.
+ */
+export function HouseIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M3.5 10.4 12 3.6l8.5 6.8" />
+      <path d="M5.6 12v7.4a1 1 0 0 0 1 1h10.8a1 1 0 0 0 1-1V12" />
+      <path d="M10 20.4v-5.2h4v5.2" />
+    </svg>
+  );
+}
+
+/** Restaurants — a cover and a fork. */
+export function CutleryIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M7 2.8v7.4a2.1 2.1 0 0 0 2.1 2.1h.3V21" />
+      <path d="M7 2.8v4.6M10.4 2.8v4.6" />
+      <path d="M17.4 2.8c-1.5 1.3-2.2 3-2.2 5.1 0 1.5.5 2.6 1.6 3.1v10" />
+    </svg>
+  );
+}
+
+/**
+ * "And More" — the row at the end of the Industries menu.
+ *
+ * A grid with one cell open, rather than an ellipsis: the other sixteen rows
+ * carry a picture of a trade, and three dots beside them reads as a disabled
+ * item or a truncation. A partly-drawn grid says "there is a page with the rest
+ * on it", which is where the row goes.
+ */
+export function MoreGridIcon({ className }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <rect x="3.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="1.6" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="1.6" />
+      <path d="M17 13.9v6.2M13.9 17h6.2" />
+    </svg>
+  );
+}
