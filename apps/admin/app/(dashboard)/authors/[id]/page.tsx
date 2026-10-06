@@ -42,14 +42,14 @@ export default async function EditAuthorPage({
         }}
       />
 
-      <section className="mt-10 max-w-2xl border-t border-slate-200 pt-5">
+      <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <form action={deleteAuthor}>
           <input type="hidden" name="id" value={author.id} />
           <button type="submit" className="text-sm text-red-700 underline">
             Delete this author
           </button>
         </form>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-ink-muted">
           {used === 0
             ? 'No posts are attached, so nothing else changes.'
             : `${used} ${used === 1 ? 'post falls' : 'posts fall'} back to the Byline field typed on ${used === 1 ? 'it' : 'them'}. The posts themselves are untouched.`}

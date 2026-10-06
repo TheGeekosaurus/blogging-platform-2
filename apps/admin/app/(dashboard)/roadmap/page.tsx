@@ -48,14 +48,14 @@ export default async function RoadmapPage() {
     <>
       <h1 className="text-xl font-semibold tracking-tight">Roadmap</h1>
 
-      <p className="mt-2 max-w-2xl text-sm text-[#50575e]">
+      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
         Pages that have been briefed, and where each one has got to, highest
         priority first within each topic. Everything still in research is on{' '}
         <strong>Keywords</strong>.
       </p>
 
       {isSeoTreeEmpty(tree) ? (
-        <p className="mt-6 text-sm text-[#50575e]">
+        <p className="mt-6 text-sm text-ink-muted">
           No keyword research yet for {site.name}.
         </p>
       ) : counts.total === 0 ? (
@@ -64,7 +64,7 @@ export default async function RoadmapPage() {
           matters: research exists, none of it has been briefed. Saying "no
           roadmap yet" here would read as "the research is missing".
         */
-        <p className="mt-6 text-sm text-[#50575e]">
+        <p className="mt-6 text-sm text-ink-muted">
           Nothing briefed yet.{' '}
           {tree.outOfScopePages > 0
             ? `${tree.outOfScopePages} ${tree.outOfScopePages === 1 ? 'page is' : 'pages are'} researched and waiting for a brief.`
@@ -74,7 +74,7 @@ export default async function RoadmapPage() {
         <>
           <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-3 text-sm">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 On the roadmap
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -82,7 +82,7 @@ export default async function RoadmapPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Briefed
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -90,7 +90,7 @@ export default async function RoadmapPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Drafted
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -98,7 +98,7 @@ export default async function RoadmapPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Published
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -106,7 +106,7 @@ export default async function RoadmapPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 High priority
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -122,7 +122,7 @@ export default async function RoadmapPage() {
             worth. Nothing ranks these automatically yet — see 0014.
           */}
           {counts.unranked > 0 ? (
-            <p className="mt-3 text-sm text-[#50575e]">
+            <p className="mt-3 text-sm text-ink-muted">
               {counts.unranked} unpublished{' '}
               {counts.unranked === 1 ? 'page has' : 'pages have'} no priority
               set, so {counts.unranked === 1 ? 'it sorts' : 'they sort'} last
@@ -132,7 +132,7 @@ export default async function RoadmapPage() {
           ) : null}
 
           {tree.outOfScopePages > 0 ? (
-            <p className="mt-3 text-sm text-[#50575e]">
+            <p className="mt-3 text-sm text-ink-muted">
               {tree.outOfScopePages} more{' '}
               {tree.outOfScopePages === 1 ? 'page is' : 'pages are'} researched
               but not briefed — see Keywords.

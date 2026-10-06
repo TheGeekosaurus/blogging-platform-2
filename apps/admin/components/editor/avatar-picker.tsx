@@ -30,7 +30,7 @@ export function AvatarPicker({
   return (
     <fieldset>
       <legend className="text-sm font-medium">Photo</legend>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-ink-muted">
         Shown beside the byline on each of this author&apos;s posts. A square crop
         reads best.
       </p>

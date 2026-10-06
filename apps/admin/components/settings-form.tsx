@@ -53,7 +53,7 @@ export function SettingsForm({
             name="name"
             required
             defaultValue={site.name}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+            className="field mt-1"
           />
         </div>
 
@@ -66,7 +66,7 @@ export function SettingsForm({
             name="description"
             rows={2}
             defaultValue={site.description ?? ''}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+            className="field mt-1"
           />
         </div>
 
@@ -79,9 +79,9 @@ export function SettingsForm({
             name="base_url"
             required
             defaultValue={site.base_url}
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+            className="field mt-1 font-mono"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             An origin with no trailing path, e.g. <code>https://example.com</code>. Canonical
             URLs, the sitemap, the feed, and cache refreshes are all built from this — if it
             is wrong, publishing will not update the live site.
@@ -96,7 +96,7 @@ export function SettingsForm({
             id="locale"
             name="locale"
             defaultValue={site.locale}
-            className="mt-1 w-32 rounded border border-slate-300 px-3 py-2 text-sm"
+            className="field mt-1 w-32"
           />
         </div>
 
@@ -115,9 +115,9 @@ export function SettingsForm({
             name="gtm_container_id"
             defaultValue={site.gtm_container_id ?? ''}
             placeholder="GTM-XXXXXXX"
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+            className="field mt-1 font-mono"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             Loads on every page of this site. Leave empty for no tracking — which is what
             you want on a site that is not live yet, so it does not report into a real
             container. Add Google Analytics, the Facebook pixel and any conversion tags
@@ -132,16 +132,16 @@ export function SettingsForm({
           <button
             type="submit"
             disabled={pending}
-            className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+            className="btn btn-primary"
           >
             {pending ? 'Saving…' : 'Save settings'}
           </button>
         </div>
       </form>
 
-      <section className="mt-10 max-w-xl border-t border-slate-200 pt-6">
+      <section className="mt-10 max-w-xl border-t border-line pt-6">
         <h2 className="text-lg font-semibold">Cache</h2>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Publishing refreshes the affected pages automatically. Use this if a publish
           reported that it could not reach the live site.
         </p>
@@ -165,7 +165,7 @@ export function SettingsForm({
               setFlushState(await flushCache());
             })
           }
-          className="mt-3 rounded border border-slate-300 px-4 py-2 text-sm font-medium disabled:opacity-60"
+          className="mt-3 btn btn-ghost"
         >
           {flushing ? 'Refreshing…' : 'Flush cache'}
         </button>

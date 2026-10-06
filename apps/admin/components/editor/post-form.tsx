@@ -82,7 +82,7 @@ export function PostForm({
           name="title"
           required
           defaultValue={values.title}
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-lg"
+          className="field mt-1 text-lg"
         />
       </div>
 
@@ -96,7 +96,7 @@ export function PostForm({
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
           placeholder="derived from the title if left blank"
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+          className="field mt-1 font-mono"
         />
         {slug.includes('/') ? (
           <p className="mt-1 text-xs text-red-700">
@@ -104,7 +104,7 @@ export function PostForm({
             just the last part.
           </p>
         ) : null}
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           {values.id ? (
             <>
               Changing this breaks existing links to{' '}
@@ -147,7 +147,7 @@ export function PostForm({
           rows={2}
           defaultValue={values.excerpt}
           placeholder="Generated from the opening of the body if left blank"
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          className="field mt-1"
         />
       </div>
 
@@ -162,7 +162,7 @@ export function PostForm({
             id="byline_id"
             name="byline_id"
             defaultValue={values.bylineId ?? ''}
-            className="mt-1 rounded border border-slate-300 px-2 py-2 text-sm"
+            className="field field-inline mt-1"
           >
             <option value="">(use the Byline field)</option>
             {authors.map((author) => (
@@ -171,7 +171,7 @@ export function PostForm({
               </option>
             ))}
           </select>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             Shows the author&apos;s photo and name on the post. Manage them under{' '}
             <a href="/authors">Authors</a>.
           </p>
@@ -181,7 +181,7 @@ export function PostForm({
       {categories.length > 0 ? (
         <fieldset>
           <legend className="text-sm font-medium">Categories</legend>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="mt-1 text-sm text-ink-muted">
             Tick the most specific one. A parent category&apos;s archive also lists posts
             from its subcategories.
           </p>
@@ -199,7 +199,7 @@ export function PostForm({
                   defaultChecked={values.termIds.includes(term.id)}
                 />
                 {depth > 0 ? (
-                  <span aria-hidden="true" className="text-slate-400">
+                  <span aria-hidden="true" className="text-ink-muted">
                     └
                   </span>
                 ) : null}
@@ -229,7 +229,7 @@ export function PostForm({
         </fieldset>
       ) : null}
 
-      <details className="rounded border border-slate-200 px-4 py-3">
+      <details className="rounded border border-line px-4 py-3">
         <summary className="cursor-pointer text-sm font-medium">SEO overrides</summary>
         <div className="mt-3 flex flex-col gap-3">
           <div>
@@ -241,7 +241,7 @@ export function PostForm({
               name="seo_title"
               defaultValue={values.seo_title}
               placeholder="Defaults to the post title"
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              className="field mt-1"
             />
           </div>
           <div>
@@ -254,7 +254,7 @@ export function PostForm({
               rows={2}
               defaultValue={values.seo_description}
               placeholder="Defaults to the excerpt"
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              className="field mt-1"
             />
           </div>
           <div>
@@ -265,9 +265,9 @@ export function PostForm({
               id="author_name"
               name="author_name"
               defaultValue={values.author_name}
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+              className="field mt-1"
             />
-            <p className="mt-1 text-xs text-slate-500">
+            <p className="mt-1 text-xs text-ink-muted">
               Used only when no Author is selected above. Imported posts arrive with
               this filled in and no author record, which is why it stays.
             </p>
@@ -281,7 +281,7 @@ export function PostForm({
 
       <StructuredDataPanel variant="post" defaultSnippets={values.structuredData} />
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+      <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <label htmlFor="status" className="text-sm font-medium">
           Status
         </label>
@@ -289,7 +289,7 @@ export function PostForm({
           id="status"
           name="status"
           defaultValue={values.status}
-          className="rounded border border-slate-300 px-2 py-1.5 text-sm"
+          className="field field-sm field-inline"
         >
           <option value="draft">Draft</option>
           <option value="published">Published</option>
@@ -299,7 +299,7 @@ export function PostForm({
         <button
           type="submit"
           disabled={pending || slug.includes('/')}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? 'Saving…' : 'Save'}
         </button>

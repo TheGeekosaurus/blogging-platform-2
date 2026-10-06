@@ -1,77 +1,467 @@
 @import 'tailwindcss';
 
 /*
- * Admin chrome.
+ * The admin's design tokens.
  *
- * The rail's palette is WordPress's, near enough to be familiar without being a
- * copy: a near-black column, a lighter band for the open submenu, and muted
- * text that goes white on the current item. Declared as tokens because the rail,
- * the switcher and the nav are three components that must agree on them.
+ * This replaces a palette that was WordPress's — a near-black rail, #2271b1
+ * links, hard 1px table rules on #f0f0f1 — with one built on a violet accent, a
+ * tinted canvas and shadow instead of borders. The reference is the Materio
+ * family of dashboards, which is what Denis asked for.
+ *
+ * EVERYTHING is a token, including the rail, because the one decision most
+ * likely to be revisited is whether the rail is dark or light. In the reference
+ * shots it is both: Materio ships "semi-dark" (dark rail, light content) and a
+ * fully light variant. Semi-dark is here because it is what the largest shot
+ * shows and because it is nearest what this admin already was, so the change
+ * reads as a facelift rather than a different product. Switching is the four
+ * --color-rail-* values below and nothing else.
+ *
+ * WHY OPACITIES ON ONE INK, rather than a ramp of greys. Materio derives every
+ * text and border grey from a single near-black at a fixed set of alphas, which
+ * is why its surfaces stay coherent when a card sits on a tinted ground: the
+ * greys pick up the ground instead of fighting it. A flat grey ramp over a
+ * lavender canvas goes muddy, which is exactly what the old #50575e/#787c82
+ * pair did.
  */
 @theme {
-  --color-wp-nav: #1d2327;
-  --color-wp-nav-sub: #2c3338;
-  --color-wp-nav-active: #2271b1;
-  --color-wp-nav-ink: #a7aaad;
-  --color-wp-canvas: #f0f0f1;
+  /* Brand. The hover is a genuinely darker violet, not the same hue at 90% —
+     an opacity shift on a tinted ground reads as "disabled", not "pressed". */
+  /*
+      * #6254ee, not Materio's own #7367f0.
+      *
+      * The reference violet is 4.26:1 against white, which fails WCAG AA both
+      * ways that matter here: the white label on a primary button, and a brand
+      * link on a white card. Four points of lightness darker clears both at
+      * 5.2:1 and survives the tinted canvas too (4.8:1), at the same hue and
+      * saturation — side by side it is the same colour, it just passes.
+      */
+  --color-brand: #6254ee;
+  --color-brand-hover: #5546cf;
+  --color-brand-ink: #ffffff;
+  /* For tinted fills — selected rows, soft chips, the nav hover. */
+  --color-brand-soft: rgba(98, 84, 238, 0.16);
+  --color-brand-softer: rgba(98, 84, 238, 0.08);
+
+  --color-canvas: #f4f5fa;
+  --color-surface: #ffffff;
+  /* The one ink everything else is derived from. */
+  --color-ink: rgba(47, 43, 61, 0.9);
+  --color-ink-muted: rgba(47, 43, 61, 0.7);
+  /*
+   * NOT a text colour. 2.6:1 on white, which fails WCAG AA, so it is for rules,
+   * icons, placeholders and disabled controls — all of which are exempt or
+   * decorative. Secondary copy uses --color-ink-muted, which is 5.2:1.
+   */
+  --color-ink-faint: rgba(47, 43, 61, 0.45);
+  --color-line: rgba(47, 43, 61, 0.12);
+  --color-line-soft: rgba(47, 43, 61, 0.06);
+
+  /* The rail. Four values; swap them for a light rail. */
+  --color-rail: #2f3349;
+  --color-rail-raised: rgba(255, 255, 255, 0.06);
+  --color-rail-ink: rgba(225, 222, 245, 0.72);
+  --color-rail-ink-strong: rgba(225, 222, 245, 0.95);
+
+  /* Status. Materio's four, which are more saturated than Tailwind's and are
+     what make the chips read at small sizes on a tinted ground. */
+  --color-success: #28c76f;
+  --color-warning: #ff9f43;
+  --color-danger: #ea5455;
+  --color-info: #00bad1;
+
+  --radius-card: 0.625rem;
+  --radius-control: 0.5rem;
+
+  /* Shadow, not border, is what separates a card from the canvas here — the
+     reason the canvas is tinted at all. */
+  --shadow-card: 0 2px 10px rgba(47, 43, 61, 0.1);
+  --shadow-raised: 0 4px 18px rgba(47, 43, 61, 0.16);
+  --shadow-brand: 0 2px 6px rgba(98, 84, 238, 0.3);
+
+  --font-sans: var(--font-public-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
+  body {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    /* Materio's body size is 0.9375rem, not 1rem. At 16px the dense screens in
+       here — tables, the SEO tree — need a scrollbar they did not need before. */
+    font-size: 0.9375rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
   /*
    * Links in the content area read as links.
    *
-   * They did not before: nothing styled a bare <a>, so "Write one" in an empty
-   * state and the cross-links between Pages and Built in Code rendered as plain
-   * body text. Element specificity (0,0,2) loses to any utility class, so the
-   * links that are styled as buttons — `text-white` on a dark ground — keep
-   * their own colour and are unaffected.
+   * Element specificity (0,0,2) and the base layer both lose to the component
+   * classes below, so a link styled as `.btn-primary` keeps its white text.
    */
   main a {
-    color: var(--color-wp-nav-active);
+    color: var(--color-brand);
   }
 
   main a:hover {
     text-decoration: underline;
   }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    color: rgba(47, 43, 61, 0.95);
+  }
 }
 
 @layer components {
+  /* ----------------------------------------------------------------------
+   * Surfaces
+   * ------------------------------------------------------------------- */
+
   /*
-   * The list tables on Posts and Pages.
+   * The default container for anything that is not prose.
    *
-   * One class rather than the same six utilities repeated down two files: the
-   * two screens are meant to look identical, and they drifted apart as lists
-   * because nothing held them together.
+   * No border. A 1px line plus a shadow reads as two separate edges at this
+   * radius, and the tinted canvas already does the separating.
    */
-  .wp-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #ffffff;
-    font-size: 0.875rem;
+  .card {
+    background: var(--color-surface);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
   }
 
-  .wp-table th {
-    text-align: left;
-    font-weight: 600;
-    color: #1d2327;
-    padding: 0.625rem 0.75rem;
-    border-bottom: 1px solid #c3c4c7;
+  .card-pad {
+    padding: 1.25rem 1.5rem;
+  }
+
+  /* ----------------------------------------------------------------------
+   * Buttons
+   * ------------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: var(--radius-control);
+    padding: 0.5rem 1.15rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      box-shadow 0.15s ease,
+      border-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .btn:disabled,
+  .btn[aria-disabled='true'] {
+    opacity: 0.55;
+    cursor: not-allowed;
+    /* Without this a disabled primary keeps its coloured glow and reads as
+       pressed rather than unavailable. */
+    box-shadow: none;
+  }
+
+  .btn-sm {
+    padding: 0.3rem 0.7rem;
+    font-size: 0.8125rem;
+  }
+
+  .btn-primary {
+    background: var(--color-brand);
+    color: var(--color-brand-ink);
+    box-shadow: var(--shadow-brand);
+  }
+
+  /* `:not(:disabled)` so a pending submit does not light up under the cursor
+     and suggest it is still clickable. */
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-brand-hover);
+  }
+
+  /* Links styled as buttons sit inside `main`, where the base rule above would
+     otherwise paint them violet-on-violet. */
+  a.btn-primary,
+  a.btn-primary:hover {
+    color: var(--color-brand-ink);
+    text-decoration: none;
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--color-brand);
+    border: 1px solid rgba(98, 84, 238, 0.5);
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    background: var(--color-brand-softer);
+    border-color: var(--color-brand);
+  }
+
+  a.btn-secondary:hover {
+    text-decoration: none;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-ink-muted);
+    border: 1px solid var(--color-line);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-line-soft);
+    color: var(--color-ink);
+  }
+
+  a.btn-ghost,
+  a.btn-ghost:hover {
+    color: var(--color-ink-muted);
+    text-decoration: none;
+  }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--color-danger);
+    border: 1px solid rgba(234, 84, 85, 0.5);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: rgba(234, 84, 85, 0.08);
+    border-color: var(--color-danger);
+  }
+
+  /* ----------------------------------------------------------------------
+   * Form controls
+   * ------------------------------------------------------------------- */
+
+  /*
+   * One class on the element rather than a bare-element rule in @layer base,
+   * because a base rule loses to any utility already on the input and most of
+   * them carry their own padding.
+   */
+  .field {
+    width: 100%;
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-control);
+    padding: 0.5rem 0.85rem;
+    font-size: 0.9375rem;
+    color: var(--color-ink);
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+
+  .field:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    box-shadow: var(--shadow-brand);
+  }
+
+  .field:disabled {
+    background: var(--color-line-soft);
+    color: var(--color-ink-faint);
+  }
+
+  .field-sm {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8125rem;
+  }
+
+  /* `width: auto` because these sit inline next to a button in a row, where a
+     full-width select would push it off the end. */
+  .field-inline {
+    width: auto;
+  }
+
+  .label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    margin-bottom: 0.3rem;
+  }
+
+  .hint {
+    font-size: 0.8125rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* ----------------------------------------------------------------------
+   * Chips
+   * ------------------------------------------------------------------- */
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    border-radius: 0.3rem;
+    padding: 0.15rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
     white-space: nowrap;
   }
 
-  .wp-table td {
-    padding: 0.75rem;
-    border-bottom: 1px solid #e4e5e7;
+  /* Each chip's ink is darker than its fill's source hue, so the pair clears
+     4.5:1 — a chip is small text and is read, not just noticed. */
+  .chip-brand {
+    background: var(--color-brand-soft);
+    color: var(--color-brand-hover);
+  }
+  .chip-success {
+    background: rgba(40, 199, 111, 0.16);
+    color: #197b44;
+  }
+  .chip-warning {
+    background: rgba(255, 159, 67, 0.16);
+    color: #ac5400;
+  }
+  .chip-danger {
+    background: rgba(234, 84, 85, 0.16);
+    color: #cc191a;
+  }
+  .chip-neutral {
+    background: var(--color-line-soft);
+    color: var(--color-ink-muted);
+  }
+
+  /* ----------------------------------------------------------------------
+   * Lists
+   * ------------------------------------------------------------------- */
+
+  /*
+   * The list tables on Posts, Pages, Links, Redirects and Lead magnets.
+   *
+   * Was `.wp-table`. Renamed with the palette because the name was the last
+   * WordPress reference in the stylesheet and these no longer look anything
+   * like WordPress's list tables: no outer rule, hairline separators, and the
+   * header in small caps rather than bold body text.
+   */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .data-table th {
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-line);
+    white-space: nowrap;
+  }
+
+  .data-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-line-soft);
     vertical-align: top;
-    color: #3c434a;
+    color: var(--color-ink-muted);
   }
 
-  .wp-table tbody tr:hover {
-    background: #f6f7f7;
+  .data-table tbody tr:hover {
+    background: var(--color-brand-softer);
   }
 
-  .wp-table tbody tr:last-child td {
+  .data-table tbody tr:last-child td {
     border-bottom: 0;
+  }
+
+  /* ----------------------------------------------------------------------
+   * The rail
+   * ------------------------------------------------------------------- */
+
+  /*
+   * A nav item. The active state is a filled pill with a coloured shadow, which
+   * is the single most recognisable thing about this family of dashboards — and
+   * it is why the rail now has horizontal padding: a pill needs room to not
+   * touch the edges.
+   */
+  .rail-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 999px;
+    padding: 0.5rem 0.9rem;
+    font-size: 0.875rem;
+    color: var(--color-rail-ink);
+    text-decoration: none;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .rail-link:hover {
+    background: var(--color-rail-raised);
+    color: var(--color-rail-ink-strong);
+  }
+
+  .rail-link-active {
+    background: linear-gradient(72deg, var(--color-brand), var(--color-brand-hover));
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: var(--shadow-brand);
+  }
+
+  .rail-link-active:hover {
+    background: linear-gradient(72deg, var(--color-brand), var(--color-brand-hover));
+    color: #ffffff;
+  }
+
+  /* A submenu entry. Indented to the icon column above it, and marked with a
+     dot rather than a second pill — two pill shapes at two sizes read as two
+     levels of the same thing, which is not what a child is. */
+  .rail-sublink {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-radius: 999px;
+    padding: 0.35rem 0.9rem 0.35rem 1.1rem;
+    font-size: 0.8125rem;
+    color: var(--color-rail-ink);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .rail-sublink:hover {
+    color: var(--color-rail-ink-strong);
+  }
+
+  .rail-sublink-active {
+    color: #ffffff;
+    font-weight: 500;
+  }
+
+  .rail-dot {
+    width: 0.3rem;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: currentColor;
+    flex-shrink: 0;
+    /* Lines the dot up under the centre of the 18px icon on the parent row. */
+    margin-left: 0.52rem;
+    opacity: 0.6;
+  }
+
+  .rail-sublink-active .rail-dot {
+    opacity: 1;
+    box-shadow: 0 0 0 3px rgba(98, 84, 238, 0.25);
+  }
+
+  .rail-heading {
+    padding: 1.25rem 0.9rem 0.4rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(225, 222, 245, 0.62);
   }
 }
 
@@ -112,15 +502,15 @@
   }
 
   .prose-editor blockquote {
-    border-left: 3px solid #cbd5e1;
+    border-left: 3px solid var(--color-brand-soft);
     padding-left: 1em;
-    color: #475569;
+    color: var(--color-ink-muted);
     font-style: italic;
   }
 
   .prose-editor pre {
-    background: #f1f5f9;
-    border-radius: 0.375rem;
+    background: var(--color-canvas);
+    border-radius: var(--radius-control);
     padding: 0.75rem 1rem;
     overflow-x: auto;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -128,7 +518,7 @@
   }
 
   .prose-editor :not(pre) > code {
-    background: #f1f5f9;
+    background: var(--color-canvas);
     border-radius: 0.25rem;
     padding: 0.1em 0.35em;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -136,14 +526,14 @@
   }
 
   .prose-editor a {
-    color: #1d4ed8;
+    color: var(--color-brand);
     text-decoration: underline;
   }
 
   .prose-editor img {
     max-width: 100%;
     height: auto;
-    border-radius: 0.375rem;
+    border-radius: var(--radius-control);
   }
 
   /*
@@ -164,7 +554,7 @@
 
   .prose-editor th,
   .prose-editor td {
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--color-line);
     padding: 0.375rem 0.5rem;
     vertical-align: top;
     /* Cells are the only place in this editor a caret can land inside a box
@@ -174,7 +564,7 @@
   }
 
   .prose-editor th {
-    background: #f1f5f9;
+    background: var(--color-canvas);
     font-weight: 600;
     text-align: left;
   }
@@ -184,7 +574,7 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: rgba(29, 78, 216, 0.12);
+    background: var(--color-brand-soft);
     pointer-events: none;
   }
 
@@ -200,7 +590,7 @@
   /* Placeholder for an empty document. */
   .prose-editor p.is-editor-empty:first-child::before {
     content: 'Write your post…';
-    color: #94a3b8;
+    color: var(--color-ink-faint);
     float: left;
     height: 0;
     pointer-events: none;

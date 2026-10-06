@@ -52,7 +52,7 @@ const KD_DOT: Record<KdBand, string> = {
 };
 
 const STATUS_STYLES: Record<SeoPageStatus, string> = {
-  researched: 'bg-slate-200 text-slate-700',
+  researched: 'bg-line text-ink-muted',
   briefed: 'bg-sky-100 text-sky-900',
   drafted: 'bg-amber-100 text-amber-900',
   published: 'bg-emerald-100 text-emerald-900',
@@ -69,8 +69,8 @@ const STATUS_STYLES: Record<SeoPageStatus, string> = {
  */
 const PRIORITY_STYLES: Record<SeoPagePriority, string> = {
   high: 'border-rose-300 bg-rose-50 text-rose-900',
-  medium: 'border-slate-300 bg-white text-slate-700',
-  low: 'border-slate-200 bg-white text-slate-500',
+  medium: 'border-line bg-surface text-ink-muted',
+  low: 'border-line bg-white text-ink-muted',
 };
 
 /**
@@ -101,12 +101,12 @@ const INTENT_STYLES: { key: keyof IntentMix; label: string; className: string }[
   { key: 'informational', label: 'Informational', className: 'bg-indigo-400' },
   { key: 'commercial', label: 'Commercial', className: 'bg-amber-400' },
   { key: 'transactional', label: 'Transactional', className: 'bg-emerald-400' },
-  { key: 'navigational', label: 'Navigational', className: 'bg-slate-400' },
+  { key: 'navigational', label: 'Navigational', className: 'bg-ink-faint' },
 ];
 
 function KdDot({ kd }: { kd: number | null }) {
   const band = kdBand(kd);
-  if (band === null) return <span className="text-[#8c8f94]">—</span>;
+  if (band === null) return <span className="text-ink-muted">—</span>;
   return (
     <span className="inline-flex items-center gap-1.5 tabular-nums">
       {kd}
@@ -129,7 +129,7 @@ function KdDot({ kd }: { kd: number | null }) {
  */
 function IntentBar({ mix }: { mix: IntentMix }) {
   const total = INTENT_STYLES.reduce((sum, i) => sum + mix[i.key], 0);
-  if (total === 0) return <span className="text-xs text-[#8c8f94]">—</span>;
+  if (total === 0) return <span className="text-xs text-ink-muted">—</span>;
 
   const parts = INTENT_STYLES.filter((i) => mix[i.key] > 0);
   const title = parts.map((i) => `${i.label} ${mix[i.key]}`).join(' · ');
@@ -174,7 +174,7 @@ function Chevron({ level }: { level: keyof typeof CHEVRON_ROTATE }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className={`h-3.5 w-3.5 shrink-0 text-[#787c82] transition-transform ${CHEVRON_ROTATE[level]}`}
+      className={`h-3.5 w-3.5 shrink-0 text-ink-muted transition-transform ${CHEVRON_ROTATE[level]}`}
       aria-hidden="true"
     >
       <path d="m9 6 6 6-6 6" />
@@ -189,14 +189,14 @@ function Chevron({ level }: { level: keyof typeof CHEVRON_ROTATE }) {
 function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
   if (keywords.length === 0) {
     return (
-      <p className="px-4 py-3 text-sm text-[#50575e]">No keywords here yet.</p>
+      <p className="px-4 py-3 text-sm text-ink-muted">No keywords here yet.</p>
     );
   }
 
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="border-b border-[#dcdcde] text-left text-xs uppercase tracking-wide text-[#787c82]">
+        <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-muted">
           <th className="py-2 pl-4 pr-3 font-medium">Keyword</th>
           <th className="w-24 px-3 py-2 text-right font-medium">KD</th>
           <th className="w-24 px-3 py-2 text-right font-medium">Volume</th>
@@ -205,7 +205,7 @@ function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
       </thead>
       <tbody>
         {keywords.map((k) => (
-          <tr key={k.id} className="border-b border-[#f0f0f1] last:border-0">
+          <tr key={k.id} className="border-b border-line-soft last:border-0">
             <td className="py-2 pl-4 pr-3">
               {k.keyword}
               {k.is_primary ? (
@@ -220,7 +220,7 @@ function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
             <td className="px-3 py-2 text-right tabular-nums">
               {formatVolume(k.volume)}
             </td>
-            <td className="px-3 py-2 text-xs capitalize text-[#50575e]">
+            <td className="px-3 py-2 text-xs capitalize text-ink-muted">
               {k.intent ?? '—'}
             </td>
           </tr>
@@ -247,16 +247,16 @@ function ClusterRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }
 
   return (
     <details
-      className={`group/page border-b border-[#f0f0f1] last:border-0 ${
-        isPillar ? 'border-l-2 border-l-[var(--color-wp-nav-active)]' : ''
+      className={`group/page border-b border-line-soft last:border-0 ${
+        isPillar ? 'border-l-2 border-l-brand' : ''
       }`}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-[#f6f7f7]">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-brand-softer">
         <Chevron level="page" />
 
         <span className="min-w-0 flex-1 truncate text-sm">{clusterLabel(node)}</span>
 
-        <span className="hidden w-16 shrink-0 text-right text-xs tabular-nums text-[#50575e] sm:block">
+        <span className="hidden w-16 shrink-0 text-right text-xs tabular-nums text-ink-muted sm:block">
           {metrics.keywordCount} kw
         </span>
         <span className="hidden w-28 shrink-0 sm:block">
@@ -270,7 +270,7 @@ function ClusterRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }
         </span>
       </summary>
 
-      <div className="bg-[#fbfbfc] pb-2">
+      <div className="bg-canvas pb-2">
         <KeywordTable keywords={node.keywords} />
       </div>
     </details>
@@ -295,11 +295,11 @@ function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
 
   return (
     <details
-      className={`group/page border-b border-[#f0f0f1] last:border-0 ${
-        isPillar ? 'border-l-2 border-l-[var(--color-wp-nav-active)]' : ''
+      className={`group/page border-b border-line-soft last:border-0 ${
+        isPillar ? 'border-l-2 border-l-brand' : ''
       }`}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-[#f6f7f7]">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-brand-softer">
         <Chevron level="page" />
 
         <span className="min-w-0 flex-1 truncate text-sm">{page.title}</span>
@@ -313,7 +313,7 @@ function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
         </span>
       </summary>
 
-      <div className="bg-[#fbfbfc] pb-2">
+      <div className="bg-canvas pb-2">
         <PageDetail node={node} />
       </div>
     </details>
@@ -330,11 +330,11 @@ function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
 function Section({ title, body }: { title: string; body: string }) {
   return (
     <details className="group/section">
-      <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-semibold uppercase tracking-wide text-[#787c82] hover:text-[#3c434a]">
+      <summary className="flex cursor-pointer list-none items-center gap-2 py-1 text-xs font-semibold uppercase tracking-wide text-ink-muted hover:text-ink">
         <Chevron level="section" />
         {title}
       </summary>
-      <p className="mt-1 whitespace-pre-wrap pl-5.5 text-[#3c434a]">{body}</p>
+      <p className="mt-1 whitespace-pre-wrap pl-5.5 text-ink">{body}</p>
     </details>
   );
 }
@@ -358,10 +358,10 @@ function PageDetail({ node }: { node: SeoPageNode }) {
 
       {primary ? (
         <p>
-          <span className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
+          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Primary keyword
           </span>{' '}
-          <span className="text-[#3c434a]">{primary}</span>
+          <span className="text-ink">{primary}</span>
         </p>
       ) : null}
 
@@ -370,19 +370,19 @@ function PageDetail({ node }: { node: SeoPageNode }) {
 
       {hasMeta ? (
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-[#787c82]">
+          <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
             Meta
           </h4>
           {page.meta_title ? (
-            <p className="mt-1 text-[#3c434a]">{page.meta_title}</p>
+            <p className="mt-1 text-ink">{page.meta_title}</p>
           ) : null}
           {page.meta_description ? (
-            <p className="text-[#50575e]">{page.meta_description}</p>
+            <p className="text-ink-muted">{page.meta_description}</p>
           ) : null}
         </div>
       ) : null}
 
-      <div className="border-t border-[#f0f0f1] pt-2">
+      <div className="border-t border-line-soft pt-2">
         <KeywordTable keywords={node.keywords} />
       </div>
 
@@ -415,8 +415,8 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
       : 'pages';
 
   return (
-    <details className="group/topic rounded border border-[#dcdcde] bg-white">
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-[#f6f7f7]">
+    <details className="group/topic rounded border border-line bg-white">
+      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-brand-softer">
         <Chevron level="topic" />
 
         <span className="min-w-0 flex-1">
@@ -424,16 +424,16 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
             {topic ? topic.name : 'No topic'}
           </span>
           {topic?.pillar ? (
-            <span className="ml-2 text-xs text-[#787c82]">{topic.pillar}</span>
+            <span className="ml-2 text-xs text-ink-muted">{topic.pillar}</span>
           ) : null}
           {!topic ? (
-            <span className="ml-2 text-xs text-[#787c82]">
+            <span className="ml-2 text-xs text-ink-muted">
               their topic was deleted
             </span>
           ) : null}
         </span>
 
-        <span className="shrink-0 text-xs text-[#50575e]">
+        <span className="shrink-0 text-xs text-ink-muted">
           {childCount} {noun}
           {research ? null : ` · ${statusCounts.published} published`}
         </span>
@@ -446,28 +446,28 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
           </span>
         ) : null}
 
-        <span className="hidden shrink-0 text-xs text-[#50575e] sm:block">
+        <span className="hidden shrink-0 text-xs text-ink-muted sm:block">
           Total volume{' '}
           <span className="font-medium tabular-nums">
             {formatVolume(metrics.volume)}
           </span>
         </span>
 
-        <span className="shrink-0 text-xs text-[#50575e]">
+        <span className="shrink-0 text-xs text-ink-muted">
           Avg KD <KdDot kd={metrics.kd} />
         </span>
       </summary>
 
-      <div className="border-t border-[#dcdcde]">
+      <div className="border-t border-line">
         {childCount === 0 ? (
-          <p className="px-4 py-3 text-sm text-[#50575e]">
+          <p className="px-4 py-3 text-sm text-ink-muted">
             {research ? 'No clusters in this topic yet.' : 'No pages in this topic yet.'}
           </p>
         ) : (
           <>
             {pillar ? (
               <>
-                <p className="border-b border-[#f0f0f1] bg-[#fbfbfc] px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-[#787c82]">
+                <p className="border-b border-line-soft bg-canvas px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
                   {research ? 'Pillar' : 'Pillar page'}
                 </p>
                 <ChildRow node={pillar} variant={variant} isPillar />
@@ -476,7 +476,7 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
 
             {subs.length > 0 ? (
               <>
-                <p className="border-b border-[#f0f0f1] bg-[#fbfbfc] px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-[#787c82]">
+                <p className="border-b border-line-soft bg-canvas px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
                   {pillar
                     ? `${research ? 'Supporting' : 'Subpages'}: ${subs.length}`
                     : `${research ? 'Clusters' : 'Pages'}: ${subs.length}`}
@@ -539,16 +539,16 @@ export function SeoTreeView({
         — and a screen that omits them quietly loses the work.
       */}
       {tree.unassigned.length > 0 ? (
-        <details className="group/topic rounded border border-dashed border-[#c3c4c7] bg-white">
-          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-[#f6f7f7]">
+        <details className="group/topic rounded border border-dashed border-line bg-white">
+          <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-brand-softer">
             <Chevron level="topic" />
             <span className="flex-1 text-sm font-semibold">Not yet clustered</span>
-            <span className="text-xs text-[#50575e]">
+            <span className="text-xs text-ink-muted">
               {tree.unassigned.length}{' '}
               {tree.unassigned.length === 1 ? 'keyword' : 'keywords'}
             </span>
           </summary>
-          <div className="border-t border-[#dcdcde] bg-[#fbfbfc] pb-2">
+          <div className="border-t border-line bg-canvas pb-2">
             <KeywordTable keywords={tree.unassigned} />
           </div>
         </details>

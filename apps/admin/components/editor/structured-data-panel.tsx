@@ -76,23 +76,23 @@ export function StructuredDataPanel({
   }
 
   return (
-    <details className="rounded border border-slate-200 px-4 py-3">
+    <details className="rounded border border-line px-4 py-3">
       <summary className="cursor-pointer text-sm font-medium">
         Schema markup{snippets.length > 0 ? ` (${snippets.length})` : ''}
       </summary>
 
       <div className="mt-3 flex flex-col gap-4">
-        <p className="text-xs text-slate-500">{INTRO[variant]}</p>
+        <p className="text-xs text-ink-muted">{INTRO[variant]}</p>
 
         {variant === 'post' ? (
-          <div className="rounded bg-slate-50 px-3 py-2">
-            <p className="text-xs font-medium text-slate-700">
+          <div className="rounded bg-canvas px-3 py-2">
+            <p className="text-xs font-medium text-ink-muted">
               Added automatically — no need to add these yourself
             </p>
             <ul className="mt-1 flex flex-col gap-0.5">
               {AUTO_POST_SCHEMAS.map((auto) => (
-                <li key={auto.type} className="text-xs text-slate-500">
-                  <code className="font-mono text-slate-700">{auto.type}</code> — {auto.summary}
+                <li key={auto.type} className="text-xs text-ink-muted">
+                  <code className="font-mono text-ink-muted">{auto.type}</code> — {auto.summary}
                 </li>
               ))}
             </ul>
@@ -130,7 +130,7 @@ export function StructuredDataPanel({
               id={`schema-template-${variant}`}
               value={templateId}
               onChange={(event) => setTemplateId(event.target.value)}
-              className="mt-1 rounded border border-slate-300 px-2 py-2 text-sm"
+              className="field field-inline mt-1"
             >
               {SCHEMA_TEMPLATES.map((template) => (
                 <option key={template.id} value={template.id}>
@@ -144,13 +144,13 @@ export function StructuredDataPanel({
             type="button"
             onClick={add}
             disabled={full}
-            className="rounded border border-slate-300 px-4 py-2 text-sm font-medium disabled:opacity-60"
+            className="btn btn-ghost"
           >
             + Add
           </button>
 
           {full ? (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-muted">
               {MAX_SNIPPETS} is the limit. These are inlined into every copy of the page.
             </p>
           ) : null}
@@ -176,9 +176,9 @@ function SnippetCard({
   const label = result?.ok ? result.label : `Snippet ${index + 1}`;
 
   return (
-    <div className="rounded border border-slate-200">
-      <div className="flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2">
-        <span className="font-mono text-xs font-medium text-slate-700">{label}</span>
+    <div className="rounded border border-line">
+      <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
+        <span className="font-mono text-xs font-medium text-ink-muted">{label}</span>
         <button type="button" onClick={onRemove} className="text-xs text-red-700 underline">
           Remove
         </button>
@@ -200,9 +200,9 @@ function SnippetCard({
         placeholder='{ "@type": "FAQPage" }'
       />
 
-      <div className="border-t border-slate-200 px-3 py-1.5">
+      <div className="border-t border-line px-3 py-1.5">
         {blank ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-ink-muted">
             Empty — this snippet is dropped when you save.
           </p>
         ) : result?.ok ? (

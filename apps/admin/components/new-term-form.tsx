@@ -28,7 +28,7 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
           id="name"
           name="name"
           required
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          className="field mt-1"
         />
       </div>
 
@@ -40,7 +40,7 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
         name="kind"
         value={kind}
         onChange={(event) => setKind(event.target.value)}
-        className="rounded border border-slate-300 px-2 py-2 text-sm"
+        className="field field-inline"
       >
         <option value="category">Category</option>
         <option value="tag">Tag</option>
@@ -55,7 +55,7 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
             id="parent_id"
             name="parent_id"
             defaultValue=""
-            className="rounded border border-slate-300 px-2 py-2 text-sm"
+            className="field field-inline"
           >
             <option value="">(top level)</option>
             {categories.map(({ term, depth }) => (
@@ -72,7 +72,7 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
       <button
         type="submit"
         disabled={pending}
-        className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+        className="btn btn-primary"
       >
         Add
       </button>

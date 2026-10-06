@@ -42,7 +42,7 @@ type View = 'content' | 'links';
 
 const STATUS_STYLES: Record<PostStatus, string> = {
   published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-slate-200 text-slate-700',
+  draft: 'bg-line text-ink-muted',
   scheduled: 'bg-sky-100 text-sky-900',
   archived: 'bg-amber-100 text-amber-900',
 };
@@ -52,7 +52,7 @@ const LINK_STATUS_STYLES: Record<LinkStatus, string> = {
   redirect: 'bg-sky-100 text-sky-900',
   unpublished: 'bg-amber-100 text-amber-900',
   missing: 'bg-red-100 text-red-900',
-  unchecked: 'bg-slate-200 text-slate-700',
+  unchecked: 'bg-line text-ink-muted',
 };
 
 const LINK_STATUS_LABELS: Record<LinkStatus, string> = {
@@ -112,12 +112,12 @@ export default async function LinksPage({
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h1 className="text-xl font-semibold tracking-tight">Links</h1>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-ink-muted">
           {totals.contentItems} {totals.contentItems === 1 ? 'item' : 'items'} scanned
         </p>
       </div>
 
-      <p className="mt-1 max-w-3xl text-sm text-slate-600">
+      <p className="mt-1 max-w-3xl text-sm text-ink-muted">
         Read from the body of every post and page each time this screen loads, so it
         never goes stale — including right after a WordPress import. Internal links are
         checked against what the site actually serves; external ones are listed but not
@@ -134,15 +134,15 @@ export default async function LinksPage({
 
       <Summary totals={totals} />
 
-      <nav className="mt-8 flex gap-4 border-b border-slate-200 text-sm">
+      <nav className="mt-8 flex gap-4 border-b border-line text-sm">
         {(['content', 'links'] as const).map((value) => (
           <Link
             key={value}
             href={`/links${buildQuery({ view: value === 'content' ? undefined : value })}`}
             className={
               view === value
-                ? '-mb-px border-b-2 border-slate-900 pb-2 font-semibold'
-                : 'pb-2 text-slate-600'
+                ? '-mb-px border-b-2 border-ink pb-2 font-semibold'
+                : 'pb-2 text-ink-muted'
             }
           >
             {value === 'content' ? 'By content' : 'Every link'}
@@ -220,16 +220,16 @@ function Summary({ totals }: { totals: Awaited<ReturnType<typeof loadLinkGraph>>
         <li key={tile.label}>
           <Link
             href={tile.href}
-            className="block rounded border border-slate-200 px-3 py-2 hover:border-slate-400"
+            className="block rounded border border-line px-3 py-2 hover:border-line"
           >
             <span
               className={`block text-2xl font-semibold tabular-nums ${
-                tile.alarm ? 'text-red-700' : 'text-slate-900'
+                tile.alarm ? 'text-red-700' : 'text-ink'
               }`}
             >
               {tile.value}
             </span>
-            <span className="block text-xs text-slate-600">{tile.label}</span>
+            <span className="block text-xs text-ink-muted">{tile.label}</span>
           </Link>
         </li>
       ))}
@@ -308,7 +308,7 @@ function ContentView({
             <Link
               key={tab.value}
               href={`/links${buildQuery({ show: tab.value === 'all' ? undefined : tab.value, q: search || undefined })}`}
-              className={show === tab.value ? 'font-semibold underline' : 'text-slate-600'}
+              className={show === tab.value ? 'font-semibold underline' : 'text-ink-muted'}
             >
               {tab.label}
             </Link>
@@ -325,27 +325,27 @@ function ContentView({
             name="q"
             defaultValue={search}
             placeholder="Search titles"
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="field field-sm field-inline"
           />
-          <button type="submit" className="rounded border border-slate-300 px-2 py-1 text-sm">
+          <button type="submit" className="field field-sm field-inline">
             Filter
           </button>
         </form>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-10 text-slate-600">
+        <p className="mt-10 text-ink-muted">
           Nothing matches. {show === 'orphans' ? 'No orphans is the good outcome here.' : null}
         </p>
       ) : (
         /* Same wrapper as Posts and Pages: the table scrolls inside its own box
          * on a narrow window rather than pushing the page sideways. */
-        <div className="mt-6 overflow-x-auto rounded border border-slate-300">
-          <table className="wp-table">
+        <div className="card mt-6 overflow-x-auto">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">Title</th>
-                {/* Right-aligned against .wp-table th's default left, because
+                {/* Right-aligned against .data-table th's default left, because
                     these are counts and are read by scanning a column. */}
                 <th scope="col" className="text-right">
                   Internal out
@@ -373,7 +373,7 @@ function ContentView({
                         <ViewLiveLink href={pageUrl(site, node.path)} label={node.title} />
                       ) : null}
                     </div>
-                    <span className="mr-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-600">
+                    <span className="mr-1 rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted">
                       {node.kind}
                     </span>
                     <span
@@ -381,13 +381,13 @@ function ContentView({
                     >
                       {node.status}
                     </span>
-                    <code className="mt-1 block text-xs text-slate-500">{node.path}</code>
+                    <code className="mt-1 block text-xs text-ink-muted">{node.path}</code>
                   </td>
 
                   <td className="text-right tabular-nums">
                     <Link
                       href={`/links${buildQuery({ view: 'links', kind: 'internal', q: node.title })}`}
-                      className={stats.internalOut === 0 ? 'text-slate-400' : undefined}
+                      className={stats.internalOut === 0 ? 'text-ink-muted' : undefined}
                     >
                       {stats.internalOut}
                     </Link>
@@ -401,12 +401,12 @@ function ContentView({
                     excluded for the same reason.
                   */}
                   <td className="text-right tabular-nums">
-                    <span className={stats.incoming === 0 ? 'text-red-700' : 'text-slate-900'}>
+                    <span className={stats.incoming === 0 ? 'text-red-700' : 'text-ink'}>
                       {stats.incoming}
                     </span>
                     {stats.incoming > stats.incomingLive ? (
                       <span
-                        className="block text-xs text-slate-500"
+                        className="block text-xs text-ink-muted"
                         title="Links from drafts do not help — a crawler cannot see them."
                       >
                         {stats.incomingLive} live
@@ -418,7 +418,7 @@ function ContentView({
                     <div className="flex flex-wrap gap-1">
                       {stats.orphan ? (
                         <span
-                          className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-900"
+                          className="chip chip-danger"
                           title="Nothing on the site links here, so it is reachable only from the sitemap."
                         >
                           orphan
@@ -427,7 +427,7 @@ function ContentView({
                       {stats.brokenOut > 0 ? (
                         <Link
                           href={`/links${buildQuery({ view: 'links', status: 'missing', q: node.title })}`}
-                          className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-medium text-red-900"
+                          className="chip chip-danger"
                         >
                           {stats.brokenOut} broken
                         </Link>
@@ -435,7 +435,7 @@ function ContentView({
                       {stats.unpublishedOut > 0 ? (
                         <Link
                           href={`/links${buildQuery({ view: 'links', status: 'unpublished', q: node.title })}`}
-                          className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-900"
+                          className="chip chip-warning"
                         >
                           {stats.unpublishedOut} unpublished
                         </Link>
@@ -443,7 +443,7 @@ function ContentView({
                       {stats.redirectOut > 0 ? (
                         <Link
                           href={`/links${buildQuery({ view: 'links', status: 'redirect', q: node.title })}`}
-                          className="rounded bg-sky-100 px-1.5 py-0.5 text-xs font-medium text-sky-900"
+                          className="chip chip-brand"
                         >
                           {stats.redirectOut} redirected
                         </Link>
@@ -466,7 +466,7 @@ function ContentView({
         query={keep}
       />
 
-      <p className="mt-6 max-w-3xl text-sm text-slate-500">
+      <p className="mt-6 max-w-3xl text-sm text-ink-muted">
         An <strong>orphan</strong> has nothing linking to it. It is still in the sitemap, so
         it can be found — but nothing on the site passes it any authority, and a reader who
         lands nearby has no route to it.
@@ -541,7 +541,7 @@ function LinksView({
             <Link
               key={tab.value}
               href={`/links${buildQuery({ ...keep, kind: tab.value === 'all' ? undefined : tab.value, page: undefined })}`}
-              className={kind === tab.value ? 'font-semibold underline' : 'text-slate-600'}
+              className={kind === tab.value ? 'font-semibold underline' : 'text-ink-muted'}
             >
               {tab.label}
             </Link>
@@ -556,7 +556,7 @@ function LinksView({
               className={
                 status === tab.value
                   ? 'font-semibold underline'
-                  : 'text-slate-600'
+                  : 'text-ink-muted'
               }
             >
               {tab.label}
@@ -576,9 +576,9 @@ function LinksView({
             name="q"
             defaultValue={search}
             placeholder="Search source or URL"
-            className="rounded border border-slate-300 px-2 py-1 text-sm"
+            className="field field-sm field-inline"
           />
-          <button type="submit" className="rounded border border-slate-300 px-2 py-1 text-sm">
+          <button type="submit" className="field field-sm field-inline">
             Filter
           </button>
         </form>
@@ -588,18 +588,18 @@ function LinksView({
           every table in the admin. This line keeps only what the pager cannot
           say: why a whole column of statuses reads "unchecked". */}
       {status === 'unchecked' || kind === 'external' ? (
-        <p className="mt-4 text-sm text-slate-500">
+        <p className="mt-4 text-sm text-ink-muted">
           External URLs are listed, not fetched, so none of them carry a verdict.
         </p>
       ) : null}
 
       {filtered.length === 0 ? (
-        <p className="mt-10 text-slate-600">
+        <p className="mt-10 text-ink-muted">
           No links match. {status === 'missing' ? 'Nothing broken is the good outcome.' : null}
         </p>
       ) : (
-        <div className="mt-4 overflow-x-auto rounded border border-slate-300">
-          <table className="wp-table">
+        <div className="card mt-4 overflow-x-auto">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">Source</th>
@@ -615,7 +615,7 @@ function LinksView({
                     <Link href={editHref(link.source)} className="font-semibold">
                       {link.source.title}
                     </Link>
-                    <code className="mt-1 block text-xs text-slate-500">
+                    <code className="mt-1 block text-xs text-ink-muted">
                       {link.source.path}
                     </code>
                   </td>
@@ -623,23 +623,23 @@ function LinksView({
                   <td className="max-w-md">
                     <Destination link={link} />
                     {link.text ? (
-                      <span className="mt-1 block text-xs text-slate-500">
+                      <span className="mt-1 block text-xs text-ink-muted">
                         “{link.text}”
                       </span>
                     ) : (
-                      <span className="mt-1 block text-xs text-slate-400">
+                      <span className="mt-1 block text-xs text-ink-muted">
                         no anchor text — an image or icon link
                       </span>
                     )}
                   </td>
 
                   <td className="whitespace-nowrap">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">
+                    <span className="rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted">
                       {KIND_LABELS[link.kind]}
                     </span>
                     {link.nofollow ? (
                       <span
-                        className="ml-1 rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700"
+                        className="ml-1 rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted"
                         title="rel=nofollow — this link passes no authority."
                       >
                         nofollow
@@ -647,7 +647,7 @@ function LinksView({
                     ) : null}
                     {link.occurrences > 1 ? (
                       <span
-                        className="ml-1 text-xs text-slate-500"
+                        className="ml-1 text-xs text-ink-muted"
                         title="Times this URL is linked from this one body."
                       >
                         ×{link.occurrences}
@@ -697,7 +697,7 @@ function Destination({ link }: { link: ContentLink }) {
         <Link href={editHref(target.node)} className="font-medium">
           {target.node.title}
         </Link>
-        <code className="ml-2 text-xs text-slate-500">{link.href}</code>
+        <code className="ml-2 text-xs text-ink-muted">{link.href}</code>
       </>
     );
   }
@@ -708,7 +708,7 @@ function Destination({ link }: { link: ContentLink }) {
         href={link.url}
         target="_blank"
         rel="noopener noreferrer nofollow"
-        className="break-all text-slate-800 underline decoration-slate-300"
+        className="break-all text-ink underline decoration-line"
       >
         {link.url}
       </a>
@@ -717,9 +717,9 @@ function Destination({ link }: { link: ContentLink }) {
 
   return (
     <>
-      <code className="break-all text-slate-800">{link.href}</code>
+      <code className="break-all text-ink">{link.href}</code>
       {target && target.kind !== 'missing' ? (
-        <span className="ml-2 text-xs text-slate-500">{target.label}</span>
+        <span className="ml-2 text-xs text-ink-muted">{target.label}</span>
       ) : null}
       {/*
         A broken link with a plausible fix beside it is a work queue; one
@@ -727,8 +727,8 @@ function Destination({ link }: { link: ContentLink }) {
         old permalink lands one directory above /blog.
       */}
       {target?.kind === 'missing' && target.suggestion ? (
-        <span className="mt-1 block text-xs text-slate-600">
-          did you mean <code className="text-slate-900">{target.suggestion}</code>?
+        <span className="mt-1 block text-xs text-ink-muted">
+          did you mean <code className="text-ink">{target.suggestion}</code>?
         </span>
       ) : null}
     </>

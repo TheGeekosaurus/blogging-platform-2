@@ -41,11 +41,11 @@ export function RedirectForm() {
             name="from_path"
             required
             placeholder="/old-post-url/"
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+            className="field mt-1 font-mono"
           />
           {/* Because pasting the whole URL out of the address bar is what people
               actually do, and the action strips the origin rather than refusing. */}
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             A path on this site. Pasting a full URL is fine — the domain is trimmed.
           </p>
         </div>
@@ -59,9 +59,9 @@ export function RedirectForm() {
             name="to_path"
             required
             placeholder="/blog/new-post-url/"
-            className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+            className="field mt-1 font-mono"
           />
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 text-xs text-ink-muted">
             A path, or a full URL to send visitors off-site.
           </p>
         </div>
@@ -74,7 +74,7 @@ export function RedirectForm() {
             id="status_code"
             name="status_code"
             defaultValue="301"
-            className="mt-1 rounded border border-slate-300 px-2 py-2 text-sm"
+            className="field field-inline mt-1"
           >
             {/* 301 first and default: it is the one that passes ranking on, and
                 it is what a moved URL almost always wants. */}
@@ -88,7 +88,7 @@ export function RedirectForm() {
         <button
           type="submit"
           disabled={pending}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? 'Adding…' : 'Add'}
         </button>

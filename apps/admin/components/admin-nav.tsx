@@ -25,6 +25,15 @@ type NavSection = {
   label: string;
   icon: React.ReactNode;
   children?: NavChild[];
+  /**
+   * A small-caps heading rendered ABOVE this section.
+   *
+   * Grouping, not new navigation. The rail had grown to nine sections in one
+   * undifferentiated column, which is the length at which a list stops being
+   * scannable and starts being read top to bottom every time. These are the
+   * boundaries that were already implicit in the order.
+   */
+  group?: string;
 };
 
 /** 20px line icons on a 24 grid, so they sit on the same rhythm as the labels. */
@@ -47,6 +56,7 @@ function Icon({ children }: { children: React.ReactNode }) {
 
 const SECTIONS: NavSection[] = [
   {
+    group: 'Content',
     href: '/posts',
     label: 'Posts',
     icon: (
@@ -83,6 +93,7 @@ const SECTIONS: NavSection[] = [
    * someone working in the other.
    */
   {
+    group: 'Structure',
     href: '/links',
     label: 'Links',
     icon: (
@@ -115,6 +126,7 @@ const SECTIONS: NavSection[] = [
    * order.
    */
   {
+    group: 'Planning',
     href: '/keywords',
     label: 'SEO',
     icon: (
@@ -129,6 +141,7 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
+    group: 'Library',
     href: '/media',
     label: 'Media',
     icon: (
@@ -171,6 +184,7 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
+    group: 'Configuration',
     href: '/settings',
     label: 'Settings',
     icon: (
@@ -210,28 +224,36 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto py-2">
-      <ul className="flex flex-col">
+    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6">
+      <ul className="flex flex-col gap-0.5">
         {SECTIONS.map((section) => {
           const active = isSectionActive(section, pathname);
 
           return (
             <li key={section.href}>
+              {/*
+                The heading is rendered inside the <li> of the section it
+                introduces rather than as an <li> of its own, so the list stays
+                a list of navigation items — a bare text <li> among links is an
+                item a screen reader counts and cannot go to.
+              */}
+              {section.group ? (
+                <p role="presentation" className="rail-heading">
+                  {section.group}
+                </p>
+              ) : null}
+
               <Link
                 href={section.href}
                 aria-current={active ? 'page' : undefined}
-                className={`flex items-center gap-3 px-4 py-2.5 text-sm no-underline transition-colors ${
-                  active
-                    ? 'bg-[var(--color-wp-nav-active)] font-semibold text-white'
-                    : 'text-[var(--color-wp-nav-ink)] hover:bg-white/5 hover:text-white'
-                }`}
+                className={`rail-link ${active ? 'rail-link-active' : ''}`}
               >
                 {section.icon}
                 {section.label}
               </Link>
 
               {active && section.children ? (
-                <ul className="bg-[var(--color-wp-nav-sub)] py-1.5">
+                <ul className="mt-0.5 flex flex-col gap-0.5">
                   {section.children.map((child) => {
                     const childActive = isChildActive(
                       child.href,
@@ -243,12 +265,11 @@ export function AdminNav() {
                         <Link
                           href={child.href}
                           aria-current={childActive ? 'page' : undefined}
-                          className={`block py-1.5 pl-[3.1rem] pr-4 text-[0.8125rem] no-underline transition-colors ${
-                            childActive
-                              ? 'font-semibold text-white'
-                              : 'text-[var(--color-wp-nav-ink)] hover:text-white'
+                          className={`rail-sublink ${
+                            childActive ? 'rail-sublink-active' : ''
                           }`}
                         >
+                          <span aria-hidden="true" className="rail-dot" />
                           {child.label}
                         </Link>
                       </li>

@@ -68,9 +68,9 @@ export function AuthorForm({
           name="name"
           required
           defaultValue={values.name}
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-lg"
+          className="field mt-1 text-lg"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           The byline readers see. Replaces whatever is typed in a post&apos;s Byline
           field once this author is attached to it.
         </p>
@@ -87,7 +87,7 @@ export function AuthorForm({
           placeholder="e.g. Founder, Nanotom Capital"
           describedBy="title-help"
         />
-        <p id="title-help" className="mt-1 text-xs text-slate-500">
+        <p id="title-help" className="mt-1 text-xs text-ink-muted">
           A short role line, shown under the name on every post and in the author box.
           Links are allowed — a company name can point at its site. Enter is disabled
           on purpose: a role that wraps to two paragraphs breaks the byline it sits in.
@@ -104,9 +104,9 @@ export function AuthorForm({
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
           placeholder="derived from the name if left blank"
-          className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono text-sm"
+          className="field mt-1 font-mono"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-ink-muted">
           The author&rsquo;s archive lives at <code>/blog/author/&lt;slug&gt;</code>, and
           every byline links to it. Changing this breaks any link already pointing at
           the old one.
@@ -122,7 +122,7 @@ export function AuthorForm({
           defaultValue={values.bio}
           describedBy="bio-help"
         />
-        <p id="bio-help" className="mt-1 text-xs text-slate-500">
+        <p id="bio-help" className="mt-1 text-xs text-ink-muted">
           Shown in the author box under every post and on the author&rsquo;s archive
           page. Bold, italic and links only — headings and lists would fight the
           layouts it renders inside.
@@ -133,7 +133,7 @@ export function AuthorForm({
 
       <fieldset>
         <legend className="text-sm font-medium">Social links</legend>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-1 text-sm text-ink-muted">
           Full URLs, starting with <code>https://</code>. Anything else is ignored
           rather than saved — these become links, and a link is the one place a
           malformed URL does damage. Leave a field empty to skip that platform.
@@ -155,7 +155,7 @@ export function AuthorForm({
                   inputMode="url"
                   defaultValue={values.social[platform] ?? ''}
                   placeholder={field.placeholder}
-                  className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                  className="field mt-1"
                 />
               </div>
             );
@@ -163,11 +163,11 @@ export function AuthorForm({
         </div>
       </fieldset>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-4">
+      <div className="flex flex-wrap items-center gap-3 border-t border-line pt-4">
         <button
           type="submit"
           disabled={pending}
-          className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="btn btn-primary"
         >
           {pending ? 'Saving…' : 'Save'}
         </button>

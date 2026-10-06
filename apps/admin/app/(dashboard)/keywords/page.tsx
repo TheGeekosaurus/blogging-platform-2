@@ -33,21 +33,21 @@ export default async function KeywordsPage() {
     <>
       <h1 className="text-xl font-semibold tracking-tight">Keywords</h1>
 
-      <p className="mt-2 max-w-2xl text-sm text-[#50575e]">
+      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
         Every keyword researched for this site, grouped into the clusters meant
         to own them. A cluster reaches the <strong>Roadmap</strong> once it has
         been briefed as a page.
       </p>
 
       {isSeoTreeEmpty(tree) ? (
-        <p className="mt-6 text-sm text-[#50575e]">
+        <p className="mt-6 text-sm text-ink-muted">
           No keyword research yet for {site.name}.
         </p>
       ) : (
         <>
           <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-3 text-sm">
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Keywords
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -55,7 +55,7 @@ export default async function KeywordsPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Total volume
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -63,7 +63,7 @@ export default async function KeywordsPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Topics
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -71,7 +71,7 @@ export default async function KeywordsPage() {
               </dd>
             </div>
             <div>
-              <dt className="text-xs uppercase tracking-wide text-[#787c82]">
+              <dt className="text-xs uppercase tracking-wide text-ink-muted">
                 Clusters
               </dt>
               <dd className="mt-0.5 text-lg font-semibold tabular-nums">
@@ -87,7 +87,7 @@ export default async function KeywordsPage() {
             reads as a small one.
           */}
           {tree.metrics.unmeasured > 0 ? (
-            <p className="mt-3 text-sm text-[#50575e]">
+            <p className="mt-3 text-sm text-ink-muted">
               {tree.metrics.unmeasured.toLocaleString()} of these have no volume
               figure yet, so they count toward neither total.
             </p>

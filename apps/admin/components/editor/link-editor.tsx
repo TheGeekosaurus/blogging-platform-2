@@ -103,13 +103,13 @@ export function LinkEditor({
           placeholder="https://example.com/page"
           aria-label="Link URL"
           aria-invalid={error ? true : undefined}
-          className="w-72 rounded border border-slate-300 px-2 py-1 font-mono text-xs"
+          className="field field-sm w-72 font-mono"
         />
 
         <button
           type="button"
           onClick={save}
-          className="rounded bg-slate-900 px-2 py-1 text-xs font-medium text-white"
+          className="btn btn-primary btn-sm"
         >
           {existing ? 'Update' : 'Add'}
         </button>
@@ -131,7 +131,7 @@ export function LinkEditor({
               href={(editor.getAttributes('link').href as string) ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded px-2 py-1 text-xs text-slate-600 hover:bg-slate-100"
+              className="rounded px-2 py-1 text-xs text-ink-muted hover:bg-line-soft"
             >
               Open ↗
             </a>
@@ -141,7 +141,7 @@ export function LinkEditor({
         <button
           type="button"
           onClick={onClose}
-          className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100"
+          className="rounded px-2 py-1 text-xs text-ink-muted hover:bg-line-soft"
         >
           Cancel
         </button>

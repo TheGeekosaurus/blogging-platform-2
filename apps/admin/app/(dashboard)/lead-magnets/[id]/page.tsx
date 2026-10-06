@@ -70,20 +70,20 @@ export default async function EditLeadMagnetPage({
         }}
       />
 
-      <section className="mt-10 max-w-2xl border-t border-slate-200 pt-5">
+      <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <h2 className="text-sm font-semibold">Recent leads</h2>
 
         {leads.length === 0 ? (
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-ink-muted">
             Nothing yet. Note that only owners and admins can read this list — an
             editor sees the offer and an empty table here.
           </p>
         ) : (
           <>
-            {/* `wp-table`, the same class Posts and Pages use. It exists so
+            {/* `data-table`, the same class Posts and Pages use. It exists so
                 the list screens cannot drift apart again; a fourth table with
                 its own borders would be the drift. */}
-            <table className="wp-table mt-3">
+            <table className="data-table mt-3">
               <thead>
                 <tr>
                   <th>Email</th>
@@ -97,16 +97,16 @@ export default async function EditLeadMagnetPage({
                     <td>
                       {lead.email}
                       {lead.name ? (
-                        <span className="text-slate-500"> · {lead.name}</span>
+                        <span className="text-ink-muted"> · {lead.name}</span>
                       ) : null}
                       {/* A repeat request usually means the first email did not
                           land, which is worth seeing next to the address. */}
                       {lead.submissions > 1 ? (
-                        <span className="text-slate-500"> · ×{lead.submissions}</span>
+                        <span className="text-ink-muted"> · ×{lead.submissions}</span>
                       ) : null}
                     </td>
-                    <td className="text-slate-500">{lead.source_path ?? '—'}</td>
-                    <td className="whitespace-nowrap text-slate-500">
+                    <td className="text-ink-muted">{lead.source_path ?? '—'}</td>
+                    <td className="whitespace-nowrap text-ink-muted">
                       {new Date(lead.created_at).toLocaleDateString(site.locale)}
                     </td>
                   </tr>
@@ -114,7 +114,7 @@ export default async function EditLeadMagnetPage({
               </tbody>
             </table>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-ink-muted">
               The {RECENT_LEADS} most recent. This is a check that capture is
               working, not the mailing list — that lives wherever the webhook sends
               it.
@@ -123,14 +123,14 @@ export default async function EditLeadMagnetPage({
         )}
       </section>
 
-      <section className="mt-10 max-w-2xl border-t border-slate-200 pt-5">
+      <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <form action={deleteLeadMagnet}>
           <input type="hidden" name="id" value={magnet.id} />
           <button type="submit" className="text-sm text-red-700 underline">
             Delete this offer
           </button>
         </form>
-        <p className="mt-2 text-sm text-slate-500">
+        <p className="mt-2 text-sm text-ink-muted">
           The leads it collected are kept, tagged with <code>{magnet.slug}</code>. The
           copy and the targeting are not — untick <strong>Live on the site</strong>
           instead if you might bring it back.

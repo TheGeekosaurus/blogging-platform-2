@@ -25,7 +25,7 @@ export function FeaturedImagePicker({
   return (
     <fieldset>
       <legend className="text-sm font-medium">Featured image</legend>
-      <p className="mt-1 text-sm text-slate-600">
+      <p className="mt-1 text-sm text-ink-muted">
         Shown at the top of the post and as its thumbnail in listings.
       </p>
 

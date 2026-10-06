@@ -43,7 +43,7 @@ export function ViewLiveLink({
        */
       rel="noopener noreferrer"
       title={text}
-      className={`shrink-0 rounded p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-900 ${className ?? ''}`}
+      className={`shrink-0 rounded p-1.5 text-ink-muted hover:bg-line-soft hover:text-ink ${className ?? ''}`}
     >
       <span className="sr-only">{text}</span>
       <ExternalLinkIcon />
