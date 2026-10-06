@@ -2204,6 +2204,19 @@
      * takes its own tokens back through `.dl-panel`.
      */
     --ft-ink: #ffffff;
+
+    /*
+     * THE DIMMER TWO, blue-tinted so they read as the same family as the navy
+     * rather than as grey. Added when an industry page put a standfirst between
+     * its heading and its grid: until then nothing muted had ever stood on this
+     * ground, so these kept their light-page values — #45557F, which is dark
+     * slate ON NAVY and the one thing a reader could not have seen.
+     *
+     * Safe to set here because `.dl-art .dl-panel` below re-points both back,
+     * so the grid is unaffected. The same pair `.dl-deep` uses.
+     */
+    --ft-muted: #b9c6e4;
+    --ft-subtle: #a3b3d8;
   }
 
   /*

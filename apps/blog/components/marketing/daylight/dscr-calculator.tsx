@@ -63,7 +63,7 @@ export function DscrCalculatorPage() {
           <div>
             <h2
               id="dscr-formula"
-              className="max-w-[16ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+              className="max-w-[16ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-bold leading-[1.12] text-[var(--ft-ink)]"
             >
               {DSCR.formula.heading}
             </h2>
@@ -97,7 +97,7 @@ export function DscrCalculatorPage() {
         <div className={`${CONTAINER} py-14 lg:py-20`}>
           <h2
             id="dscr-reading"
-            className="max-w-[18ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+            className="max-w-[18ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-bold leading-[1.12] text-[var(--ft-ink)]"
           >
             {DSCR.reading.heading}
           </h2>
@@ -131,7 +131,7 @@ export function DscrCalculatorPage() {
           <div>
             <h2
               id="dscr-example"
-              className="font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+              className="font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-bold leading-[1.12] text-[var(--ft-ink)]"
             >
               {DSCR.example.heading}
             </h2>
@@ -188,7 +188,7 @@ export function DscrCalculatorPage() {
         <div className={`${CONTAINER} py-14 lg:py-20`}>
           <h2
             id="dscr-faq"
-            className="font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+            className="font-[family-name:var(--font-headline)] text-[clamp(1.875rem,3.6vw,2.5rem)] font-bold leading-[1.12] text-[var(--ft-ink)]"
           >
             {DSCR.faq.heading}
           </h2>

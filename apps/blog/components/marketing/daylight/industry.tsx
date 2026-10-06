@@ -106,7 +106,22 @@ export function DaylightIndustry({ page }: { page: IndustryPage }) {
         further down is already an eight-cell four-up, and repeating that shape
         twenty seconds apart would read as the same section twice.
       */}
-      <section aria-labelledby="dl-needs" className="border-t border-[var(--ft-line)]">
+      {/*
+        ON THE BAND ARTWORK — Denis, 2026-10-06, supplying the image. It is
+        byte-identical to /marketing/cards-band.png, which `.dl-art` already
+        paints, so this is that class rather than a second copy of the same
+        picture under a new name.
+
+        `.dl-art` re-points --ft-ink to white for the chip and heading and lays
+        a measured scrim over the top of the image so they stay legible wherever
+        `cover` happens to crop; the grid below takes the light tokens back
+        through `.dl-panel`. See globals.css for both, and for why the scrim's
+        stops are in pixels.
+
+        No `border-t` any more: the rule was there to separate this from the
+        hero on white, and a dark band needs no hairline to announce itself.
+      */}
+      <section aria-labelledby="dl-needs" className="dl-art">
         <div className={`${CONTAINER} py-14 lg:py-20`}>
           <SectionIntro id="dl-needs" label={page.needs.label} heading={page.needs.heading} />
 
@@ -114,7 +129,13 @@ export function DaylightIndustry({ page }: { page: IndustryPage }) {
             {page.needs.body}
           </p>
 
-          <ul className="mt-12 grid gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] sm:grid-cols-2 lg:grid-cols-3 lg:mt-14">
+          {/*
+            `dl-panel` restores the light tokens inside the grid. Without it the
+            white --ft-ink this section sets for its heading would follow into
+            the cells and print white titles on white cells — the same guard
+            ./use-cases.tsx carries for the same reason.
+          */}
+          <ul className="dl-panel mt-12 grid gap-px overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-line)] sm:grid-cols-2 lg:grid-cols-3 lg:mt-14">
             {page.needs.items.map((item) => {
               const Icon = NEED_ICONS[item.icon as keyof typeof NEED_ICONS];
               return (

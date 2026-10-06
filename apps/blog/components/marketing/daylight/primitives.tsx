@@ -150,9 +150,19 @@ export function SectionIntro({
     >
       <div className="flex flex-col items-start gap-4">
         <Chip>{label}</Chip>
+        {/*
+          `font-bold`, NOT font-medium. Denis, 2026-10-06, pointing at the
+          products rail: "the headline is a different weight than the others.
+          Make all other sections headings like that the same weight as this
+          one." The rail and /funding-solutions' "All Nine, Side By Side." were
+          written bold directly and every section that goes through this
+          component was medium, so the page had two headline weights depending
+          on which route a heading took to the screen. One weight now; the
+          rail's.
+        */}
         <h2
           id={id}
-          className="max-w-[26ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,4vw,2.875rem)] font-medium leading-[1.12] text-[var(--ft-ink)]"
+          className="max-w-[26ch] font-[family-name:var(--font-headline)] text-[clamp(1.875rem,4vw,2.875rem)] font-bold leading-[1.12] text-[var(--ft-ink)]"
         >
           {heading}
         </h2>

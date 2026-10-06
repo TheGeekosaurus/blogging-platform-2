@@ -101,7 +101,17 @@ export function DaylightHero({
           {HERO.stats.map((stat, i) => (
             <div
               key={stat.label}
-              className={`py-8 pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-6 lg:pl-10' : ''}`}
+              /*
+                THE GUTTERS SHRINK BELOW `sm`, and that is a measured fix
+                rather than a tidy-up. At 360px the three columns are ~106px
+                wide; `pr-4` plus `pl-6` took 40 of them, leaving 66 for a
+                label whose longest word ("customers") needs 70 — so "from
+                happy customers" crossed the rule beside it by 4px. Narrower
+                gutters under `sm` give the word its room, and the full
+                breathing space comes back from `sm` up where there is width
+                to spend.
+              */
+              className={`py-8 pr-2 sm:pr-4 lg:py-10 ${i > 0 ? 'border-l border-[var(--ft-line)] pl-3 sm:pl-6 lg:pl-10' : ''}`}
             >
               <dd className="text-[clamp(1.5rem,3vw,2rem)] font-semibold leading-none text-[var(--ft-ink)]">
                 {stat.value}
