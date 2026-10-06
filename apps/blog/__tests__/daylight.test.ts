@@ -577,7 +577,13 @@ describe("the site-wide Daylight chrome", () => {
    * this replaced.
    */
   it("leaves the pages to render only their own content", () => {
-    for (const file of ["daylight/home.tsx", "daylight/funding-solutions.tsx", "daylight/dscr-calculator.tsx"]) {
+    for (const file of [
+      "daylight/home.tsx",
+      "daylight/funding-solutions.tsx",
+      "daylight/dscr-calculator.tsx",
+      "daylight/get-funded.tsx",
+      "daylight/industries-index.tsx",
+    ]) {
       const source = read(file);
       expect(source, `${file} still draws a header`).not.toContain("<DaylightHeader");
       expect(source, `${file} still draws a footer`).not.toContain("<DaylightFooter");
@@ -1430,5 +1436,59 @@ describe("the header menus close when a link in them is clicked", () => {
     expect(header, "a span trigger is not keyboard reachable").not.toMatch(
       /<span className=\{`\$\{TRIGGER_CLASS\}[^`]*`\}>/,
     );
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * /GET-FUNDED IN WHITE
+ *
+ * Denis, 2026-10-06: "rebrand the get funded page colors."
+ * ---------------------------------------------------------------------------
+ */
+describe("the Daylight get-funded page", () => {
+  const page = read("daylight/get-funded.tsx");
+
+  it("is what the route renders, gated to Capital", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "get-funded", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightGetFunded");
+    expect(route).toContain("isNntmCapital");
+  });
+
+  /* The copy is unchanged — this was a colour change, not a rewrite. */
+  it("keeps the shared copy rather than restating it", () => {
+    expect(page).toContain("GET_FUNDED.heading");
+    expect(page).toContain("GET_FUNDED.sub");
+    expect(page).toContain("GET_FUNDED.eyebrow");
+  });
+
+  /*
+   * THE FRAME MATCHES THE EMBED, and the hex is not a brand colour.
+   *
+   * The survey iframe is one flat near-black field: its html/body carries a
+   * background-image that is a 1000x750 PNG of solid #141414, and its own card
+   * config sets `bgColor: "141414"`. Both live in Denis's GoHighLevel account
+   * and neither can be reached from this origin. So the wrapper paints the same
+   * value, which turns a black rectangle sitting on a white page into one dark
+   * card — and the day those two settings change, this constant changes with
+   * them rather than the page being redesigned around them.
+   */
+  it("frames the survey in the colour the survey actually is", () => {
+    expect(page).toContain("const SURVEY_INK = '#141414'");
+    expect(page).toContain("backgroundColor: SURVEY_INK");
+
+    /* Never a --ft-* token: this is a third party's colour, not ours, and
+       pointing a theme token at it would make it look like a palette value. */
+    const wrapper = page.slice(page.indexOf("mx-auto mt-12"), page.indexOf("HighLevelForm eager"));
+    expect(wrapper).not.toContain("--ft-");
+    expect(wrapper).not.toContain("--dl-");
+  });
+
+  /* One survey, one CRM record, whichever route the visitor took. */
+  it("embeds the shared HighLevel form eagerly", () => {
+    expect(page).toContain("<HighLevelForm eager />");
   });
 });
