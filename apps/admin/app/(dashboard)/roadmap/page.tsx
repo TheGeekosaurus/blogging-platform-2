@@ -126,8 +126,9 @@ export default async function RoadmapPage() {
               {counts.unranked} unpublished{' '}
               {counts.unranked === 1 ? 'page has' : 'pages have'} no priority
               set, so {counts.unranked === 1 ? 'it sorts' : 'they sort'} last
-              within {counts.unranked === 1 ? 'its' : 'their'} topic. Open a row
-              to rank it.
+              within {counts.unranked === 1 ? 'its' : 'their'} topic. Rank{' '}
+              {counts.unranked === 1 ? 'it' : 'them'} on the row; the queue
+              reorders when you move on.
             </p>
           ) : null}
 

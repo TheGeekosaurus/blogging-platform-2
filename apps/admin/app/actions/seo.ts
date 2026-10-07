@@ -1,8 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
-import { parsePriority } from '@blog/core';
+import { parsePriority, type SeoPagePriority } from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { createClient } from '@/lib/supabase/server';
@@ -21,24 +19,23 @@ export interface SeoPageState {
  * is a judgement about what to do next, not a claim about what ranks, and there
  * is nowhere else to record it.
  *
- * An empty submission clears the column rather than writing 'low'. Unranked is
- * a real state — see 0014 — and taking a rank off has to be possible, otherwise
- * a mis-click is permanent.
+ * A PLAIN CALL, not a form action. The control autosaves on select, so there is
+ * no form to submit and no FormData to parse — and the caller needs the result
+ * synchronously to decide whether to revert the select. `parsePriority` still
+ * guards the value, because `null` arrives here for "cleared" and anything else
+ * would be rejected by the enum at the database anyway.
  */
 export async function setPagePriority(
-  _prev: SeoPageState,
-  formData: FormData,
+  pageId: string,
+  next: SeoPagePriority | null,
 ): Promise<SeoPageState> {
   const site = await requireCurrentSite();
   const supabase = await createClient();
 
-  const id = String(formData.get('id') ?? '').trim();
+  const id = pageId.trim();
   if (!id) return { error: 'No page given.' };
 
-  // parsePriority returns null for '' AND for anything unrecognised, which is
-  // the same write either way: the enum would reject a bad value at the
-  // database, and clearing is the honest reading of "not one of the three".
-  const priority = parsePriority(formData.get('priority'));
+  const priority = parsePriority(next);
 
   const { error } = await supabase
     .from('seo_pages')
@@ -51,10 +48,21 @@ export async function setPagePriority(
 
   if (error) return { error: `Could not save: ${error.message}` };
 
-  revalidatePath('/roadmap');
-  // The Keywords screen renders the same rows and does not sort by priority,
-  // but it reads from the same cache entry, so it goes stale too.
-  revalidatePath('/keywords');
-
+  /*
+   * NO revalidatePath AT ALL, and that is the whole deferral.
+   *
+   * Priority is the Roadmap's first sort key, so re-rendering this screen
+   * re-sorts it — moving the row out from under the pointer and, because React
+   * reorders with insertBefore, blurring the control and dropping focus to
+   * <body> on every change. The picker calls router.refresh() on blur instead,
+   * so the value commits immediately and the queue reorders once you have
+   * finished with the control.
+   *
+   * Revalidating '/keywords' is not a way round it: measured, it re-renders the
+   * Roadmap too, which is exactly the instant re-sort this is avoiding. Nothing
+   * is lost by dropping it — both screens are `force-dynamic`, so neither is in
+   * the full route cache, and Next's client router cache has a stale time of
+   * zero for dynamic routes, so navigating to Keywords refetches regardless.
+   */
   return {};
 }

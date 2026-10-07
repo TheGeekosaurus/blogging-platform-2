@@ -530,9 +530,163 @@
   }
 
   /* Every row is --row tall shut, whatever it carries, so the elbows line up
-     with each other and across the two screens. */
-  .seo-node > summary {
+     with each other and across the two screens.
+
+     TWO selectors because a row is two shapes now: on Keywords the .seo-node
+     IS the <details>; on the Roadmap it is a wrapper holding the <details> and
+     the priority control painted over its bar. One declaration, on purpose. */
+  .seo-node > summary,
+  .seo-row > details > summary {
     min-height: var(--row);
+  }
+
+  /* ----------------------------------------------------------------------
+   * A Roadmap row: a disclosure with a control parked on its bar
+   * ------------------------------------------------------------------- */
+
+  /*
+   * WHY THE CONTROL IS A SIBLING OF THE <details>, NOT A CHILD OF THE <summary>.
+   *
+   * A <summary> is an activation target: the nearest such ancestor is resolved
+   * while the event path is BUILT, so a click starting anywhere inside it
+   * toggles the row, and only preventDefault() — never stopPropagation() —
+   * suppresses that. It can be done. But a control in the summary also joins
+   * the summary's accessible NAME, because an embedded control contributes its
+   * value: every row would read "Pillar page High Briefed, collapsed", and
+   * change as you change it. A <form> in a <summary> is invalid markup besides.
+   *
+   * It cannot go INSIDE the <details> either: every non-summary child of a shut
+   * <details> is hidden, which is exactly when this has to be visible.
+   *
+   * So: a one-cell grid, both children in the cell. No position:absolute and no
+   * offsets to keep in sync with the chip beside it — and, the reason this
+   * matters most, the control is out of the summary's FLOW, so it cannot push
+   * the bar past --row. Every elbow in the tree is drawn from --row / 2.
+   */
+  .seo-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    /*
+     * The lane the control occupies at the right-hand end of the bar.
+     *
+     * Declared once because two things must agree about it: the control sizes
+     * itself to it, and the bar pads itself by it so a long title truncates
+     * where the lane begins instead of disappearing under a select.
+     */
+    --priority-lane: 9rem;
+  }
+
+  .seo-row > details,
+  .seo-row > .seo-row-control {
+    grid-area: 1 / 1;
+  }
+
+  /* min-width:0 so the grid item can shrink and `truncate` inside it has
+     something to truncate against. */
+  .seo-row > details {
+    min-width: 0;
+  }
+
+  .seo-row > details > summary {
+    padding-right: var(--priority-lane);
+  }
+
+  .seo-row-control {
+    /* Top, not centre. An open row is six hundred pixels of keyword table, and
+       a control centred in that is nowhere near the bar it belongs to. */
+    align-self: start;
+    justify-self: end;
+    /* Exactly the bar's box, so centring inside it puts the select on the same
+       optical line as the title and the chip. */
+    height: var(--row);
+    width: var(--priority-lane);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.375rem;
+    padding-right: 1rem; /* mirrors the bar's own pl-4 */
+    /*
+     * The lane is 44px tall and the control is 28px. The strip above and below
+     * it is still the row's bar, so let those clicks fall through to the
+     * summary underneath — the row toggles from anywhere that is not the
+     * control itself.
+     */
+    pointer-events: none;
+    /* Above the NEXT row's card, so a failure message hangs over it rather
+       than being painted over by it. Grid items honour z-index directly. */
+    z-index: 2;
+  }
+
+  .seo-row-control > * {
+    pointer-events: auto;
+  }
+
+  /*
+   * A field sized to sit ON a row rather than in a form.
+   *
+   * The height DERIVES from --row instead of being a number that happens to fit
+   * inside it, so the one place the row height is declared is still the one
+   * place it is decided. Change --row and this follows.
+   *
+   * Borderless at rest: twenty-nine of these in a column is a lot of furniture,
+   * and the value is the only part worth seeing until you reach for one.
+   * .field:focus already supplies the brand border and shadow, so the focus
+   * ring is stronger than the resting state, which is the right way round.
+   */
+  .field-bar {
+    height: calc(var(--row) - 1rem);
+    padding: 0 0.4rem;
+    border-color: transparent;
+    background: transparent;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+  }
+
+  .seo-row:hover .field-bar,
+  .field-bar:focus {
+    border-color: var(--color-line);
+    background: var(--color-surface);
+  }
+
+  /* The one rank worth seeing without hovering for it. */
+  .field-bar[data-priority='high'] {
+    color: #cc191a;
+    font-weight: 500;
+  }
+
+  /* The save indicator's slot. Fixed width so the select never shifts when a
+     tick appears next to it. */
+  .seo-save {
+    width: 0.75rem;
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .seo-save-saved {
+    color: var(--color-success);
+    animation: seo-fade 1.2s ease-out forwards;
+  }
+
+  .seo-save-failed {
+    color: var(--color-danger);
+    font-weight: 700;
+    cursor: help;
+  }
+
+  .seo-save-saving {
+    color: var(--color-ink-faint);
+  }
+
+  @keyframes seo-fade {
+    0%,
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+    }
   }
 
   /* The elbow: down the gutter, then a rounded turn into the card's title

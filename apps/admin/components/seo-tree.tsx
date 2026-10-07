@@ -5,13 +5,11 @@ import {
   formatVolume,
   kdBand,
   KD_BAND_LABELS,
-  SEO_PRIORITY_LABELS,
   SEO_STATUS_LABELS,
   type IntentMix,
   type KdBand,
   type SeoKeywordRow,
   type SeoPageNode,
-  type SeoPagePriority,
   type SeoPageStatus,
   type SeoTopicNode,
   type SeoTree,
@@ -76,40 +74,6 @@ const STATUS_STYLES: Record<SeoPageStatus, string> = {
   drafted: 'chip-warning',
   published: 'chip-success',
 };
-
-/*
- * Priority chips are OUTLINED where status chips are filled.
- *
- * The two sit side by side on the same row, and every fill that reads as
- * "urgent" was already spoken for — amber is Drafted, slate is Researched, red
- * is a hard keyword three columns along. Distinguishing them by weight instead
- * of hue means the pair never has to be told apart by colour memory, and the
- * row still has exactly one solid chip on it.
- */
-const PRIORITY_STYLES: Record<SeoPagePriority, string> = {
-  high: 'border-[rgba(234,84,85,0.45)] bg-surface text-[#cc191a]',
-  medium: 'border-line bg-surface text-ink-muted',
-  low: 'border-line bg-surface text-ink-muted',
-};
-
-/**
- * Renders nothing for an unranked page.
- *
- * A "Not ranked" chip on every untouched row would be eighty-three chips saying
- * nothing, and it would make the ranked ones harder to spot — which is the only
- * reason the chip exists.
- */
-function PriorityChip({ priority }: { priority: SeoPagePriority | null }) {
-  if (!priority) return null;
-  return (
-    <span
-      className={`shrink-0 rounded border px-2 py-0.5 text-xs font-medium ${PRIORITY_STYLES[priority]}`}
-    >
-      <span className="sr-only">Priority: </span>
-      {SEO_PRIORITY_LABELS[priority]}
-    </span>
-  );
-}
 
 /*
  * Intent colours, matched to the four enum values in 0013_seo.sql. Chosen to
@@ -309,29 +273,63 @@ function ClusterRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }
  * front of a status badge made it hard to read the one thing that changes. They
  * are all still a click away.
  */
+/**
+ * A page on the Roadmap: a disclosure with one control parked on its bar.
+ *
+ * The row is a WRAPPER now rather than the <details> itself, and that is what
+ * makes the priority control possible at all. It cannot live in the <summary>
+ * — a summary toggles on a click from any descendant, and an embedded control
+ * joins the row's accessible name — and it cannot live inside the <details>
+ * either, because every non-summary child of a shut row is hidden, which is
+ * precisely when the control has to be visible. So it is a SIBLING, stacked
+ * over the bar by the one-cell grid in `.seo-row`.
+ *
+ * `.seo-node` moves to the wrapper and `group/page` stays on the <details>: the
+ * connector elbow is drawn from the top of the ROW, and the chevron rotation
+ * has to key off the element that actually carries [open].
+ */
 function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
   const { page } = node;
 
   return (
-    <details
-      className={`seo-node group/page ${isPillar ? 'seo-node-pillar' : ''}`}
-    >
-      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-control px-4 py-2.5 hover:bg-brand-softer">
-        <Chevron level="page" />
+    <div className={`seo-node seo-row ${isPillar ? 'seo-node-pillar' : ''}`}>
+      <details className="group/page">
+        {/*
+          `pl-4`, not `px-4`: the right-hand padding is the priority lane and it
+          is declared once in CSS. A `pr-*` utility here would win over the
+          component layer and silently un-reserve it, which is a title sliding
+          under a select with nothing in a typecheck to catch it.
+        */}
+        <summary className="flex cursor-pointer list-none items-center gap-3 rounded-control pl-4 hover:bg-brand-softer">
+          <Chevron level="page" />
 
-        <span className="min-w-0 flex-1 truncate text-sm">{page.title}</span>
+          {/* `title` because this is a truncating flex child and the lane just
+              took 9rem off it — the full title has to be recoverable. */}
+          <span className="min-w-0 flex-1 truncate text-sm" title={page.title}>
+            {page.title}
+          </span>
 
-        <PriorityChip priority={page.priority} />
+          <span className={`chip shrink-0 ${STATUS_STYLES[page.status]}`}>
+            {SEO_STATUS_LABELS[page.status]}
+          </span>
+        </summary>
 
-        <span className={`chip shrink-0 ${STATUS_STYLES[page.status]}`}>
-          {SEO_STATUS_LABELS[page.status]}
-        </span>
-      </summary>
+        <div className="rounded-b-control border-t border-line-soft bg-canvas pb-2">
+          <PageDetail node={node} />
+        </div>
+      </details>
 
-      <div className="rounded-b-control border-t border-line-soft bg-canvas pb-2">
-        <PageDetail node={node} />
-      </div>
-    </details>
+      {/*
+        AFTER </details>, not before. Tab order follows the DOM, and a shut row
+        — which is most of them — then goes summary → priority, matching the
+        left-to-right reading of the bar.
+      */}
+      <SeoPriorityPicker
+        pageId={page.id}
+        pageTitle={page.title}
+        priority={page.priority}
+      />
+    </div>
   );
 }
 
@@ -357,55 +355,89 @@ function Section({ title, body }: { title: string; body: string }) {
 /** What has actually been settled for this page, once it is expanded. */
 function PageDetail({ node }: { node: SeoPageNode }) {
   const { page } = node;
-  const hasMeta = page.meta_title || page.meta_description;
+  const hasMeta = Boolean(page.meta_title || page.meta_description);
 
   /*
-   * The head term, which used to sit inline beside the title on the row above.
-   * It belongs here: it is reference, not status, and on a row it competed with
-   * the title for the same line and lost half of itself to truncation.
+   * Whether the right-hand column holds anything at all. A grid that keeps a
+   * gutter open for a page with no brief, no outline and no meta punishes
+   * exactly the rows with the least written about them.
    */
-  const primary =
-    node.keywords.find((k) => k.is_primary)?.keyword ?? page.primary_keyword;
+  const hasAside = Boolean(page.brief || page.outline || hasMeta || page.post_id);
 
   return (
-    <div className="space-y-3 px-4 pt-3 text-sm">
-      <SeoPriorityPicker pageId={page.id} priority={page.priority} />
+    /*
+     * A CONTAINER query, not a viewport breakpoint. This panel is three
+     * disclosures deep inside a branch that is already indented, next to a
+     * fixed rail — a "large" viewport still leaves it well under 48rem, so
+     * `lg:` would be answering a question about the window rather than about
+     * the box the columns have to fit in.
+     */
+    <div className="@container px-4 pt-3 text-sm">
+      <div
+        className={
+          hasAside
+            ? 'grid items-start gap-x-6 gap-y-4 @3xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]'
+            : ''
+        }
+      >
+        {/*
+          THE KEYWORDS, first in the DOM and so first when the columns stack.
+          They are why the row was opened; everything else here is reference you
+          consult. Nothing in front of them any more.
+        */}
+        <div className="min-w-0">
+          <KeywordTable keywords={node.keywords} />
 
-      {primary ? (
-        <p>
-          <span className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            Primary keyword
-          </span>{' '}
-          <span className="text-ink">{primary}</span>
-        </p>
-      ) : null}
-
-      {page.brief ? <Section title="Brief" body={page.brief} /> : null}
-      {page.outline ? <Section title="Outline" body={page.outline} /> : null}
-
-      {hasMeta ? (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
-            Meta
-          </h4>
-          {page.meta_title ? (
-            <p className="mt-1 text-ink">{page.meta_title}</p>
-          ) : null}
-          {page.meta_description ? (
-            <p className="text-ink-muted">{page.meta_description}</p>
+          {/*
+            The one thing the deleted "Primary keyword" line was still earning
+            its place for: a page carrying a denormalised primary_keyword but no
+            keyword ROWS yet. The table badges the primary row when there is
+            one — when there is not, the term would simply vanish.
+          */}
+          {node.keywords.length === 0 && page.primary_keyword ? (
+            <p className="px-4 pb-2 text-sm text-ink-muted">
+              Primary keyword{' '}
+              <span className="text-ink">{page.primary_keyword}</span>, with no
+              keyword rows imported yet.
+            </p>
           ) : null}
         </div>
-      ) : null}
 
-      <div className="border-t border-line-soft pt-2">
-        <KeywordTable keywords={node.keywords} />
+        {hasAside ? (
+          /*
+            The written work. A rule rather than a gap at the boundary, and only
+            once the columns actually split — a left border on a stacked layout
+            is a line pointing at nothing.
+          */
+          <div className="min-w-0 space-y-3 @3xl:border-l @3xl:border-line-soft @3xl:pl-6">
+            {/* Both stay folded. A brief runs to hundreds of words and an
+                outline longer; printed in full they make the row taller than
+                the screen, which defeats a roadmap. */}
+            {page.brief ? <Section title="Brief" body={page.brief} /> : null}
+            {page.outline ? <Section title="Outline" body={page.outline} /> : null}
+
+            {hasMeta ? (
+              <div>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-ink-muted">
+                  Meta
+                </h4>
+                {page.meta_title ? (
+                  <p className="mt-1 text-ink">{page.meta_title}</p>
+                ) : null}
+                {page.meta_description ? (
+                  <p className="text-ink-muted">{page.meta_description}</p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {page.post_id ? (
+              <p>
+                <Link href={`/posts/${page.post_id}`}>Open the post →</Link>
+              </p>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-
-      {page.post_id ? (
-        <p>
-          <Link href={`/posts/${page.post_id}`}>Open the post →</Link>
-        </p>
-      ) : null}
     </div>
   );
 }
