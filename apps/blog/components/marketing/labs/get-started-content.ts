@@ -6,21 +6,21 @@
  * the template's rather than invented. The words are not: the template's
  * generic agency copy is replaced with what this business actually offers.
  *
- * TWO THINGS ON THIS PAGE ARE NOT REAL YET, and both are marked below rather
- * than guessed at:
+ * ONE THING ON THIS PAGE IS NOT REAL YET, and it is marked below rather than
+ * guessed at: CONTACT_CHANNELS carries no addresses, numbers or locations.
+ * Inventing an email for a contact page is worse than leaving it blank — a
+ * plausible address that nobody reads swallows enquiries silently, which is the
+ * exact failure this page exists to prevent. Fill these in and they render as
+ * real links.
  *
- *   - CONTACT_CHANNELS carries no addresses, numbers or locations. Inventing
- *     an email for a contact page is worse than leaving it blank: a plausible
- *     address that nobody reads swallows enquiries silently, which is the
- *     exact failure this page exists to prevent. Fill these in and they render
- *     as real links.
- *   - ENQUIRY_FIELDS is presentational. The live form at
- *     nanotomlabs.com/demo-survey-page is a HighLevel funnel page rather than
- *     an embeddable widget, so there was nothing to lift — and it asks
- *     qualification questions (business name, whether there is a site already,
- *     industry) that these template fields do not. Wiring the real one needs
- *     the form or survey ID from the HighLevel account; Capital's SURVEY
- *     constant and HighLevelForm component already do exactly this job.
+ * THE FORM IS REAL NOW. It used to be ENQUIRY_FIELDS here: a presentational
+ * field set with every control disabled, because the live form was a HighLevel
+ * FUNNEL page rather than an embeddable widget and there was nothing to lift.
+ * Denis supplied the survey's embed code, so the page renders that survey
+ * instead — see SURVEY in ./brand.ts — and the template's fields are gone
+ * rather than left beside it. The questions it asks (business name, whether
+ * there is a site already) are the qualification the template's First Name /
+ * Last Name / Message never captured.
  */
 
 export const GET_STARTED_HERO = {
@@ -87,25 +87,5 @@ export const CONTACT_CHANNELS: readonly ContactChannel[] = [
 /** Shown in place of a detail that does not exist yet. */
 export const CONTACT_PENDING = 'Coming soon';
 
-export type EnquiryField = {
-  /** Also the input's id, so the label's `htmlFor` cannot drift from it. */
-  id: string;
-  label: string;
-  placeholder: string;
-  type: 'text' | 'email' | 'tel' | 'textarea';
-  /** Half-width on desktop, so first and last name share a row. */
-  half?: boolean;
-};
-
-export const ENQUIRY_FIELDS: readonly EnquiryField[] = [
-  { id: 'gs-first-name', label: 'First Name', placeholder: 'Enter First Name', type: 'text', half: true },
-  { id: 'gs-last-name', label: 'Last Name', placeholder: 'Enter Last Name', type: 'text', half: true },
-  { id: 'gs-email', label: 'Email', placeholder: 'Enter your Email', type: 'email' },
-  { id: 'gs-phone', label: 'Phone Number', placeholder: 'Enter Phone Number', type: 'tel' },
-  { id: 'gs-message', label: 'Message', placeholder: 'Enter your Message', type: 'textarea' },
-];
-
-export const ENQUIRY_FORM_COPY = {
-  consent: 'I agree with the Terms of Use and Privacy Policy',
-  submit: 'Send Your Message',
-} as const;
+/** The embedded survey's accessible name — see HighLevelForm. */
+export const ENQUIRY_SURVEY_TITLE = 'Nanotom Labs get started survey';

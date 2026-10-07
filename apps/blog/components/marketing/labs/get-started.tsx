@@ -2,12 +2,13 @@ import { Fragment } from 'react';
 
 import Link from 'next/link';
 
+import { HighLevelForm } from '../highlevel-form';
+import { SURVEY } from './brand';
 import { SERVICE_MARQUEE } from './content';
 import {
   CONTACT_CHANNELS,
   CONTACT_PENDING,
-  ENQUIRY_FIELDS,
-  ENQUIRY_FORM_COPY,
+  ENQUIRY_SURVEY_TITLE,
   GET_STARTED_HERO,
   REACH_US,
 } from './get-started-content';
@@ -35,6 +36,14 @@ import { Faq, StatGrid, Testimonials } from './sections';
  * NO MOBILE ARTBOARD was supplied for this frame either, so everything below
  * `lg` is an inference from the homepage's mobile frame: the stat grid moves
  * under the copy, the contact card above the form, and both go full width.
+ *
+ * THE ONE PAGE OF THIS SITE THAT SHIPS CLIENT JAVASCRIPT, and the exception is
+ * deliberate. Every other Labs route is server-rendered markup and CSS down to
+ * the menus and the tabs — but the form is a HighLevel survey in an iframe, and
+ * its resizer script is what keeps the frame the height of its own content. A
+ * clipped form is a lost enquiry, which is a worse trade than one <script> on
+ * the single page whose job is capturing them. The contact tabs beside it are
+ * still CSS-only.
  */
 
 /** The page's own form, which every call on it points at. */
@@ -200,69 +209,30 @@ function ContactChannels() {
 }
 
 /**
- * The enquiry form.
+ * The enquiry form: Denis's HighLevel survey, embedded.
  *
- * PRESENTATIONAL, like the two already on the site: no endpoint, so every
- * control is disabled and there is no <form> element at all — a bare form would
- * post to the current URL on Enter and look like it had worked. On the page
- * whose entire job is capturing an enquiry, a field that accepts an address and
- * discards it is the most expensive thing that could ship here.
+ * IT USED TO BE A DRAWING. The template's field set shipped here with every
+ * control disabled and no <form> element at all, because there was no endpoint
+ * — on the page whose entire job is capturing an enquiry, a field that accepts
+ * an address and discards it is the most expensive thing that could ship. The
+ * survey is real and posts into the CRM, so the drawing is gone rather than
+ * sitting beside it.
+ *
+ * THE CARD AROUND IT IS LOAD-BEARING. The widget's document is transparent and
+ * its own card is 650px wide and centred, so without this wrapper the survey
+ * would float on the panel ground with the channel card beside it in a card —
+ * two columns that do not look like a pair. With it, the brand's dark card
+ * shows through around the widget and the two columns match. The padding is the
+ * only thing this file controls; the widget's colours are set in HighLevel.
  */
-function EnquiryForm() {
+function EnquirySurvey() {
   return (
     <div
       id="enquiry"
       className="scroll-mt-28 rounded-[var(--nl-radius-card)] bg-[var(--nl-card)] p-5 lg:p-8"
     >
-      <div className="grid gap-5 sm:grid-cols-2">
-        {ENQUIRY_FIELDS.map((field) => (
-          <div key={field.id} className={field.half ? undefined : 'sm:col-span-2'}>
-            <label htmlFor={field.id} className="nl-label text-[10px] text-[var(--nl-muted)] lg:text-xs">
-              {field.label}
-            </label>
-
-            {field.type === 'textarea' ? (
-              <textarea
-                id={field.id}
-                rows={5}
-                disabled
-                placeholder={field.placeholder}
-                className="mt-3 w-full resize-none rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3.5 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
-              />
-            ) : (
-              <input
-                id={field.id}
-                type={field.type}
-                disabled
-                placeholder={field.placeholder}
-                className="mt-3 w-full rounded-[var(--nl-radius-input)] border border-[var(--nl-line)] bg-[var(--nl-raised)] px-4 py-3.5 text-sm text-[var(--nl-body)] outline-none placeholder:text-[var(--nl-muted)]"
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-start gap-3">
-          <input
-            id="gs-consent"
-            type="checkbox"
-            disabled
-            className="mt-0.5 size-4 shrink-0 rounded-[var(--nl-radius-badge)] border border-[var(--nl-line-strong)] bg-[var(--nl-raised)]"
-          />
-          <label htmlFor="gs-consent" className="text-sm text-[var(--nl-muted)]">
-            {ENQUIRY_FORM_COPY.consent}
-          </label>
-        </div>
-
-        <button
-          type="button"
-          disabled
-          className="nl-label shrink-0 rounded-[var(--nl-radius-control)] bg-[var(--nl-accent)] px-8 py-4 text-xs text-[#0f0f0f] lg:text-sm"
-        >
-          {ENQUIRY_FORM_COPY.submit}
-        </button>
-      </div>
+      {/* `eager`, for the reason /get-funded is: this survey is the page. */}
+      <HighLevelForm eager survey={SURVEY} title={ENQUIRY_SURVEY_TITLE} />
     </div>
   );
 }
@@ -273,13 +243,19 @@ function EnquiryForm() {
  * The artwork's split is 570:1250 — the form gets the room, because it is what
  * the page is for and the channel card is three short lists. Below `lg` the
  * card sits above the form rather than beside it.
+ *
+ * The survey does not fill 1250px; it centres its own 650px card in whatever
+ * width it is given. The split stays the artwork's anyway, because the number
+ * that matters here is the channel card's — narrowing the right column to fit
+ * the widget would widen the left one past what it was measured at, to solve a
+ * gap that reads as room.
  */
 function Contact() {
   return (
     <Panel className="mt-[var(--nl-section-gap)]">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,570fr)_minmax(0,1250fr)]">
         <ContactChannels />
-        <EnquiryForm />
+        <EnquirySurvey />
       </div>
     </Panel>
   );
@@ -291,7 +267,15 @@ export function LabsGetStarted() {
       <Hero />
       <Contact />
       <Testimonials />
-      <Faq />
+
+      {/*
+       * NO SECOND FORM. The shared FAQ carries the site's placeholder enquiry
+       * form in its right column — which is right on the five pages that have
+       * no other form, and wrong on this one: a dead field set a screen below a
+       * live survey takes the enquiry that should have gone into the CRM. The
+       * questions go two-up across the full width instead.
+       */}
+      <Faq enquiryForm={false} />
     </div>
   );
 }

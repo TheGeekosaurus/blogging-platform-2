@@ -472,7 +472,18 @@ describe('the HighLevel survey embed', () => {
    * initialHeight, with no console error and no failing request.
    */
   it('gives the iframe the id the resize handler looks up', async () => {
-    expect(await source()).toContain('id={SURVEY.id}');
+    expect(await source()).toContain('id={survey.id}');
+  });
+
+  /*
+   * The component takes a `survey` now, because Nanotom Labs embeds a DIFFERENT
+   * survey from the same account through it. Capital's pages pass nothing, so
+   * the default is what keeps /get-funded and the homepage pointed at the
+   * funding qualifier — change it and both silently start collecting leads into
+   * the wrong pipeline.
+   */
+  it('still defaults to the funding qualifier for Capital\'s own pages', async () => {
+    expect(await source()).toContain('survey = SURVEY');
   });
 
   it('loads the resizer after hydration, so the iframe already exists', async () => {
@@ -482,10 +493,24 @@ describe('the HighLevel survey embed', () => {
     expect(code).not.toMatch(/<script\s+src=/);
   });
 
+  /*
+   * A ONE-LINE FIX FOR A BUG THAT LOOKS LIKE A BROKEN IMAGE.
+   *
+   * Both sites set `color-scheme: dark` on <body>, both surveys are light
+   * documents, and an iframe inherits the scheme. Chrome resolves the mismatch
+   * by painting the frame an opaque white base background — on Nanotom Labs'
+   * dark page that is a white slab around the form, with nothing in the CSS or
+   * the console to explain it. Declaring the frame light matches it to its
+   * content and the backdrop goes away. Verified in a browser, not inferred.
+   */
+  it('declares the frame light, so Chrome paints no backdrop behind it', async () => {
+    expect(await source()).toContain("colorScheme: 'light'");
+  });
+
   it('reserves a height so the sections below it do not jump', async () => {
     const { SURVEY } = await import('../components/marketing/brand');
     expect(SURVEY.initialHeight).toBeGreaterThan(0);
-    expect(await source()).toContain('height: SURVEY.initialHeight');
+    expect(await source()).toContain('height: survey.initialHeight');
   });
 });
 
