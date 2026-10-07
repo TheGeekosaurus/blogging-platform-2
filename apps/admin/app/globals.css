@@ -54,6 +54,15 @@
    */
   --color-ink-faint: rgba(47, 43, 61, 0.45);
   --color-line: rgba(47, 43, 61, 0.12);
+  /*
+   * Structural lines that carry meaning — the SEO tree's connector.
+   *
+   * Stronger than --color-line, which is right for a full-width rule but
+   * vanishes as a 1px bracket in a gutter: a rule is read as a boundary and
+   * only has to be noticed, where this is read as "these belong to that" and
+   * has to be followed.
+   */
+  --color-connector: rgba(47, 43, 61, 0.22);
   --color-line-soft: rgba(47, 43, 61, 0.06);
 
   /* The rail. Four values; swap them for a light rail. */
@@ -453,6 +462,139 @@
   .rail-sublink-active .rail-dot {
     opacity: 1;
     box-shadow: 0 0 0 3px rgba(98, 84, 238, 0.25);
+  }
+
+  /* ----------------------------------------------------------------------
+   * The SEO cluster tree
+   * ------------------------------------------------------------------- */
+
+  /*
+   * A group of sibling cards with a connector line down their left.
+   *
+   * WHY THE TRUNK IS ON THE CONTAINER, not a segment per card. These rows are
+   * <details> with wildly variable heights — 44px shut, 600px open with a
+   * keyword table and a brief — so anything that reasons about a card's height
+   * breaks the moment one is opened. One line spanning top:0 to bottom:0 of a
+   * box that grows with its children cannot develop gaps. Each card then draws
+   * only its own elbow, and the last one masks the tail.
+   *
+   * Both offsets below derive from the same two variables as the padding, so
+   * the elbow meets the trunk exactly rather than a half-pixel beside it.
+   */
+  .seo-branch {
+    --trunk: 1rem;
+    --elbow: 1.5rem;
+    /* How far above its card an elbow starts, so the curve has something to
+       turn from. */
+    --reach: 0.5rem;
+    /*
+     * The height of a SHUT row, declared rather than measured.
+     *
+     * The elbow has to meet a card at the middle of its title row, not at the
+     * middle of the card — an open row is 600px of keyword table and brief,
+     * and pointing the connector at the centre of that lands it in the middle
+     * of the panel with nothing beside it. So the row height has to be a
+     * number this file knows.
+     *
+     * Setting it on the summary rather than inferring it from the padding:
+     * measured, the two screens came out 40px and 42.8px, because a status
+     * chip is a shade taller than text. Deriving the elbow from one of those
+     * would have been right on one screen and 1.4px out on the other, and
+     * would drift again the next time the padding changed.
+     */
+    --row: 2.75rem;
+    position: relative;
+    padding-left: calc(var(--trunk) + var(--elbow));
+    /* Matches --reach, so the FIRST card's elbow starts inside this container
+       rather than poking up into the group label above it. */
+    padding-top: var(--reach);
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .seo-branch::before {
+    content: '';
+    position: absolute;
+    left: var(--trunk);
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid var(--color-connector);
+  }
+
+  .seo-node {
+    position: relative;
+    background: var(--color-surface);
+    border-radius: var(--radius-control);
+    box-shadow: var(--shadow-card);
+  }
+
+  /* Every row is --row tall shut, whatever it carries, so the elbows line up
+     with each other and across the two screens. */
+  .seo-node > summary {
+    min-height: var(--row);
+  }
+
+  /* The elbow: down the gutter, then a rounded turn into the card's title
+     row — `--row / 2`, never `50%`. See --row above. */
+  .seo-node::before {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--elbow));
+    width: var(--elbow);
+    top: calc(-1 * var(--reach));
+    height: calc(var(--reach) + var(--row) / 2);
+    border-left: 1px solid var(--color-connector);
+    border-bottom: 1px solid var(--color-connector);
+    border-bottom-left-radius: var(--radius-control);
+    pointer-events: none;
+  }
+
+  /*
+   * Terminate the trunk at the last card's centre.
+   *
+   * Painting over the tail rather than sizing the trunk to stop there: the
+   * stopping point is half of a card whose height is unknown and changes when
+   * it opens. The gutter is always --color-canvas, so the mask is exact. 3px
+   * over a 1px border so sub-pixel antialiasing is covered too, rather than
+   * left behind as a faint stripe.
+   */
+  .seo-node:last-child::after {
+    content: '';
+    position: absolute;
+    left: calc(-1 * var(--elbow) - 1px);
+    width: 3px;
+    top: calc(var(--row) / 2);
+    /* The last card's bottom edge IS the container's, so this reaches the end
+       of the trunk exactly. */
+    bottom: 0;
+    background: var(--color-canvas);
+    pointer-events: none;
+  }
+
+  /*
+   * The pillar's brand edge, as an inset shadow rather than a border: a
+   * border-left on a card with a radius and no other border shifts its content
+   * relative to its siblings and draws the corner curve in two colours.
+   */
+  .seo-node-pillar {
+    box-shadow:
+      inset 3px 0 0 var(--color-brand),
+      var(--shadow-card);
+  }
+
+  /* The group label above a branch — "Pillar", "Clusters: 11" — and, on the
+     Keywords screen, the column headers that sit on the same line. */
+  .seo-group-head {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem 0.25rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
   }
 
   .rail-heading {

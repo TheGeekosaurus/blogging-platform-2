@@ -43,6 +43,25 @@ import { SeoPriorityPicker } from './seo-priority-picker';
 
 export type SeoTreeVariant = 'research' | 'roadmap';
 
+/*
+ * The four right-hand columns on a Keywords row.
+ *
+ * One constant rather than the same widths typed into both the summary and the
+ * header above it: a header that is two rem out from the figures it labels is
+ * worse than no header, and nothing in a typecheck or a test would catch it.
+ * The leading spacer matches the chevron so the first column starts where the
+ * label does.
+ */
+const COL = {
+  // w-20, not w-16: "Keywords" is wider than 4rem at this size, and a flex
+  // child will not shrink below its content, so the header was shouldering
+  // into the Intent column next to it.
+  count: 'w-20 text-right',
+  intent: 'w-28',
+  kd: 'w-16 text-right',
+  volume: 'w-16 text-right',
+} as const;
+
 const KD_DOT: Record<KdBand, string> = {
   'very-easy': 'bg-emerald-600',
   easy: 'bg-emerald-400',
@@ -52,10 +71,10 @@ const KD_DOT: Record<KdBand, string> = {
 };
 
 const STATUS_STYLES: Record<SeoPageStatus, string> = {
-  researched: 'bg-line text-ink-muted',
-  briefed: 'bg-sky-100 text-sky-900',
-  drafted: 'bg-amber-100 text-amber-900',
-  published: 'bg-emerald-100 text-emerald-900',
+  researched: 'chip-neutral',
+  briefed: 'chip-brand',
+  drafted: 'chip-warning',
+  published: 'chip-success',
 };
 
 /*
@@ -68,9 +87,9 @@ const STATUS_STYLES: Record<SeoPageStatus, string> = {
  * row still has exactly one solid chip on it.
  */
 const PRIORITY_STYLES: Record<SeoPagePriority, string> = {
-  high: 'border-rose-300 bg-rose-50 text-rose-900',
+  high: 'border-[rgba(234,84,85,0.45)] bg-surface text-[#cc191a]',
   medium: 'border-line bg-surface text-ink-muted',
-  low: 'border-line bg-white text-ink-muted',
+  low: 'border-line bg-surface text-ink-muted',
 };
 
 /**
@@ -209,9 +228,7 @@ function KeywordTable({ keywords }: { keywords: SeoKeywordRow[] }) {
             <td className="py-2 pl-4 pr-3">
               {k.keyword}
               {k.is_primary ? (
-                <span className="ml-2 rounded bg-indigo-100 px-1.5 py-0.5 text-[0.6875rem] font-medium text-indigo-900">
-                  primary
-                </span>
+                <span className="chip chip-brand ml-2">primary</span>
               ) : null}
             </td>
             <td className="px-3 py-2 text-right">
@@ -247,30 +264,32 @@ function ClusterRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }
 
   return (
     <details
-      className={`group/page border-b border-line-soft last:border-0 ${
-        isPillar ? 'border-l-2 border-l-brand' : ''
-      }`}
+      className={`seo-node group/page ${isPillar ? 'seo-node-pillar' : ''}`}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-brand-softer">
+      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-control px-4 py-2.5 hover:bg-brand-softer">
         <Chevron level="page" />
 
         <span className="min-w-0 flex-1 truncate text-sm">{clusterLabel(node)}</span>
 
-        <span className="hidden w-16 shrink-0 text-right text-xs tabular-nums text-ink-muted sm:block">
+        <span
+          className={`hidden shrink-0 text-xs tabular-nums text-ink-muted sm:block ${COL.count}`}
+        >
           {metrics.keywordCount} kw
         </span>
-        <span className="hidden w-28 shrink-0 sm:block">
+        <span className={`hidden shrink-0 sm:block ${COL.intent}`}>
           <IntentBar mix={intent} />
         </span>
-        <span className="w-16 shrink-0 text-right text-sm">
+        <span className={`shrink-0 text-sm ${COL.kd}`}>
           <KdDot kd={metrics.kd} />
         </span>
-        <span className="w-16 shrink-0 text-right text-sm tabular-nums">
+        <span className={`shrink-0 text-sm tabular-nums ${COL.volume}`}>
           {formatVolume(metrics.volume)}
         </span>
       </summary>
 
-      <div className="bg-canvas pb-2">
+      {/* Tinted, so the expanded table reads as the inside of this card rather
+          than as another card stacked under it. */}
+      <div className="rounded-b-control border-t border-line-soft bg-canvas pb-2">
         <KeywordTable keywords={node.keywords} />
       </div>
     </details>
@@ -295,25 +314,21 @@ function PageRow({ node, isPillar }: { node: SeoPageNode; isPillar: boolean }) {
 
   return (
     <details
-      className={`group/page border-b border-line-soft last:border-0 ${
-        isPillar ? 'border-l-2 border-l-brand' : ''
-      }`}
+      className={`seo-node group/page ${isPillar ? 'seo-node-pillar' : ''}`}
     >
-      <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-2.5 hover:bg-brand-softer">
+      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-control px-4 py-2.5 hover:bg-brand-softer">
         <Chevron level="page" />
 
         <span className="min-w-0 flex-1 truncate text-sm">{page.title}</span>
 
         <PriorityChip priority={page.priority} />
 
-        <span
-          className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[page.status]}`}
-        >
+        <span className={`chip shrink-0 ${STATUS_STYLES[page.status]}`}>
           {SEO_STATUS_LABELS[page.status]}
         </span>
       </summary>
 
-      <div className="bg-canvas pb-2">
+      <div className="rounded-b-control border-t border-line-soft bg-canvas pb-2">
         <PageDetail node={node} />
       </div>
     </details>
@@ -415,7 +430,7 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
       : 'pages';
 
   return (
-    <details className="group/topic rounded border border-line bg-white">
+    <details className="card group/topic overflow-hidden">
       <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-brand-softer">
         <Chevron level="topic" />
 
@@ -441,7 +456,7 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
         {/* Only when there is some, and only on the roadmap: this is the one
             thing a closed topic needs to be able to say. */}
         {!research && priorityCounts.high > 0 ? (
-          <span className="shrink-0 rounded border border-rose-300 bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-900">
+          <span className="chip chip-danger shrink-0">
             {priorityCounts.high} high
           </span>
         ) : null}
@@ -458,7 +473,15 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
         </span>
       </summary>
 
-      <div className="border-t border-line">
+      {/*
+        Tinted, so the children read as cards sitting ON the topic rather than
+        as rows inside it — which is the whole point of the change.
+
+        A branch PER GROUP rather than one spanning both: the group label sits
+        between them, and a connector running through a heading reads as a
+        mistake rather than as structure.
+      */}
+      <div className="border-t border-line bg-canvas pb-3">
         {childCount === 0 ? (
           <p className="px-4 py-3 text-sm text-ink-muted">
             {research ? 'No clusters in this topic yet.' : 'No pages in this topic yet.'}
@@ -467,34 +490,69 @@ function TopicRow({ node, variant }: { node: SeoTopicNode; variant: SeoTreeVaria
           <>
             {pillar ? (
               <>
-                <p className="border-b border-line-soft bg-canvas px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
-                  {research ? 'Pillar' : 'Pillar page'}
-                </p>
-                <ChildRow node={pillar} variant={variant} isPillar />
+                <GroupHead
+                  label={research ? 'Pillar' : 'Pillar page'}
+                  research={research}
+                />
+                <div className="seo-branch">
+                  <ChildRow node={pillar} variant={variant} isPillar />
+                </div>
               </>
             ) : null}
 
             {subs.length > 0 ? (
               <>
-                <p className="border-b border-line-soft bg-canvas px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-ink-muted">
-                  {pillar
-                    ? `${research ? 'Supporting' : 'Subpages'}: ${subs.length}`
-                    : `${research ? 'Clusters' : 'Pages'}: ${subs.length}`}
-                </p>
-                {subs.map((sub) => (
-                  <ChildRow
-                    key={sub.page.id}
-                    node={sub}
-                    variant={variant}
-                    isPillar={false}
-                  />
-                ))}
+                <GroupHead
+                  label={
+                    pillar
+                      ? `${research ? 'Supporting' : 'Subpages'}: ${subs.length}`
+                      : `${research ? 'Clusters' : 'Pages'}: ${subs.length}`
+                  }
+                  research={research}
+                />
+                <div className="seo-branch">
+                  {subs.map((sub) => (
+                    <ChildRow
+                      key={sub.page.id}
+                      node={sub}
+                      variant={variant}
+                      isPillar={false}
+                    />
+                  ))}
+                </div>
               </>
             ) : null}
           </>
         )}
       </div>
     </details>
+  );
+}
+
+/**
+ * The label above a branch, and on the Keywords screen the column headers.
+ *
+ * The headers are only on the research variant because the Roadmap has no
+ * numeric columns to head — they were taken off those rows deliberately, and a
+ * lone "Status" heading over one chip is decoration.
+ */
+function GroupHead({ label, research }: { label: string; research: boolean }) {
+  return (
+    <p className="seo-group-head">
+      {/* Spacer matching the chevron, so the label starts where a row's label
+          does rather than four pixels left of it. */}
+      <span aria-hidden="true" className="w-3.5 shrink-0" />
+      <span className="min-w-0 flex-1">{label}</span>
+
+      {research ? (
+        <>
+          <span className={`hidden shrink-0 sm:block ${COL.count}`}>Keywords</span>
+          <span className={`hidden shrink-0 sm:block ${COL.intent}`}>Intent</span>
+          <span className={`shrink-0 ${COL.kd}`}>KD</span>
+          <span className={`shrink-0 ${COL.volume}`}>Volume</span>
+        </>
+      ) : null}
+    </p>
   );
 }
 
@@ -524,7 +582,7 @@ export function SeoTreeView({
   variant: SeoTreeVariant;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {tree.topics.map((node) => (
         <TopicRow
           key={node.topic?.id ?? 'no-topic'}
@@ -539,7 +597,7 @@ export function SeoTreeView({
         — and a screen that omits them quietly loses the work.
       */}
       {tree.unassigned.length > 0 ? (
-        <details className="group/topic rounded border border-dashed border-line bg-white">
+        <details className="card group/topic overflow-hidden border border-dashed border-line">
           <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3 hover:bg-brand-softer">
             <Chevron level="topic" />
             <span className="flex-1 text-sm font-semibold">Not yet clustered</span>
