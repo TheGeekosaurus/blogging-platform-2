@@ -539,11 +539,20 @@ export type Reason = { title: string; body: string };
  * under it do not yet.
  */
 export const REASONS: readonly Reason[] = [
+  /*
+   * FIRST, AND THE ONLY ONE THAT IS A COMMITMENT RATHER THAN A CLAIM.
+   *
+   * It replaced the template's "Expertise in Cutting-Edge Technologies", which
+   * said nothing a competitor could not also say and nothing a visitor could
+   * hold us to. This one is checkable the month after signing, which is why it
+   * leads: every other card on this row is an adjective.
+   */
   {
-    title: 'Expertise in Cutting-Edge Technologies',
+    title: 'No Contracts, Ever',
     body:
-      'Nanotom Labs ensures your projects are powered by state-of-the-art technologies, ' +
-      'guaranteeing innovation and future-proof solutions.',
+      'Every engagement runs month to month. Nothing ties you to a year of invoices: we ' +
+      'earn the next month with what we did in the last one, and if we stop proving our ' +
+      'value, you can fire us.',
   },
   {
     title: 'Proven Track Record of Success',

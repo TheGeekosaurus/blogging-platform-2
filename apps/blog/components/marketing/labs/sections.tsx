@@ -309,8 +309,16 @@ export function EnquiryForm() {
  * The FAQ has no panel: its rows and the form sit straight on the page ground,
  * and only the heading is a card. Column widths are the artwork's — 1054px of
  * rows against a 746px form.
+ *
+ * `enquiryForm={false}` IS FOR A PAGE THAT ALREADY HAS A REAL ONE. The form in
+ * that right column is the placeholder — disabled, no endpoint — and on the
+ * five pages with nothing else it is the best available answer to "and where do
+ * I ask?". On /get-started it is not: the live survey is a screen above it, and
+ * a dead field set below a working one quietly takes enquiries that would
+ * otherwise have been captured. With the column gone the questions go two-up
+ * rather than stretching to 1824px, which is well past a readable measure.
  */
-export function Faq() {
+export function Faq({ enquiryForm = true }: { enquiryForm?: boolean }) {
   return (
     <div className="mt-[var(--nl-section-gap)]">
       {/*
@@ -321,8 +329,24 @@ export function Faq() {
        */}
       <SectionHeader id="faq" title={SECTIONS.faq} />
 
-      <div className="nl-faq mt-5 grid gap-5 lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]">
-        <div className="flex flex-col gap-4">
+      <div
+        className={`nl-faq mt-5 grid gap-5 ${
+          enquiryForm ? 'lg:grid-cols-[minmax(0,1054fr)_minmax(0,746fr)]' : ''
+        }`}
+      >
+        {/*
+         * `lg:items-start` matters in the two-up layout and nowhere else: grid
+         * items stretch to their row by default, so an open <details> would
+         * drag its closed neighbour to the same height and leave it padded with
+         * dead space below the question.
+         */}
+        <div
+          className={
+            enquiryForm
+              ? 'flex flex-col gap-4'
+              : 'grid gap-4 lg:grid-cols-2 lg:items-start'
+          }
+        >
           {FAQS.map((faq, index) => (
             <details
               key={faq.question}
@@ -358,7 +382,7 @@ export function Faq() {
           ))}
         </div>
 
-        <EnquiryForm />
+        {enquiryForm ? <EnquiryForm /> : null}
       </div>
     </div>
   );
