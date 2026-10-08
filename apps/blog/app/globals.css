@@ -3050,3 +3050,233 @@
   visibility: hidden;
   opacity: 0;
 }
+
+/* ===========================================================================
+ * NANOTOM CAPITAL POST BODIES
+ *
+ * Denis, 2026-10-08, pointing at a site he likes: tables in two of our blues
+ * with the button radius, every heading in the green of the hero's "GROW", and
+ * a gold dollar for bullets — numbers where the list is numbered.
+ *
+ * SCOPED TO `.marketing-root`, WHICH IS THE WHOLE POINT. `.post-body` is not
+ * Capital's class: apps/blog is deployed once per blog from one codebase, and
+ * components/page-body.tsx renders the same class for database 'prose' pages.
+ * Styling it bare would paint Nanotom's brand onto every other tenant's blog.
+ * `.marketing-root` is the <body> class BODY_CLASS gives this deployment and
+ * nothing else, so these rules reach Capital's posts and Capital's prose pages
+ * and stop there.
+ *
+ * AND THEY HAVE TO SURVIVE THE READER'S DARK MODE. The post page is
+ * `.blog-surface`, which is light by default and flips under
+ * html[data-theme='dark'] — a toggle Capital still ships. So every colour below
+ * was measured on BOTH grounds (#ffffff and #141414), not just the white one.
+ * ======================================================================== */
+@layer components {
+  .marketing-root {
+    /*
+     * The hero's accent, which is the colour Denis sampled: DaylightHero paints
+     * the last word of "…Needs To Grow" with it.
+     *
+     * DECLARED TWICE, here and on `.dl-surface`, and that is not an oversight.
+     * The post body lives inside `.blog-surface`, which is not a descendant of
+     * `.dl-surface`, so the token simply is not in scope there. The same
+     * arrangement --ft-subhead already uses, and a test holds both declarations
+     * to the same hex so they cannot drift.
+     */
+    --nc-display: #0794ab;
+
+    /* Brand gold, for the list markers. Same value as --dl-gold. */
+    --nc-gold: #e0a840;
+    /* The ink that rides on gold — 8.69:1, as on the hero's arrow disc. */
+    --nc-on-gold: #1a1205;
+
+    /* The two blues a table is built from: the brand navy and a tint of it. */
+    --nc-table-head: #0b2d72;
+    --nc-table-stripe: #f1f5fb;
+  }
+
+  /* -------------------------------------------------------------------------
+   * HEADINGS
+   *
+   * THE WEIGHT AND THE h4 SIZE ARE A CONTRAST RULE, not taste. #0794AB is
+   * 3.60:1 on white, which clears WCAG's 3:1 for LARGE text and misses the
+   * 4.5:1 it wants for everything else — so whether this colour is allowed
+   * depends entirely on whether each heading counts as large.
+   *
+   *   h2  28px  large on size alone (>=24px)            3.60 vs 3.0   ok
+   *   h3  20px  large only once bold (>=18.66px bold)   needs the 700
+   *   h4  18px  NOT large at any weight, so it goes to 19px
+   *
+   * 650 was the old weight and 18.66px is the threshold, which is why h4 moves
+   * to 1.1875rem — the same 19px the funding subhead uses for the same reason.
+   * On the dark blog theme the colour measures 5.12:1 and all three pass
+   * outright; it is the white ground that sets the floor.
+   * ---------------------------------------------------------------------- */
+  .marketing-root .post-body :is(h2, h3, h4) {
+    color: var(--nc-display);
+    font-weight: 700;
+  }
+
+  .marketing-root .post-body h4 {
+    font-size: 1.1875rem;
+  }
+
+  /* -------------------------------------------------------------------------
+   * TABLES
+   *
+   * `border-radius` works here only because the base rule already sets
+   * `display: block; overflow-x: auto` to let a wide table scroll — a block box
+   * with hidden overflow clips its corners, where a real `display: table` would
+   * ignore the radius entirely under `border-collapse: collapse`.
+   *
+   * 0.375rem is the button radius, which is what Denis asked for. It is subtle
+   * at table width; raising it is this one number.
+   * ---------------------------------------------------------------------- */
+  .marketing-root .post-body table {
+    /*
+     * `display: table`, OVERRIDING the base rule's `display: block`, and that
+     * is the one piece of this that had to be rebuilt rather than added.
+     *
+     * The base makes the table a block so a wide one can scroll. The cost only
+     * shows once the table has a visible frame: a block box is 100% wide, but
+     * the rows inside it form an anonymous table that shrink-wraps to its
+     * content — so a narrow table drew its navy header and its stripes across
+     * part of the width and left the rest as a white gutter inside the rounded
+     * border. Measured at 1280px: rows ended at 1145 inside a 1455px frame.
+     *
+     * A real table with `width: 100%` fills the frame. What it gives up is the
+     * horizontal scroll, so a very wide table now wraps its cells instead of
+     * scrolling — which for editorial tables of a few short columns is the
+     * better of the two, and is checked at 360px rather than assumed.
+     */
+    display: table;
+    width: 100%;
+    border-radius: 0.375rem;
+    border: 1px solid var(--color-line);
+    /* Clips the header's navy corners to the radius — `border-collapse` is
+       `collapse` from the base rule, under which cells cannot round
+       themselves. */
+    overflow: hidden;
+  }
+
+  /*
+   * NARROW SCREENS GET THE SCROLL BACK, and this is not belt and braces — it
+   * is the measured cost of the rule above. A real table cannot compress below
+   * its min-content width, so at 360px the four-column table stood 390px wide
+   * and pushed 50px of horizontal scroll onto the PAGE. Checked, not assumed.
+   *
+   * The gutter that `display: table` exists to fix cannot happen here: it only
+   * appears when the table is NARROWER than its column, and on a phone the
+   * content is always wider. So below `sm` the base behaviour is correct and
+   * the table scrolls inside its own frame instead of taking the page with it.
+   */
+  @media (max-width: 639px) {
+    .marketing-root .post-body table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+
+  /* The outer border is on the table now, so the cells drop their own and keep
+     only the rules BETWEEN rows. Otherwise every edge is doubled. */
+  .marketing-root .post-body :is(th, td) {
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.7em 0.9em;
+  }
+
+  .marketing-root .post-body tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* The first blue: the brand navy, white on it at 12.86:1 on either theme. */
+  .marketing-root .post-body th {
+    background: var(--nc-table-head);
+    color: #ffffff;
+    font-weight: 600;
+  }
+
+  /* The second: a tint of the same navy on alternate rows. Body ink reads
+     16.23:1 on it and the muted tone 5.47:1. */
+  .marketing-root .post-body tbody tr:nth-child(even) {
+    background: var(--nc-table-stripe);
+  }
+
+  /* -------------------------------------------------------------------------
+   * LISTS
+   *
+   * A gold dollar for bullets, a gold disc with the numeral for ordered lists,
+   * so the two read as one family rather than two unrelated treatments.
+   *
+   * `::before` rather than `list-style-image` on `::marker`: a marker image
+   * cannot be sized or vertically aligned, and at these sizes it sat a few
+   * pixels low in every browser. An absolutely positioned pseudo-element can be
+   * placed exactly.
+   *
+   * THE GOLD DISC IS DECORATIVE, which is what makes 2.13:1 on white
+   * acceptable — the list item's own text carries the meaning and the marker
+   * is beside it, the same argument the use-of-funds icons rest on. The
+   * NUMERAL is not decorative, and it is #1A1205 on the gold at 8.69:1.
+   *
+   * `> li` only, so a nested list gets the same treatment at its own level
+   * rather than inheriting a marker from its parent.
+   * ---------------------------------------------------------------------- */
+  .marketing-root .post-body :is(ul, ol) {
+    list-style: none;
+    padding-left: 2em;
+  }
+
+  .marketing-root .post-body :is(ul, ol) > li {
+    position: relative;
+  }
+
+  .marketing-root .post-body ul > li::before {
+    content: '';
+    position: absolute;
+    left: -1.85em;
+    top: 0.2em;
+    width: 1.25em;
+    height: 1.25em;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='12' fill='%23E0A840'/%3E%3Cg fill='none' stroke='%231A1205' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 5.2v13.6'/%3E%3Cpath d='M15.4 8.9c0-1.4-1.5-2.3-3.4-2.3s-3.4 1-3.4 2.5c0 3.6 6.8 1.6 6.8 5.2 0 1.6-1.5 2.5-3.4 2.5s-3.4-.9-3.4-2.4'/%3E%3C/g%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+
+  .marketing-root .post-body ol {
+    counter-reset: nc-step;
+  }
+
+  .marketing-root .post-body ol > li {
+    counter-increment: nc-step;
+  }
+
+  .marketing-root .post-body ol > li::before {
+    content: counter(nc-step);
+    position: absolute;
+    left: -2em;
+    top: 0.15em;
+    display: grid;
+    place-items: center;
+    width: 1.45em;
+    height: 1.45em;
+    border-radius: 999px;
+    background: var(--nc-gold);
+    color: var(--nc-on-gold);
+    font-family: var(--font-sans);
+    font-size: 0.8em;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  /* -------------------------------------------------------------------------
+   * THE DARK BLOG THEME
+   *
+   * Only the table needs it. The heading colour measures 5.12:1 on #141414 and
+   * the gold disc 8.64:1, so both are already clear; a near-white row stripe is
+   * the one thing that would be wrong, so it becomes a navy-tinted dark instead
+   * — body ink 14.23:1 on it, the muted tone 5.53:1.
+   * ---------------------------------------------------------------------- */
+  html[data-theme='dark'] .marketing-root .post-body tbody tr:nth-child(even) {
+    background: #1a2232;
+  }
+}
