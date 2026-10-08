@@ -3085,35 +3085,47 @@
      */
     --nc-display: #0794ab;
 
+    /*
+     * THE HEADING COLOUR, which is NOT --nc-display any more.
+     *
+     * Denis, 2026-10-08, after seeing it live: "inverse the colors, dark blue
+     * for headers, lighter blue currently used for headers for the table
+     * header." So the navy and the hero teal swap places — the teal moved down
+     * to the table head below, and headings take the brand navy.
+     *
+     * 12.86:1 on white, so unlike the teal it constrains nothing. The dark blog
+     * theme is the other story; see the override at the bottom of this block.
+     */
+    --nc-heading: #0b2d72;
+
     /* Brand gold, for the list markers. Same value as --dl-gold. */
     --nc-gold: #e0a840;
     /* The ink that rides on gold — 8.69:1, as on the hero's arrow disc. */
     --nc-on-gold: #1a1205;
 
-    /* The two blues a table is built from: the brand navy and a tint of it. */
-    --nc-table-head: #0b2d72;
+    /*
+     * The table's two blues. The head is the hero teal since the swap; the
+     * stripe is still a tint of the navy and was left alone, because Denis
+     * asked for the header and the headings to trade and nothing else.
+     */
+    --nc-table-head: var(--nc-display);
     --nc-table-stripe: #f1f5fb;
   }
 
   /* -------------------------------------------------------------------------
    * HEADINGS
    *
-   * THE WEIGHT AND THE h4 SIZE ARE A CONTRAST RULE, not taste. #0794AB is
-   * 3.60:1 on white, which clears WCAG's 3:1 for LARGE text and misses the
-   * 4.5:1 it wants for everything else — so whether this colour is allowed
-   * depends entirely on whether each heading counts as large.
+   * Navy at 12.86:1 on white, so the colour constrains nothing here. It did
+   * when these were the hero teal: 3.60:1 meant each heading had to qualify as
+   * WCAG-large to be legal, which is where the 700 weight and the 19px h4 came
+   * from. THE CONSTRAINT MOVED TO THE TABLE HEAD with the colour — see there.
    *
-   *   h2  28px  large on size alone (>=24px)            3.60 vs 3.0   ok
-   *   h3  20px  large only once bold (>=18.66px bold)   needs the 700
-   *   h4  18px  NOT large at any weight, so it goes to 19px
-   *
-   * 650 was the old weight and 18.66px is the threshold, which is why h4 moves
-   * to 1.1875rem — the same 19px the funding subhead uses for the same reason.
-   * On the dark blog theme the colour measures 5.12:1 and all three pass
-   * outright; it is the white ground that sets the floor.
+   * The weight and the h4 size stay. They are no longer load-bearing, but bold
+   * is what every other Daylight headline is, and reverting them would be churn
+   * for a change nobody asked for.
    * ---------------------------------------------------------------------- */
   .marketing-root .post-body :is(h2, h3, h4) {
-    color: var(--nc-display);
+    color: var(--nc-heading);
     font-weight: 700;
   }
 
@@ -3189,11 +3201,24 @@
     border-bottom: 0;
   }
 
-  /* The first blue: the brand navy, white on it at 12.86:1 on either theme. */
+  /*
+   * The head, in the hero teal — and THE SIZE AND WEIGHT HERE ARE A CONTRAST
+   * RULE, which is what the heading rule above used to be.
+   *
+   * White on #0794AB is 3.60:1: over WCAG's 3:1 for LARGE text, under the 4.5:1
+   * it wants for anything else. At the 15.2px/600 these cells inherited, that
+   * was a fail. At 19px/700 the row is large text and 3.60 is compliant — the
+   * same 1.1875rem the funding subhead and the post h4 use, for the same reason
+   * each time.
+   *
+   * A bigger, bolder head over 15.2px cells is also the right hierarchy, which
+   * is why this is a fix rather than a workaround.
+   */
   .marketing-root .post-body th {
     background: var(--nc-table-head);
     color: #ffffff;
-    font-weight: 600;
+    font-size: 1.1875rem;
+    font-weight: 700;
   }
 
   /* The second: a tint of the same navy on alternate rows. Body ink reads
@@ -3276,6 +3301,19 @@
    * the one thing that would be wrong, so it becomes a navy-tinted dark instead
    * — body ink 14.23:1 on it, the muted tone 5.53:1.
    * ---------------------------------------------------------------------- */
+  html[data-theme='dark'] .marketing-root {
+    /*
+     * THE NAVY CANNOT COME TO THE DARK THEME. #0B2D72 on #141414 is 1.43:1 —
+     * not dim, invisible. Headings are the one thing the swap broke there, and
+     * it is only visible if you actually toggle the theme.
+     *
+     * A lightened version of the same hue instead: #5B8FE0 is the brand navy
+     * raised until it reads on near-black, 5.66:1, and still unmistakably the
+     * same blue rather than a second accent.
+     */
+    --nc-heading: #5b8fe0;
+  }
+
   html[data-theme='dark'] .marketing-root .post-body tbody tr:nth-child(even) {
     background: #1a2232;
   }
