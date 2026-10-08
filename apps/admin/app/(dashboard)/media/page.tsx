@@ -1,5 +1,7 @@
 import { mediaPublicUrl } from '@blog/core';
 
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { deleteMedia, updateAlt } from '@/app/actions/media';
 import { CopyButton } from '@/components/copy-button';
 import { MediaUploader } from '@/components/media-uploader';
@@ -23,14 +25,14 @@ export default async function MediaPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">Media</h1>
+      <PageHeader title="Media" />
 
       <div className="mt-5">
         <MediaUploader />
       </div>
 
       {items.length === 0 ? (
-        <p className="mt-10 text-ink-muted">Nothing uploaded yet.</p>
+        <EmptyState>Nothing uploaded yet.</EmptyState>
       ) : (
         <ul className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item) => {
@@ -73,7 +75,7 @@ export default async function MediaPage() {
                   <form action={deleteMedia} className="ml-auto">
                     <input type="hidden" name="id" value={item.id} />
                     <input type="hidden" name="storage_path" value={item.storage_path} />
-                    <button type="submit" className="text-red-700 underline">
+                    <button type="submit" className="text-danger-ink underline">
                       Delete
                     </button>
                   </form>

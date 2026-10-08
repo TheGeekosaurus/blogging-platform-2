@@ -1,4 +1,5 @@
 import { LeadMagnetForm } from '@/components/lead-magnet-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listAllTerms, listMediaOptions, listPostOptions } from '@/lib/queries';
 
@@ -13,8 +14,8 @@ export default async function NewLeadMagnetPage() {
   ]);
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">New offer</h1>
+    <div className="space-y-6">
+      <PageHeader title="New offer" />
       <LeadMagnetForm
         terms={terms}
         posts={posts}
@@ -51,6 +52,6 @@ export default async function NewLeadMagnetPage() {
           siteWide: false,
         }}
       />
-    </>
+    </div>
   );
 }

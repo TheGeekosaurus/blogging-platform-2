@@ -10,6 +10,7 @@ import {
   type TermRow,
 } from '@blog/core';
 
+import { Alert } from '@/components/ui/alert';
 import type { MediaOptions } from '@/lib/queries';
 
 import { savePost, type SavePostState } from '@/app/actions/posts';
@@ -65,25 +66,25 @@ export function PostForm({
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {state.error ? (
-        <p role="alert" className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+        <Alert tone="error">
           {state.error}
-        </p>
+        </Alert>
       ) : null}
 
       {state.warning ? (
-        <p role="alert" className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <Alert tone="warning">
           {state.warning}
-        </p>
+        </Alert>
       ) : null}
 
       {state.savedId && !state.warning ? (
-        <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <Alert tone="success">
           Saved and the live site was refreshed.
-        </p>
+        </Alert>
       ) : null}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium">
+        <label htmlFor="title" className="label">
           Title
         </label>
         <input
@@ -91,12 +92,12 @@ export function PostForm({
           name="title"
           required
           defaultValue={values.title}
-          className="field mt-1 text-lg"
+          className="field text-lg"
         />
       </div>
 
       <div>
-        <label htmlFor="slug" className="block text-sm font-medium">
+        <label htmlFor="slug" className="label">
           URL slug
         </label>
         <input
@@ -105,10 +106,10 @@ export function PostForm({
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
           placeholder="derived from the title if left blank"
-          className="field mt-1 font-mono"
+          className="field font-mono"
         />
         {slug.includes('/') ? (
-          <p className="mt-1 text-xs text-red-700">
+          <p className="mt-1 text-xs text-danger-ink">
             A slug is one URL segment. Posts already live under <code>/blog/</code> — enter
             just the last part.
           </p>
@@ -136,7 +137,7 @@ export function PostForm({
       </div>
 
       <div>
-        <span className="block text-sm font-medium">Body</span>
+        <span className="label">Body</span>
         <div className="mt-1">
           <RichTextEditor
             name="content_html"
@@ -148,7 +149,7 @@ export function PostForm({
       </div>
 
       <div>
-        <label htmlFor="excerpt" className="block text-sm font-medium">
+        <label htmlFor="excerpt" className="label">
           Excerpt
         </label>
         <textarea
@@ -157,7 +158,7 @@ export function PostForm({
           rows={2}
           defaultValue={values.excerpt}
           placeholder="Generated from the opening of the body if left blank"
-          className="field mt-1"
+          className="field"
         />
       </div>
 
@@ -165,14 +166,14 @@ export function PostForm({
 
       {authors.length > 0 ? (
         <div>
-          <label htmlFor="byline_id" className="block text-sm font-medium">
+          <label htmlFor="byline_id" className="label">
             Author
           </label>
           <select
             id="byline_id"
             name="byline_id"
             defaultValue={values.bylineId ?? ''}
-            className="field field-inline mt-1"
+            className="field field-inline"
           >
             <option value="">(use the Byline field)</option>
             {authors.map((author) => (
@@ -251,7 +252,7 @@ export function PostForm({
               name="seo_title"
               defaultValue={values.seo_title}
               placeholder="Defaults to the post title"
-              className="field mt-1"
+              className="field"
             />
           </div>
           <div>
@@ -264,7 +265,7 @@ export function PostForm({
               rows={2}
               defaultValue={values.seo_description}
               placeholder="Defaults to the excerpt"
-              className="field mt-1"
+              className="field"
             />
           </div>
           <div>
@@ -275,7 +276,7 @@ export function PostForm({
               id="author_name"
               name="author_name"
               defaultValue={values.author_name}
-              className="field mt-1"
+              className="field"
             />
             <p className="mt-1 text-xs text-ink-muted">
               Used only when no Author is selected above. Imported posts arrive with

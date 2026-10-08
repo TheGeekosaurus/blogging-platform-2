@@ -1,4 +1,5 @@
 import { PostForm } from '@/components/editor/post-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listAllTerms, listAuthorOptions, listCtaBlockViews, listMediaOptions } from '@/lib/queries';
 
@@ -14,8 +15,8 @@ export default async function NewPostPage() {
   ]);
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">New post</h1>
+    <div className="space-y-6">
+      <PageHeader title="New post" />
       <PostForm
         site={site}
         terms={terms}
@@ -38,6 +39,6 @@ export default async function NewPostPage() {
           featuredImageId: null,
         }}
       />
-    </>
+    </div>
   );
 }

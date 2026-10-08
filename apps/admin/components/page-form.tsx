@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 
 import { pagePath, type PageRow, type SiteRow } from '@blog/core';
 
+import { Alert } from '@/components/ui/alert';
 import { savePage, type SavePageState } from '@/app/actions/pages';
 import { StructuredDataPanel } from './editor/structured-data-panel';
 import type { PageListItem } from '@/lib/queries';
@@ -48,23 +49,23 @@ export function PageForm({
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {state.error ? (
-        <p role="alert" className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+        <Alert tone="error">
           {state.error}
-        </p>
+        </Alert>
       ) : null}
       {state.warning ? (
-        <p role="alert" className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <Alert tone="warning">
           {state.warning}
-        </p>
+        </Alert>
       ) : null}
       {state.savedId && !state.warning ? (
-        <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <Alert tone="success">
           Saved and the live site was refreshed.
-        </p>
+        </Alert>
       ) : null}
 
       <div>
-        <label htmlFor="title" className="block text-sm font-medium">
+        <label htmlFor="title" className="label">
           Title
         </label>
         <input
@@ -72,13 +73,13 @@ export function PageForm({
           name="title"
           required
           defaultValue={values.title}
-          className="field mt-1 text-lg"
+          className="field text-lg"
         />
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <label htmlFor="parent_id" className="block text-sm font-medium">
+          <label htmlFor="parent_id" className="label">
             Parent page
           </label>
           <select
@@ -86,7 +87,7 @@ export function PageForm({
             name="parent_id"
             value={parentId}
             onChange={(event) => setParentId(event.target.value)}
-            className="field mt-1"
+            className="field"
           >
             <option value="">(top level)</option>
             {parents.map((page) => (
@@ -101,7 +102,7 @@ export function PageForm({
         </div>
 
         <div>
-          <label htmlFor="slug" className="block text-sm font-medium">
+          <label htmlFor="slug" className="label">
             Slug
           </label>
           <input
@@ -110,10 +111,10 @@ export function PageForm({
             value={slug}
             onChange={(event) => setSlug(event.target.value)}
             placeholder="derived from the title if left blank"
-            className="field mt-1 font-mono"
+            className="field font-mono"
           />
           {slug.includes('/') ? (
-            <p className="mt-1 text-xs text-red-700">
+            <p className="mt-1 text-xs text-danger-ink">
               A slug is one URL segment — remove the &quot;/&quot; and pick a parent instead.
             </p>
           ) : null}
@@ -129,14 +130,14 @@ export function PageForm({
       </p>
 
       <div>
-        <label htmlFor="template" className="block text-sm font-medium">
+        <label htmlFor="template" className="label">
           Template
         </label>
         <select
           id="template"
           name="template"
           defaultValue={values.template}
-          className="field field-inline mt-1"
+          className="field field-inline"
         >
           <option value="prose">Prose — centred column, blog styling</option>
           <option value="full">Full width — page supplies its own layout</option>
@@ -148,7 +149,7 @@ export function PageForm({
       </div>
 
       <div>
-        <label htmlFor="content_html" className="block text-sm font-medium">
+        <label htmlFor="content_html" className="label">
           HTML
         </label>
         {/*
@@ -162,7 +163,7 @@ export function PageForm({
           rows={22}
           defaultValue={values.content_html}
           spellCheck={false}
-          className="field field-sm mt-1 font-mono"
+          className="field field-sm font-mono"
           placeholder="<section>…</section>"
         />
         <p className="mt-1 text-xs text-ink-muted">
@@ -182,7 +183,7 @@ export function PageForm({
               id="seo_title"
               name="seo_title"
               defaultValue={values.seo_title}
-              className="field mt-1"
+              className="field"
             />
           </div>
           <div>
@@ -194,7 +195,7 @@ export function PageForm({
               name="seo_description"
               rows={2}
               defaultValue={values.seo_description}
-              className="field mt-1"
+              className="field"
             />
           </div>
           <label className="flex items-center gap-2 text-sm">

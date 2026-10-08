@@ -1,5 +1,8 @@
 import Link from 'next/link';
 
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { countLeadsPerMagnet, listLeadMagnets } from '@/lib/queries';
 
@@ -14,26 +17,29 @@ export default async function LeadMagnetsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">CTAs</h1>
-        <Link
-          href="/lead-magnets/new"
-          className="btn btn-primary"
-        >
-          New block
-        </Link>
-      </div>
-
-      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        Blocks you drop into a post from the editor, or aim at posts with the rules
-        below. A block either links somewhere or captures an email address.
-      </p>
+      <PageHeader
+        title="CTAs"
+        actions={
+          <Link
+            href="/lead-magnets/new"
+            className="btn btn-primary"
+          >
+            New block
+          </Link>
+        }
+        description={
+          <>
+            Blocks you drop into a post from the editor, or aim at posts with the rules
+            below. A block either links somewhere or captures an email address.
+          </>
+        }
+      />
 
       {magnets.length === 0 ? (
-        <p className="mt-6 text-sm text-ink-muted">
+        <EmptyState>
           None yet. <Link href="/lead-magnets/new">Add one</Link>, then choose where it
           appears.
-        </p>
+        </EmptyState>
       ) : (
         /*
           `data-table`, like Posts, Pages and Redirects, and `overflow-x-auto` on
@@ -47,85 +53,83 @@ export default async function LeadMagnetsPage() {
           are columns, and reading them off a run-on line means comparing two
           offers by counting commas.
         */
-        <div className="card mt-6 overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th scope="col">Offer</th>
-                <th scope="col">Status</th>
-                <th scope="col">Appears on</th>
-                <th scope="col">Leads</th>
-                <th scope="col">Key</th>
-              </tr>
-            </thead>
-            <tbody>
-              {magnets.map((magnet) => {
-                const leads = leadCounts.get(magnet.id) ?? 0;
+        <DataTable>
+          <thead>
+            <tr>
+              <th scope="col">Offer</th>
+              <th scope="col">Status</th>
+              <th scope="col">Appears on</th>
+              <th scope="col">Leads</th>
+              <th scope="col">Key</th>
+            </tr>
+          </thead>
+          <tbody>
+            {magnets.map((magnet) => {
+              const leads = leadCounts.get(magnet.id) ?? 0;
 
-                return (
-                  <tr key={magnet.id}>
-                    <td>
-                      <div className="flex items-start gap-2">
-                        {magnet.image_url ? (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={magnet.image_url}
-                            alt=""
-                            className="h-9 w-9 shrink-0 rounded object-cover"
-                          />
-                        ) : (
-                          <span
-                            aria-hidden="true"
-                            className="h-9 w-9 shrink-0 rounded border border-dashed border-line"
-                          />
-                        )}
-                        <Link
-                          href={`/lead-magnets/${magnet.id}`}
-                          className="font-semibold"
-                        >
-                          {magnet.name}
-                        </Link>
-                      </div>
-                    </td>
-
-                    <td className="whitespace-nowrap">
-                      {magnet.active ? (
-                        <span className="chip chip-success">
-                          live
-                        </span>
+              return (
+                <tr key={magnet.id}>
+                  <td>
+                    <div className="flex items-start gap-2">
+                      {magnet.image_url ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={magnet.image_url}
+                          alt=""
+                          className="h-9 w-9 shrink-0 rounded object-cover"
+                        />
                       ) : (
-                        <span className="rounded bg-line px-1.5 py-0.5 text-xs font-medium text-ink-muted">
-                          off
-                        </span>
+                        <span
+                          aria-hidden="true"
+                          className="h-9 w-9 shrink-0 rounded border border-dashed border-line"
+                        />
                       )}
-                    </td>
+                      <Link
+                        href={`/lead-magnets/${magnet.id}`}
+                        className="font-semibold"
+                      >
+                        {magnet.name}
+                      </Link>
+                    </div>
+                  </td>
 
-                    {/*
-                      Called out rather than left to be inferred from a zero. A
-                      saved, live offer aimed at nothing renders nowhere and
-                      looks, from every other column, like it is working.
-                    */}
-                    <td className="whitespace-nowrap">
-                      {magnet.targetCount === 0 ? (
-                        <span className="chip chip-warning">
-                          nowhere
-                        </span>
-                      ) : (
-                        `${magnet.targetCount} ${magnet.targetCount === 1 ? 'rule' : 'rules'}`
-                      )}
-                    </td>
+                  <td className="whitespace-nowrap">
+                    {magnet.active ? (
+                      <span className="chip chip-success">
+                        live
+                      </span>
+                    ) : (
+                      <span className="chip chip-neutral">
+                        off
+                      </span>
+                    )}
+                  </td>
 
-                    <td className="whitespace-nowrap">{leads}</td>
+                  {/*
+                    Called out rather than left to be inferred from a zero. A
+                    saved, live offer aimed at nothing renders nowhere and
+                    looks, from every other column, like it is working.
+                  */}
+                  <td className="whitespace-nowrap">
+                    {magnet.targetCount === 0 ? (
+                      <span className="chip chip-warning">
+                        nowhere
+                      </span>
+                    ) : (
+                      `${magnet.targetCount} ${magnet.targetCount === 1 ? 'rule' : 'rules'}`
+                    )}
+                  </td>
 
-                    <td>
-                      <code className="text-xs">{magnet.slug}</code>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                  <td className="whitespace-nowrap">{leads}</td>
+
+                  <td>
+                    <code className="text-xs">{magnet.slug}</code>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </DataTable>
       )}
 
       <p className="mt-8 max-w-2xl text-sm text-ink-muted">

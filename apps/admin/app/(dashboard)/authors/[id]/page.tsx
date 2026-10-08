@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { deleteAuthor } from '@/app/actions/authors';
 import { AuthorForm } from '@/components/author-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { countPostsPerAuthor, getAuthorForEdit, listMediaOptions } from '@/lib/queries';
 
@@ -26,8 +27,8 @@ export default async function EditAuthorPage({
   const used = counts.get(author.id) ?? 0;
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">{author.name}</h1>
+    <div className="space-y-6">
+      <PageHeader title={author.name} />
 
       <AuthorForm
         media={media}
@@ -45,7 +46,7 @@ export default async function EditAuthorPage({
       <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <form action={deleteAuthor}>
           <input type="hidden" name="id" value={author.id} />
-          <button type="submit" className="text-sm text-red-700 underline">
+          <button type="submit" className="text-sm text-danger-ink underline">
             Delete this author
           </button>
         </form>
@@ -55,6 +56,6 @@ export default async function EditAuthorPage({
             : `${used} ${used === 1 ? 'post falls' : 'posts fall'} back to the Byline field typed on ${used === 1 ? 'it' : 'them'}. The posts themselves are untouched.`}
         </p>
       </section>
-    </>
+    </div>
   );
 }

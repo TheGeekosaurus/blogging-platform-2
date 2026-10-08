@@ -32,7 +32,7 @@ export default function LoginPage() {
 
         <form action={formAction} className="mt-6 flex flex-col gap-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">
+            <label htmlFor="email" className="label">
               Email
             </label>
             <input
@@ -42,12 +42,12 @@ export default function LoginPage() {
               required
               autoComplete="username"
               autoFocus
-              className="field mt-1"
+              className="field"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium">
+            <label htmlFor="password" className="label">
               Password
             </label>
             <input
@@ -56,12 +56,12 @@ export default function LoginPage() {
               type="password"
               required
               autoComplete="current-password"
-              className="field mt-1"
+              className="field"
             />
           </div>
 
           {state.error ? (
-            <p role="alert" className="text-sm text-red-700">
+            <p role="alert" className="text-sm text-danger-ink">
               {state.error}
             </p>
           ) : null}

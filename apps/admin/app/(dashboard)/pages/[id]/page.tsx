@@ -2,9 +2,10 @@ import { notFound } from 'next/navigation';
 
 import { deletePage } from '@/app/actions/pages';
 import { PageForm } from '@/components/page-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
-import { snippetsToText } from '@/lib/structured-data';
 import { getPageForEdit, listParentOptions } from '@/lib/queries';
+import { snippetsToText } from '@/lib/structured-data';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +25,8 @@ export default async function EditPagePage({
   if (!page) notFound();
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">Edit page</h1>
+    <div className="space-y-6">
+      <PageHeader title="Edit page" />
 
       <PageForm
         site={site}
@@ -51,13 +52,13 @@ export default async function EditPagePage({
       <form action={deletePage} className="mt-10 border-t border-line pt-5">
         <input type="hidden" name="id" value={page.id} />
         <input type="hidden" name="path" value={page.path} />
-        <button type="submit" className="text-sm text-red-700 underline">
+        <button type="submit" className="text-sm text-danger-ink underline">
           Delete this page
         </button>
         <p className="mt-1 text-xs text-ink-muted">
           Any pages nested beneath it are deleted too.
         </p>
       </form>
-    </>
+    </div>
   );
 }

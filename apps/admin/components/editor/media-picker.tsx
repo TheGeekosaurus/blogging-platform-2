@@ -192,7 +192,7 @@ export function MediaPicker({
       ) : null}
 
       {error ? (
-        <p role="alert" className="mt-3 text-sm text-red-700">
+        <p role="alert" className="mt-3 text-sm text-danger-ink">
           {error}
         </p>
       ) : null}
@@ -246,7 +246,7 @@ function AltField({
 
   return (
     <div className="mt-4 border-t border-line pt-3">
-      <label htmlFor={`alt-${item.id}`} className="block text-sm font-medium">
+      <label htmlFor={`alt-${item.id}`} className="label">
         Alt text
       </label>
       <p className="mt-1 text-xs text-ink-muted">
@@ -269,7 +269,7 @@ function AltField({
         </span>
       </div>
       {state === 'error' ? (
-        <p role="alert" className="mt-1 text-sm text-red-700">
+        <p role="alert" className="mt-1 text-sm text-danger-ink">
           Could not save the alt text.
         </p>
       ) : null}

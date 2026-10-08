@@ -17,6 +17,7 @@ import {
 } from '@blog/core/proof';
 import { ProofToast } from '@blog/core/proof-toast';
 
+import { Alert } from '@/components/ui/alert';
 import { saveProofCampaign, type ProofCampaignState } from '@/app/actions/proof-notifications';
 import { MediaPicker } from '@/components/editor/media-picker';
 import { blankEvent, parsePastedEvents, type ProofEventDraft } from '@/lib/proof-events';
@@ -244,28 +245,28 @@ export function ProofCampaignForm({
         />
 
         {state.error ? (
-          <p role="alert" className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <Alert tone="error">
             {state.error}
-          </p>
+          </Alert>
         ) : null}
         {state.staleWarning ? (
-          <p role="alert" className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <Alert tone="warning">
             {state.staleWarning}
-          </p>
+          </Alert>
         ) : null}
         {state.mapWarning ? (
-          <p role="alert" className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <Alert tone="warning">
             {state.mapWarning}
-          </p>
+          </Alert>
         ) : null}
         {state.savedId && !state.staleWarning ? (
-          <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <Alert tone="success">
             Saved, and the live site was refreshed.
-          </p>
+          </Alert>
         ) : null}
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium">
+          <label htmlFor="name" className="label">
             Name
           </label>
           <input id="name" name="name" required defaultValue={values.name} className={FIELD} />
@@ -282,7 +283,7 @@ export function ProofCampaignForm({
           <legend className="text-sm font-semibold">Look</legend>
 
           <div>
-            <span className="block text-sm font-medium">Template</span>
+            <span className="label">Template</span>
             <div className="mt-1 grid grid-cols-2 gap-2">
               <Choice name="template" value="pill" current={template} onChange={setTemplate}>
                 <span aria-hidden="true" className="inline-block h-4 w-8 rounded-full border border-current" />
@@ -296,7 +297,7 @@ export function ProofCampaignForm({
           </div>
 
           <div>
-            <span className="block text-sm font-medium">Image on the left</span>
+            <span className="label">Image on the left</span>
             <div className="mt-1 grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Choice name="image_mode" value="none" current={imageMode} onChange={setImageMode}>
                 No image
@@ -324,7 +325,7 @@ export function ProofCampaignForm({
 
           {imageMode !== 'none' && imageMode !== 'custom' ? (
             <div>
-              <span className="block text-sm font-medium">
+              <span className="label">
                 {imageMode === 'map' ? 'Fallback icon' : 'Icon'}
               </span>
               <input type="hidden" name="preset_icon" value={presetIcon} />
@@ -352,7 +353,7 @@ export function ProofCampaignForm({
           <input type="hidden" name="image_id" value={imageId} />
           {imageMode === 'custom' ? (
             <div>
-              <span className="block text-sm font-medium">Image</span>
+              <span className="label">Image</span>
               <p className="mt-1 text-sm text-ink-muted">
                 Square works best — it is cropped to a {template === 'pill' ? 'circle' : 'rounded square'} about 60px across.
               </p>
@@ -368,7 +369,7 @@ export function ProofCampaignForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="position" className="block text-sm font-medium">
+              <label htmlFor="position" className="label">
                 Corner
               </label>
               <select
@@ -385,7 +386,7 @@ export function ProofCampaignForm({
               </select>
             </div>
             <div>
-              <label htmlFor="accent" className="block text-sm font-medium">
+              <label htmlFor="accent" className="label">
                 Accent colour
               </label>
               <input
@@ -602,7 +603,7 @@ export function ProofCampaignForm({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="include_paths" className="block text-sm font-medium">
+              <label htmlFor="include_paths" className="label">
                 Only on these URLs
               </label>
               <textarea
@@ -615,7 +616,7 @@ export function ProofCampaignForm({
               />
             </div>
             <div>
-              <label htmlFor="exclude_paths" className="block text-sm font-medium">
+              <label htmlFor="exclude_paths" className="label">
                 Never on these URLs
               </label>
               <textarea
@@ -635,7 +636,7 @@ export function ProofCampaignForm({
           </p>
 
           <div>
-            <span className="block text-sm font-medium">Posts in these categories</span>
+            <span className="label">Posts in these categories</span>
             <p className="text-sm text-ink-muted">Includes posts filed under a child category.</p>
             <CheckboxList
               name="target_category"
@@ -646,7 +647,7 @@ export function ProofCampaignForm({
           </div>
 
           <div>
-            <span className="block text-sm font-medium">Posts with these tags</span>
+            <span className="label">Posts with these tags</span>
             <CheckboxList
               name="target_tag"
               options={tags.map((term) => ({ id: term.id, label: term.name }))}
@@ -656,7 +657,7 @@ export function ProofCampaignForm({
           </div>
 
           <div>
-            <span className="block text-sm font-medium">Individual posts</span>
+            <span className="label">Individual posts</span>
             <CheckboxList
               name="target_post"
               options={posts.map((post) => ({ id: post.id, label: post.title }))}
@@ -704,7 +705,7 @@ export function ProofCampaignForm({
           </label>
 
           <div>
-            <label htmlFor="frequency" className="block text-sm font-medium">
+            <label htmlFor="frequency" className="label">
               How often
             </label>
             <select id="frequency" name="frequency" defaultValue={values.frequency} className={FIELD}>

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 
+import { Alert } from '@/components/ui/alert';
 import { saveRedirect, type RedirectState } from '@/app/actions/redirects';
 
 const INITIAL: RedirectState = {};
@@ -18,22 +19,19 @@ export function RedirectForm() {
   return (
     <form action={formAction} className="flex flex-col gap-3">
       {state.error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
+        <Alert tone="error">
           {state.error}
-        </p>
+        </Alert>
       ) : null}
       {state.saved ? (
-        <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <Alert tone="success">
           Redirect added. It goes live on the next deploy.
-        </p>
+        </Alert>
       ) : null}
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="grow">
-          <label htmlFor="from_path" className="block text-sm font-medium">
+          <label htmlFor="from_path" className="label">
             From
           </label>
           <input
@@ -41,7 +39,7 @@ export function RedirectForm() {
             name="from_path"
             required
             placeholder="/old-post-url/"
-            className="field mt-1 font-mono"
+            className="field font-mono"
           />
           {/* Because pasting the whole URL out of the address bar is what people
               actually do, and the action strips the origin rather than refusing. */}
@@ -51,7 +49,7 @@ export function RedirectForm() {
         </div>
 
         <div className="grow">
-          <label htmlFor="to_path" className="block text-sm font-medium">
+          <label htmlFor="to_path" className="label">
             To
           </label>
           <input
@@ -59,7 +57,7 @@ export function RedirectForm() {
             name="to_path"
             required
             placeholder="/blog/new-post-url/"
-            className="field mt-1 font-mono"
+            className="field font-mono"
           />
           <p className="mt-1 text-xs text-ink-muted">
             A path, or a full URL to send visitors off-site.
@@ -67,14 +65,14 @@ export function RedirectForm() {
         </div>
 
         <div>
-          <label htmlFor="status_code" className="block text-sm font-medium">
+          <label htmlFor="status_code" className="label">
             Code
           </label>
           <select
             id="status_code"
             name="status_code"
             defaultValue="301"
-            className="field field-inline mt-1"
+            className="field field-inline"
           >
             {/* 301 first and default: it is the one that passes ranking on, and
                 it is what a moved URL almost always wants. */}

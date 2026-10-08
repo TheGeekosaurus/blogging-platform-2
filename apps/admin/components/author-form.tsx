@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 
 import { SOCIAL_PLATFORMS, type SocialPlatform } from '@blog/core';
 
+import { Alert } from '@/components/ui/alert';
 import { saveAuthor, type AuthorState } from '@/app/actions/authors';
 import { AvatarPicker } from '@/components/editor/avatar-picker';
 import { InlineTextEditor } from '@/components/editor/inline-text-editor';
@@ -45,22 +46,19 @@ export function AuthorForm({
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {state.error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
+        <Alert tone="error">
           {state.error}
-        </p>
+        </Alert>
       ) : null}
 
       {state.savedId ? (
-        <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <Alert tone="success">
           Saved and the live site was refreshed.
-        </p>
+        </Alert>
       ) : null}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium">
+        <label htmlFor="name" className="label">
           Name
         </label>
         <input
@@ -68,7 +66,7 @@ export function AuthorForm({
           name="name"
           required
           defaultValue={values.name}
-          className="field mt-1 text-lg"
+          className="field text-lg"
         />
         <p className="mt-1 text-xs text-ink-muted">
           The byline readers see. Replaces whatever is typed in a post&apos;s Byline
@@ -77,7 +75,7 @@ export function AuthorForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium">
+        <label className="label">
           Title
         </label>
         <InlineTextEditor
@@ -95,7 +93,7 @@ export function AuthorForm({
       </div>
 
       <div>
-        <label htmlFor="slug" className="block text-sm font-medium">
+        <label htmlFor="slug" className="label">
           URL slug
         </label>
         <input
@@ -104,7 +102,7 @@ export function AuthorForm({
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
           placeholder="derived from the name if left blank"
-          className="field mt-1 font-mono"
+          className="field font-mono"
         />
         <p className="mt-1 text-xs text-ink-muted">
           The author&rsquo;s archive lives at <code>/blog/author/&lt;slug&gt;</code>, and
@@ -114,7 +112,7 @@ export function AuthorForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium">
+        <label className="label">
           Bio
         </label>
         <InlineTextEditor
@@ -155,7 +153,7 @@ export function AuthorForm({
                   inputMode="url"
                   defaultValue={values.social[platform] ?? ''}
                   placeholder={field.placeholder}
-                  className="field mt-1"
+                  className="field"
                 />
               </div>
             );

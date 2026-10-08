@@ -1,3 +1,5 @@
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { SeoTreeView } from '@/components/seo-tree';
 import { requireCurrentSite } from '@/lib/current-site';
 import { isSeoTreeEmpty, loadSeoTree } from '@/lib/seo';
@@ -46,18 +48,21 @@ export default async function RoadmapPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">Roadmap</h1>
-
-      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        Pages that have been briefed, and where each one has got to, highest
-        priority first within each topic. Everything still in research is on{' '}
-        <strong>Keywords</strong>.
-      </p>
+      <PageHeader
+        title="Roadmap"
+        description={
+          <>
+            Pages that have been briefed, and where each one has got to, highest
+            priority first within each topic. Everything still in research is on{' '}
+            <strong>Keywords</strong>.
+          </>
+        }
+      />
 
       {isSeoTreeEmpty(tree) ? (
-        <p className="mt-6 text-sm text-ink-muted">
+        <EmptyState>
           No keyword research yet for {site.name}.
-        </p>
+        </EmptyState>
       ) : counts.total === 0 ? (
         /*
           A different message from the empty one above, and the distinction

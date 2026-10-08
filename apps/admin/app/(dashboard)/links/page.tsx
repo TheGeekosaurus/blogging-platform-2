@@ -10,6 +10,11 @@ import {
   type PostStatus,
 } from '@blog/core';
 
+import { StatusChip } from '@/components/ui/status-chip';
+import { Alert } from '@/components/ui/alert';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { clampPage, Pagination } from '@/components/pagination';
 import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
@@ -40,19 +45,14 @@ const LINKS_PER_PAGE = ADMIN_PER_PAGE;
 
 type View = 'content' | 'links';
 
-const STATUS_STYLES: Record<PostStatus, string> = {
-  published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-line text-ink-muted',
-  scheduled: 'bg-sky-100 text-sky-900',
-  archived: 'bg-amber-100 text-amber-900',
-};
-
-const LINK_STATUS_STYLES: Record<LinkStatus, string> = {
-  ok: 'bg-emerald-100 text-emerald-900',
-  redirect: 'bg-sky-100 text-sky-900',
-  unpublished: 'bg-amber-100 text-amber-900',
-  missing: 'bg-red-100 text-red-900',
-  unchecked: 'bg-line text-ink-muted',
+/* Its own statuses, but on the same chips as everything else — see
+   components/ui/status-chip.tsx for why these are not raw palette classes. */
+const LINK_STATUS_CHIP: Record<LinkStatus, string> = {
+  ok: 'chip-success',
+  redirect: 'chip-info',
+  unpublished: 'chip-warning',
+  missing: 'chip-danger',
+  unchecked: 'chip-neutral',
 };
 
 const LINK_STATUS_LABELS: Record<LinkStatus, string> = {
@@ -110,26 +110,29 @@ export default async function LinksPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Links</h1>
-        <p className="text-sm text-ink-muted">
-          {totals.contentItems} {totals.contentItems === 1 ? 'item' : 'items'} scanned
-        </p>
-      </div>
-
-      <p className="mt-1 max-w-3xl text-sm text-ink-muted">
-        Read from the body of every post and page each time this screen loads, so it
-        never goes stale — including right after a WordPress import. Internal links are
-        checked against what the site actually serves; external ones are listed but not
-        fetched.
-      </p>
+      <PageHeader
+        title="Links"
+        actions={
+          <p className="text-sm text-ink-muted">
+            {totals.contentItems} {totals.contentItems === 1 ? 'item' : 'items'} scanned
+          </p>
+        }
+        description={
+          <>
+            Read from the body of every post and page each time this screen loads, so it
+            never goes stale — including right after a WordPress import. Internal links are
+            checked against what the site actually serves; external ones are listed but not
+            fetched.
+          </>
+        }
+      />
 
       {graph.truncated ? (
-        <p className="mt-3 max-w-3xl rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        <div className="mt-3 max-w-3xl"><Alert tone="warning">
           Showing the {LINK_GRAPH_LIMIT} most recently edited posts and pages. Incoming
           counts below only see links from those, so an older post linking here is not
           counted and something may read as an orphan when it is not.
-        </p>
+        </Alert></div>
       ) : null}
 
       <Summary totals={totals} />
@@ -224,7 +227,7 @@ function Summary({ totals }: { totals: Awaited<ReturnType<typeof loadLinkGraph>>
           >
             <span
               className={`block text-2xl font-semibold tabular-nums ${
-                tile.alarm ? 'text-red-700' : 'text-ink'
+                tile.alarm ? 'text-danger-ink' : 'text-ink'
               }`}
             >
               {tile.value}
@@ -334,127 +337,121 @@ function ContentView({
       </div>
 
       {filtered.length === 0 ? (
-        <p className="mt-10 text-ink-muted">
+        <EmptyState>
           Nothing matches. {show === 'orphans' ? 'No orphans is the good outcome here.' : null}
-        </p>
+        </EmptyState>
       ) : (
         /* Same wrapper as Posts and Pages: the table scrolls inside its own box
          * on a narrow window rather than pushing the page sideways. */
-        <div className="card mt-6 overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                {/* Right-aligned against .data-table th's default left, because
-                    these are counts and are read by scanning a column. */}
-                <th scope="col" className="text-right">
-                  Internal out
-                </th>
-                <th scope="col" className="text-right">
-                  External out
-                </th>
-                <th scope="col" className="text-right">
-                  Incoming
-                </th>
-                <th scope="col">Needs attention</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map(({ node, ...stats }) => (
-                <tr key={node.id}>
-                  <td>
-                    <div className="flex items-start gap-2">
-                      <Link href={editHref(node)} className="font-semibold">
-                        {node.title}
-                      </Link>
-                      {/* Same rule as Posts and Pages: no icon for a row that is
-                          not served, so it can never lead to a 404. */}
-                      {isLive(node) ? (
-                        <ViewLiveLink href={pageUrl(site, node.path)} label={node.title} />
-                      ) : null}
-                    </div>
-                    <span className="mr-1 rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted">
-                      {node.kind}
-                    </span>
-                    <span
-                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[node.status]}`}
-                    >
-                      {node.status}
-                    </span>
-                    <code className="mt-1 block text-xs text-ink-muted">{node.path}</code>
-                  </td>
-
-                  <td className="text-right tabular-nums">
-                    <Link
-                      href={`/links${buildQuery({ view: 'links', kind: 'internal', q: node.title })}`}
-                      className={stats.internalOut === 0 ? 'text-ink-muted' : undefined}
-                    >
-                      {stats.internalOut}
+        <DataTable>
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              {/* Right-aligned against .data-table th's default left, because
+                  these are counts and are read by scanning a column. */}
+              <th scope="col" className="text-right">
+                Internal out
+              </th>
+              <th scope="col" className="text-right">
+                External out
+              </th>
+              <th scope="col" className="text-right">
+                Incoming
+              </th>
+              <th scope="col">Needs attention</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ node, ...stats }) => (
+              <tr key={node.id}>
+                <td>
+                  <div className="flex items-start gap-2">
+                    <Link href={editHref(node)} className="font-semibold">
+                      {node.title}
                     </Link>
-                  </td>
-                  <td className="text-right tabular-nums">{stats.externalOut}</td>
+                    {/* Same rule as Posts and Pages: no icon for a row that is
+                        not served, so it can never lead to a 404. */}
+                    {isLive(node) ? (
+                      <ViewLiveLink href={pageUrl(site, node.path)} label={node.title} />
+                    ) : null}
+                  </div>
+                  <span className="mr-1 chip chip-neutral">
+                    {node.kind}
+                  </span>
+                  <StatusChip status={node.status} />
+                  <code className="mt-1 block text-xs text-ink-muted">{node.path}</code>
+                </td>
 
-                  {/*
-                    Incoming counts DISTINCT other items, not anchors — five
-                    links from one post is one page vouching for this one, and
-                    counting it as five is how an orphan hides. Self-links are
-                    excluded for the same reason.
-                  */}
-                  <td className="text-right tabular-nums">
-                    <span className={stats.incoming === 0 ? 'text-red-700' : 'text-ink'}>
-                      {stats.incoming}
+                <td className="text-right tabular-nums">
+                  <Link
+                    href={`/links${buildQuery({ view: 'links', kind: 'internal', q: node.title })}`}
+                    className={stats.internalOut === 0 ? 'text-ink-muted' : undefined}
+                  >
+                    {stats.internalOut}
+                  </Link>
+                </td>
+                <td className="text-right tabular-nums">{stats.externalOut}</td>
+
+                {/*
+                  Incoming counts DISTINCT other items, not anchors — five
+                  links from one post is one page vouching for this one, and
+                  counting it as five is how an orphan hides. Self-links are
+                  excluded for the same reason.
+                */}
+                <td className="text-right tabular-nums">
+                  <span className={stats.incoming === 0 ? 'text-danger-ink' : 'text-ink'}>
+                    {stats.incoming}
+                  </span>
+                  {stats.incoming > stats.incomingLive ? (
+                    <span
+                      className="block text-xs text-ink-muted"
+                      title="Links from drafts do not help — a crawler cannot see them."
+                    >
+                      {stats.incomingLive} live
                     </span>
-                    {stats.incoming > stats.incomingLive ? (
+                  ) : null}
+                </td>
+
+                <td>
+                  <div className="flex flex-wrap gap-1">
+                    {stats.orphan ? (
                       <span
-                        className="block text-xs text-ink-muted"
-                        title="Links from drafts do not help — a crawler cannot see them."
+                        className="chip chip-danger"
+                        title="Nothing on the site links here, so it is reachable only from the sitemap."
                       >
-                        {stats.incomingLive} live
+                        orphan
                       </span>
                     ) : null}
-                  </td>
-
-                  <td>
-                    <div className="flex flex-wrap gap-1">
-                      {stats.orphan ? (
-                        <span
-                          className="chip chip-danger"
-                          title="Nothing on the site links here, so it is reachable only from the sitemap."
-                        >
-                          orphan
-                        </span>
-                      ) : null}
-                      {stats.brokenOut > 0 ? (
-                        <Link
-                          href={`/links${buildQuery({ view: 'links', status: 'missing', q: node.title })}`}
-                          className="chip chip-danger"
-                        >
-                          {stats.brokenOut} broken
-                        </Link>
-                      ) : null}
-                      {stats.unpublishedOut > 0 ? (
-                        <Link
-                          href={`/links${buildQuery({ view: 'links', status: 'unpublished', q: node.title })}`}
-                          className="chip chip-warning"
-                        >
-                          {stats.unpublishedOut} unpublished
-                        </Link>
-                      ) : null}
-                      {stats.redirectOut > 0 ? (
-                        <Link
-                          href={`/links${buildQuery({ view: 'links', status: 'redirect', q: node.title })}`}
-                          className="chip chip-brand"
-                        >
-                          {stats.redirectOut} redirected
-                        </Link>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    {stats.brokenOut > 0 ? (
+                      <Link
+                        href={`/links${buildQuery({ view: 'links', status: 'missing', q: node.title })}`}
+                        className="chip chip-danger"
+                      >
+                        {stats.brokenOut} broken
+                      </Link>
+                    ) : null}
+                    {stats.unpublishedOut > 0 ? (
+                      <Link
+                        href={`/links${buildQuery({ view: 'links', status: 'unpublished', q: node.title })}`}
+                        className="chip chip-warning"
+                      >
+                        {stats.unpublishedOut} unpublished
+                      </Link>
+                    ) : null}
+                    {stats.redirectOut > 0 ? (
+                      <Link
+                        href={`/links${buildQuery({ view: 'links', status: 'redirect', q: node.title })}`}
+                        className="chip chip-brand"
+                      >
+                        {stats.redirectOut} redirected
+                      </Link>
+                    ) : null}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
       )}
 
       <Pagination
@@ -594,79 +591,75 @@ function LinksView({
       ) : null}
 
       {filtered.length === 0 ? (
-        <p className="mt-10 text-ink-muted">
+        <EmptyState>
           No links match. {status === 'missing' ? 'Nothing broken is the good outcome.' : null}
-        </p>
+        </EmptyState>
       ) : (
-        <div className="card mt-4 overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th scope="col">Source</th>
-                <th scope="col">Destination</th>
-                <th scope="col">Type</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((link) => (
-                <tr key={`${link.source.id}\n${link.href}`}>
-                  <td>
-                    <Link href={editHref(link.source)} className="font-semibold">
-                      {link.source.title}
-                    </Link>
-                    <code className="mt-1 block text-xs text-ink-muted">
-                      {link.source.path}
-                    </code>
-                  </td>
+        <DataTable>
+          <thead>
+            <tr>
+              <th scope="col">Source</th>
+              <th scope="col">Destination</th>
+              <th scope="col">Type</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((link) => (
+              <tr key={`${link.source.id}\n${link.href}`}>
+                <td>
+                  <Link href={editHref(link.source)} className="font-semibold">
+                    {link.source.title}
+                  </Link>
+                  <code className="mt-1 block text-xs text-ink-muted">
+                    {link.source.path}
+                  </code>
+                </td>
 
-                  <td className="max-w-md">
-                    <Destination link={link} />
-                    {link.text ? (
-                      <span className="mt-1 block text-xs text-ink-muted">
-                        “{link.text}”
-                      </span>
-                    ) : (
-                      <span className="mt-1 block text-xs text-ink-muted">
-                        no anchor text — an image or icon link
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="whitespace-nowrap">
-                    <span className="rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted">
-                      {KIND_LABELS[link.kind]}
+                <td className="max-w-md">
+                  <Destination link={link} />
+                  {link.text ? (
+                    <span className="mt-1 block text-xs text-ink-muted">
+                      “{link.text}”
                     </span>
-                    {link.nofollow ? (
-                      <span
-                        className="ml-1 rounded bg-line-soft px-1.5 py-0.5 text-xs text-ink-muted"
-                        title="rel=nofollow — this link passes no authority."
-                      >
-                        nofollow
-                      </span>
-                    ) : null}
-                    {link.occurrences > 1 ? (
-                      <span
-                        className="ml-1 text-xs text-ink-muted"
-                        title="Times this URL is linked from this one body."
-                      >
-                        ×{link.occurrences}
-                      </span>
-                    ) : null}
-                  </td>
+                  ) : (
+                    <span className="mt-1 block text-xs text-ink-muted">
+                      no anchor text — an image or icon link
+                    </span>
+                  )}
+                </td>
 
-                  <td className="whitespace-nowrap">
+                <td className="whitespace-nowrap">
+                  <span className="chip chip-neutral">
+                    {KIND_LABELS[link.kind]}
+                  </span>
+                  {link.nofollow ? (
                     <span
-                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${LINK_STATUS_STYLES[link.status]}`}
+                      className="ml-1 chip chip-neutral"
+                      title="rel=nofollow — this link passes no authority."
                     >
-                      {LINK_STATUS_LABELS[link.status]}
+                      nofollow
                     </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  ) : null}
+                  {link.occurrences > 1 ? (
+                    <span
+                      className="ml-1 text-xs text-ink-muted"
+                      title="Times this URL is linked from this one body."
+                    >
+                      ×{link.occurrences}
+                    </span>
+                  ) : null}
+                </td>
+
+                <td className="whitespace-nowrap">
+                  <span className={`chip ${LINK_STATUS_CHIP[link.status]}`}>
+                    {LINK_STATUS_LABELS[link.status]}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
       )}
 
       <Pagination

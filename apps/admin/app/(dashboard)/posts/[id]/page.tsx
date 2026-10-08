@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { deletePost } from '@/app/actions/posts';
 import { PostForm } from '@/components/editor/post-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { snippetsToText } from '@/lib/structured-data';
 import {
@@ -33,8 +34,8 @@ export default async function EditPostPage({
   if (!post) notFound();
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">Edit post</h1>
+    <div className="space-y-6">
+      <PageHeader title="Edit post" />
 
       <PostForm
         site={site}
@@ -66,10 +67,10 @@ export default async function EditPostPage({
       >
         <input type="hidden" name="id" value={post.id} />
         <input type="hidden" name="slug" value={post.slug} />
-        <button type="submit" className="text-sm text-red-700 underline">
+        <button type="submit" className="text-sm text-danger-ink underline">
           Delete this post
         </button>
       </form>
-    </>
+    </div>
   );
 }
