@@ -90,6 +90,32 @@ export const ABOUT_PATH = '/about';
 export const INDUSTRIES_PATH = '/industries';
 export const SERVICES_PATH = '/services';
 
+/**
+ * The Get Started page's form: Denis's HighLevel survey, embedded.
+ *
+ * A DIFFERENT SURVEY FROM CAPITAL'S, on the same HighLevel account and the same
+ * host — so the ids are the only thing telling them apart, and swapping them
+ * would send Labs' enquiries into the funding pipeline without any error
+ * anywhere. Check the id, not the host.
+ *
+ * `initialHeight` is measured rather than guessed: the first step renders 543px
+ * of document at desktop widths and 666px at 360, so 700 clears both and the
+ * resizer trims it down rather than the page jumping up. See ../highlevel-form.
+ *
+ * ITS COLOURS ARE SET IN HIGHLEVEL, NOT HERE. The widget paints its own card —
+ * #2D3748 with a #C79640 border and a gold Next bar, which happens to land on
+ * this site's palette — over a TRANSPARENT document, so whatever is behind the
+ * iframe shows through around it. That is why no wrapper colour is needed here
+ * and why Capital's /get-funded needed one: that survey ships an opaque #141414
+ * background image, and this one does not.
+ */
+export const SURVEY = {
+  host: 'https://link.mailsengr.com',
+  kind: 'survey',
+  id: '1SDHe8jFeAgt0s5yugKD',
+  initialHeight: 700,
+} as const;
+
 export type NavItem = {
   label: string;
   /** Absent while the destination is unbuilt — rendered unlinked, not as a 404. */

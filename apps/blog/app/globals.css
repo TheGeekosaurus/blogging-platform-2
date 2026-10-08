@@ -3069,3 +3069,30 @@
  * app/(dark)/layout.tsx and app/(light)/layout.tsx, which do not change URLs —
  * and not a rule that renders markup in order to hide it.
  */
+
+/* ---------------------------------------------------------------------------
+ * A dropdown that has just been used.
+ *
+ * `useDismissMenusOnNavigate` puts `data-dismissed` on the .dl-headitem when a
+ * row inside its panel is clicked, and takes it off again when the pointer or
+ * the focus leaves. This is the rule that does the hiding. Why it cannot be
+ * done in CSS alone is set out in that hook: after the click the pointer is
+ * still inside the panel and `group-hover` is still true, and "the user has
+ * already chosen" is not something a selector can observe.
+ *
+ * UNLAYERED, DELIBERATELY, and this is the part that will look wrong later.
+ * Everything else in this file is inside `@layer base` or `@layer components`,
+ * both of which Tailwind's `utilities` layer outranks — and what has to be
+ * beaten here is `group-hover:visible`, a utility. Specificity does not come
+ * into it; layer order is decided first, so the same rule written in
+ * `@layer components` would simply lose. Unlayered declarations outrank every
+ * layer, which is what makes this work without `!important`.
+ *
+ * It is at the end of the file so nothing reads it as part of the header's
+ * opening animation block, which is a separate concern that happens to share
+ * the `.dl-headitem` class.
+ * ------------------------------------------------------------------------- */
+.dl-headitem[data-dismissed] .dl-menu {
+  visibility: hidden;
+  opacity: 0;
+}

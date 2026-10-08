@@ -3,7 +3,14 @@ import Link from 'next/link';
 
 import { blogIndexPath } from '@blog/core';
 
-import { CONTACT, FUNDING_PROGRAMS, INDUSTRIES, LOCAL_IMAGES, POLICY_LINKS } from '../brand';
+import {
+  CALCULATORS,
+  CONTACT,
+  FUNDING_PROGRAMS,
+  INDUSTRIES_MENU,
+  LOCAL_IMAGES,
+  POLICY_LINKS,
+} from '../brand';
 import { FOOTER_CTA } from './content';
 import { CONTAINER, CtaButton } from './primitives';
 
@@ -181,16 +188,14 @@ export function DaylightFooter() {
             the individual entries. The headings are gold rather than the brand
             cyan — see --ft-accent in `.dl-footer`.
 
-            INDUSTRIES HAS NO `href`, and that is not an oversight. /industries
-            is a static route belonging to the Labs deployment and calls
-            notFound() on Capital, so it answers 404 here — checked against the
-            running build, not assumed. Its two child pages are real. The header
-            still points its Industries trigger at that path; fixing that means
-            editing NAV, which the dark site reads too, so it is Denis's call
-            rather than a change to make in passing.
+            INDUSTRIES IS LINKED AGAIN. It was headed with plain text while
+            /industries was a Labs-only route that answered 404 on this
+            deployment; app/industries/page.tsx serves Capital its own index as
+            of 2026-10-06, so the heading has somewhere to go and the header's
+            trigger does too.
           */}
           <FooterColumn heading="Funding Solutions" href="/funding-solutions" links={FUNDING_PROGRAMS} />
-          <FooterColumn heading="Industries" links={INDUSTRIES} />
+          <FooterColumn heading="Industries" href="/industries" links={INDUSTRIES_MENU} />
           <FooterColumn
             heading="About Us"
             href="/about-us"
@@ -204,11 +209,18 @@ export function DaylightFooter() {
               { label: CONTACT.phone, href: CONTACT.phoneHref },
             ]}
           />
+          {/*
+            BOTH CALCULATORS, from the same array the header menu reads. This
+            column listed one row, "Loan Calculator", pointing at /calc — so
+            the DSCR calculator was a live page the footer never mentioned.
+            Spreading CALCULATORS keeps the two lists from drifting the way a
+            hand-written row already had.
+          */}
           <FooterColumn
             heading="Resources"
             links={[
               { label: 'Blog', href: blogIndexPath() },
-              { label: 'Loan Calculator', href: '/calc' },
+              ...CALCULATORS,
               { label: 'Programs', href: '/programs' },
             ]}
           />

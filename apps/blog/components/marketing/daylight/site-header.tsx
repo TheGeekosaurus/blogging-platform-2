@@ -6,6 +6,7 @@ import { LOCAL_IMAGES, NAV, type NavItem } from '../brand';
 import {
   BankIcon,
   BridgeIcon,
+  CalculatorIcon,
   CashFlowIcon,
   CoinsIcon,
   EquipmentIcon,
@@ -16,7 +17,26 @@ import {
 } from '../ft/icons';
 import { NAV_CTA } from './content';
 import { DaylightHeaderShell } from './header-shell';
-import { HardHatIcon, StorefrontIcon } from './icons';
+import {
+  BoltIcon,
+  CarIcon,
+  CutleryIcon,
+  FanIcon,
+  GaugeIcon,
+  HardHatIcon,
+  HouseIcon,
+  LedgerIcon,
+  MoreGridIcon,
+  PulseIcon,
+  ScalesIcon,
+  ShearsIcon,
+  ShieldIcon,
+  SpineIcon,
+  StorefrontIcon,
+  ToothIcon,
+  TreeIcon,
+  WheatIcon,
+} from './icons';
 import { DaylightMobileNav } from './mobile-nav';
 import { CtaButton } from './primitives';
 
@@ -79,6 +99,25 @@ const NAV_ICONS = {
   bridge: BridgeIcon,
   storefront: StorefrontIcon,
   'hard-hat': HardHatIcon,
+  wheat: WheatIcon,
+  ledger: LedgerIcon,
+  car: CarIcon,
+  spine: SpineIcon,
+  shears: ShearsIcon,
+  tooth: ToothIcon,
+  bolt: BoltIcon,
+  pulse: PulseIcon,
+  fan: FanIcon,
+  shield: ShieldIcon,
+  tree: TreeIcon,
+  scales: ScalesIcon,
+  house: HouseIcon,
+  cutlery: CutleryIcon,
+  /* The row that ends the Industries menu, out to the index. */
+  more: MoreGridIcon,
+  /* The two calculators. The gauge is the DSCR one: a ratio read off a dial. */
+  calculator: CalculatorIcon,
+  gauge: GaugeIcon,
 } as const;
 
 /**
@@ -163,7 +202,15 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
      * simply less room to the left of that trigger than the panel needs. Below
      * xl it is the narrow single column instead, which fits with room to spare.
      */
-    const wide = item.children.length > 4;
+    /*
+     * Pinned rows come out of the scrolling list and sit in a band of their
+     * own — see NavItem.pinned. `wide` counts only the rows that actually go
+     * in the grid, so a menu is not pushed into two columns by its own escape
+     * hatch.
+     */
+    const rows = item.children.filter((child) => !child.pinned);
+    const pinned = item.children.filter((child) => child.pinned);
+    const wide = rows.length > 4;
 
     return (
       <li className="dl-headitem group relative" style={stagger}>
@@ -176,10 +223,30 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
             {chevron}
           </Link>
         ) : (
-          <span className={`${TRIGGER_CLASS} cursor-default`}>
+          /*
+            A BUTTON, NOT A SPAN, and that is a fix rather than a flourish.
+            This branch renders the trigger for a menu with no page of its own —
+            Industries and Loan Calculator, both of which lost their `href`
+            deliberately. A <span> is not focusable, so the panel below could be
+            opened by hover and by nothing else: the `focus-within` half of the
+            selector could never fire, and the eight pages behind those two
+            menus were unreachable from the header without a mouse. Measured, in
+            a browser, by tabbing the header and watching focus skip them.
+
+            A button is focusable natively and announced as something you can
+            operate, and focusing it satisfies `:focus-within` on the <li>, so
+            the CSS-only mechanism works unchanged.
+
+            NO `aria-expanded`, which is the honest gap here. The menu's open
+            state lives in CSS, so there is no boolean to report, and an
+            attribute that always said "false" would be worse than none. Making
+            it accurate means making the dropdown stateful; that is a bigger
+            change than restoring reachability and has not been asked for.
+          */
+          <button type="button" className={`${TRIGGER_CLASS} cursor-default`}>
             {item.label}
             {chevron}
-          </span>
+          </button>
         )}
 
         {/*
@@ -202,7 +269,7 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
           without repeating it.
         */}
         <div
-          className={`invisible absolute right-0 top-full z-40 ${
+          className={`dl-menu invisible absolute right-0 top-full z-40 ${
             wide ? 'w-[360px] xl:w-[620px]' : 'w-[360px]'
           } overflow-hidden rounded-2xl border border-[var(--ft-line)] bg-[var(--ft-bg)] opacity-0 shadow-[0_24px_48px_-24px_rgba(16,24,40,0.28)] transition-[opacity,visibility] group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100`}
         >
@@ -212,11 +279,55 @@ function DesktopItem({ item, index }: { item: NavItem; index: number }) {
             them to be left out, and they were labelling a list whose trigger is
             six pixels above it and says the same thing.
           */}
-          <ul className={`grid gap-1 p-3 ${wide ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'}`}>
-            {item.children.map((child) => (
+          {/*
+            THE LIST SCROLLS IF IT HAS TO, and that is not defensive coding —
+            it is the fix for a menu that was measured broken.
+
+            Industries went from six rows to seventeen on 2026-10-06. At 1024px
+            the two-column layout has not kicked in yet (see `wide` above: it
+            is `xl`, because a 620px panel right-anchored at this width starts
+            at x = -80), so seventeen rows stacked in one column stood 1259px
+            tall and hung 582px BELOW a 768px viewport. The panel is absolutely
+            positioned inside a sticky header, so there was nothing to scroll
+            to: the last ten trades simply could not be reached with a mouse.
+            At 1280x800 it fitted with 34px to spare, which is not spare.
+
+            The cap goes on the <ul> rather than on the panel so the call to
+            action underneath stays pinned and visible rather than scrolling
+            away with the list.
+
+            `min(calc(100vh - 22rem), 34rem)`. The viewport term keeps it inside
+            a short window and the rem term stops it becoming a full-height
+            column on a tall one — but the SUBTRACTION is measured, not guessed,
+            and it has been wrong twice. The list is not the whole panel: above
+            it sit the page inset and the 74px header, and below it the pinned
+            row and the call-to-action band. A plain `70vh` left the panel 11px
+            below a 768px viewport; 17rem was right until the pinned band was
+            added and put it 55px below. 22rem is the four of them with room,
+            and at 768 the panel now finishes 25px clear.
+          */}
+          <ul
+            className={`grid max-h-[min(calc(100vh-22rem),34rem)] gap-1 overflow-y-auto overscroll-contain p-3 ${
+              wide ? 'grid-cols-1 xl:grid-cols-2' : 'grid-cols-1'
+            }`}
+          >
+            {rows.map((child) => (
               <DropdownRow key={child.label} item={child} />
             ))}
           </ul>
+
+          {/*
+            The pinned rows, below the scroller and above the call to action.
+            Separated by a hairline so it reads as the end of the list rather
+            than as a row that failed to scroll with it.
+          */}
+          {pinned.length > 0 ? (
+            <ul className="grid gap-1 border-t border-[var(--ft-line)] p-3">
+              {pinned.map((child) => (
+                <DropdownRow key={child.label} item={child} />
+              ))}
+            </ul>
+          ) : null}
 
           {/*
             The band at the foot of the panel. Copy in daylight/content.ts,

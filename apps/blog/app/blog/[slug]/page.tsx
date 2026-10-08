@@ -146,6 +146,19 @@ export default async function PostPage({
 
   return (
     <article className="blog-surface">
+      {/*
+        What this post is, for the social-proof toasts in the root layout,
+        which cannot otherwise tell a post from any other route. Category ids
+        are the post's own; rules on a parent category arrive from /api/proof
+        already expanded to cover its children.
+      */}
+      <div
+        hidden
+        data-proof-ctx={JSON.stringify({
+          postId: post.id,
+          termIds: [...post.categories, ...post.tags].map((term) => term.id),
+        })}
+      />
       <PostJsonLd
         site={site}
         post={post}

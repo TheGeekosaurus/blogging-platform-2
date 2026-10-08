@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
-import { GetFunded } from '@/components/marketing/ft/get-funded';
+import { DaylightGetFunded } from '@/components/marketing/daylight/get-funded';
 import { isNntmCapital } from '@/lib/marketing';
 
 /*
@@ -11,6 +11,10 @@ import { isNntmCapital } from '@/lib/marketing';
  * It used to be one of the heading-only stubs in brand.ts, which stopped it
  * 404ing but left the site's primary conversion behind an empty page. It is a
  * real route now, and has been removed from STUB_PAGES accordingly.
+ *
+ * DAYLIGHT, since 2026-10-06. The dark build is still in
+ * components/marketing/ft/get-funded.tsx and is the revert path — one import
+ * and one tag, the same way the homepage and the funding pages were promoted.
  *
  * No data fetching: the copy is in ft/content.ts and the survey is an iframe, so
  * there is nothing here for on-demand revalidation to refresh and nothing to add
@@ -42,5 +46,5 @@ export async function generateMetadata(): Promise<Metadata> {
 export default function GetFundedPage() {
   if (!isNntmCapital()) notFound();
 
-  return <GetFunded />;
+  return <DaylightGetFunded />;
 }

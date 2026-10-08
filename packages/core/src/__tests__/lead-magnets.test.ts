@@ -30,7 +30,7 @@ function magnet(
     site_id: 'site-1',
     slug: `magnet-${seq}`,
     name: `Magnet ${seq}`,
-    // The CTA-block columns, at the defaults 0015 gives an existing row: an
+    // The CTA-block columns, at the defaults 0016 gives an existing row: an
     // email capture in the banner layout, which is what every magnet written
     // before in-content blocks existed still is.
     kind: 'email',

@@ -173,7 +173,7 @@ const SECTIONS: NavSection[] = [
     // "CTAs", because an email capture is now one KIND of block among several
     // and most of them are links. The ROUTE stays /lead-magnets: renaming it
     // would break every bookmark and in-app link for a label change, and the
-    // table it reads is still called lead_magnets for the reasons 0015 gives.
+    // table it reads is still called lead_magnets for the reasons 0016 gives.
     label: 'CTAs',
     icon: (
       <Icon>
@@ -185,6 +185,21 @@ const SECTIONS: NavSection[] = [
     children: [
       { href: '/lead-magnets', label: 'All Blocks' },
       { href: '/lead-magnets/new', label: 'Add New' },
+    ],
+  },
+  {
+    href: '/social-proof',
+    label: 'Social proof',
+    icon: (
+      <Icon>
+        {/* A toast in the corner of a page: the page, then the card. */}
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <rect x="6" y="13" width="10" height="4" rx="2" />
+      </Icon>
+    ),
+    children: [
+      { href: '/social-proof', label: 'All Campaigns' },
+      { href: '/social-proof/new', label: 'Add New' },
     ],
   },
   {

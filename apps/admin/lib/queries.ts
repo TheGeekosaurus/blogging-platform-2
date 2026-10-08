@@ -9,6 +9,9 @@ import type {
   PageTemplate,
   PostRow,
   PostStatus,
+  ProofCampaignRow,
+  ProofCampaignTargetRow,
+  ProofEventRow,
   TermRow,
 } from '@blog/core';
 import { explainLeadMagnetSchemaError, mediaPublicUrl, toCtaBlockView } from '@blog/core';
@@ -650,6 +653,99 @@ export async function listRedirectRows(
 
   if (error) throw new Error(`Failed to list redirects: ${error.message}`);
   return { redirects: (data ?? []) as RedirectListItem[], total: count ?? 0 };
+}
+
+// ---------------------------------------------------------------------------
+// Social proof
+// ---------------------------------------------------------------------------
+
+/**
+ * Same message the blog's query gives for a missing migration, because the
+ * admin is where someone would be going to apply it.
+ */
+function proofSchemaError(error: { code?: string; message: string }, what: string): Error {
+  const drift = error.code === 'PGRST200' || error.code === 'PGRST205';
+  return new Error(
+    `${what}: ${error.message}` +
+      (drift
+        ? '\n\nApply supabase/migrations/0015_proof_notifications.sql to this project, ' +
+          "or reload the PostgREST schema cache with \"notify pgrst, 'reload schema';\"."
+        : ''),
+  );
+}
+
+export interface ProofCampaignListItem extends ProofCampaignRow {
+  eventCount: number;
+  includeCount: number;
+}
+
+export async function listProofCampaigns(siteId: string): Promise<ProofCampaignListItem[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('proof_campaigns')
+    .select('*, events:proof_events(count), targets:proof_campaign_targets(exclude)')
+    .eq('site_id', siteId)
+    .order('active', { ascending: false })
+    .order('name');
+
+  if (error) throw proofSchemaError(error, 'Failed to list social-proof campaigns');
+
+  return (data ?? []).map((row) => {
+    const { events, targets, ...campaign } = row as ProofCampaignRow & {
+      events: Array<{ count: number }> | null;
+      targets: Array<{ exclude: boolean }> | null;
+    };
+    return {
+      ...campaign,
+      eventCount: events?.[0]?.count ?? 0,
+      // Exclusions alone place a campaign nowhere, so they are not counted.
+      includeCount: (targets ?? []).filter((t) => !t.exclude).length,
+    };
+  });
+}
+
+export interface ProofEventForEdit extends ProofEventRow {
+  /** Built here: mediaPublicUrl is server-only. */
+  map_url: string | null;
+}
+
+export interface ProofCampaignForEdit extends ProofCampaignRow {
+  targets: ProofCampaignTargetRow[];
+  events: ProofEventForEdit[];
+}
+
+export async function getProofCampaignForEdit(
+  siteId: string,
+  id: string,
+): Promise<ProofCampaignForEdit | null> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('proof_campaigns')
+    .select('*, targets:proof_campaign_targets(*), events:proof_events(*)')
+    .eq('site_id', siteId)
+    .eq('id', id)
+    .maybeSingle();
+
+  if (error) throw proofSchemaError(error, 'Failed to load the campaign');
+  if (!data) return null;
+
+  const row = data as ProofCampaignRow & {
+    targets: ProofCampaignTargetRow[] | null;
+    events: ProofEventRow[] | null;
+  };
+
+  return {
+    ...row,
+    targets: row.targets ?? [],
+    events: [...(row.events ?? [])]
+      .sort((a, b) => a.sort - b.sort)
+      .map((event) => ({
+        ...event,
+        map_url: event.map_path ? mediaPublicUrl(event.map_path) : null,
+      })),
+  };
 }
 
 /**

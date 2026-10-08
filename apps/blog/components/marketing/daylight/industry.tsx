@@ -1,8 +1,10 @@
 import { FUNDING_OPTIONS } from '../ft/content';
 import {
   CashFlowIcon,
+  ConsolidateIcon,
   EquipmentIcon,
   ExpandIcon,
+  HiringIcon,
   InventoryIcon,
   MarketingIcon,
   PayrollIcon,
@@ -63,6 +65,8 @@ const NEED_ICONS = {
   expand: ExpandIcon,
   marketing: MarketingIcon,
   'cash-flow': CashFlowIcon,
+  hiring: HiringIcon,
+  consolidate: ConsolidateIcon,
 } as const;
 
 /**

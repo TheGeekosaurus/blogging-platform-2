@@ -296,9 +296,20 @@ describe("the Daylight dropdowns", () => {
   it("gives every dropdown entry an icon key", async () => {
     const { NAV } = await import("../components/marketing/brand");
 
+    const { CALCULATORS, FUNDING_PROGRAMS, INDUSTRIES_MENU } = await import(
+      "../components/marketing/brand"
+    );
     const children = NAV.flatMap((item) => item.children ?? []);
 
-    expect(children.length).toBe(11);
+    /*
+     * DERIVED, not a magic number. This read `toBe(11)` — nine products and two
+     * industries — and every time the menus grew it failed for the wrong
+     * reason. What the test is actually for is that nothing reaches a dropdown
+     * WITHOUT going through one of the three arrays, so count them.
+     */
+    expect(children.length).toBe(
+      FUNDING_PROGRAMS.length + INDUSTRIES_MENU.length + CALCULATORS.length,
+    );
     for (const child of children) {
       expect(child.icon, `${child.label} has no icon key`).toMatch(/^[a-z-]+$/);
     }
@@ -411,9 +422,14 @@ describe("the Daylight footer", () => {
    * /industries is a static route gated to the Labs deployment, so it answers
    * 404 on Capital. The column heading must stay unlinked until that changes.
    */
-  it("does not link the Industries heading", () => {
-    const col = footer.slice(footer.indexOf('heading="Industries"'));
-    expect(col.slice(0, 80)).not.toContain("href=");
+  /*
+   * THE INDUSTRIES HEADING IS LINKED AGAIN. It was plain text for as long as
+   * /industries was a Labs-only route that answered 404 on Capital; that route
+   * serves this deployment its own index now, so every one of the four column
+   * headings has a real page behind it.
+   */
+  it("links the Industries heading now that the index exists", () => {
+    expect(footer).toContain('heading="Industries" href="/industries"');
   });
 
   it("gives every other column heading its real page", () => {
@@ -561,7 +577,13 @@ describe("the site-wide Daylight chrome", () => {
    * this replaced.
    */
   it("leaves the pages to render only their own content", () => {
-    for (const file of ["daylight/home.tsx", "daylight/funding-solutions.tsx", "daylight/dscr-calculator.tsx"]) {
+    for (const file of [
+      "daylight/home.tsx",
+      "daylight/funding-solutions.tsx",
+      "daylight/dscr-calculator.tsx",
+      "daylight/get-funded.tsx",
+      "daylight/industries-index.tsx",
+    ]) {
       const source = read(file);
       expect(source, `${file} still draws a header`).not.toContain("<DaylightHeader");
       expect(source, `${file} still draws a footer`).not.toContain("<DaylightFooter");
@@ -570,9 +592,19 @@ describe("the site-wide Daylight chrome", () => {
 
   it("no longer hides chrome with CSS", () => {
     const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
-    /* The phrase survives in a note explaining why it is gone; what must not
-       come back is the rule, which needs a declaration block. */
-    expect(css).not.toMatch(/body:has\(\.dl-surface\)[^{]*\{/);
+
+    /*
+     * COMMENTS STRIPPED FIRST. The phrase survives in a note explaining why the
+     * rule is gone, and what must not come back is the rule itself.
+     *
+     * This read `/body:has\(\.dl-surface\)[^{]*\{/` against the raw file, which
+     * passed only because that note happened to be the last thing in it — the
+     * pattern finds the next `{` anywhere downstream, so the first rule
+     * appended after the note turned a note into a match. Stripping comments
+     * tests what the test is named for.
+     */
+    const code = css.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code).not.toContain("body:has(.dl-surface)");
   });
 });
 
@@ -761,7 +793,7 @@ describe("the Daylight industry page", () => {
   const page = read("daylight/industry.tsx");
   const content = read("daylight/industry-content.ts");
   const route = readFileSync(
-    join(__dirname, "..", "app", "industries", "food-business", "page.tsx"),
+    join(__dirname, "..", "app", "industries", "[industry]", "page.tsx"),
     "utf8",
   );
 
@@ -771,27 +803,35 @@ describe("the Daylight industry page", () => {
   });
 
   /*
-   * THE LOAD-BEARING ONE. `app/industries/[industry]/page.tsx` would capture
-   * every /industries/* path, and `construction-business` has no record yet —
-   * it is served by the pages catch-all and linked from both the header
-   * dropdown and the footer. A dynamic segment turns it into a hard 404 with
-   * nothing to notice.
+   * THE LOAD-BEARING ONE, and it has flipped.
    *
-   * So: while any industry path is still a stub, the route must be literal.
-   * The day construction gets a record in industry-content.ts, this test stops
-   * demanding that and the route can become `[industry]`.
+   * `app/industries/[industry]/page.tsx` captures EVERY /industries/* path,
+   * because a route segment always beats the catch-all. While any industry was
+   * still a noindex STUB_PAGES entry — construction was, and was linked live
+   * from the header dropdown and the footer — that segment would have turned a
+   * working 200 into a hard 404 with nothing to notice, so the route was the
+   * literal `food-business` instead.
+   *
+   * Every industry has a record now and the stubs are gone, so the segment is
+   * dynamic. What this test guards is that the two never coexist again: a stub
+   * under this prefix is unreachable while that route exists, so adding one is
+   * silently writing a page nobody will ever be served.
    */
-  it("keeps the route literal while a sibling industry is still a stub", async () => {
+  it("never has an industry stub behind the dynamic segment", async () => {
     const { STUB_PAGES } = await import("../components/marketing/brand");
     const stubbed = Object.keys(STUB_PAGES).filter((path) =>
       path.startsWith("industries/"),
     );
-    if (stubbed.length === 0) return;
+    const dynamicRoute = existsSync(
+      join(__dirname, "..", "app", "industries", "[industry]", "page.tsx"),
+    );
 
-    expect(
-      existsSync(join(__dirname, "..", "app", "industries", "[industry]")),
-      `a dynamic segment would 404 ${stubbed.join(", ")}`,
-    ).toBe(false);
+    if (dynamicRoute) {
+      expect(
+        stubbed,
+        "a route segment beats the catch-all, so these are unreachable",
+      ).toEqual([]);
+    }
   });
 
   /* Every record in the file has a route to render it, and vice versa. */
@@ -799,19 +839,62 @@ describe("the Daylight industry page", () => {
     const { INDUSTRY_PAGES } = await import(
       "../components/marketing/daylight/industry-content"
     );
+    const { STUB_PAGES } = await import("../components/marketing/brand");
     expect(INDUSTRY_PAGES.length).toBeGreaterThan(0);
+
+    const dir = join(__dirname, "..", "app", "industries");
+    const dynamicRoute = existsSync(join(dir, "[industry]", "page.tsx"));
 
     for (const entry of INDUSTRY_PAGES) {
       expect(
-        existsSync(join(__dirname, "..", "app", "industries", entry.slug, "page.tsx")),
+        dynamicRoute || existsSync(join(dir, entry.slug, "page.tsx")),
         `no route for ${entry.slug}`,
       ).toBe(true);
-      /* And it is no longer a stub, which the catch-all would never reach. */
-      const { STUB_PAGES } = await import("../components/marketing/brand");
       expect(
         Object.hasOwn(STUB_PAGES, `industries/${entry.slug}`),
         `${entry.slug} is both a route and a stub`,
       ).toBe(false);
+    }
+
+    /* The dynamic route builds its params from the records, so a record added
+       without a CODED_SITES entry is the only way the two can part company —
+       which the sitemap test below catches. A LITERAL route left behind after
+       the switch is the other, and would serve a second copy at the same URL. */
+    if (dynamicRoute) {
+      const literals = readdirSync(dir, { withFileTypes: true })
+        .filter((e) => e.isDirectory() && e.name !== "[industry]")
+        .map((e) => e.name);
+      expect(literals, "a literal route still shadows the segment").toEqual([]);
+    }
+  });
+
+  /*
+   * THE NAV AND THE RECORDS ARE THE SAME SIX. The header dropdown and the
+   * footer column both read INDUSTRIES; a label there with no record is a link
+   * to a 404, and a record with no entry is a page nothing links to.
+   */
+  it("lists exactly the industries that have pages", async () => {
+    const { INDUSTRIES } = await import("../components/marketing/brand");
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+
+    const navSlugs = INDUSTRIES.map((i) => i.href.replace(/^\/industries\/|\/$/g, ""));
+    const recordSlugs = INDUSTRY_PAGES.map((p) => p.slug);
+
+    expect([...navSlugs].sort()).toEqual([...recordSlugs].sort());
+
+    /* And every one carries a glyph the header can actually draw. */
+    const header = read("daylight/site-header.tsx");
+    const map = header.slice(
+      header.indexOf("const NAV_ICONS"),
+      header.indexOf("} as const;", header.indexOf("const NAV_ICONS")),
+    );
+    const { INDUSTRIES_MENU } = await import("../components/marketing/brand");
+    for (const item of INDUSTRIES_MENU) {
+      expect(map, `no glyph for "${item.icon}"`).toMatch(
+        new RegExp(`['"]?${item.icon}['"]?\\s*:`),
+      );
     }
   });
 
@@ -837,22 +920,103 @@ describe("the Daylight industry page", () => {
      * gated to Labs, so on Capital that path answers 404 and listing it would
      * submit a 404 in the sitemap.
      */
-    expect(paths.has("industries")).toBe(false);
+    expect(paths.has("industries")).toBe(true);
   });
 
   /*
-   * The header's Industries trigger used to point at /industries, which 404s on
-   * Capital. The footer's column heading had already been left unlinked for
-   * that reason; this is the matching fix, and both headers render an
-   * href-less parent as a dropdown trigger rather than a link.
+   * The Industries trigger pointed at /industries, which 404d on Capital, so it
+   * carried no href for a while. The index exists on this deployment now, so
+   * the href is back — and what this guards is that it points at a page the
+   * registry actually knows about rather than at a path that merely looks right.
    */
-  it("does not point the Industries menu at a path that 404s", async () => {
+  it("points the Industries menu at a registered page", async () => {
     const { NAV } = await import("../components/marketing/brand");
     const industries = NAV.find((item) => item.label === "Industries");
 
     expect(industries, "the Industries menu is gone").toBeTruthy();
-    expect(industries?.href, "/industries 404s on Capital").toBeUndefined();
     expect(industries?.children?.length ?? 0).toBeGreaterThan(0);
+
+    const paths = new Set((CODED_SITES[NNTM_CAPITAL_SLUG] ?? []).map((r) => r.path));
+    const path = (industries?.href ?? "").replace(/^\/|\/$/g, "");
+    expect(paths.has(path), `the trigger points at an unregistered /${path}`).toBe(true);
+  });
+
+  /*
+   * "AND MORE" IS LAST, AND IT IS PINNED. Denis asked for the row at the end of
+   * the menu, going to the index directly.
+   *
+   * Pinned is the part that is not cosmetic. Sixteen industries overflow the
+   * desktop panel's scroll cap at every width below 1440 — measured: seventeen
+   * rows in one column stood 1259px tall against a 768px viewport — so without
+   * the flag the one row that exists to escape a too-long list was itself the
+   * row you had to scroll to find.
+   */
+  it("ends the Industries menu with a pinned route to the index", async () => {
+    const { INDUSTRIES, INDUSTRIES_MENU } = await import("../components/marketing/brand");
+
+    expect(INDUSTRIES_MENU.length).toBe(INDUSTRIES.length + 1);
+
+    const last = INDUSTRIES_MENU[INDUSTRIES_MENU.length - 1];
+    expect(last?.label).toBe("And More");
+    expect(last?.href).toBe("/industries");
+    expect(last?.pinned, "the escape hatch can scroll out of reach").toBe(true);
+
+    /* Every other row is a trade, and none of them is pinned. */
+    for (const row of INDUSTRIES_MENU.slice(0, -1)) {
+      expect(row.pinned, `${row.label} is pinned`).toBeUndefined();
+    }
+
+    /* And the panel renders pinned rows outside the scrolling list. */
+    const header = read("daylight/site-header.tsx");
+    expect(header).toContain("const pinned = item.children.filter((child) => child.pinned)");
+    expect(header).toMatch(/overflow-y-auto/);
+  });
+
+  /*
+   * The index is a real page on both deployments, serving a different one to
+   * each. A slug gate that falls through to notFound() is what makes one path
+   * safe to share between two sites.
+   */
+  it("serves an industries index to Capital as well as Labs", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "industries", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightIndustriesIndex");
+    expect(route).toContain("LabsIndustries");
+    expect(route).toContain("notFound()");
+
+    /* The index lists the trades, not the menu — the menu's last row points
+       back here, and a page linking to itself at the end of its own grid is a
+       loop with no exit. */
+    /* Comments stripped: the file's own note explains which list it reads and
+       why, so it names the one it does not use. */
+    const page = read("daylight/industries-index.tsx").replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(page).toContain("INDUSTRIES");
+    expect(page).not.toContain("INDUSTRIES_MENU");
+  });
+
+  /*
+   * THE REGISTRY CANNOT OUTLIVE THE RECORDS EITHER. The sitemap test above
+   * checks every record is registered; this is the other direction — a path
+   * left in CODED_SITES after a record is renamed or dropped puts a 404 in the
+   * sitemap, which is exactly the failure that registry exists to prevent.
+   */
+  it("registers no industry path that has no record", async () => {
+    const { INDUSTRY_PAGES } = await import(
+      "../components/marketing/daylight/industry-content"
+    );
+    const slugs = new Set(INDUSTRY_PAGES.map((p) => p.slug));
+
+    const registered = (CODED_SITES[NNTM_CAPITAL_SLUG] ?? [])
+      .map((r) => r.path)
+      .filter((path) => path.startsWith("industries/"))
+      .map((path) => path.slice("industries/".length));
+
+    expect(registered.length).toBe(INDUSTRY_PAGES.length);
+    for (const slug of registered) {
+      expect(slugs.has(slug), `${slug} is registered with no record`).toBe(true);
+    }
   });
 
   /* Denis: "Hero section same as main, new headline on the left side." */
@@ -1004,14 +1168,22 @@ describe("the Daylight industry page", () => {
     const prose = JSON.stringify(
       INDUSTRY_PROSE_SOURCE(content),
     ).toLowerCase();
-    for (const claim of [
-      "we have funded",
-      "we've funded",
-      "businesses funded",
-      "clients in",
-    ]) {
+    for (const claim of ["we have funded", "we've funded", "businesses funded"]) {
       expect(prose, `"${claim}" is a count nobody has`).not.toContain(claim);
     }
+
+    /*
+     * And no bare tally of the trade either — "180 restaurants", "400+ farms".
+     * A phrase ban alone was both too loose and too tight: "clients in" was on
+     * the list and caught "winning clients in the quiet months", which claims
+     * nothing. The number is the thing that cannot be supported.
+     */
+    expect(
+      prose,
+      "a count of the trade that nobody has made",
+    ).not.toMatch(
+      /\d[\d,]*\+?\s+(restaurants|contractors|farms|practices|shops|clients|businesses|customers)/,
+    );
   });
 });
 
@@ -1131,5 +1303,192 @@ describe("sections standing on the band artwork", () => {
       css.indexOf("  .dl-art .dl-panel") + 400,
     );
     expect(panel).toMatch(/--ft-muted:\s*#45557f/);
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * THE CALCULATORS MENU
+ *
+ * Denis, 2026-10-06: "change the loan calc menu in the header to be a drop down
+ * as well with our 2 calculators for now, DSCR, and business loan."
+ * ---------------------------------------------------------------------------
+ */
+describe("the Loan Calculator dropdown", () => {
+  it("is a dropdown whose trigger is not also its first child", async () => {
+    const { CALCULATORS, NAV } = await import("../components/marketing/brand");
+    const item = NAV.find((entry) => entry.label === "Loan Calculator");
+
+    expect(item, "the Loan Calculator menu is gone").toBeTruthy();
+    expect(item?.children).toEqual(CALCULATORS);
+    expect(CALCULATORS.length).toBe(2);
+
+    /*
+     * NO `href` ON THE PARENT. It pointed at /calc when that was the only
+     * calculator; leaving it there would make the trigger and its own first
+     * row the same destination, and there is no calculators index to point at
+     * instead. Both headers render an href-less parent as a trigger.
+     */
+    expect(item?.href, "the trigger duplicates its first child").toBeUndefined();
+  });
+
+  /*
+   * Both destinations are real coded routes. A menu row pointing at a path
+   * nothing serves is the failure CODED_SITES exists to make visible.
+   */
+  it("points both rows at registered pages", async () => {
+    const { CALCULATORS } = await import("../components/marketing/brand");
+    const paths = new Set((CODED_SITES[NNTM_CAPITAL_SLUG] ?? []).map((r) => r.path));
+
+    for (const entry of CALCULATORS) {
+      const path = entry.href.replace(/^\/|\/$/g, "");
+      expect(paths.has(path), `${entry.label} points at an unregistered ${path}`).toBe(true);
+    }
+  });
+
+  /*
+   * And the footer lists them from the same array. Its Resources column had a
+   * hand-written "Loan Calculator" row, so the DSCR calculator was a live page
+   * the footer never mentioned.
+   */
+  it("is the same list the footer prints", () => {
+    expect(read("daylight/site-footer.tsx")).toContain("...CALCULATORS");
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * CLOSING THE MENUS
+ *
+ * Denis, 2026-10-06: "it's so fast, and the header doesn't move, that it almost
+ * looks like you didn't click the menu — there is no effect. Can we just have
+ * the drop-down menu close upon clicking on something?"
+ * ---------------------------------------------------------------------------
+ */
+describe("the header menus close when a link in them is clicked", () => {
+  const header = read("daylight/site-header.tsx");
+  const hook = read("daylight/use-dismiss-menus.ts");
+  const shell = read("daylight/header-shell.tsx");
+  const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+
+  it("runs the dismissal from the shell, which is already a client component", () => {
+    expect(shell).toContain("useDismissMenusOnNavigate");
+    /* On the <header> itself, not the document — the listener is scoped. */
+    expect(shell).toContain("ref={header}");
+    /* And no second client boundary was opened to do it. */
+    expect(hook).not.toContain("'use client'");
+  });
+
+  /*
+   * Only a link dismisses. The desktop trigger IS a link when the section has
+   * an index page (Funding Solutions), so a listener that fired on any click
+   * inside the header would close the panel at the moment it opened.
+   */
+  it("dismisses on a link, not on any click in the header", () => {
+    expect(hook).toContain("a[href]");
+    expect(hook).toContain(".dl-headitem");
+    /* The mobile sheet is DOM state and is turned off directly. */
+    expect(hook).toContain("details[open]");
+    /* Focus has to be dropped too, or focus-within reopens the panel. */
+    expect(hook).toContain("blur()");
+  });
+
+  /*
+   * THE RULE MUST BE UNLAYERED. Everything else in globals.css sits in
+   * `@layer base` or `@layer components`, and Tailwind's `utilities` layer
+   * outranks both — so the same rule written inside a layer would lose to
+   * `group-hover:visible` no matter how specific it is. Layer order is decided
+   * before specificity.
+   */
+  it("hides the dismissed panel from outside every cascade layer", () => {
+    const marker = ".dl-headitem[data-dismissed] .dl-menu";
+    const at = css.indexOf(marker);
+    expect(at, "the dismissal rule is gone").toBeGreaterThan(-1);
+
+    /* Brace depth at that point: zero means no enclosing @layer block. */
+    let depth = 0;
+    for (const ch of css.slice(0, at)) {
+      if (ch === "{") depth += 1;
+      else if (ch === "}") depth -= 1;
+    }
+    expect(depth, "the rule is inside a @layer and will lose to utilities").toBe(0);
+
+    /* And the panel carries the marker the rule selects. */
+    expect(header).toContain("dl-menu");
+  });
+
+  /*
+   * EVERY TRIGGER HAS TO BE FOCUSABLE, or `focus-within` — half of what opens
+   * the panel — can never fire.
+   *
+   * This was broken for a while and measured in a browser: the href-less
+   * branch rendered a <span>, which is not focusable, so tabbing the header
+   * skipped Industries and Loan Calculator entirely and the eight pages behind
+   * those two menus could not be reached without a mouse.
+   */
+  it("gives an href-less dropdown trigger a focusable element", async () => {
+    const { NAV } = await import("../components/marketing/brand");
+    const hrefless = NAV.filter((item) => item.children && !item.href);
+    expect(hrefless.length, "nothing exercises this branch").toBeGreaterThan(0);
+
+    /* The branch that runs when there is no href renders a button. */
+    expect(header).toMatch(/<button type="button" className=\{`\$\{TRIGGER_CLASS\}/);
+    expect(header, "a span trigger is not keyboard reachable").not.toMatch(
+      /<span className=\{`\$\{TRIGGER_CLASS\}[^`]*`\}>/,
+    );
+  });
+});
+
+/*
+ * ---------------------------------------------------------------------------
+ * /GET-FUNDED IN WHITE
+ *
+ * Denis, 2026-10-06: "rebrand the get funded page colors."
+ * ---------------------------------------------------------------------------
+ */
+describe("the Daylight get-funded page", () => {
+  const page = read("daylight/get-funded.tsx");
+
+  it("is what the route renders, gated to Capital", () => {
+    const route = readFileSync(
+      join(__dirname, "..", "app", "get-funded", "page.tsx"),
+      "utf8",
+    );
+    expect(route).toContain("DaylightGetFunded");
+    expect(route).toContain("isNntmCapital");
+  });
+
+  /* The copy is unchanged — this was a colour change, not a rewrite. */
+  it("keeps the shared copy rather than restating it", () => {
+    expect(page).toContain("GET_FUNDED.heading");
+    expect(page).toContain("GET_FUNDED.sub");
+    expect(page).toContain("GET_FUNDED.eyebrow");
+  });
+
+  /*
+   * THE FRAME MATCHES THE EMBED, and the hex is not a brand colour.
+   *
+   * The survey iframe is one flat near-black field: its html/body carries a
+   * background-image that is a 1000x750 PNG of solid #141414, and its own card
+   * config sets `bgColor: "141414"`. Both live in Denis's GoHighLevel account
+   * and neither can be reached from this origin. So the wrapper paints the same
+   * value, which turns a black rectangle sitting on a white page into one dark
+   * card — and the day those two settings change, this constant changes with
+   * them rather than the page being redesigned around them.
+   */
+  it("frames the survey in the colour the survey actually is", () => {
+    expect(page).toContain("const SURVEY_INK = '#141414'");
+    expect(page).toContain("backgroundColor: SURVEY_INK");
+
+    /* Never a --ft-* token: this is a third party's colour, not ours, and
+       pointing a theme token at it would make it look like a palette value. */
+    const wrapper = page.slice(page.indexOf("mx-auto mt-12"), page.indexOf("HighLevelForm eager"));
+    expect(wrapper).not.toContain("--ft-");
+    expect(wrapper).not.toContain("--dl-");
+  });
+
+  /* One survey, one CRM record, whichever route the visitor took. */
+  it("embeds the shared HighLevel form eagerly", () => {
+    expect(page).toContain("<HighLevelForm eager />");
   });
 });

@@ -36,6 +36,9 @@ Supabase (one project)
    supabase/migrations/0010_lead_magnets.sql       lead capture on post pages
    supabase/migrations/0011_lead_magnet_image.sql  an image on the capture card
    supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
+   supabase/migrations/0013_seo.sql                keyword research and the roadmap
+   supabase/migrations/0014_seo_priority.sql       build order on the roadmap
+   supabase/migrations/0015_proof_notifications.sql social-proof toasts
    ```
 
    This list had stopped at 0003 while three more migrations were added, which
@@ -248,6 +251,18 @@ The payload is JSON:
 
 Branch on `magnet` rather than the offer's name or id: the slug is the stable
 public key, and the admin warns before you change one.
+
+### Social-proof toasts, if you are using them
+
+Apply `0015_proof_notifications.sql`. Unlike lead capture, a missing migration
+does not stop the build: the blog's `/api/proof` route logs the error and serves
+no campaigns, so the site renders without toasts until it is applied.
+
+City maps are drawn by the **admin** when a campaign is saved: it geocodes with
+OpenStreetMap's Nominatim, fetches a few OSM tiles, and stores a small webp in
+the `media` bucket under `<site id>/proof-maps/`. So the admin deployment needs
+outbound access to `nominatim.openstreetmap.org` and `tile.openstreetmap.org`.
+The public site never calls either.
 
 ### Tracking, on any blog
 

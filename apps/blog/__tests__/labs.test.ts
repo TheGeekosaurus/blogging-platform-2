@@ -181,10 +181,12 @@ describe('every destination resolves', () => {
 describe('no form silently discards input', () => {
   it.each([
     ['the enquiry form', 'sections.tsx', 3],
-    // Four, not one per field: the fields are a `.map`, so the source carries
-    // one `disabled` per control TYPE. The rendered-output check below is the
-    // one that actually counts every control.
-    ['the get-started form', 'get-started.tsx', 4],
+    /*
+     * get-started.tsx IS NOT HERE ANY MORE, and that is the good outcome: its
+     * field set was the template's drawing and is now Denis's HighLevel survey,
+     * which has an endpoint. Nothing on that page is disabled because nothing on
+     * it is pretending. The rendered-output sweep below still covers it.
+     */
     ['the newsletter', 'site-footer.tsx', 1],
   ])('%s is disabled until it has an endpoint', (_label, file, controls) => {
     /*
@@ -968,16 +970,15 @@ describe('the Get Started page', () => {
   it('puts every section on the page', async () => {
     const html = decoded(await render());
     const { FAQS, TESTIMONIALS, STATS } = await import('../components/marketing/labs/content');
-    const { CONTACT_CHANNELS, ENQUIRY_FIELDS, GET_STARTED_HERO, REACH_US } = await import(
-      '../components/marketing/labs/get-started-content'
-    );
+    const { CONTACT_CHANNELS, ENQUIRY_SURVEY_TITLE, GET_STARTED_HERO, REACH_US } =
+      await import('../components/marketing/labs/get-started-content');
 
     for (const line of GET_STARTED_HERO.headingLines) expect(html).toContain(line);
     expect(html).toContain(GET_STARTED_HERO.body);
     for (const stat of STATS) expect(html, stat.label).toContain(stat.value);
     expect(html).toContain(REACH_US);
     for (const channel of CONTACT_CHANNELS) expect(html, channel.name).toContain(channel.name);
-    for (const field of ENQUIRY_FIELDS) expect(html, field.id).toContain(field.placeholder);
+    expect(html).toContain(ENQUIRY_SURVEY_TITLE);
     for (const faq of FAQS) expect(html).toContain(faq.question);
     for (const person of TESTIMONIALS) expect(html).toContain(person.name);
   });
@@ -1038,6 +1039,66 @@ describe('the Get Started page', () => {
       // No mailto:/tel: anywhere while every detail is still a placeholder.
       expect(html).not.toMatch(/href="(mailto|tel):/);
     }
+  });
+
+  /*
+   * THE FORM IS THE HIGHLEVEL SURVEY, and the three attributes below are the
+   * whole contract with it. The src is what the visitor fills in; the `id` is
+   * how form_embed.js finds the frame to resize (drop it and the survey renders
+   * and then stays clipped at initialHeight, with no console error and no
+   * failing request); the reserved height is what stops the testimonials below
+   * jumping while it reports its own.
+   */
+  it('embeds the real survey, with the id its resizer looks up', async () => {
+    const html = await render();
+    const { SURVEY } = await import('../components/marketing/labs/brand');
+    const { ENQUIRY_SURVEY_TITLE } = await import(
+      '../components/marketing/labs/get-started-content'
+    );
+
+    const frame = html.match(/<iframe[^>]*>/)?.[0];
+    expect(frame, 'no iframe on the page').toBeTruthy();
+
+    expect(frame).toContain(`src="${SURVEY.host}/widget/${SURVEY.kind}/${SURVEY.id}"`);
+    expect(frame).toContain(`id="${SURVEY.id}"`);
+    expect(frame).toContain(`title="${ENQUIRY_SURVEY_TITLE}"`);
+    expect(SURVEY.initialHeight).toBeGreaterThan(0);
+    expect(frame).toContain(`height:${SURVEY.initialHeight}px`);
+  });
+
+  /*
+   * TWO SURVEYS, ONE ACCOUNT, ONE HOST. Capital's funding qualifier and this
+   * one differ by their id alone, so a copy-paste between the two brand files
+   * would send every Labs enquiry into the funding pipeline and look completely
+   * normal doing it \u2014 same domain, same widget, same card.
+   */
+  it('is a different survey from Capital\'s funding qualifier', async () => {
+    const labs = (await import('../components/marketing/labs/brand')).SURVEY;
+    const capital = (await import('../components/marketing/brand')).SURVEY;
+
+    expect(labs.host).toBe(capital.host);
+    expect(labs.id).not.toBe(capital.id);
+  });
+
+  /*
+   * ONE FORM ON THE PAGE, not two.
+   *
+   * The shared FAQ carries the site's placeholder enquiry form in its right
+   * column, which is the right answer on the five pages that have no other
+   * form. Here it would put a disabled field set one screen below a live
+   * survey, and a visitor who fills in the nearest-looking form loses the
+   * enquiry silently \u2014 the exact failure the disabled controls exist to
+   * prevent, reintroduced by having a working form above them.
+   */
+  it('carries no second, dead form under the live one', async () => {
+    const html = await render();
+
+    expect(html).not.toContain('id="ask"');
+    expect(html).not.toMatch(/<(input|textarea|button)[^>]*\sdisabled/);
+    // And the questions still render \u2014 it is the form column that went, not
+    // the FAQ.
+    const { FAQS } = await import('../components/marketing/labs/content');
+    for (const faq of FAQS) expect(decoded(html)).toContain(faq.question);
   });
 });
 

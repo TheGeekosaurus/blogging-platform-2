@@ -1,4 +1,4 @@
--- 0015_cta_blocks.sql — in-content CTAs
+-- 0016_cta_blocks.sql — in-content CTAs
 --
 -- WHAT THIS TABLE IS NOW. `lead_magnets` holds every call-to-action block on
 -- the site, of which an email capture card is one KIND. A block can instead
