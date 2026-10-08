@@ -21,14 +21,14 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-2">
       <div className="grow">
-        <label htmlFor="name" className="block text-sm font-medium">
+        <label htmlFor="name" className="label">
           Add a category or tag
         </label>
         <input
           id="name"
           name="name"
           required
-          className="field mt-1"
+          className="field"
         />
       </div>
 
@@ -78,7 +78,7 @@ export function NewTermForm({ categories }: { categories: FlatTerm[] }) {
       </button>
 
       {state.error ? (
-        <p role="alert" className="w-full text-sm text-red-700">
+        <p role="alert" className="w-full text-sm text-danger-ink">
           {state.error}
         </p>
       ) : null}

@@ -1,3 +1,6 @@
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { deleteRedirect } from '@/app/actions/redirects';
 import { Pagination, parsePage } from '@/components/pagination';
 import { RedirectForm } from '@/components/redirect-form';
@@ -29,7 +32,7 @@ export default async function RedirectsPage({
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">Redirects</h1>
+      <PageHeader title="Redirects" />
 
       {/*
         Stated plainly because it is the one thing about this screen that
@@ -55,11 +58,11 @@ export default async function RedirectsPage({
         </h2>
 
         {total === 0 ? (
-          <p className="mt-3 text-sm text-ink-muted">
+          <EmptyState tight>
             None yet. Add one above for any URL that has moved.
-          </p>
+          </EmptyState>
         ) : (
-          <table className="data-table mt-3">
+          <DataTable card={false}>
             <thead>
               <tr>
                 <th>From</th>
@@ -82,7 +85,7 @@ export default async function RedirectsPage({
                     */}
                     <form action={deleteRedirect}>
                       <input type="hidden" name="id" value={redirect.id} />
-                      <button type="submit" className="text-sm text-red-700 underline">
+                      <button type="submit" className="text-sm text-danger-ink underline">
                         Delete
                       </button>
                     </form>
@@ -90,7 +93,7 @@ export default async function RedirectsPage({
                 </tr>
               ))}
             </tbody>
-          </table>
+          </DataTable>
         )}
 
         <Pagination basePath="/redirects" page={page} pageCount={pageCount} />

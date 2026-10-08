@@ -12,7 +12,7 @@ export function MediaUploader() {
   return (
     <form action={formAction} className="flex flex-wrap items-end gap-3">
       <div>
-        <label htmlFor="files" className="block text-sm font-medium">
+        <label htmlFor="files" className="label">
           Upload images
         </label>
         <input
@@ -35,12 +35,12 @@ export function MediaUploader() {
       </button>
 
       {state.error ? (
-        <p role="alert" className="w-full text-sm text-red-700">
+        <p role="alert" className="w-full text-sm text-danger-ink">
           {state.error}
         </p>
       ) : null}
       {state.uploaded ? (
-        <p className="w-full text-sm text-emerald-800">
+        <p className="w-full text-sm text-success-ink">
           Uploaded {state.uploaded} {state.uploaded === 1 ? 'image' : 'images'}.
         </p>
       ) : null}

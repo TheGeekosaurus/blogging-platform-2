@@ -1,4 +1,5 @@
 import { PageForm } from '@/components/page-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listParentOptions } from '@/lib/queries';
 
@@ -9,8 +10,8 @@ export default async function NewPagePage() {
   const parents = await listParentOptions(site.id);
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">New page</h1>
+    <div className="space-y-6">
+      <PageHeader title="New page" />
       <PageForm
         site={site}
         parents={parents}
@@ -27,6 +28,6 @@ export default async function NewPagePage() {
           structuredData: [],
         }}
       />
-    </>
+    </div>
   );
 }

@@ -14,6 +14,7 @@ import {
 } from '@blog/core';
 import { CtaBlock, CtaLinkButton, buttonClass, THEME_SKINS } from '@blog/ui';
 
+import { Alert } from '@/components/ui/alert';
 import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets';
 import { CTA_LABELS, LAYOUT_HINTS } from '@/components/editor/cta-picker-labels';
 import { MediaPicker } from '@/components/editor/media-picker';
@@ -173,31 +174,25 @@ export function LeadMagnetForm({
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {state.error ? (
-        <p
-          role="alert"
-          className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900"
-        >
+        <Alert tone="error">
           {state.error}
-        </p>
+        </Alert>
       ) : null}
 
       {state.staleWarning ? (
-        <p
-          role="alert"
-          className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900"
-        >
+        <Alert tone="warning">
           {state.staleWarning}
-        </p>
+        </Alert>
       ) : null}
 
       {state.savedId && !state.staleWarning ? (
-        <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+        <Alert tone="success">
           Saved, and every post was refreshed.
-        </p>
+        </Alert>
       ) : null}
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium">
+        <label htmlFor="name" className="label">
           Name
         </label>
         <input
@@ -213,7 +208,7 @@ export function LeadMagnetForm({
       </div>
 
       <div>
-        <label htmlFor="slug" className="block text-sm font-medium">
+        <label htmlFor="slug" className="label">
           Key
         </label>
         <input
@@ -269,7 +264,7 @@ export function LeadMagnetForm({
 
         {preview.kind === 'link' ? (
           <div>
-            <label htmlFor="href" className="block text-sm font-medium">
+            <label htmlFor="href" className="label">
               Destination
             </label>
             <input
@@ -316,7 +311,7 @@ export function LeadMagnetForm({
                   onChange={() => set('layout', option)}
                   className="sr-only"
                 />
-                <span className="block text-sm font-medium text-ink">
+                <span className="label">
                   {CTA_LABELS.layout[option]}
                 </span>
                 <span className="mt-0.5 block text-xs text-ink-muted">
@@ -372,7 +367,7 @@ export function LeadMagnetForm({
         <legend className="text-sm font-semibold">What it says</legend>
 
         <div>
-          <label htmlFor="eyebrow" className="block text-sm font-medium">
+          <label htmlFor="eyebrow" className="label">
             Eyebrow <span className="font-normal text-ink-muted">(optional)</span>
           </label>
           <input
@@ -386,7 +381,7 @@ export function LeadMagnetForm({
         </div>
 
         <div>
-          <label htmlFor="heading" className="block text-sm font-medium">
+          <label htmlFor="heading" className="label">
             Headline
           </label>
           <input
@@ -428,7 +423,7 @@ export function LeadMagnetForm({
         </fieldset>
 
         <div>
-          <label htmlFor="body" className="block text-sm font-medium">
+          <label htmlFor="body" className="label">
             Supporting line
           </label>
           <textarea
@@ -446,7 +441,7 @@ export function LeadMagnetForm({
         </div>
 
         <div>
-          <label htmlFor="button_label" className="block text-sm font-medium">
+          <label htmlFor="button_label" className="label">
             Button
           </label>
           <input
@@ -476,7 +471,7 @@ export function LeadMagnetForm({
         </label>
 
         <div>
-          <label htmlFor="success_message" className="block text-sm font-medium">
+          <label htmlFor="success_message" className="label">
             After they submit
           </label>
           <input
@@ -489,7 +484,7 @@ export function LeadMagnetForm({
         </div>
 
         <div>
-          <label htmlFor="consent_text" className="block text-sm font-medium">
+          <label htmlFor="consent_text" className="label">
             Small print
           </label>
           <input
@@ -511,7 +506,7 @@ export function LeadMagnetForm({
         <legend className="text-sm font-semibold">The file</legend>
 
         <div>
-          <label htmlFor="asset_url" className="block text-sm font-medium">
+          <label htmlFor="asset_url" className="label">
             Download link
           </label>
           <input
@@ -545,7 +540,7 @@ export function LeadMagnetForm({
         </label>
 
         <div>
-          <span className="block text-sm font-medium">Categories</span>
+          <span className="label">Categories</span>
           <p className="text-sm text-ink-muted">
             Includes posts filed under a child category, matching how the category
             archives already work.
@@ -559,7 +554,7 @@ export function LeadMagnetForm({
         </div>
 
         <div>
-          <span className="block text-sm font-medium">Tags</span>
+          <span className="label">Tags</span>
           <CheckboxList
             name="target_tag"
             options={tags.map((term) => ({ id: term.id, label: term.name }))}
@@ -569,7 +564,7 @@ export function LeadMagnetForm({
         </div>
 
         <div>
-          <span className="block text-sm font-medium">Individual posts</span>
+          <span className="label">Individual posts</span>
           <CheckboxList
             name="target_post"
             options={posts.map((post) => ({ id: post.id, label: post.title }))}

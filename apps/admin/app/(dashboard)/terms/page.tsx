@@ -1,5 +1,7 @@
 import { categoryPath, flattenTermTree, tagPath } from '@blog/core';
 
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { deleteTerm } from '@/app/actions/terms';
 import { CategoryParentPicker } from '@/components/category-parent-picker';
 import { NewTermForm } from '@/components/new-term-form';
@@ -26,7 +28,7 @@ export default async function TermsPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">Categories &amp; tags</h1>
+      <PageHeader title="Categories & tags" />
 
       <div className="mt-6 max-w-3xl">
         <NewTermForm categories={categoryTree} />
@@ -42,7 +44,7 @@ export default async function TermsPage() {
         </p>
 
         {categoryTree.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-muted">None yet.</p>
+          <EmptyState tight>None yet.</EmptyState>
         ) : (
           <ul className="mt-3 divide-y divide-line border-y border-line">
             {categoryTree.map(({ term, depth }) => {
@@ -75,7 +77,7 @@ export default async function TermsPage() {
                     />
                     <form action={deleteTerm}>
                       <input type="hidden" name="id" value={term.id} />
-                      <button type="submit" className="text-sm text-red-700 underline">
+                      <button type="submit" className="text-sm text-danger-ink underline">
                         Delete
                       </button>
                     </form>
@@ -91,7 +93,7 @@ export default async function TermsPage() {
         <h2 className="text-lg font-semibold">Tags</h2>
 
         {tags.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-muted">None yet.</p>
+          <EmptyState tight>None yet.</EmptyState>
         ) : (
           <ul className="mt-3 divide-y divide-line border-y border-line">
             {tags.map((term) => {
@@ -106,7 +108,7 @@ export default async function TermsPage() {
                   </span>
                   <form action={deleteTerm} className="ml-auto">
                     <input type="hidden" name="id" value={term.id} />
-                    <button type="submit" className="text-sm text-red-700 underline">
+                    <button type="submit" className="text-sm text-danger-ink underline">
                       Delete
                     </button>
                   </form>

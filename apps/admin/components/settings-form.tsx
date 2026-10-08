@@ -4,6 +4,7 @@ import { useActionState, useState, useTransition } from 'react';
 
 import type { SiteRow } from '@blog/core';
 
+import { Alert } from '@/components/ui/alert';
 import { flushCache, saveSettings, type SettingsState } from '@/app/actions/site';
 import { StructuredDataPanel } from './editor/structured-data-panel';
 
@@ -29,23 +30,23 @@ export function SettingsForm({
     <>
       <form action={formAction} className="flex max-w-xl flex-col gap-4">
         {state.error ? (
-          <p role="alert" className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <Alert tone="error">
             {state.error}
-          </p>
+          </Alert>
         ) : null}
         {state.warning ? (
-          <p className="rounded border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <Alert tone="warning">
             {state.warning}
-          </p>
+          </Alert>
         ) : null}
         {state.saved && !state.warning ? (
-          <p className="rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <Alert tone="success">
             Settings saved.
-          </p>
+          </Alert>
         ) : null}
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium">
+          <label htmlFor="name" className="label">
             Site name
           </label>
           <input
@@ -53,12 +54,12 @@ export function SettingsForm({
             name="name"
             required
             defaultValue={site.name}
-            className="field mt-1"
+            className="field"
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium">
+          <label htmlFor="description" className="label">
             Description
           </label>
           <textarea
@@ -66,12 +67,12 @@ export function SettingsForm({
             name="description"
             rows={2}
             defaultValue={site.description ?? ''}
-            className="field mt-1"
+            className="field"
           />
         </div>
 
         <div>
-          <label htmlFor="base_url" className="block text-sm font-medium">
+          <label htmlFor="base_url" className="label">
             Public URL
           </label>
           <input
@@ -79,7 +80,7 @@ export function SettingsForm({
             name="base_url"
             required
             defaultValue={site.base_url}
-            className="field mt-1 font-mono"
+            className="field font-mono"
           />
           <p className="mt-1 text-xs text-ink-muted">
             An origin with no trailing path, e.g. <code>https://example.com</code>. Canonical
@@ -89,14 +90,14 @@ export function SettingsForm({
         </div>
 
         <div>
-          <label htmlFor="locale" className="block text-sm font-medium">
+          <label htmlFor="locale" className="label">
             Locale
           </label>
           <input
             id="locale"
             name="locale"
             defaultValue={site.locale}
-            className="field mt-1 w-32"
+            className="field w-32"
           />
         </div>
 
@@ -107,7 +108,7 @@ export function SettingsForm({
           container, loaded on every page of this site.
         */}
         <div>
-          <label htmlFor="gtm_container_id" className="block text-sm font-medium">
+          <label htmlFor="gtm_container_id" className="label">
             Google Tag Manager container
           </label>
           <input
@@ -115,7 +116,7 @@ export function SettingsForm({
             name="gtm_container_id"
             defaultValue={site.gtm_container_id ?? ''}
             placeholder="GTM-XXXXXXX"
-            className="field mt-1 font-mono"
+            className="field font-mono"
           />
           <p className="mt-1 text-xs text-ink-muted">
             Loads on every page of this site. Leave empty for no tracking — which is what
@@ -147,14 +148,14 @@ export function SettingsForm({
         </p>
 
         {flushState.error ? (
-          <p role="alert" className="mt-3 rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-900">
+          <div className="mt-3"><Alert tone="error">
             {flushState.error}
-          </p>
+          </Alert></div>
         ) : null}
         {flushState.saved ? (
-          <p className="mt-3 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          <div className="mt-3"><Alert tone="success">
             The live site was refreshed.
-          </p>
+          </Alert></div>
         ) : null}
 
         <button

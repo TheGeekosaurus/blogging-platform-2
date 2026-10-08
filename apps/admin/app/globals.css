@@ -84,11 +84,30 @@
   --color-rail-ink-strong: rgba(225, 222, 245, 0.95);
 
   /* Status. Materio's four, which are more saturated than Tailwind's and are
-     what make the chips read at small sizes on a tinted ground. */
+     what make the chips read at small sizes on a tinted ground.
+
+     FILLS, NOT TEXT. Every one of these is too light to read on white —
+     --color-danger is 3.56:1 — so they belong on a border, a dot or a tinted
+     background, and the -ink pair below is what goes on top of them. The one
+     place that got this wrong was .seo-save-failed, which set --color-danger
+     as the colour of the word "failed". */
   --color-success: #28c76f;
   --color-warning: #ff9f43;
   --color-danger: #ea5455;
   --color-info: #00bad1;
+
+  /* The readable partner of each fill: darker than its source hue so the pair
+     clears 4.5:1 both on white (5.2-5.6:1) and on its own 12% tint (4.8:1).
+     These were hard-coded hexes inside the chip rules, and by the time the
+     alerts were written there were SEVEN copies across four unrelated
+     components — the roadmap's high-priority row had its own. That is how a
+     palette drifts, so they are tokens. */
+  --color-success-ink: #197b44;
+  --color-warning-ink: #ac5400;
+  --color-danger-ink: #cc191a;
+  /* Derived the same way for the fourth fill, which had no ink at all: the
+     status badges reached for Tailwind's sky-100/sky-900 instead. */
+  --color-info-ink: #00757f;
 
   --radius-card: 0.625rem;
   --radius-control: 0.5rem;
@@ -246,7 +265,7 @@
 
   .btn-danger {
     background: transparent;
-    color: var(--color-danger);
+    color: var(--color-danger-ink);
     border: 1px solid rgba(234, 84, 85, 0.5);
   }
 
@@ -299,12 +318,21 @@
     width: auto;
   }
 
+  /*
+   * A control's label.
+   *
+   * This class existed and lost. Fifty-four labels spelled it out inline as
+   * `block text-sm font-medium` instead — a slightly larger size with no gap
+   * under it — so the two were never quite the same and the inline one was
+   * winning by sheer count. They all point here now, and the gap below is
+   * part of the class rather than an `mt-1` repeated on thirty-one controls.
+   */
   .label {
     display: block;
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--color-ink);
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.375rem;
   }
 
   .hint {
@@ -335,19 +363,93 @@
   }
   .chip-success {
     background: rgba(40, 199, 111, 0.16);
-    color: #197b44;
+    color: var(--color-success-ink);
   }
   .chip-warning {
     background: rgba(255, 159, 67, 0.16);
-    color: #ac5400;
+    color: var(--color-warning-ink);
   }
   .chip-danger {
     background: rgba(234, 84, 85, 0.16);
-    color: #cc191a;
+    color: var(--color-danger-ink);
+  }
+  .chip-info {
+    background: rgba(0, 186, 209, 0.16);
+    color: var(--color-info-ink);
   }
   .chip-neutral {
     background: var(--color-line-soft);
     color: var(--color-ink-muted);
+  }
+
+  /* ----------------------------------------------------------------------
+   * Alerts
+   * ------------------------------------------------------------------- */
+
+  /*
+   * The block a form shows after a submit.
+   *
+   * Each tone reuses its CHIP's fill and ink rather than picking a second
+   * pair, so a "live" chip and a "saved" alert on the same screen are the same
+   * green. The chip pairs are the ones that were measured against 4.5:1; the
+   * eleven hand-rolled alerts these replace used Tailwind's raw palette and
+   * agreed with nothing.
+   */
+  .alert {
+    border-radius: var(--radius-control);
+    padding: 0.7rem 1rem;
+    font-size: 0.875rem;
+    border: 1px solid transparent;
+  }
+
+  .alert-danger {
+    background: rgba(234, 84, 85, 0.12);
+    border-color: rgba(234, 84, 85, 0.3);
+    color: var(--color-danger-ink);
+  }
+
+  .alert-warning {
+    background: rgba(255, 159, 67, 0.12);
+    border-color: rgba(255, 159, 67, 0.32);
+    color: var(--color-warning-ink);
+  }
+
+  .alert-success {
+    background: rgba(40, 199, 111, 0.12);
+    border-color: rgba(40, 199, 111, 0.3);
+    color: var(--color-success-ink);
+  }
+
+  /* ----------------------------------------------------------------------
+   * Skeletons
+   * ------------------------------------------------------------------- */
+
+  /*
+   * The shape of a screen while its query runs.
+   *
+   * A pulse rather than a sweeping shimmer: the sweep needs a gradient the
+   * width of the element and animates `background-position`, which on a table
+   * of thirty rows is thirty elements repainting every frame. Opacity is
+   * composited.
+   */
+  .skeleton {
+    background: var(--color-line);
+    border-radius: var(--radius-control);
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
+  @keyframes skeleton-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.45; }
+  }
+
+  /* Someone who has asked not to see motion gets the same grey, holding still.
+     The shape still communicates "something is coming"; the pulse was never
+     the information. */
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
   }
 
   /* ----------------------------------------------------------------------
@@ -743,7 +845,7 @@
 
   /* The one rank worth seeing without hovering for it. */
   .field-bar[data-priority='high'] {
-    color: #cc191a;
+    color: var(--color-danger-ink);
     font-weight: 500;
   }
 
@@ -763,7 +865,7 @@
   }
 
   .seo-save-failed {
-    color: var(--color-danger);
+    color: var(--color-danger-ink);
     font-weight: 700;
     cursor: help;
   }

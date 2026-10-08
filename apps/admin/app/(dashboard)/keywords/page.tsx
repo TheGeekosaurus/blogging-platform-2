@@ -1,5 +1,8 @@
 import { formatVolume } from '@blog/core';
 
+import { Alert } from '@/components/ui/alert';
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { SeoTreeView } from '@/components/seo-tree';
 import { requireCurrentSite } from '@/lib/current-site';
 import { isSeoTreeEmpty, loadSeoTree, SEO_KEYWORD_LIMIT } from '@/lib/seo';
@@ -31,18 +34,21 @@ export default async function KeywordsPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight">Keywords</h1>
-
-      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        Every keyword researched for this site, grouped into the clusters meant
-        to own them. A cluster reaches the <strong>Roadmap</strong> once it has
-        been briefed as a page.
-      </p>
+      <PageHeader
+        title="Keywords"
+        description={
+          <>
+            Every keyword researched for this site, grouped into the clusters meant
+            to own them. A cluster reaches the <strong>Roadmap</strong> once it has
+            been briefed as a page.
+          </>
+        }
+      />
 
       {isSeoTreeEmpty(tree) ? (
-        <p className="mt-6 text-sm text-ink-muted">
+        <EmptyState>
           No keyword research yet for {site.name}.
-        </p>
+        </EmptyState>
       ) : (
         <>
           <dl className="mt-6 flex flex-wrap gap-x-10 gap-y-3 text-sm">
@@ -94,10 +100,10 @@ export default async function KeywordsPage() {
           ) : null}
 
           {tree.truncated ? (
-            <p className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <div className="mt-3"><Alert tone="warning">
               Showing the first {SEO_KEYWORD_LIMIT.toLocaleString()} keywords by
               volume. The totals above cover only those.
-            </p>
+            </Alert></div>
           ) : null}
 
           <div className="mt-6">

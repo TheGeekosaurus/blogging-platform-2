@@ -1,4 +1,5 @@
 import { AuthorForm } from '@/components/author-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listMediaOptions } from '@/lib/queries';
 
@@ -9,12 +10,12 @@ export default async function NewAuthorPage() {
   const media = await listMediaOptions(site.id);
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">New author</h1>
+    <div className="space-y-6">
+      <PageHeader title="New author" />
       <AuthorForm
         media={media}
         values={{ name: '', title: '', slug: '', bio: '', avatarId: null, social: {} }}
       />
-    </>
+    </div>
   );
 }

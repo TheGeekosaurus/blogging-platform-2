@@ -4,6 +4,7 @@ import { isProofPresetIcon } from '@blog/core';
 
 import { deleteProofCampaign } from '@/app/actions/proof-notifications';
 import { ProofCampaignForm } from '@/components/proof-campaign-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import {
   getProofCampaignForEdit,
@@ -44,8 +45,8 @@ export default async function EditProofCampaignPage({
       .join('\n');
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">{campaign.name}</h1>
+    <div className="space-y-6">
+      <PageHeader title={campaign.name} />
 
       <ProofCampaignForm
         terms={terms}
@@ -96,7 +97,7 @@ export default async function EditProofCampaignPage({
       <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <form action={deleteProofCampaign}>
           <input type="hidden" name="id" value={campaign.id} />
-          <button type="submit" className="text-sm text-red-700 underline">
+          <button type="submit" className="text-sm text-danger-ink underline">
             Delete this campaign
           </button>
         </form>
@@ -105,6 +106,6 @@ export default async function EditProofCampaignPage({
           instead if you might bring it back.
         </p>
       </section>
-    </>
+    </div>
   );
 }

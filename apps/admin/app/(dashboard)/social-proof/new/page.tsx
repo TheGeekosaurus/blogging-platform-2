@@ -1,4 +1,5 @@
 import { ProofCampaignForm } from '@/components/proof-campaign-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listAllTerms, listMediaOptions, listPostOptions } from '@/lib/queries';
 
@@ -13,8 +14,8 @@ export default async function NewProofCampaignPage() {
   ]);
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">New social-proof campaign</h1>
+    <div className="space-y-6">
+      <PageHeader title="New social-proof campaign" />
       <ProofCampaignForm
         terms={terms}
         posts={posts}
@@ -46,6 +47,6 @@ export default async function NewProofCampaignPage() {
           events: [],
         }}
       />
-    </>
+    </div>
   );
 }

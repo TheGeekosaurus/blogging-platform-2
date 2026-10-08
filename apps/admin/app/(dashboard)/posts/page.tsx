@@ -2,6 +2,10 @@ import Link from 'next/link';
 
 import { formatPostDate, isLive, pageUrl, postPath, type PostStatus } from '@blog/core';
 
+import { StatusChip } from '@/components/ui/status-chip';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { Pagination, parsePage } from '@/components/pagination';
 import { ViewLiveLink } from '@/components/view-live-link';
 import { requireCurrentSite } from '@/lib/current-site';
@@ -15,13 +19,6 @@ const STATUS_TABS: Array<{ value: PostStatus | 'all'; label: string }> = [
   { value: 'draft', label: 'Drafts' },
   { value: 'archived', label: 'Archived' },
 ];
-
-const STATUS_STYLES: Record<PostStatus, string> = {
-  published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-line text-ink-muted',
-  scheduled: 'bg-sky-100 text-sky-900',
-  archived: 'bg-amber-100 text-amber-900',
-};
 
 function buildQuery(params: Record<string, string | undefined>): string {
   const search = new URLSearchParams();
@@ -57,15 +54,17 @@ export default async function PostsPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Posts</h1>
-        <Link
-          href="/posts/new"
-          className="btn btn-primary"
-        >
-          New post
-        </Link>
-      </div>
+      <PageHeader
+        title="Posts"
+        actions={
+          <Link
+            href="/posts/new"
+            className="btn btn-primary"
+          >
+            New post
+          </Link>
+        }
+      />
 
       <div className="mt-5 flex flex-wrap items-center gap-4">
         <nav className="flex gap-3 text-sm">
@@ -119,70 +118,64 @@ export default async function PostsPage({
       </div>
 
       {posts.length === 0 ? (
-        <p className="mt-10 text-ink-muted">
+        <EmptyState>
           No posts match. <Link href="/posts/new">Write one</Link>, or import from WordPress
           with <code>pnpm wp-import</code>.
-        </p>
+        </EmptyState>
       ) : (
         /*
          * `overflow-x-auto` on the wrapper, not the table: on a narrow window the
          * table scrolls inside its own box rather than pushing the whole page
          * sideways, which is what a min-width on the table alone would do.
          */
-        <div className="card mt-6 overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Author</th>
-                <th scope="col">Categories</th>
-                <th scope="col">Status</th>
-                <th scope="col">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.map((post) => (
-                <tr key={post.id}>
-                  <td>
-                    <div className="flex items-start gap-2">
-                      <Link
-                        href={`/posts/${post.id}`}
-                        className="font-semibold"
-                      >
-                        {post.title}
-                      </Link>
-                      {/* Only when the post is actually served — see isLive. */}
-                      {isLive(post) ? (
-                        <ViewLiveLink
-                          href={pageUrl(site, postPath(post.slug))}
-                          label={post.title}
-                        />
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap">{post.author_name ?? '—'}</td>
-                  <td>{post.categories.length > 0 ? post.categories.join(', ') : '—'}</td>
-                  <td>
-                    <span
-                      className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[post.status]}`}
+        <DataTable>
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Author</th>
+              <th scope="col">Categories</th>
+              <th scope="col">Status</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {posts.map((post) => (
+              <tr key={post.id}>
+                <td>
+                  <div className="flex items-start gap-2">
+                    <Link
+                      href={`/posts/${post.id}`}
+                      className="font-semibold"
                     >
-                      {post.status}
+                      {post.title}
+                    </Link>
+                    {/* Only when the post is actually served — see isLive. */}
+                    {isLive(post) ? (
+                      <ViewLiveLink
+                        href={pageUrl(site, postPath(post.slug))}
+                        label={post.title}
+                      />
+                    ) : null}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap">{post.author_name ?? '—'}</td>
+                <td>{post.categories.length > 0 ? post.categories.join(', ') : '—'}</td>
+                <td>
+                  <StatusChip status={post.status} />
+                </td>
+                <td className="whitespace-nowrap">
+                  {post.published_at ? (
+                    formatPostDate(post.published_at, site.locale)
+                  ) : (
+                    <span className="text-ink-muted">
+                      edited {formatPostDate(post.updated_at, site.locale)}
                     </span>
-                  </td>
-                  <td className="whitespace-nowrap">
-                    {post.published_at ? (
-                      formatPostDate(post.published_at, site.locale)
-                    ) : (
-                      <span className="text-ink-muted">
-                        edited {formatPostDate(post.updated_at, site.locale)}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </DataTable>
       )}
 
       {/* Newer/Older rather than Previous/Next: this table is ordered by edit

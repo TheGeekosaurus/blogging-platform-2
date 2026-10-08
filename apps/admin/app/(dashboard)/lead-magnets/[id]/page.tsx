@@ -1,7 +1,10 @@
 import { notFound } from 'next/navigation';
 
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
 import { deleteLeadMagnet } from '@/app/actions/lead-magnets';
 import { LeadMagnetForm } from '@/components/lead-magnet-form';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import {
   getLeadMagnetForEdit,
@@ -43,8 +46,8 @@ export default async function EditLeadMagnetPage({
       .filter((value): value is string => Boolean(value));
 
   return (
-    <>
-      <h1 className="mb-6 text-xl font-semibold tracking-tight">{magnet.name}</h1>
+    <div className="space-y-6">
+      <PageHeader title={magnet.name} />
 
       <LeadMagnetForm
         terms={terms}
@@ -80,16 +83,16 @@ export default async function EditLeadMagnetPage({
         <h2 className="text-sm font-semibold">Recent leads</h2>
 
         {leads.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-muted">
+          <EmptyState tight>
             Nothing yet. Note that only owners and admins can read this list — an
             editor sees the offer and an empty table here.
-          </p>
+          </EmptyState>
         ) : (
           <>
             {/* `data-table`, the same class Posts and Pages use. It exists so
                 the list screens cannot drift apart again; a fourth table with
                 its own borders would be the drift. */}
-            <table className="data-table mt-3">
+            <DataTable card={false}>
               <thead>
                 <tr>
                   <th>Email</th>
@@ -118,7 +121,7 @@ export default async function EditLeadMagnetPage({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </DataTable>
 
             <p className="mt-2 text-sm text-ink-muted">
               The {RECENT_LEADS} most recent. This is a check that capture is
@@ -132,7 +135,7 @@ export default async function EditLeadMagnetPage({
       <section className="mt-10 max-w-2xl border-t border-line pt-5">
         <form action={deleteLeadMagnet}>
           <input type="hidden" name="id" value={magnet.id} />
-          <button type="submit" className="text-sm text-red-700 underline">
+          <button type="submit" className="text-sm text-danger-ink underline">
             Delete this offer
           </button>
         </form>
@@ -142,6 +145,6 @@ export default async function EditLeadMagnetPage({
           instead if you might bring it back.
         </p>
       </section>
-    </>
+    </div>
   );
 }

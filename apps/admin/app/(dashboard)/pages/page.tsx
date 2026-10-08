@@ -2,6 +2,10 @@ import Link from 'next/link';
 
 import { codedRoutesFor, isLive, pagePath, pageUrl, type PostStatus } from '@blog/core';
 
+import { StatusChip } from '@/components/ui/status-chip';
+import { EmptyState } from '@/components/ui/empty-state';
+import { DataTable } from '@/components/ui/data-table';
+import { PageHeader } from '@/components/ui/page-header';
 import { setHomepage } from '@/app/actions/pages';
 import { Pagination, parsePage } from '@/components/pagination';
 import { ViewLiveLink } from '@/components/view-live-link';
@@ -9,13 +13,6 @@ import { requireCurrentSite } from '@/lib/current-site';
 import { ADMIN_PER_PAGE, listAllPages, listPages } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
-
-const STATUS_STYLES: Record<PostStatus, string> = {
-  published: 'bg-emerald-100 text-emerald-900',
-  draft: 'bg-line text-ink-muted',
-  scheduled: 'bg-sky-100 text-sky-900',
-  archived: 'bg-amber-100 text-amber-900',
-};
 
 export default async function PagesPage({
   searchParams,
@@ -55,101 +52,98 @@ export default async function PagesPage({
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Pages</h1>
-        <Link
-          href="/pages/new"
-          className="btn btn-primary"
-        >
-          New page
-        </Link>
-      </div>
-
-      <p className="mt-2 text-sm text-ink-muted">
-        Edited here and stored in the database.{' '}
-        {coded.length > 0 ? (
+      <PageHeader
+        title="Pages"
+        actions={
+          <Link
+            href="/pages/new"
+            className="btn btn-primary"
+          >
+            New page
+          </Link>
+        }
+        description={
           <>
-            <Link href="/pages/coded">{coded.length} more</Link> are built in code and
-            cannot be edited here.
+            Edited here and stored in the database.{' '}
+            {coded.length > 0 ? (
+              <>
+                <Link href="/pages/coded">{coded.length} more</Link> are built in code and
+                cannot be edited here.
+              </>
+            ) : null}
           </>
-        ) : null}
-      </p>
+        }
+      />
 
       {total === 0 ? (
-        <p className="mt-10 text-ink-muted">
+        <EmptyState>
           {coded.length > 0
             ? 'No pages in the database yet — add one here and it will appear in this table.'
             : 'No pages yet. Pages live at the root of the site — /about, /projects/solar — while posts live under /blog.'}
-        </p>
+        </EmptyState>
       ) : (
-        <div className="card mt-6 overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th scope="col">Title</th>
-                <th scope="col">Path</th>
-                <th scope="col">Template</th>
-                <th scope="col">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pages.map((row) => {
-                // Ordered by path, so depth can be read off the separators —
-                // and it stays correct across a page break, because the path
-                // carries the depth rather than the list position doing it.
-                const depth = row.path.split('/').length - 1;
+        <DataTable>
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Path</th>
+              <th scope="col">Template</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {pages.map((row) => {
+              // Ordered by path, so depth can be read off the separators —
+              // and it stays correct across a page break, because the path
+              // carries the depth rather than the list position doing it.
+              const depth = row.path.split('/').length - 1;
 
-                return (
-                  <tr key={row.id}>
-                    <td>
-                      <div
-                        className="flex items-start gap-2"
-                        style={{ paddingLeft: `${depth * 1.25}rem` }}
+              return (
+                <tr key={row.id}>
+                  <td>
+                    <div
+                      className="flex items-start gap-2"
+                      style={{ paddingLeft: `${depth * 1.25}rem` }}
+                    >
+                      <Link
+                        href={`/pages/${row.id}`}
+                        className="font-semibold"
                       >
-                        <Link
-                          href={`/pages/${row.id}`}
-                          className="font-semibold"
-                        >
-                          {row.title}
-                        </Link>
-                        {site.homepage_page_id === row.id && !homepageIsCoded ? (
-                          <span className="chip chip-brand">
-                            homepage
-                          </span>
-                        ) : null}
-                        {/*
-                          Absent on a draft, a scheduled page, or one dated in
-                          the future: the blog serves none of those, so the icon
-                          would lead to a 404 and the author could not tell
-                          whether the link or their page was broken.
-                        */}
-                        {isLive(row) ? (
-                          <ViewLiveLink
-                            href={pageUrl(site, pagePath(row.path))}
-                            label={row.title}
-                          />
-                        ) : null}
-                      </div>
-                    </td>
-                    <td>
-                      <code className="text-xs text-ink-muted">{pagePath(row.path)}</code>
-                    </td>
-                    <td className="whitespace-nowrap">
-                      {row.template === 'full' ? 'Full width' : 'Prose'}
-                    </td>
-                    <td>
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_STYLES[row.status]}`}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                        {row.title}
+                      </Link>
+                      {site.homepage_page_id === row.id && !homepageIsCoded ? (
+                        <span className="chip chip-brand">
+                          homepage
+                        </span>
+                      ) : null}
+                      {/*
+                        Absent on a draft, a scheduled page, or one dated in
+                        the future: the blog serves none of those, so the icon
+                        would lead to a 404 and the author could not tell
+                        whether the link or their page was broken.
+                      */}
+                      {isLive(row) ? (
+                        <ViewLiveLink
+                          href={pageUrl(site, pagePath(row.path))}
+                          label={row.title}
+                        />
+                      ) : null}
+                    </div>
+                  </td>
+                  <td>
+                    <code className="text-xs text-ink-muted">{pagePath(row.path)}</code>
+                  </td>
+                  <td className="whitespace-nowrap">
+                    {row.template === 'full' ? 'Full width' : 'Prose'}
+                  </td>
+                  <td>
+                    <StatusChip status={row.status} />
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </DataTable>
       )}
 
       <Pagination

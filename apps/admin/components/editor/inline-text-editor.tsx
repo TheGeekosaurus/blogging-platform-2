@@ -101,7 +101,7 @@ export function InlineTextEditor({
 
   if (!editor) {
     return (
-      <div className="field mt-1 text-ink-muted">
+      <div className="field text-ink-muted">
         Loading…
       </div>
     );

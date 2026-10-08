@@ -1,5 +1,7 @@
 import Link from 'next/link';
 
+import { EmptyState } from '@/components/ui/empty-state';
+import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { countPostsPerAuthor, listAuthors } from '@/lib/queries';
 
@@ -14,26 +16,29 @@ export default async function AuthorsPage() {
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Authors</h1>
-        <Link
-          href="/authors/new"
-          className="btn btn-primary"
-        >
-          New author
-        </Link>
-      </div>
-
-      <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        A byline with a photo, a bio and links. Attach one to a post from the post
-        editor. Posts with no author attached keep showing whatever is typed in their
-        Byline field, which is how imported posts keep theirs.
-      </p>
+      <PageHeader
+        title="Authors"
+        actions={
+          <Link
+            href="/authors/new"
+            className="btn btn-primary"
+          >
+            New author
+          </Link>
+        }
+        description={
+          <>
+            A byline with a photo, a bio and links. Attach one to a post from the post
+            editor. Posts with no author attached keep showing whatever is typed in their
+            Byline field, which is how imported posts keep theirs.
+          </>
+        }
+      />
 
       {authors.length === 0 ? (
-        <p className="mt-6 text-sm text-ink-muted">
+        <EmptyState>
           None yet. <Link href="/authors/new">Add one</Link>, then attach it to a post.
-        </p>
+        </EmptyState>
       ) : (
         <ul className="mt-6 divide-y divide-line border-y border-line">
           {authors.map((author) => {

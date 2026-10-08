@@ -119,7 +119,7 @@ export function LinkEditor({
             <button
               type="button"
               onClick={remove}
-              className="rounded px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+              className="rounded px-2 py-1 text-xs text-danger-ink hover:bg-danger/10"
             >
               Remove
             </button>
@@ -148,7 +148,7 @@ export function LinkEditor({
       </div>
 
       {error ? (
-        <p role="alert" className="max-w-md text-xs text-red-700">
+        <p role="alert" className="max-w-md text-xs text-danger-ink">
           {error}
         </p>
       ) : null}

@@ -130,7 +130,7 @@ export function StructuredDataPanel({
               id={`schema-template-${variant}`}
               value={templateId}
               onChange={(event) => setTemplateId(event.target.value)}
-              className="field field-inline mt-1"
+              className="field field-inline"
             >
               {SCHEMA_TEMPLATES.map((template) => (
                 <option key={template.id} value={template.id}>
@@ -179,7 +179,7 @@ function SnippetCard({
     <div className="rounded border border-line">
       <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
         <span className="font-mono text-xs font-medium text-ink-muted">{label}</span>
-        <button type="button" onClick={onRemove} className="text-xs text-red-700 underline">
+        <button type="button" onClick={onRemove} className="text-xs text-danger-ink underline">
           Remove
         </button>
       </div>
@@ -206,9 +206,9 @@ function SnippetCard({
             Empty — this snippet is dropped when you save.
           </p>
         ) : result?.ok ? (
-          <p className="text-xs text-emerald-700">Valid JSON-LD · {result.label}</p>
+          <p className="text-xs text-success-ink">Valid JSON-LD · {result.label}</p>
         ) : (
-          <p className="text-xs text-red-700">{result?.error}</p>
+          <p className="text-xs text-danger-ink">{result?.error}</p>
         )}
       </div>
     </div>

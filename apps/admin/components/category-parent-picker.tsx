@@ -72,7 +72,7 @@ export function CategoryParentPicker({
       </button>
 
       {state.error ? (
-        <span role="alert" className="text-xs text-red-700">
+        <span role="alert" className="text-xs text-danger-ink">
           {state.error}
         </span>
       ) : null}
