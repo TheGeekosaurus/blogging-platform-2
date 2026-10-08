@@ -1610,7 +1610,7 @@ describe("the Capital post-body treatments", () => {
    * descendant of `.dl-surface`, so the token is simply not in scope there.
    * The same arrangement --ft-subhead already uses.
    */
-  it("uses the same hex the hero paints its last word with", () => {
+  it("still ties the hero hex to one token, now on the table head", () => {
     const display = [...css.matchAll(/--(?:dl|nc)-display:\s*(#[0-9a-f]{6})/gi)].map(
       (m) => (m[1] ?? "").toLowerCase(),
     );
@@ -1620,14 +1620,13 @@ describe("the Capital post-body treatments", () => {
   });
 
   /*
-   * AND THE WEIGHT AND h4 SIZE ARE WHAT MAKE THAT COLOUR LEGAL, not taste.
-   * #0794AB is 3.60:1 on white — over WCAG's 3:1 for LARGE text, under the
-   * 4.5:1 it wants for anything else. So each heading has to qualify as large:
-   * h2 does on size (28px), h3 only once bold (20px >= 18.66px bold), and h4
-   * does not at any weight until it moves to 19px — the same 19px the funding
-   * subhead uses for the same reason.
+   * The weight and the h4 size, which USED to be what made the heading colour
+   * legal back when headings were the teal. Navy is 12.86:1 on white, so they
+   * constrain nothing now — they stay because bold is what every other
+   * Daylight headline is, and the test stays so a later tidy-up is a decision
+   * rather than an accident.
    */
-  it("keeps every heading inside WCAG's large-text definition", () => {
+  it("keeps the headings bold, as the rest of Daylight is", () => {
     const headings = block.slice(block.indexOf(":is(h2, h3, h4)"));
     expect(headings).toContain("font-weight: 700");
     expect(block, "h4 at 18px is not large at any weight").toMatch(
@@ -1635,12 +1634,47 @@ describe("the Capital post-body treatments", () => {
     );
   });
 
-  /* Two blues, and the button radius Denis asked for. */
-  it("builds the table from the brand navy and a tint of it", () => {
-    expect(block).toContain("--nc-table-head: #0b2d72");
+  /*
+   * TWO BLUES, SWAPPED. Denis, after seeing it live: "inverse the colors, dark
+   * blue for headers, lighter blue currently used for headers for the table
+   * header." So the head takes the hero teal and the headings take the navy;
+   * the stripe is still a tint of the navy, because that is all he asked to
+   * trade.
+   */
+  it("builds the table from the hero teal and a navy tint", () => {
+    expect(block).toContain("--nc-table-head: var(--nc-display)");
     expect(block).toMatch(/--nc-table-stripe:\s*#f1f5fb/);
+    expect(block).toContain("--nc-heading: #0b2d72");
     /* rounded-md, the class every button on the site uses. */
     expect(block).toContain("border-radius: 0.375rem");
+  });
+
+  /*
+   * AND THE CONSTRAINT MOVED WITH THE COLOUR. White on #0794AB is 3.60:1 —
+   * over WCAG's 3:1 for LARGE text, under the 4.5:1 for anything else — so the
+   * head only passes while it qualifies as large. At the 15.2px/600 these
+   * cells inherited it did not; at 19px/700 it does.
+   *
+   * This is the same 1.1875rem the funding subhead and the post h4 carry, for
+   * the same reason each time, which is why it is worth a test rather than a
+   * comment: someone tidying the table's type scale would silently break it.
+   */
+  it("keeps the teal head inside WCAG's large-text definition", () => {
+    const th = block.slice(block.indexOf(".marketing-root .post-body th {"));
+    const rule = th.slice(0, th.indexOf("}"));
+    expect(rule).toContain("font-size: 1.1875rem");
+    expect(rule).toContain("font-weight: 700");
+    expect(rule).toContain("color: #ffffff");
+  });
+
+  /*
+   * THE NAVY CANNOT FOLLOW THE HEADINGS INTO THE READER'S DARK MODE. #0B2D72
+   * on #141414 is 1.43:1 — invisible, not merely dim — and it is only visible
+   * at all if you toggle the theme, which a screenshot never does.
+   */
+  it("lightens the heading navy for the dark blog theme", () => {
+    const dark = block.slice(block.indexOf("html[data-theme='dark'] .marketing-root {"));
+    expect(dark.slice(0, dark.indexOf("}"))).toMatch(/--nc-heading:\s*#5b8fe0/);
   });
 
   /*
