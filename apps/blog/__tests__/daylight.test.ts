@@ -1568,3 +1568,120 @@ describe("the Daylight blog index", () => {
     expect(dark).toContain('className="ft-surface"');
   });
 });
+
+/*
+ * ---------------------------------------------------------------------------
+ * NANOTOM CAPITAL POST BODIES
+ *
+ * Denis, 2026-10-08: tables in two of our blues with the button radius, every
+ * heading in the green of the hero's "GROW", and a gold dollar for bullets —
+ * numbers where the list is numbered.
+ * ---------------------------------------------------------------------------
+ */
+describe("the Capital post-body treatments", () => {
+  const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+  const block = css.slice(css.indexOf("NANOTOM CAPITAL POST BODIES"));
+
+  /*
+   * THE SCOPE IS THE WHOLE POINT. `.post-body` is not Capital's class — this
+   * app is deployed once per blog from one codebase, and page-body.tsx renders
+   * the same class for database 'prose' pages. A bare rule would paint Nanotom
+   * gold and navy onto every other tenant's blog.
+   */
+  it("reaches Capital only", () => {
+    const rules = block.match(/^\s{2}[.:[@][^\n{]*\{/gm) ?? [];
+    expect(rules.length, "no rules found").toBeGreaterThan(5);
+
+    for (const rule of rules) {
+      const selector = rule.trim();
+      /* @media and the token block on .marketing-root itself are fine. */
+      if (selector.startsWith("@") || selector.startsWith(".marketing-root {")) continue;
+      expect(
+        selector.includes(".marketing-root"),
+        `unscoped rule would reach every tenant: ${selector}`,
+      ).toBe(true);
+    }
+  });
+
+  /*
+   * THE HEADING COLOUR IS THE HERO'S, and it is declared twice — on
+   * `.marketing-root` for the post body and on `.dl-surface` for the marketing
+   * pages — because the post body lives inside `.blog-surface`, which is not a
+   * descendant of `.dl-surface`, so the token is simply not in scope there.
+   * The same arrangement --ft-subhead already uses.
+   */
+  it("uses the same hex the hero paints its last word with", () => {
+    const display = [...css.matchAll(/--(?:dl|nc)-display:\s*(#[0-9a-f]{6})/gi)].map(
+      (m) => (m[1] ?? "").toLowerCase(),
+    );
+    expect(display.length, "the token is declared once or not at all").toBeGreaterThan(1);
+    expect(new Set(display).size, `two different displays: ${display.join(", ")}`).toBe(1);
+    expect(display[0]).toBe("#0794ab");
+  });
+
+  /*
+   * AND THE WEIGHT AND h4 SIZE ARE WHAT MAKE THAT COLOUR LEGAL, not taste.
+   * #0794AB is 3.60:1 on white — over WCAG's 3:1 for LARGE text, under the
+   * 4.5:1 it wants for anything else. So each heading has to qualify as large:
+   * h2 does on size (28px), h3 only once bold (20px >= 18.66px bold), and h4
+   * does not at any weight until it moves to 19px — the same 19px the funding
+   * subhead uses for the same reason.
+   */
+  it("keeps every heading inside WCAG's large-text definition", () => {
+    const headings = block.slice(block.indexOf(":is(h2, h3, h4)"));
+    expect(headings).toContain("font-weight: 700");
+    expect(block, "h4 at 18px is not large at any weight").toMatch(
+      /\.post-body h4 \{\s*font-size: 1\.1875rem/,
+    );
+  });
+
+  /* Two blues, and the button radius Denis asked for. */
+  it("builds the table from the brand navy and a tint of it", () => {
+    expect(block).toContain("--nc-table-head: #0b2d72");
+    expect(block).toMatch(/--nc-table-stripe:\s*#f1f5fb/);
+    /* rounded-md, the class every button on the site uses. */
+    expect(block).toContain("border-radius: 0.375rem");
+  });
+
+  /*
+   * A narrow screen gets the base rule's horizontal scroll back. `display:
+   * table` is what stops a narrow table leaving a white gutter inside its
+   * frame, and the cost is that a real table cannot compress below its
+   * min-content width — at 360px this one stood 390px wide and pushed 50px of
+   * scroll onto the page.
+   */
+  it("does not make a table push the page sideways on a phone", () => {
+    expect(block).toContain("display: table");
+    const mq = block.slice(block.indexOf("@media (max-width: 639px)"));
+    expect(mq).toContain("display: block");
+    expect(mq).toContain("overflow-x: auto");
+  });
+
+  /*
+   * The markers. The gold disc is decorative — the list item's own text
+   * carries the meaning — which is what makes 2.13:1 on white acceptable, the
+   * same argument the use-of-funds icons rest on. The NUMERAL is not
+   * decorative and rides on the gold at 8.69:1.
+   */
+  it("gives bullets a gold dollar and ordered lists their number", () => {
+    expect(block).toMatch(/\.post-body ul > li::before/);
+    expect(block).toContain("data:image/svg+xml");
+    expect(block).toContain("%23E0A840");
+
+    expect(block).toMatch(/\.post-body ol > li::before/);
+    expect(block).toContain("content: counter(nc-step)");
+    expect(block).toContain("color: var(--nc-on-gold)");
+  });
+
+  /*
+   * The post page is `.blog-surface`, which is light by default and flips
+   * under html[data-theme='dark'] — a toggle Capital still ships. The heading
+   * teal measures 5.12:1 there and the gold disc 8.64:1, so only the row
+   * stripe needed a second value.
+   */
+  it("gives the reader's dark mode its own row stripe", () => {
+    expect(block).toMatch(
+      /html\[data-theme='dark'\] \.marketing-root \.post-body tbody tr:nth-child\(even\)/,
+    );
+  });
+});
