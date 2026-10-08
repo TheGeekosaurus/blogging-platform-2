@@ -476,6 +476,87 @@
     box-shadow: 0 0 0 3px rgba(98, 84, 238, 0.25);
   }
 
+  /*
+   * The account control in the foot of the rail, and the panel it opens.
+   *
+   * Every colour here was checked against the surface it actually lands on,
+   * because the last rebrand pass shipped a token at 2.59:1 by assuming:
+   * rail-ink on the rail is 5.73:1 and 4.96:1 once the row is hovered;
+   * rail-ink-strong in the avatar is 6.05:1; the panel's ink on white is 10:1.
+   */
+  .rail-account {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 999px;
+    padding: 0.4rem 0.55rem;
+    font-size: 0.8125rem;
+    color: var(--color-rail-ink);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  /* Open counts as hovered: the panel is attached to this row and the row has
+     to look attached to it, or the two read as unrelated things. */
+  .rail-account:hover,
+  .rail-account[data-current],
+  .rail-account[aria-expanded='true'] {
+    background: var(--color-rail-raised);
+    color: var(--color-rail-ink-strong);
+  }
+
+  /* Lighter than --color-rail-raised rather than equal to it, so the avatar
+     does not dissolve into the row the moment the row is hovered. */
+  .rail-account-avatar {
+    display: flex;
+    height: 1.9rem;
+    width: 1.9rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: var(--color-rail-ink-strong);
+  }
+
+  /*
+   * A border AND a shadow, which .card deliberately does not have — the note
+   * there is that the two read as separate edges on a card sitting on the
+   * tinted canvas. This is not a card. It is an overlay that lands on whatever
+   * happens to be under it, including white cards, where the shadow alone
+   * leaves no edge at all.
+   */
+  .account-panel {
+    background: var(--color-surface);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-raised);
+  }
+
+  /* One class for both rows, so the <a> and the <button type="submit"> are
+     indistinguishable — which they must be, because the difference between
+     them is an implementation detail of signing out. */
+  .account-item {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.85rem;
+    font-size: 0.875rem;
+    color: var(--color-ink);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+  }
+
+  .account-item:hover {
+    background: var(--color-line-soft);
+  }
+
   /* ----------------------------------------------------------------------
    * The SEO cluster tree
    * ------------------------------------------------------------------- */
@@ -764,7 +845,9 @@
   }
 
   .rail-heading {
-    padding: 1.25rem 0.9rem 0.4rem;
+    /* 0.9rem above, not 1.25rem: four headings at 20px of leading space was
+       32px of the reason the rail needed a scrollbar of its own at 950px. */
+    padding: 0.9rem 0.9rem 0.35rem;
     font-size: 0.6875rem;
     font-weight: 500;
     letter-spacing: 0.1em;

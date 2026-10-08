@@ -3,16 +3,26 @@ import type { SiteRow } from '@blog/core';
 import { switchSite } from '@/app/actions/site';
 
 /**
- * Which blog you are editing. Sits at the top of the rail, above the navigation,
- * because it changes what every screen below it means.
+ * Which blog you are editing. Lives in the account panel at the foot of the
+ * rail, with the settings and the way out, because it is the widest-scoped
+ * control in the app — every list, editor and URL below it is scoped to
+ * whatever it says — and none of those three is a place you navigate to.
  *
- * Server Component: a plain form and a submit button, so switching needs no
- * client JS at all.
+ * IT USED TO SIT ON THE DARK RAIL, as a raised panel of its own above the
+ * navigation. The treatment it needed there is gone with it, and the comment
+ * that used to sit on the select said why it was needed: ".field is for
+ * controls on white, and its border and focus shadow both disappear against the
+ * rail". On white, that stops being true, so this is now the same field as
+ * every other select in the admin instead of a bespoke transparent one.
  *
- * It does NOT auto-submit on change. The docstring here used to claim it did,
- * which was never true — an `onChange` handler cannot cross the server/client
- * boundary, so adding one would either not compile or force this leaf (and the
- * layout that renders it) into a client component to save one click.
+ * STILL NO AUTO-SUBMIT ON CHANGE, and now that is a choice rather than a
+ * limitation. The old docstring blamed the server/client boundary — an
+ * `onChange` handler cannot cross it — and the panel around this is a client
+ * component now, so it could. It does not, because a <select> fires `change`
+ * on arrow-key navigation in some browsers, and arrowing past an entry would
+ * swap the entire workspace out from under you. The roadmap's priority picker
+ * commits on select because the cost of a wrong one is one field; the cost here
+ * is every screen.
  */
 export function SiteSwitcher({
   sites,
@@ -21,20 +31,13 @@ export function SiteSwitcher({
   sites: SiteRow[];
   currentId: string;
 }) {
-  /*
-   * A raised panel rather than a bare label-and-select.
-   *
-   * On a dark rail the old treatment read as part of the navigation below it,
-   * which is wrong: this is the thing that decides what the navigation points
-   * at. Giving it its own surface separates the two without a divider rule.
-   */
   if (sites.length <= 1) {
     return (
-      <div className="rounded-control bg-rail-raised px-3 py-2">
-        <p className="text-[0.625rem] uppercase tracking-[0.12em] text-rail-ink">
+      <div>
+        <p className="text-[0.625rem] uppercase tracking-[0.12em] text-ink-muted">
           Editing
         </p>
-        <p className="truncate text-sm font-semibold text-rail-ink-strong">
+        <p className="truncate text-sm font-semibold text-ink">
           {sites[0]?.name ?? 'No site'}
         </p>
       </div>
@@ -42,33 +45,33 @@ export function SiteSwitcher({
   }
 
   return (
-    <form action={switchSite} className="rounded-control bg-rail-raised px-3 py-2">
+    <form action={switchSite}>
       <label
         htmlFor="site_id"
-        className="block text-[0.625rem] uppercase tracking-[0.12em] text-rail-ink"
+        className="block text-[0.625rem] uppercase tracking-[0.12em] text-ink-muted"
       >
         Editing
       </label>
-      <select
-        id="site_id"
-        name="site_id"
-        defaultValue={currentId}
-        /* No .field here: that class is for controls on white, and its border
-           and focus shadow both disappear against the rail. */
-        className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-rail-ink-strong focus:outline-none"
-      >
-        {sites.map((site) => (
-          <option key={site.id} value={site.id} className="text-ink">
-            {site.name}
-          </option>
-        ))}
-      </select>
-      <button
-        type="submit"
-        className="mt-1 text-xs text-rail-ink underline transition-colors hover:text-rail-ink-strong"
-      >
-        Switch
-      </button>
+      {/* One row, not two stacked full-width controls: a select and its own
+          submit button are one gesture, and giving Switch the whole width made
+          it read as the panel's main action rather than the select's. */}
+      <div className="mt-1 flex items-center gap-2">
+        <select
+          id="site_id"
+          name="site_id"
+          defaultValue={currentId}
+          className="field field-sm min-w-0 flex-1"
+        >
+          {sites.map((site) => (
+            <option key={site.id} value={site.id}>
+              {site.name}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="btn btn-ghost btn-sm shrink-0">
+          Switch
+        </button>
+      </div>
     </form>
   );
 }

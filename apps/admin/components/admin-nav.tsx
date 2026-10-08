@@ -7,16 +7,30 @@ import { usePathname } from 'next/navigation';
  * The left rail, laid out the way WordPress lays its own out: one column of
  * sections, each with a submenu that opens when you are inside that section.
  *
- * WHY A CLIENT COMPONENT, when the rest of the dashboard shell is not. The
- * active section is a function of the current path, and a server component
- * cannot read it — the alternative is threading a pathname prop down from every
- * route, which is a change to eight files to avoid one small boundary. Nothing
- * else here is stateful: no hover menus, no toggles, no effects.
+ * WHY A CLIENT COMPONENT. The active section is a function of the current path,
+ * and a server component cannot read it — the alternative is threading a
+ * pathname prop down from every route, which is a change to eight files to
+ * avoid one small boundary. Nothing else here is stateful: no hover menus, no
+ * toggles, no effects.
  *
  * WordPress opens a submenu on hover as well as on section. That is deliberately
  * not copied: a hover-only menu is unusable by keyboard and on touch, and the
  * two-level structure is shallow enough that showing the current section's
  * children is enough to navigate by.
+ *
+ * NO "ADD NEW" CHILDREN, which WordPress does have and this used to copy.
+ * Denis, 2026-10-08: "why do we even have 'add new' submenus? It just doesn't
+ * make sense, it should just be a button in the page directly to create new."
+ * Every one of those four routes already had that button — "New post", "New
+ * page", "New block", "New campaign" — and /authors/new had always worked that
+ * way with no nav child at all, so the submenus were a second door onto a page
+ * that already had one.
+ *
+ * The same reasoning removed "All Posts", "All Pages", "All Blocks" and "All
+ * Campaigns": each pointed at the href of the section heading directly above
+ * it. What is left as a child is what is genuinely somewhere else — Categories
+ * & Tags at /terms, and Built in Code at /pages/coded, neither of which has
+ * another way in from the rail.
  */
 
 type NavChild = { href: string; label: string };
@@ -65,11 +79,7 @@ const SECTIONS: NavSection[] = [
         <path d="M14 19l2-2 4 4-2 2z" />
       </Icon>
     ),
-    children: [
-      { href: '/posts', label: 'All Posts' },
-      { href: '/posts/new', label: 'Add New' },
-      { href: '/terms', label: 'Categories & Tags' },
-    ],
+    children: [{ href: '/terms', label: 'Categories & Tags' }],
   },
   {
     href: '/pages',
@@ -81,11 +91,7 @@ const SECTIONS: NavSection[] = [
         <path d="M9 13h7M9 17h5" />
       </Icon>
     ),
-    children: [
-      { href: '/pages', label: 'All Pages' },
-      { href: '/pages/coded', label: 'Built in Code' },
-      { href: '/pages/new', label: 'Add New' },
-    ],
+    children: [{ href: '/pages/coded', label: 'Built in Code' }],
   },
   /*
    * Its own section rather than a child of Posts or Pages: it reads the body of
@@ -182,10 +188,6 @@ const SECTIONS: NavSection[] = [
         <path d="M4 9h5M15 9h5" />
       </Icon>
     ),
-    children: [
-      { href: '/lead-magnets', label: 'All Blocks' },
-      { href: '/lead-magnets/new', label: 'Add New' },
-    ],
   },
   {
     href: '/social-proof',
@@ -197,22 +199,14 @@ const SECTIONS: NavSection[] = [
         <rect x="6" y="13" width="10" height="4" rx="2" />
       </Icon>
     ),
-    children: [
-      { href: '/social-proof', label: 'All Campaigns' },
-      { href: '/social-proof/new', label: 'Add New' },
-    ],
   },
-  {
-    group: 'Configuration',
-    href: '/settings',
-    label: 'Settings',
-    icon: (
-      <Icon>
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2 2 2 0 1 1-4 0 1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 1 1 0-4 1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 4.2a2 2 0 1 1 4 0 1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 1 1 0 4Z" />
-      </Icon>
-    ),
-  },
+  /*
+   * Settings is NOT here. It sits in the account panel at the foot of the rail
+   * with the site switcher and Sign out — see components/account-menu.tsx. The
+   * three of them are what you do TO the workspace, and this list is where you
+   * go inside it. Removing it took the `Configuration` group with it, which was
+   * a heading introducing one item.
+   */
 ];
 
 /**
@@ -227,23 +221,28 @@ function isSectionActive(section: NavSection, pathname: string): boolean {
   return hrefs.some((href) => pathname === href || pathname.startsWith(`${href}/`));
 }
 
-function isChildActive(href: string, pathname: string, siblings: NavChild[]): boolean {
-  if (pathname === href) return true;
-  // A deeper path (/posts/<id>) belongs to the longest sibling it starts with,
-  // so "Add New" does not light up while you are editing an existing post.
-  if (!pathname.startsWith(`${href}/`)) return false;
-  return !siblings.some(
-    (sibling) =>
-      sibling.href.length > href.length &&
-      (pathname === sibling.href || pathname.startsWith(`${sibling.href}/`)),
-  );
+/*
+ * A plain prefix match, which it was NOT until the submenus were thinned.
+ *
+ * It used to walk the siblings and give a deep path to the longest href that
+ * matched it, for two pairs that no longer exist: "Add New" at /posts/new,
+ * which would otherwise light up while you edited an existing post, and
+ * "All Pages" at /pages, which /pages/coded starts with. Both are gone — no
+ * child is a prefix of a sibling any more, so there is nothing left to
+ * disambiguate.
+ *
+ * IF YOU ADD A CHILD THAT IS A PREFIX OF ANOTHER, this has to go back to the
+ * longest-match version, or both will be marked current at once. Git has it.
+ */
+function isChildActive(href: string, pathname: string): boolean {
+  return pathname === href || pathname.startsWith(`${href}/`);
 }
 
 export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-6">
+    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-3">
       <ul className="flex flex-col gap-0.5">
         {SECTIONS.map((section) => {
           const active = isSectionActive(section, pathname);
@@ -274,11 +273,7 @@ export function AdminNav() {
               {active && section.children ? (
                 <ul className="mt-0.5 flex flex-col gap-0.5">
                   {section.children.map((child) => {
-                    const childActive = isChildActive(
-                      child.href,
-                      pathname,
-                      section.children ?? [],
-                    );
+                    const childActive = isChildActive(child.href, pathname);
                     return (
                       <li key={child.href}>
                         <Link
