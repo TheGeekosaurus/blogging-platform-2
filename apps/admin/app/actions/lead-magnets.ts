@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { slugify, type LeadMagnetScope } from '@blog/core';
+import {
+  CTA_LAYOUTS,
+  CTA_THEMES,
+  normaliseLinkHref,
+  slugify,
+  type CtaKind,
+  type LeadMagnetScope,
+} from '@blog/core';
 
 import { requireCurrentSite } from '@/lib/current-site';
 import { revalidateSite } from '@/lib/revalidate';
@@ -78,6 +85,22 @@ function readTargets(
   return out;
 }
 
+/**
+ * Narrow a submitted value to one of an enum's members.
+ *
+ * A select can only send what it rendered, so this is not defending against a
+ * user — it is making the type true at the boundary, where `formData.get`
+ * hands back `FormDataEntryValue | null` and everything downstream is typed.
+ */
+function readEnum<T extends string>(
+  value: FormDataEntryValue | null,
+  allowed: readonly T[],
+  fallback: T,
+): T {
+  const raw = String(value ?? '');
+  return (allowed as readonly string[]).includes(raw) ? (raw as T) : fallback;
+}
+
 export async function saveLeadMagnet(
   _prev: LeadMagnetState,
   formData: FormData,
@@ -96,6 +119,32 @@ export async function saveLeadMagnet(
 
   const buttonLabel = String(formData.get('button_label') ?? '').trim();
   const successMessage = String(formData.get('success_message') ?? '').trim();
+
+  /*
+   * What the block DOES, and where it goes.
+   *
+   * The database has check constraints for both halves of this — a link with
+   * no href, and an email block carrying a stale one — so the job here is to
+   * turn those into sentences rather than to be the only line of defence. An
+   * href is normalised through the same helper the editor's link field uses,
+   * so "example.com/apply" becomes a real URL instead of being rejected at the
+   * constraint as neither a path nor a scheme.
+   */
+  const kind: CtaKind = formData.get('kind') === 'link' ? 'link' : 'email';
+  let href: string | null = null;
+
+  if (kind === 'link') {
+    const raw = String(formData.get('href') ?? '').trim();
+    if (!raw) {
+      return { error: 'A link block needs somewhere to go. Add a destination.' };
+    }
+    const parsed = normaliseLinkHref(raw);
+    if (!parsed.ok) return { error: parsed.error };
+    href = parsed.href;
+  }
+
+  const layout = readEnum(formData.get('layout'), CTA_LAYOUTS, 'banner');
+  const theme = readEnum(formData.get('theme'), CTA_THEMES, 'surface');
 
   const row = {
     site_id: site.id,
@@ -116,6 +165,12 @@ export async function saveLeadMagnet(
     consent_text: String(formData.get('consent_text') ?? '').trim() || null,
     asset_url: String(formData.get('asset_url') ?? '').trim() || null,
     active: formData.get('active') === 'on',
+    kind,
+    href,
+    layout,
+    theme,
+    accent_border: formData.get('accent_border') === 'on',
+    eyebrow: String(formData.get('eyebrow') ?? '').trim() || null,
   };
 
   let magnetId = id;

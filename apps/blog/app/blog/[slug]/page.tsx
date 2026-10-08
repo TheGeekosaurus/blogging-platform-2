@@ -7,7 +7,9 @@ import {
   excerptFor,
   extractHeadings,
   groupHeadings,
+  ctaSlugsIn,
   getLeadMagnetForPost,
+  listCtaBlocksBySlugs,
   getPostBySlug,
   injectHeadingIds,
   listPublishedSlugs,
@@ -21,6 +23,7 @@ import {
 import { AuthorBox } from '@/components/blog/author-box';
 import { Breadcrumbs } from '@/components/blog/breadcrumbs';
 import { PostAside } from '@/components/blog/post-aside';
+import { PostBody } from '@/components/blog/post-body';
 import { PostByline } from '@/components/blog/post-byline';
 import { PostJsonLd } from '@/components/json-ld';
 import { SimilarPosts } from '@/components/blog/similar-posts';
@@ -125,6 +128,16 @@ export default async function PostPage({
   const headings = extractHeadings(post.content_html);
   const headingGroups = groupHeadings(headings);
   const bodyHtml = injectHeadingIds(post.content_html);
+
+  /*
+   * The CTA blocks this body drops in, fetched in ONE query for the whole post.
+   *
+   * After injectHeadingIds rather than before only because both are string
+   * passes over the same HTML and this reads in the order the page renders.
+   * Markers carry no headings and no anchors, so the heading pass, the table of
+   * contents and the link graph are all indifferent to them.
+   */
+  const ctaBlocks = await listCtaBlocksBySlugs(getClient(), site.id, ctaSlugsIn(bodyHtml));
 
   const primaryCategory = post.categories[0];
 
@@ -266,7 +279,7 @@ export default async function PostPage({
               prose's text children (see .blog-surface .post-body in
               globals.css), leaving headings free to span the column.
             */}
-            <div className="post-body" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+            <PostBody html={bodyHtml} blocks={ctaBlocks} />
 
             {post.tags.length > 0 ? (
               <footer className="mt-12 border-t border-[var(--color-line)] pt-6">

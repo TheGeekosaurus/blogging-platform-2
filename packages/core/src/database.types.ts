@@ -23,6 +23,19 @@ export type PageTemplate = 'prose' | 'full';
  */
 export type LeadMagnetScope = 'site' | 'category' | 'tag' | 'post';
 
+/**
+ * What a CTA block DOES. 'email' is the original lead magnet — a capture form,
+ * a success state and a row in `leads`. 'link' is a button that goes somewhere.
+ *
+ * "Page", "calculator" and "external site" are all 'link': the difference lives
+ * in the href, not in the schema. See 0015_cta_blocks.sql.
+ */
+export type CtaKind = 'email' | 'link';
+/** The four shapes. A closed set, so a block cannot come out off-brand. */
+export type CtaLayout = 'banner' | 'split' | 'billboard' | 'strip';
+/** Background treatment, named by role rather than colour — the palette moves. */
+export type CtaTheme = 'surface' | 'tint' | 'dark' | 'pattern';
+
 /** Pillar or spoke, per the cluster model. See 0013_seo.sql. */
 export type SeoPageRole = 'pillar' | 'sub';
 /**
@@ -239,6 +252,24 @@ export type LeadMagnetRow = {
    */
   asset_url: string | null;
   active: boolean;
+  /**
+   * Capture an email, or link somewhere. Defaulted to 'email' by 0015 so every
+   * row that predates CTA blocks keeps behaving as the lead magnet it was.
+   */
+  kind: CtaKind;
+  layout: CtaLayout;
+  theme: CtaTheme;
+  /** The gradient edge. A boolean, not a colour: it is drawn from the accent. */
+  accent_border: boolean;
+  /** Small label above the heading. Null means none. */
+  eyebrow: string | null;
+  /**
+   * Where a 'link' block goes — a site-relative path or an http(s) URL.
+   *
+   * Null for 'email', and non-null for 'link': both directions are check
+   * constraints, so a button with nowhere to go cannot reach the renderer.
+   */
+  href: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -604,7 +635,7 @@ export type Database = {
       };
       lead_magnets: {
         Row: LeadMagnetRow;
-        Insert: Writable<LeadMagnetRow, Generated | 'body' | 'button_label' | 'success_message' | 'collect_name' | 'image_id' | 'consent_text' | 'asset_url' | 'active'>;
+        Insert: Writable<LeadMagnetRow, Generated | 'body' | 'button_label' | 'success_message' | 'collect_name' | 'image_id' | 'consent_text' | 'asset_url' | 'active' | 'kind' | 'layout' | 'theme' | 'accent_border' | 'eyebrow' | 'href'>;
         Update: Partial<LeadMagnetRow>;
         Relationships: [
           {
@@ -795,6 +826,9 @@ export type Database = {
       member_role: MemberRole;
       term_kind: TermKind;
       lead_magnet_scope: LeadMagnetScope;
+      cta_kind: CtaKind;
+      cta_layout: CtaLayout;
+      cta_theme: CtaTheme;
       seo_page_role: SeoPageRole;
       seo_page_status: SeoPageStatus;
       seo_page_priority: SeoPagePriority;

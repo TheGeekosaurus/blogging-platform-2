@@ -1,4 +1,16 @@
 @import 'tailwindcss';
+/* Every @import first: CSS requires them to precede all other at-rules, and a
+   stray one after @source is dropped silently. */
+@import '../../../packages/ui/src/cta.css';
+
+/*
+ * The shared CTA renderer lives in @blog/ui, outside this project's root.
+ *
+ * Tailwind 4 only scans its own project for class names, so without @source the
+ * package's classes are missing from this build — and the failure is SILENT:
+ * it typechecks, it builds, and the block renders unstyled.
+ */
+@source '../../../packages/ui/src';
 @plugin '@tailwindcss/typography';
 
 /*
@@ -212,6 +224,23 @@
     --color-surface-muted: var(--color-blog-raised-light);
     --color-accent: var(--color-blog-link-light);
 
+    /*
+      The CTA block's tokens, re-pointed at whichever palette is live.
+
+      @blog/ui paints from `--cta-*` rather than from these directly, because
+      the admin renders the same component for its preview and does not share
+      this palette — see the contract at the top of packages/ui/src/cta.css.
+      Mapping them here is what makes a block follow the site's theme, and
+      what keeps the admin's copy honest: both read one set of names.
+    */
+    --cta-surface: var(--color-surface);
+    --cta-surface-muted: var(--color-surface-muted);
+    --cta-ink: var(--color-ink);
+    --cta-ink-muted: var(--color-ink-muted);
+    --cta-line: var(--color-line);
+    --cta-accent: var(--color-accent);
+    --cta-dark: var(--color-brand);
+
     /* Fills the space <main> leaves — see the note above. */
     flex: 1 1 auto;
   }
@@ -236,6 +265,23 @@
     --color-surface-muted: var(--color-blog-raised);
     /* Brand gold is 9.22:1 on the dark ground, so it is the link colour here. */
     --color-accent: var(--color-gold);
+
+    /*
+      The CTA block's tokens, re-pointed at whichever palette is live.
+
+      @blog/ui paints from `--cta-*` rather than from these directly, because
+      the admin renders the same component for its preview and does not share
+      this palette — see the contract at the top of packages/ui/src/cta.css.
+      Mapping them here is what makes a block follow the site's theme, and
+      what keeps the admin's copy honest: both read one set of names.
+    */
+    --cta-surface: var(--color-surface);
+    --cta-surface-muted: var(--color-surface-muted);
+    --cta-ink: var(--color-ink);
+    --cta-ink-muted: var(--color-ink-muted);
+    --cta-line: var(--color-line);
+    --cta-accent: var(--color-accent);
+    --cta-dark: var(--color-brand);
   }
 }
 

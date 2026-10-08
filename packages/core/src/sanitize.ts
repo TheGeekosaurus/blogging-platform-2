@@ -106,6 +106,23 @@ const OPTIONS: sanitizeHtml.IOptions = {
     col: ['span'],
     colgroup: ['span'],
     ol: ['start', 'reversed', 'type'],
+    /*
+     * The marker an in-content CTA block leaves in the body:
+     * `<div data-cta="blended-rate-calculator"></div>`, emitted by the editor's
+     * CTA node and split back out by `splitBodyIntoBlocks`.
+     *
+     * One attribute on one tag rather than `data-*` across the profile, which
+     * is what the looser PAGE profile below does. A post can arrive from an
+     * untrusted WordPress export, and `data-*` is where tracking pixels,
+     * analytics hooks and framework directives live — none of which this
+     * renderer reads, all of which would then be stored and echoed back out.
+     *
+     * The value is the block's SLUG, not its uuid: the slug is already the
+     * stable public key (`capture_lead` takes it, `leads.magnet_slug` outlives
+     * a deleted magnet) and it survives an export readably. It is matched
+     * against the database on render, so an unknown one renders nothing.
+     */
+    div: ['data-cta'],
     // `class` is allowed on these because WordPress content and our own
     // transforms lean on classes for alignment and code highlighting. It carries
     // no script risk; the CSS simply ignores classes it does not know.

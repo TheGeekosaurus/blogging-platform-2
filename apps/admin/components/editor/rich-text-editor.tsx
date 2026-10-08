@@ -7,7 +7,11 @@ import { BubbleMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import { useState } from 'react';
 
+import type { CtaBlockView } from '@blog/core';
+
 import type { MediaOptions } from '@/lib/queries';
+import { CtaNode } from './cta-node';
+import { CtaPicker } from './cta-picker';
 import { LinkEditor } from './link-editor';
 import { MediaPicker } from './media-picker';
 
@@ -97,13 +101,17 @@ export function RichTextEditor({
   name,
   defaultValue,
   media,
+  ctaBlocks,
 }: {
   name: string;
   defaultValue: string;
   media: MediaOptions;
+  /** Every active CTA block on the site, for the insert menu and node view. */
+  ctaBlocks: CtaBlockView[];
 }) {
   const [html, setHtml] = useState(defaultValue);
   const [picking, setPicking] = useState(false);
+  const [pickingCta, setPickingCta] = useState(false);
   /*
    * Whether the link editor is open. Kept here rather than inside the bubble
    * because the toolbar button opens it too, and because the bubble must stay
@@ -141,6 +149,13 @@ export function RichTextEditor({
        * by default, so no editor-only classes reach the stored HTML.
        */
       TableKit.configure({ table: { resizable: false } }),
+      /*
+       * The blocks are handed to the extension rather than looked up inside
+       * the node view, because an extension's options are stable for the
+       * editor's lifetime and a node view that fetched would fetch once per
+       * block per keystroke-triggered re-render.
+       */
+      CtaNode.configure({ blocks: new Map(ctaBlocks.map((b) => [b.slug, b])) }),
     ],
     content: defaultValue,
     onUpdate: ({ editor: instance }) => setHtml(instance.getHTML()),
@@ -307,6 +322,14 @@ export function RichTextEditor({
         </ToolbarButton>
         <ToolbarButton
           editor={editor}
+          label="Insert CTA"
+          active={pickingCta}
+          onClick={() => setPickingCta((open) => !open)}
+        >
+          CTA
+        </ToolbarButton>
+        <ToolbarButton
+          editor={editor}
           label="Insert table"
           active={editor.isActive('table')}
           onClick={() =>
@@ -410,6 +433,18 @@ export function RichTextEditor({
             label="Choose an image to insert, or drop a file here to upload."
             onSelect={(item) => {
               if (item) insertImage(item.url, item.alt ?? '');
+            }}
+          />
+        </div>
+      ) : null}
+
+      {pickingCta ? (
+        <div className="border-b border-line bg-canvas p-3">
+          <CtaPicker
+            blocks={ctaBlocks}
+            onPick={(slug) => {
+              editor.chain().focus().insertCtaBlock(slug).run();
+              setPickingCta(false);
             }}
           />
         </div>

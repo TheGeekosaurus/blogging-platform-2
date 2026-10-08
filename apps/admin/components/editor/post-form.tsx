@@ -2,7 +2,13 @@
 
 import { useActionState, useState } from 'react';
 
-import { flattenTermTree, postPath, type SiteRow, type TermRow } from '@blog/core';
+import {
+  flattenTermTree,
+  postPath,
+  type CtaBlockView,
+  type SiteRow,
+  type TermRow,
+} from '@blog/core';
 
 import type { MediaOptions } from '@/lib/queries';
 
@@ -36,12 +42,15 @@ export function PostForm({
   terms,
   media,
   authors,
+  ctaBlocks,
   values,
 }: {
   site: SiteRow;
   terms: TermRow[];
   media: MediaOptions;
   authors: Array<{ id: string; name: string }>;
+  /** Active CTA blocks, for the editor's insert menu and its node views. */
+  ctaBlocks: CtaBlockView[];
   values: PostFormValues;
 }) {
   const [state, formAction, pending] = useActionState(savePost, INITIAL);
@@ -133,6 +142,7 @@ export function PostForm({
             name="content_html"
             defaultValue={values.content_html}
             media={media}
+            ctaBlocks={ctaBlocks}
           />
         </div>
       </div>

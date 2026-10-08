@@ -15,19 +15,18 @@ export default async function LeadMagnetsPage() {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold tracking-tight">Lead magnets</h1>
+        <h1 className="text-xl font-semibold tracking-tight">CTAs</h1>
         <Link
           href="/lead-magnets/new"
           className="btn btn-primary"
         >
-          New offer
+          New block
         </Link>
       </div>
 
       <p className="mt-2 max-w-2xl text-sm text-ink-muted">
-        A card in the sidebar of a post, offering something in exchange for an email
-        address. Aim each one at the posts it belongs on — where several match, the
-        most specific wins and only one is ever shown.
+        Blocks you drop into a post from the editor, or aim at posts with the rules
+        below. A block either links somewhere or captures an email address.
       </p>
 
       {magnets.length === 0 ? (
