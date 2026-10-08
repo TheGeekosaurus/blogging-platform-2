@@ -1492,3 +1492,79 @@ describe("the Daylight get-funded page", () => {
     expect(page).toContain("<HighLevelForm eager />");
   });
 });
+
+/*
+ * ---------------------------------------------------------------------------
+ * /BLOG IN WHITE
+ *
+ * Denis, 2026-10-08: "rebrand the blog page to be light like the new theme."
+ * ---------------------------------------------------------------------------
+ */
+describe("the Daylight blog index", () => {
+  const page = read("daylight/blog-index.tsx");
+  const dark = read("ft/blog-index.tsx");
+
+  it("is what both blog routes render", () => {
+    const index = readFileSync(join(__dirname, "..", "app", "blog", "page.tsx"), "utf8");
+    const archive = readFileSync(
+      join(__dirname, "..", "app", "blog", "page", "[page]", "page.tsx"),
+      "utf8",
+    );
+    expect(index).toContain("DaylightBlogIndex");
+    expect(archive).toContain("DaylightBlogArchivePage");
+
+    /*
+     * BOTH, not just the index. Page 2 is one click from the index via "Older
+     * posts", and converting the front and leaving the archive dark is a theme
+     * change a reader walks straight off the edge of.
+     */
+    expect(index).not.toContain("FtBlogIndex");
+    expect(archive).not.toContain("FtBlogArchivePage");
+  });
+
+  /*
+   * THE CARDS ARE IMPORTED, NOT COPIED. Everything the featured story and the
+   * three-up draw reads --ft-* and nothing else, so `.dl-surface` re-themes
+   * them untouched. Two copies of a post card is how the index and the
+   * homepage's band start disagreeing about what a post looks like.
+   */
+  it("reuses the dark build's cards rather than reproducing them", () => {
+    expect(page).toContain("BlogFeatured");
+    expect(page).toContain("BlogRecentCard");
+    expect(dark).toContain("export function BlogFeatured");
+    expect(dark).toContain("export function BlogRecentCard");
+
+    /* And the rows and pills are the homepage's, from the shared list file. */
+    expect(page).toContain("CategoryPills");
+    expect(page).toContain("PostRow");
+  });
+
+  /*
+   * SectionIntro, NOT SectionHead. The dark page opens its list with a
+   * full-bleed band across the page; Denis asked for those bands to go when
+   * Daylight was designed. That is a change of structure, which is why a theme
+   * flag could not have done this conversion.
+   */
+  it("drops the full-bleed section band", () => {
+    /* Comments stripped: the file's own note names the component it replaced. */
+    const code = page.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code).toContain("SectionIntro");
+    expect(code).not.toContain("SectionHead");
+    /* The dark one keeps it — this is a parallel file, not a migration. */
+    expect(dark).toContain("SectionHead");
+  });
+
+  /* The list wears the marker that restores the homepage's row rhythm. */
+  it("gives the list the homepage's row spacing", () => {
+    expect(page).toContain("dl-bloglist");
+    const css = readFileSync(join(__dirname, "..", "app", "globals.css"), "utf8");
+    expect(css).toContain(".dl-surface .dl-bloglist article > div");
+  });
+
+  it("stands on the light surface, and the dark one is left intact", () => {
+    const code = page.replace(/\/\*[\s\S]*?\*\//g, "");
+    expect(code).toContain('className="dl-surface"');
+    expect(code).not.toContain("ft-surface");
+    expect(dark).toContain('className="ft-surface"');
+  });
+});
