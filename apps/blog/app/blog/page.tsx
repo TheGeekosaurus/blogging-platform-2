@@ -10,7 +10,7 @@ import {
   listPublishedPosts,
 } from '@blog/core';
 
-import { FtBlogIndex } from '@/components/marketing/ft/blog-index';
+import { DaylightBlogIndex } from '@/components/marketing/daylight/blog-index';
 import { PostCard } from '@/components/post-card';
 import { isNntmCapital } from '@/lib/marketing';
 import { getClient, getSite } from '@/lib/site';
@@ -73,7 +73,7 @@ export default async function HomePage() {
     const categories = await listNonEmptyTerms(client, site.id, 'category');
 
     return (
-      <FtBlogIndex
+      <DaylightBlogIndex
         posts={posts}
         categories={categories.slice(0, INDEX_CATEGORIES)}
         locale={site.locale}

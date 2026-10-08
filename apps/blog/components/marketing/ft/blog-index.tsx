@@ -75,7 +75,17 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function Featured({ post, locale }: { post: PostSummary; locale: string }) {
+/*
+ * EXPORTED, for daylight/blog-index.tsx.
+ *
+ * Everything it draws reads --ft-* and nothing else, so `.dl-surface` re-themes
+ * it with no fork — the same reason the FAQ is imported whole rather than
+ * copied. What the light build could not reuse is the page shell around this
+ * (the surface class and the banded section head); the cards themselves are the
+ * same cards and two copies of them is how the two blogs start disagreeing
+ * about what a post looks like.
+ */
+export function BlogFeatured({ post, locale }: { post: PostSummary; locale: string }) {
   const image = post.featured_image;
   const author = postAuthorName(post);
   const category = post.categories[0] ?? null;
@@ -155,7 +165,8 @@ function Featured({ post, locale }: { post: PostSummary; locale: string }) {
  * The three-up
  * ------------------------------------------------------------------------- */
 
-function RecentCard({ post }: { post: PostSummary }) {
+/* Exported for daylight/blog-index.tsx — see the note on BlogFeatured. */
+export function BlogRecentCard({ post }: { post: PostSummary }) {
   const image = post.featured_image;
   const category = post.categories[0] ?? null;
 
@@ -227,13 +238,13 @@ export function FtBlogIndex({
     <div className="ft-surface">
       <Hero />
 
-      {featured ? <Featured post={featured} locale={locale} /> : null}
+      {featured ? <BlogFeatured post={featured} locale={locale} /> : null}
 
       {recent.length > 0 ? (
         <section aria-label="Recent posts" className="border-b border-[var(--ft-line)]">
           <div className={`${CONTAINER} grid gap-10 py-12 md:grid-cols-2 lg:grid-cols-3 lg:py-16`}>
             {recent.map((post) => (
-              <RecentCard key={post.id} post={post} />
+              <BlogRecentCard key={post.id} post={post} />
             ))}
           </div>
         </section>
