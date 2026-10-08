@@ -1,30 +1,36 @@
 import { redirect } from 'next/navigation';
 
-import { signOut } from '@/app/actions/auth';
+import { AccountMenu } from '@/components/account-menu';
 import { AdminNav } from '@/components/admin-nav';
-import { SiteSwitcher } from '@/components/site-switcher';
 import { getCurrentSite, listMySites } from '@/lib/current-site';
 import { getCurrentUser } from '@/lib/supabase/server';
 
 /**
- * The dashboard shell: a dark rail on the left, a bar across the top of the
- * content, and cards floating on a tinted canvas.
+ * The dashboard shell: a dark rail on the left, and cards floating on a tinted
+ * canvas. Nothing above the content.
  *
- * The rail still holds the site switcher at the top, for the reason it always
- * did: it is the widest-scoped control in the app, and every list, editor and
- * URL below it is scoped to whatever it says.
+ * THERE WAS A TOP BAR HERE. It held the account — the signed-in email and a
+ * Sign out button — and the docstring it carried defended itself like this:
+ * "Nothing was added to fill it — no search box, no notification bell, no theme
+ * switch — because none of those exist yet and a row of dead icons is a worse
+ * lie than an empty bar." Both halves of that are true, and together they are
+ * the argument for deleting it: a whole sticky strip, a card and a backdrop
+ * blur, to carry one line of text and one button, and an empty bar is not
+ * better than dead icons, it is the same admission with less in it. Denis,
+ * 2026-10-08: "Remove the top bar."
  *
- * WHAT THE TOP BAR IS FOR. It holds the account, which used to sit in the foot
- * of the rail. Nothing was added to fill it — no search box, no notification
- * bell, no theme switch — because none of those exist yet and a row of dead
- * icons is a worse lie than an empty bar. It earns its place by moving the one
- * thing that was there into the corner people look for it in, and by giving the
- * content column a consistent top edge to hang from.
+ * So the account is back in the foot of the rail, where it started, and the
+ * site switcher has gone in with it — see components/account-menu.tsx. The rail
+ * is now one list of places you can go, with one control underneath it for the
+ * things you do TO the workspace rather than inside it. That also buys back the
+ * vertical space the switcher's boxed panel was taking at the top, which
+ * mattered: at 950px the rail had its own scrollbar and Posts was off-screen.
  *
  * The rail does not collapse on small screens; it becomes a horizontal strip
  * above the content instead. A slide-out drawer would need state, and this is a
  * desktop editing tool — the phone case worth supporting is "look something
- * up", not "lay out a post".
+ * up", not "lay out a post". The account panel knows about this and drops
+ * downward at that width.
  */
 export default async function DashboardLayout({
   children,
@@ -40,7 +46,7 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen lg:flex">
       <div className="flex flex-col bg-rail lg:sticky lg:top-0 lg:h-screen lg:w-[16rem] lg:shrink-0">
-        <div className="flex items-center gap-2.5 px-5 pb-1 pt-5">
+        <div className="flex items-center gap-2.5 px-5 pb-3 pt-5">
           {/*
             A mark rather than a logo. There is no admin logo asset, and
             inventing branding for someone else's product is not this change's
@@ -58,49 +64,32 @@ export default async function DashboardLayout({
           </span>
         </div>
 
-        <div className="px-5 py-4">
-          <SiteSwitcher sites={sites} currentId={site?.id ?? ''} />
-        </div>
-
+        {/* `flex-1` is on the nav, so this sits at the bottom of a full-height
+            rail and directly under the last section on a short one. */}
         <AdminNav />
+        <AccountMenu
+          email={user.email ?? null}
+          sites={sites}
+          currentSiteId={site?.id ?? ''}
+        />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 bg-canvas/80 px-4 py-3 backdrop-blur-sm lg:px-6 lg:py-4">
-          <div className="card flex items-center justify-between gap-4 px-4 py-2.5">
-            {/* Pushes the account right on its own, without an empty flex
-                child that a screen reader would have to step over. */}
-            <div className="min-w-0">
-              <p className="truncate text-sm text-ink" title={user.email ?? ''}>
-                {user.email}
-              </p>
-            </div>
-
-            <form action={signOut} className="shrink-0">
-              <button type="submit" className="btn btn-ghost btn-sm">
-                Sign out
-              </button>
-            </form>
+      <main className="min-w-0 flex-1 px-4 pb-10 pt-6 lg:px-8 lg:pt-8">
+        {site ? (
+          children
+        ) : (
+          <div className="card max-w-2xl border-l-4 border-l-warning px-5 py-4 text-sm">
+            <p className="font-medium text-ink">
+              This account is not a member of any site.
+            </p>
+            <p className="mt-1 text-ink-muted">
+              Signing in worked, but every query returns nothing until a{' '}
+              <code>site_members</code> row exists. See{' '}
+              <code>docs/DEPLOYMENT.md</code>.
+            </p>
           </div>
-        </header>
-
-        <main className="min-w-0 flex-1 px-4 pb-10 pt-1 lg:px-6">
-          {site ? (
-            children
-          ) : (
-            <div className="card max-w-2xl border-l-4 border-l-warning px-5 py-4 text-sm">
-              <p className="font-medium text-ink">
-                This account is not a member of any site.
-              </p>
-              <p className="mt-1 text-ink-muted">
-                Signing in worked, but every query returns nothing until a{' '}
-                <code>site_members</code> row exists. See{' '}
-                <code>docs/DEPLOYMENT.md</code>.
-              </p>
-            </div>
-          )}
-        </main>
-      </div>
+        )}
+      </main>
     </div>
   );
 }
