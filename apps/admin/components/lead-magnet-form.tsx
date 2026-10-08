@@ -2,9 +2,20 @@
 
 import { useActionState, useState } from 'react';
 
-import type { TermRow } from '@blog/core';
+import {
+  CTA_KINDS,
+  CTA_LAYOUTS,
+  CTA_THEMES,
+  type CtaBlockView,
+  type CtaKind,
+  type CtaLayout,
+  type CtaTheme,
+  type TermRow,
+} from '@blog/core';
+import { CtaBlock, CtaLinkButton, buttonClass, THEME_SKINS } from '@blog/ui';
 
 import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets';
+import { CTA_LABELS, LAYOUT_HINTS } from '@/components/editor/cta-picker-labels';
 import { MediaPicker } from '@/components/editor/media-picker';
 import type { MediaOptions, PostOption } from '@/lib/queries';
 
@@ -23,6 +34,12 @@ export interface LeadMagnetFormValues {
   consentText: string;
   assetUrl: string;
   active: boolean;
+  kind: CtaKind;
+  href: string;
+  layout: CtaLayout;
+  theme: CtaTheme;
+  accentBorder: boolean;
+  eyebrow: string;
   categoryIds: string[];
   tagIds: string[];
   postIds: string[];
@@ -92,11 +109,67 @@ export function LeadMagnetForm({
   const [slug, setSlug] = useState(values.slug);
   const [imageId, setImageId] = useState(values.imageId ?? '');
 
+  /*
+   * What the preview shows.
+   *
+   * Mirrored from the inputs rather than controlling them: the fields stay
+   * uncontrolled with `defaultValue`, which is what the rest of this admin
+   * does and what lets the form submit without React owning every keystroke.
+   * This holds only the fields the preview can actually show — a change to
+   * `asset_url` or the targeting rules does not alter how the block looks.
+   */
+  const [preview, setPreview] = useState({
+    kind: values.kind,
+    layout: values.layout,
+    theme: values.theme,
+    accentBorder: values.accentBorder,
+    eyebrow: values.eyebrow,
+    heading: values.heading,
+    body: values.body,
+    buttonLabel: values.buttonLabel,
+    consentText: values.consentText,
+    href: values.href,
+  });
+  const set = <K extends keyof typeof preview>(key: K, value: (typeof preview)[K]) =>
+    setPreview((current) => ({ ...current, [key]: value }));
+
+  const previewBlock: CtaBlockView = {
+    slug: slug || 'preview',
+    kind: preview.kind,
+    layout: preview.layout,
+    theme: preview.theme,
+    accentBorder: preview.accentBorder,
+    eyebrow: preview.eyebrow.trim() || null,
+    heading: preview.heading.trim() || 'Your headline goes here',
+    body: preview.body.trim() || null,
+    buttonLabel: preview.buttonLabel.trim() || 'Send it to me',
+    href: preview.href.trim() || '#',
+    consentText: preview.consentText.trim() || null,
+    collectName: values.collectName,
+    successMessage: values.successMessage,
+    // The chosen image is not resolvable to a URL here — the picker deals in
+    // ids and `mediaPublicUrl` needs the server's SUPABASE_URL. The Split
+    // layout therefore previews as Banner, which is also what it renders as
+    // when a block genuinely has no image.
+    image: null,
+  };
+
   const categories = terms.filter((term) => term.kind === 'category');
   const tags = terms.filter((term) => term.kind === 'tag');
 
   return (
-    <form action={formAction} className="flex max-w-2xl flex-col gap-5">
+    <form
+      action={formAction}
+      /*
+        The builder: controls left, preview right, the preview sticky so it
+        stays beside whichever control is being used. A single column with the
+        preview at the bottom would mean scrolling away from the thing you are
+        changing to see what it did, which is the whole complaint about the
+        form this replaces.
+      */
+      className="grid items-start gap-8 xl:grid-cols-[minmax(0,34rem)_minmax(0,1fr)]"
+    >
+      <div className="flex flex-col gap-5">
       {values.id ? <input type="hidden" name="id" value={values.id} /> : null}
 
       {state.error ? (
@@ -163,8 +236,154 @@ export function LeadMagnetForm({
         Live on the site
       </label>
 
+      <fieldset className="flex flex-col gap-4 border-t border-line pt-5">
+        <legend className="text-sm font-semibold">What it does</legend>
+
+        {/*
+          Two radios, not a select: there are two options and the choice
+          changes which field below is relevant, so showing both at once is
+          what makes that obvious.
+        */}
+        <div className="flex flex-wrap gap-2">
+          {CTA_KINDS.map((option) => (
+            <label
+              key={option}
+              className={`cursor-pointer rounded-control border px-3 py-2 text-sm transition-colors ${
+                preview.kind === option
+                  ? 'border-brand bg-brand-softer font-medium text-ink'
+                  : 'border-line text-ink-muted hover:border-brand'
+              }`}
+            >
+              <input
+                type="radio"
+                name="kind"
+                value={option}
+                defaultChecked={values.kind === option}
+                onChange={() => set('kind', option)}
+                className="sr-only"
+              />
+              {CTA_LABELS.kind[option]}
+            </label>
+          ))}
+        </div>
+
+        {preview.kind === 'link' ? (
+          <div>
+            <label htmlFor="href" className="block text-sm font-medium">
+              Destination
+            </label>
+            <input
+              id="href"
+              name="href"
+              defaultValue={values.href}
+              onChange={(e) => set('href', e.target.value)}
+              placeholder="/calculators/dscr-calculator"
+              className={FIELD}
+            />
+            <p className="hint mt-1">
+              A path on this site, or a full URL. A bare domain gets{' '}
+              <code>https://</code> added.
+            </p>
+          </div>
+        ) : (
+          <p className="hint">
+            Readers enter an email and the address lands in <strong>Leads</strong>.
+            The delivery link and the success message are further down.
+          </p>
+        )}
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-4 border-t border-line pt-5">
+        <legend className="text-sm font-semibold">How it looks</legend>
+
+        <div>
+          <span className="label">Layout</span>
+          <div className="grid grid-cols-2 gap-2">
+            {CTA_LAYOUTS.map((option) => (
+              <label
+                key={option}
+                className={`cursor-pointer rounded-control border px-3 py-2 transition-colors ${
+                  preview.layout === option
+                    ? 'border-brand bg-brand-softer'
+                    : 'border-line hover:border-brand'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="layout"
+                  value={option}
+                  defaultChecked={values.layout === option}
+                  onChange={() => set('layout', option)}
+                  className="sr-only"
+                />
+                <span className="block text-sm font-medium text-ink">
+                  {CTA_LABELS.layout[option]}
+                </span>
+                <span className="mt-0.5 block text-xs text-ink-muted">
+                  {LAYOUT_HINTS[option]}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <span className="label">Background</span>
+          <div className="flex flex-wrap gap-2">
+            {CTA_THEMES.map((option) => (
+              <label
+                key={option}
+                className={`cursor-pointer rounded-control border px-3 py-2 text-sm transition-colors ${
+                  preview.theme === option
+                    ? 'border-brand bg-brand-softer font-medium text-ink'
+                    : 'border-line text-ink-muted hover:border-brand'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="theme"
+                  value={option}
+                  defaultChecked={values.theme === option}
+                  onChange={() => set('theme', option)}
+                  className="sr-only"
+                />
+                {CTA_LABELS.theme[option]}
+              </label>
+            ))}
+          </div>
+          <p className="hint mt-1">
+            Drawn from this site&rsquo;s own palette, so a block looks right on
+            whichever site it is on — and in dark mode.
+          </p>
+        </div>
+
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <input
+            type="checkbox"
+            name="accent_border"
+            defaultChecked={values.accentBorder}
+            onChange={(e) => set('accentBorder', e.target.checked)}
+          />
+          Accent edge along the top
+        </label>
+      </fieldset>
+
       <fieldset className="flex flex-col gap-5 border-t border-line pt-5">
-        <legend className="text-sm font-semibold">The card</legend>
+        <legend className="text-sm font-semibold">What it says</legend>
+
+        <div>
+          <label htmlFor="eyebrow" className="block text-sm font-medium">
+            Eyebrow <span className="font-normal text-ink-muted">(optional)</span>
+          </label>
+          <input
+            id="eyebrow"
+            name="eyebrow"
+            defaultValue={values.eyebrow}
+            onChange={(e) => set('eyebrow', e.target.value)}
+            placeholder="Free tool"
+            className={FIELD}
+          />
+        </div>
 
         <div>
           <label htmlFor="heading" className="block text-sm font-medium">
@@ -173,6 +392,7 @@ export function LeadMagnetForm({
           <input
             id="heading"
             name="heading"
+            onChange={(e) => set('heading', e.target.value)}
             required
             defaultValue={values.heading}
             placeholder="Get the Equipment Financing Toolkit"
@@ -214,6 +434,7 @@ export function LeadMagnetForm({
           <textarea
             id="body"
             name="body"
+            onChange={(e) => set('body', e.target.value)}
             rows={3}
             defaultValue={values.body}
             className={FIELD}
@@ -231,6 +452,7 @@ export function LeadMagnetForm({
           <input
             id="button_label"
             name="button_label"
+            onChange={(e) => set('buttonLabel', e.target.value)}
             defaultValue={values.buttonLabel}
             placeholder="Send it to me"
             className={FIELD}
@@ -273,6 +495,7 @@ export function LeadMagnetForm({
           <input
             id="consent_text"
             name="consent_text"
+            onChange={(e) => set('consentText', e.target.value)}
             defaultValue={values.consentText}
             placeholder="No spam. Unsubscribe any time."
             className={FIELD}
@@ -356,19 +579,75 @@ export function LeadMagnetForm({
         </div>
       </fieldset>
 
-      <div>
-        <button
-          type="submit"
-          disabled={pending}
-          className="btn btn-primary"
-        >
-          {pending ? 'Saving…' : 'Save offer'}
-        </button>
-        <p className="mt-2 text-sm text-ink-muted">
-          Saving refreshes every post, because targeting can change which ones show
-          this. That takes a few seconds.
-        </p>
+        <div>
+          <button type="submit" disabled={pending} className="btn btn-primary">
+            {pending ? 'Saving…' : 'Save block'}
+          </button>
+          <p className="mt-2 text-sm text-ink-muted">
+            Saving refreshes every post, because targeting can change which ones
+            show this. That takes a few seconds.
+          </p>
+        </div>
       </div>
+
+      {/*
+        THE PREVIEW, rendered with the SAME component the blog uses.
+
+        Not a mock-up of one. `@blog/ui` exists for this: a preview that is a
+        second implementation is a preview that lies the first time a layout
+        changes, and then the builder is worse than no builder because it is
+        confidently wrong.
+      */}
+      <aside className="sticky top-24 hidden xl:block">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
+          Preview
+        </p>
+        {/*
+          On the canvas, not on a card: a block is read against the page it
+          sits in, and judging a tinted treatment against white is how you
+          ship one that disappears.
+        */}
+        <div className="rounded-card bg-canvas p-5">
+          <CtaBlock
+            block={previewBlock}
+            action={
+              previewBlock.kind === 'email' ? (
+                /* A stand-in, as in the editor — a live form in a preview
+                   invites someone to submit it. */
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`rounded-full border px-5 py-3 text-sm ${
+                      THEME_SKINS[previewBlock.theme].dark
+                        ? 'border-white/25 text-white/50'
+                        : 'border-[var(--cta-line)] text-[var(--cta-ink-muted)]'
+                    }`}
+                  >
+                    you@example.com
+                  </span>
+                  <span className={buttonClass(THEME_SKINS[previewBlock.theme].dark)}>
+                    {previewBlock.buttonLabel}
+                  </span>
+                </span>
+              ) : (
+                <CtaLinkButton block={previewBlock} />
+              )
+            }
+          />
+        </div>
+
+        {previewBlock.layout === 'split' ? (
+          <p className="mt-3 text-sm text-ink-muted">
+            Split needs an image. Without one it renders as Banner — here, and
+            on the site.
+          </p>
+        ) : null}
+        {previewBlock.layout === 'strip' ? (
+          <p className="mt-3 text-sm text-ink-muted">
+            Strip shows the headline and the button only. Body copy is not
+            rendered in this layout.
+          </p>
+        ) : null}
+      </aside>
     </form>
   );
 }

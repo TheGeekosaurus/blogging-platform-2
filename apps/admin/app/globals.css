@@ -1,4 +1,16 @@
 @import 'tailwindcss';
+/* Every @import first: CSS requires them to precede all other at-rules, and a
+   stray one after @source is dropped silently. */
+@import '../../../packages/ui/src/cta.css';
+
+/*
+ * The shared CTA renderer lives in @blog/ui, outside this project's root.
+ *
+ * Tailwind 4 only scans its own project for class names, so without @source the
+ * package's classes are missing from this build — and the failure is SILENT:
+ * it typechecks, it builds, and the block renders unstyled.
+ */
+@source '../../../packages/ui/src';
 
 /*
  * The admin's design tokens.

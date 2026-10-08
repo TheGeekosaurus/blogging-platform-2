@@ -34,7 +34,7 @@ async function loadRedirects() {
 const nextConfig: NextConfig = {
   // @blog/core ships TypeScript source rather than a build artifact, so there is
   // no separate build step between editing a shared module and seeing it apply.
-  transpilePackages: ['@blog/core'],
+  transpilePackages: ['@blog/core', '@blog/ui'],
 
   reactStrictMode: true,
   poweredByHeader: false,

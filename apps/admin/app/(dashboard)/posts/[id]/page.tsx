@@ -6,6 +6,7 @@ import { requireCurrentSite } from '@/lib/current-site';
 import { snippetsToText } from '@/lib/structured-data';
 import {
   getPostForEdit,
+  listCtaBlockViews,
   listAllTerms,
   listAuthorOptions,
   listMediaOptions,
@@ -21,11 +22,12 @@ export default async function EditPostPage({
   const { id } = await params;
   const site = await requireCurrentSite();
 
-  const [post, terms, media, authors] = await Promise.all([
+  const [post, terms, media, authors, ctaBlocks] = await Promise.all([
     getPostForEdit(site.id, id),
     listAllTerms(site.id),
     listMediaOptions(site.id),
     listAuthorOptions(site.id),
+    listCtaBlockViews(site.id),
   ]);
 
   if (!post) notFound();
@@ -39,6 +41,7 @@ export default async function EditPostPage({
         terms={terms}
         media={media}
         authors={authors}
+        ctaBlocks={ctaBlocks}
         values={{
           id: post.id,
           title: post.title,

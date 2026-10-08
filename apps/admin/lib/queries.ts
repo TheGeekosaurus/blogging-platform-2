@@ -1,5 +1,7 @@
 import type {
   AuthorRow,
+  CtaBlockView,
+  LeadMagnetImage,
   LeadMagnetRow,
   LeadMagnetTargetRow,
   LeadRow,
@@ -12,7 +14,7 @@ import type {
   ProofEventRow,
   TermRow,
 } from '@blog/core';
-import { explainLeadMagnetSchemaError, mediaPublicUrl } from '@blog/core';
+import { explainLeadMagnetSchemaError, mediaPublicUrl, toCtaBlockView } from '@blog/core';
 
 import { createClient } from './supabase/server';
 
@@ -744,4 +746,37 @@ export async function getProofCampaignForEdit(
         map_url: event.map_path ? mediaPublicUrl(event.map_path) : null,
       })),
   };
+}
+
+/**
+ * Active CTA blocks, as the editor needs them.
+ *
+ * The editor needs the whole view model, not an id and a label: the insert
+ * picker shows each block's layout and theme, and the node view renders the
+ * real component inline. `toCtaBlockView` is what the blog uses, so the editor
+ * and the reader are looking at the same projection of the same row.
+ */
+export async function listCtaBlockViews(siteId: string): Promise<CtaBlockView[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('lead_magnets')
+    // Same embed caveat as everywhere else: image_id must stay the only
+    // foreign key from this table to media, or PostgREST cannot resolve it.
+    .select('*, image:media(storage_path, alt, width, height)')
+    .eq('site_id', siteId)
+    .eq('active', true)
+    .order('name', { ascending: true });
+
+  if (error) throw new Error(`Failed to list CTA blocks: ${error.message}`);
+
+  return (data ?? []).map((row) => {
+    const { image, ...magnet } = row as LeadMagnetRow & {
+      image: LeadMagnetImage | LeadMagnetImage[] | null;
+    };
+    return toCtaBlockView({
+      ...magnet,
+      image: Array.isArray(image) ? (image[0] ?? null) : (image ?? null),
+    });
+  });
 }

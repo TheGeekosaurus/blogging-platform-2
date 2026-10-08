@@ -78,6 +78,7 @@ supabase/migrations/0012_gtm_container.sql      per-site Google Tag Manager
 supabase/migrations/0013_seo.sql                keyword research and the roadmap
 supabase/migrations/0014_seo_priority.sql       build order on the roadmap
 supabase/migrations/0015_proof_notifications.sql social-proof toasts
+supabase/migrations/0016_cta_blocks.sql         in-content CTA blocks
 ```
 
 Then, under Authentication → Sign In / Providers → Email, leave **Enable Email

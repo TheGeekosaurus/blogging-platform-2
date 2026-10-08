@@ -1,0 +1,93 @@
+/*
+ * THE TOKEN CONTRACT.
+ *
+ * The component paints from `--cta-*`, not from either app's own palette, and
+ * that indirection is the whole reason the admin preview can be trusted.
+ *
+ * The two apps disagree about the names they share: `--color-accent` does not
+ * exist in the admin at all, and `--color-brand` is a near-black on the blog
+ * and a violet in the admin. A component reading those directly renders one
+ * thing for a reader and a different thing for the person choosing it — which
+ * is exactly the failure a shared component was supposed to prevent, arriving
+ * by the back door.
+ *
+ * So: the values below are THE BLOG'S, and they are the defaults everywhere.
+ * The admin inherits them untouched, so its preview shows what a reader gets.
+ * The blog re-maps them inside `.blog-surface` to its live tokens, so a block
+ * follows the site's palette and dark mode.
+ */
+:root {
+  --cta-surface: #ffffff;
+  --cta-surface-muted: #f6f7f9;
+  --cta-ink: #16181d;
+  --cta-ink-muted: #5b6472;
+  --cta-line: #e4e7ec;
+  --cta-accent: #1f5fd0;
+  /* The ground the dark and patterned themes sit on. */
+  --cta-dark: #0b0b0c;
+}
+
+/*
+ * The two treatments a CTA block cannot express in utility classes.
+ *
+ * Shipped from this package and @import-ed by both apps, rather than pasted
+ * into each stylesheet: the component, its classes and its CSS are one thing,
+ * and the admin preview is only honest if all three travel together.
+ */
+
+/*
+ * The accent edge: a gradient rule across the top of the card.
+ *
+ * A pseudo-element, not a border. `border-image` cannot be combined with
+ * `border-radius` — the corners square off — and squared corners on a rounded
+ * card is exactly the detail this treatment exists to provide.
+ */
+.cta-accent-edge::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--cta-accent) 70%, transparent),
+    var(--cta-accent),
+    color-mix(in srgb, var(--cta-accent) 25%, transparent)
+  );
+  /* Behind the content but above the shell's own background. */
+  z-index: 1;
+  pointer-events: none;
+}
+
+/*
+ * The patterned ground.
+ *
+ * Drawn in CSS rather than loaded as an image: it is a tiled geometric wash, so
+ * a bitmap would cost a request and a cache entry for something two gradients
+ * produce — and, more to the point, a bitmap is one brand's colour baked in,
+ * where this derives from whatever `--color-brand` resolves to on the site it
+ * lands on.
+ */
+.cta-pattern {
+  background-image:
+    repeating-linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.045) 0 2px,
+      transparent 2px 14px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.045) 0 2px,
+      transparent 2px 14px
+    );
+}
+
+/*
+ * A block sits in `.post-body`, which gives every child a top margin and caps
+ * the width of its text children. The margin is this element's own job — it
+ * needs more air than a paragraph — and the cap must not apply: these layouts
+ * are built to use the column.
+ */
+.post-body > .cta-block {
+  max-width: none;
+}

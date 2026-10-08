@@ -1,5 +1,8 @@
 import type { Client } from './supabase';
 import type {
+  CtaKind,
+  CtaLayout,
+  CtaTheme,
   LeadMagnetRow,
   LeadMagnetScope,
   LeadMagnetTargetRow,
@@ -383,4 +386,137 @@ export async function getLeadMagnetForPost(
   });
 
   return winner ? toLeadMagnetOffer(winner) : null;
+}
+
+// ---------------------------------------------------------------------------
+// In-content CTA blocks
+// ---------------------------------------------------------------------------
+
+/*
+ * The enum members, as values.
+ *
+ * TypeScript unions vanish at runtime, and three screens need to iterate these
+ * — the builder's layout and theme pickers, and the save action narrowing what
+ * came back from a form. Declared here rather than in each so adding a layout
+ * is one edit, and `satisfies` makes the compiler check they still match the
+ * union they claim to enumerate.
+ */
+export const CTA_KINDS = ['email', 'link'] as const satisfies readonly CtaKind[];
+export const CTA_LAYOUTS = [
+  'banner',
+  'split',
+  'billboard',
+  'strip',
+] as const satisfies readonly CtaLayout[];
+export const CTA_THEMES = [
+  'surface',
+  'tint',
+  'dark',
+  'pattern',
+] as const satisfies readonly CtaTheme[];
+
+/**
+ * A block as the in-content renderer needs it.
+ *
+ * SEPARATE FROM `LeadMagnetOffer`, which is the shape the ASIDE card takes.
+ * They read the same row and share most of their fields, and they are still two
+ * things: the aside is one collapsible beam chosen by targeting rules, and this
+ * is one of four layouts dropped into the body by hand. Collapsing them would
+ * mean a type carrying `layout` for a component that has no layouts, and the
+ * aside growing a `kind` it does not branch on.
+ *
+ * `asset_url` is absent here for the same reason it is absent there: it would
+ * put the download link in the page source of every article the block appears
+ * on. The capture endpoint hands it back after a submission.
+ */
+export interface CtaBlockView {
+  slug: string;
+  kind: CtaKind;
+  layout: CtaLayout;
+  theme: CtaTheme;
+  accentBorder: boolean;
+  eyebrow: string | null;
+  heading: string;
+  body: string | null;
+  buttonLabel: string;
+  /** Non-null exactly when `kind` is 'link' — a check constraint, not a hope. */
+  href: string | null;
+  /** The small print under the button, whichever kind this is. */
+  consentText: string | null;
+  // Email only. Meaningless on a link block, and the renderer ignores them.
+  collectName: boolean;
+  successMessage: string;
+  image: LeadMagnetOffer['image'];
+}
+
+export function toCtaBlockView(
+  magnet: LeadMagnetRow & { image?: LeadMagnetImage | null },
+): CtaBlockView {
+  const image = magnet.image ?? null;
+
+  return {
+    slug: magnet.slug,
+    kind: magnet.kind,
+    layout: magnet.layout,
+    theme: magnet.theme,
+    accentBorder: magnet.accent_border,
+    eyebrow: magnet.eyebrow,
+    heading: magnet.heading,
+    body: magnet.body,
+    buttonLabel: magnet.button_label,
+    href: magnet.href,
+    consentText: magnet.consent_text,
+    collectName: magnet.collect_name,
+    successMessage: magnet.success_message,
+    image: image
+      ? {
+          url: mediaPublicUrl(image.storage_path),
+          alt: image.alt,
+          width: image.width,
+          height: image.height,
+        }
+      : null,
+  };
+}
+
+/**
+ * Every block a post's body references, keyed by slug.
+ *
+ * ONE query for the whole post rather than one per marker: a long article may
+ * carry four or five, and `(site_id, slug)` is already unique-indexed by 0010,
+ * so an `in` over a handful of slugs is a single index scan.
+ *
+ * Returns a Map so the renderer can look each marker up as it walks the
+ * segments. A slug that is missing or inactive is simply absent from the map —
+ * see the renderer, which draws nothing rather than a hole.
+ */
+export async function listCtaBlocksBySlugs(
+  client: Client,
+  siteId: string,
+  slugs: readonly string[],
+): Promise<Map<string, CtaBlockView>> {
+  if (slugs.length === 0) return new Map();
+
+  const { data, error } = await client
+    .from('lead_magnets')
+    // Same `image:media(...)` embed as listActiveLeadMagnets, and the same
+    // caveat: image_id must stay the only FK from this table to media.
+    .select('*, image:media(storage_path, alt, width, height)')
+    .eq('site_id', siteId)
+    .eq('active', true)
+    .in('slug', [...slugs]);
+
+  if (error) throw explainLeadMagnetSchemaError(error, 'Failed to load CTA blocks');
+
+  const out = new Map<string, CtaBlockView>();
+  for (const row of data ?? []) {
+    // PostgREST types a to-one embed as possibly-array, as above.
+    const { image, ...magnet } = row as Omit<LeadMagnetRow, 'image'> & {
+      image: LeadMagnetImage | LeadMagnetImage[] | null;
+    };
+    const one = Array.isArray(image) ? (image[0] ?? null) : (image ?? null);
+    out.set(magnet.slug, toCtaBlockView({ ...(magnet as LeadMagnetRow), image: one }));
+  }
+
+  return out;
 }

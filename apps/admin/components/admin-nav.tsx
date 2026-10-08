@@ -170,7 +170,11 @@ const SECTIONS: NavSection[] = [
    */
   {
     href: '/lead-magnets',
-    label: 'Lead magnets',
+    // "CTAs", because an email capture is now one KIND of block among several
+    // and most of them are links. The ROUTE stays /lead-magnets: renaming it
+    // would break every bookmark and in-app link for a label change, and the
+    // table it reads is still called lead_magnets for the reasons 0016 gives.
+    label: 'CTAs',
     icon: (
       <Icon>
         {/* A horseshoe magnet: the outer arc, the inner one, and the two poles. */}
@@ -179,7 +183,7 @@ const SECTIONS: NavSection[] = [
       </Icon>
     ),
     children: [
-      { href: '/lead-magnets', label: 'All Offers' },
+      { href: '/lead-magnets', label: 'All Blocks' },
       { href: '/lead-magnets/new', label: 'Add New' },
     ],
   },

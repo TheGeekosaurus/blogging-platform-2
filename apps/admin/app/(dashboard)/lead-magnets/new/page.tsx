@@ -37,6 +37,14 @@ export default async function NewLeadMagnetPage() {
             step everybody forgets and then debugs.
           */
           active: true,
+          // A new block starts as the thing most of them are: a card with a
+          // button, in the site's own surface colour.
+          kind: 'link',
+          href: '',
+          layout: 'banner',
+          theme: 'surface',
+          accentBorder: false,
+          eyebrow: '',
           categoryIds: [],
           tagIds: [],
           postIds: [],

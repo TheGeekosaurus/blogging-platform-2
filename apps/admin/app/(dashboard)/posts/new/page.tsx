@@ -1,15 +1,16 @@
 import { PostForm } from '@/components/editor/post-form';
 import { requireCurrentSite } from '@/lib/current-site';
-import { listAllTerms, listAuthorOptions, listMediaOptions } from '@/lib/queries';
+import { listAllTerms, listAuthorOptions, listCtaBlockViews, listMediaOptions } from '@/lib/queries';
 
 export const dynamic = 'force-dynamic';
 
 export default async function NewPostPage() {
   const site = await requireCurrentSite();
-  const [terms, media, authors] = await Promise.all([
+  const [terms, media, authors, ctaBlocks] = await Promise.all([
     listAllTerms(site.id),
     listMediaOptions(site.id),
     listAuthorOptions(site.id),
+    listCtaBlockViews(site.id),
   ]);
 
   return (
@@ -20,6 +21,7 @@ export default async function NewPostPage() {
         terms={terms}
         media={media}
         authors={authors}
+        ctaBlocks={ctaBlocks}
         values={{
           title: '',
           slug: '',
