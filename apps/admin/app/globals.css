@@ -508,6 +508,7 @@
    * touch the edges.
    */
   .rail-link {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.75rem;
@@ -577,6 +578,94 @@
     opacity: 1;
     box-shadow: 0 0 0 3px rgba(98, 84, 238, 0.25);
   }
+
+  /* ----------------------------------------------------------------------
+   * The rail, collapsed
+   * ------------------------------------------------------------------- */
+
+  /*
+   * 72px of rail: a centred 18px icon in a 44px pill, and the label moved to
+   * a tooltip. Everything that cannot survive the width — the wordmark, the
+   * group headings, the submenus, the email — is gone rather than truncated,
+   * because a label clipped to four characters is not a shorter label, it is
+   * a wrong one.
+   */
+  .rail-link-collapsed,
+  .rail-account-collapsed {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* The label, shown beside the rail while the row is hovered or focused.
+     `position: absolute` against the row, which is why the collapsed nav
+     turns its overflow off — see the comment on <nav>. */
+  .rail-tip {
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    z-index: 60;
+    margin-left: 0.75rem;
+    transform: translate(-0.25rem, -50%);
+    padding: 0.3rem 0.6rem;
+    border-radius: var(--radius-control);
+    background: var(--color-rail);
+    color: var(--color-rail-ink-strong);
+    box-shadow: var(--shadow-raised);
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+
+  /* Focus as well as hover: the tooltip is the only visible label, so a
+     keyboard walking the rail has to get it too. */
+  .rail-link:hover .rail-tip,
+  .rail-link:focus-visible .rail-tip,
+  .rail-toggle:hover .rail-tip,
+  .rail-toggle:focus-visible .rail-tip {
+    opacity: 1;
+    transform: translate(0, -50%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rail-tip {
+      transition: none;
+    }
+  }
+
+  /* The collapse toggle. Quiet at rest and only properly visible on hover,
+     because it is chrome for the chrome — it should not compete with the
+     first navigation item for attention every time the page loads. */
+  .rail-toggle {
+    position: relative;
+    display: flex;
+    height: 1.75rem;
+    width: 1.75rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-control);
+    color: var(--color-rail-ink);
+    opacity: 0.65;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease,
+      opacity 0.15s ease;
+  }
+
+  .rail-toggle:hover,
+  .rail-toggle:focus-visible {
+    background: var(--color-rail-raised);
+    color: var(--color-rail-ink-strong);
+    opacity: 1;
+  }
+
 
   /*
    * The account control in the foot of the rail, and the panel it opens.
@@ -657,6 +746,251 @@
 
   .account-item:hover {
     background: var(--color-line-soft);
+  }
+
+  /* ----------------------------------------------------------------------
+   * The CTA builder
+   * ------------------------------------------------------------------- */
+
+  /* Its own bar, inside the window the workspace takes over. Not the app's
+     chrome: it carries what this ONE thing needs — what it is called, whether
+     it is live, and the way out. */
+  .builder-bar {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-surface);
+    padding: 0.6rem 1rem;
+  }
+
+  .builder-back {
+    display: flex;
+    height: 2rem;
+    width: 2rem;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-control);
+    color: var(--color-ink-muted);
+  }
+
+  .builder-back:hover {
+    background: var(--color-line-soft);
+    color: var(--color-ink);
+  }
+
+  /* The name reads as the screen's title until you touch it, which is what it
+     is — a heading that happens to be editable. A field box around it would
+     make the first thing on screen look like a form to fill in. */
+  .builder-name {
+    min-width: 0;
+    flex: 1;
+    border: 1px solid transparent;
+    border-radius: var(--radius-control);
+    background: transparent;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .builder-name:hover {
+    border-color: var(--color-line);
+  }
+
+  .builder-name:focus {
+    outline: none;
+    border-color: var(--color-brand);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-brand);
+  }
+
+  .builder-live {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    padding: 0.25rem 0.7rem 0.25rem 0.6rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+  }
+
+  .builder-live:has(input:checked) {
+    border-color: rgba(40, 199, 111, 0.4);
+    background: rgba(40, 199, 111, 0.12);
+    color: var(--color-success-ink);
+  }
+
+  /* The controls column. Its own scroll, so the preview beside it never moves. */
+  .builder-side {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    gap: 0.5rem;
+    overflow-y: auto;
+    border-bottom: 1px solid var(--color-line);
+    background: var(--color-canvas);
+    padding: 0.75rem;
+  }
+
+  @media (min-width: 1024px) {
+    .builder-side {
+      width: 24rem;
+      flex-shrink: 0;
+      border-bottom: 0;
+      border-right: 1px solid var(--color-line);
+    }
+  }
+
+  /* A section: a white card, and a tinted body when it is open. The tint is
+     what makes a column of eight scannable — the one you are working in is a
+     different colour from the seven you are not. */
+  .builder-section {
+    border: 1px solid var(--color-line-soft);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+
+  .builder-section.is-open {
+    border-color: var(--color-line);
+  }
+
+  .builder-section-head {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+
+  .builder-section-title {
+    flex: 1;
+    text-align: left;
+  }
+
+  /* What the section is set to, so a closed card still answers its own
+     question. */
+  .builder-section-summary {
+    max-width: 11rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-ink-muted);
+  }
+
+  .builder-chevron {
+    height: 1rem;
+    width: 1rem;
+    flex-shrink: 0;
+    color: var(--color-ink-faint);
+    transition: transform 0.2s ease;
+  }
+
+  .builder-section-body {
+    border-top: 1px solid var(--color-line-soft);
+    border-radius: 0 0 var(--radius-card) var(--radius-card);
+    background: var(--color-canvas);
+    padding: 0.85rem;
+  }
+
+  /* Controls inside an open section sit on white, against the tint. */
+  .builder-section-body :is(input, textarea, select).field {
+    background: var(--color-surface);
+  }
+
+  .builder-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .builder-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    cursor: pointer;
+  }
+
+  /* A radio drawn as a pill. The input is sr-only, so the whole label is the
+     hit target and the ring is the state. */
+  .builder-pill {
+    display: block;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-control);
+    background: var(--color-surface);
+    padding: 0.45rem 0.7rem;
+    cursor: pointer;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .builder-pill:hover {
+    border-color: var(--color-brand);
+  }
+
+  .builder-pill.is-on {
+    border-color: var(--color-brand);
+    background: var(--color-brand-softer);
+  }
+
+  /* The keyboard ring has to be on the label, because the input it belongs to
+     is sr-only and has nothing to draw around. */
+  .builder-pill:has(input:focus-visible) {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  .builder-pill-label {
+    display: block;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .builder-pill-hint {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.75rem;
+    color: var(--color-ink-muted);
+  }
+
+  /* The stage. Tinted, not white: a block is read against the page it sits in,
+     and judging a tinted treatment against white is how you ship one that
+     disappears. */
+  .builder-stage {
+    min-height: 0;
+    flex: 1;
+    overflow-y: auto;
+    background: var(--color-canvas);
+    padding: 2rem 1.5rem;
+  }
+
+  .builder-stage-inner {
+    /* The blog's own article column: max-w-7xl less the page gutter, the
+       aside and the frame gutter. See the comment at the call site. */
+    margin: 0 auto;
+    max-width: 53rem;
+  }
+
+  .builder-note {
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--color-ink-muted);
   }
 
   /* ----------------------------------------------------------------------
