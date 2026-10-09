@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import { LeadMagnetCard } from '@/components/blog/lead-magnet-card';
+import { LeadMagnetCard } from '@blog/ui';
+
+import { OfferImage } from '@/components/blog/offer-image';
 import { rememberClosed, startsMinimised } from '@/lib/lead-magnet';
 
 /**
@@ -141,6 +143,7 @@ export function LeadMagnetBlock({ offer }: { offer: LeadMagnetOffer }) {
       */}
       <div className="h-full overflow-y-auto rounded-xl">
         <LeadMagnetCard
+          renderImage={OfferImage}
           offer={offer}
           onClose={() => {
             rememberClosed(offer.slug, 'closed');

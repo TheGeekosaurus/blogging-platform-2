@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { LeadMagnetOffer } from '@blog/core';
 
-import { LeadMagnetCard } from '@/components/blog/lead-magnet-card';
+import { LeadMagnetCard } from '@blog/ui';
 
 /**
  * Where the dismiss control sits, and what the card does and does not ship.
@@ -18,6 +18,10 @@ import { LeadMagnetCard } from '@/components/blog/lead-magnet-card';
  */
 
 const OFFER: LeadMagnetOffer = {
+  kind: 'email',
+  href: null,
+  theme: 'surface',
+  accentBorder: false,
   slug: 'equipment-financing-toolkit',
   heading: 'Get the Equipment Financing Toolkit',
   body: 'The 20 checks we run before calling a deal good.',
@@ -70,7 +74,14 @@ describe('the dismiss control', () => {
    * positioned — in the rail, somewhere else entirely.
    */
   it('has the card itself as its positioning context', () => {
-    expect(render()).toMatch(/^<div class="relative /);
+    /*
+     * Matched on the root's own class rather than anchored to the start of the
+     * string, which is what this used to do. React hoists a <link rel=preload>
+     * ahead of the markup for the plain <img> the card falls back to when no
+     * renderImage is supplied — as here — so `^` stopped describing the card
+     * and started describing React's output buffer.
+     */
+    expect(render()).toMatch(/<div class="relative overflow-hidden rounded-xl/);
   });
 
   it('comes before the image in the tab order', () => {

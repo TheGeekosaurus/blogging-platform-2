@@ -13,7 +13,8 @@ import {
   type CtaTheme,
   type TermRow,
 } from '@blog/core';
-import { CtaBlock, CtaLinkButton, buttonClass, THEME_SKINS } from '@blog/ui';
+import type { LeadMagnetOffer } from '@blog/core';
+import { CtaBlock, CtaLinkButton, LeadMagnetCard, buttonClass, THEME_SKINS } from '@blog/ui';
 
 import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets';
 import { CTA_LABELS, LAYOUT_HINTS } from '@/components/editor/cta-picker-labels';
@@ -248,9 +249,33 @@ export function CtaBuilder({
     buttonLabel: values.buttonLabel,
     consentText: values.consentText,
     href: values.href,
+    collectName: values.collectName,
+    successMessage: values.successMessage,
   });
   const set = <K extends keyof typeof preview>(key: K, value: (typeof preview)[K]) =>
     setPreview((current) => ({ ...current, [key]: value }));
+
+  /*
+   * The picture, resolved from the picker's own list.
+   *
+   * The preview used to pass `image: null` with a note that the id could not be
+   * turned into a URL here — true of `mediaPublicUrl`, which needs the server's
+   * SUPABASE_URL, but not of MediaOptions, which the server already built this
+   * form with and which carries the URL for every thumbnail the picker shows.
+   * So Split previewed as Banner and the sidebar card previewed with no image
+   * at all, which is most of what the card IS.
+   */
+  const chosenImage = media.items.find((item) => item.id === imageId);
+  const previewImage = chosenImage
+    ? {
+        url: chosenImage.url,
+        alt: chosenImage.alt,
+        // MediaOption carries no dimensions, so the card takes its plain <img>
+        // path — see ImageRenderer in packages/ui.
+        width: null,
+        height: null,
+      }
+    : null;
 
   const previewBlock: CtaBlockView = {
     slug: slug || 'preview',
@@ -270,7 +295,49 @@ export function CtaBuilder({
     // ids and `mediaPublicUrl` needs the server's SUPABASE_URL. The Split
     // layout therefore previews as Banner, which is also what it renders as
     // when a block genuinely has no image.
-    image: null,
+    image: previewImage,
+  };
+
+  /*
+   * WHICH PLACEMENT the preview is showing.
+   *
+   * A block has two of them, rendered by two different components, and the
+   * builder used to know about one. Denis, 2026-10-09, with a screenshot of
+   * each: "here is how it looks in the designer, and how it looks on the
+   * actual post."
+   *
+   *   In a post body — <CtaBlock>, where you dropped a marker from the editor.
+   *                    This is what layout and the eyebrow are for.
+   *   In the sidebar — <LeadMagnetCard>, chosen by the targeting rules below.
+   *                    One column, one arrangement, no eyebrow.
+   *
+   * It opens on whichever this block actually uses. Targeting rules mean it
+   * appears in the sidebar; nothing targeted means it is only ever something
+   * you insert by hand.
+   */
+  const targeted =
+    values.siteWide ||
+    values.categoryIds.length > 0 ||
+    values.tagIds.length > 0 ||
+    values.postIds.length > 0;
+  const [placement, setPlacement] = useState<'body' | 'sidebar'>(
+    targeted ? 'sidebar' : 'body',
+  );
+
+
+  const previewOffer: LeadMagnetOffer = {
+    slug: previewBlock.slug,
+    kind: previewBlock.kind,
+    href: previewBlock.kind === 'link' ? previewBlock.href : null,
+    theme: previewBlock.theme,
+    accentBorder: previewBlock.accentBorder,
+    heading: previewBlock.heading,
+    body: previewBlock.body,
+    buttonLabel: previewBlock.buttonLabel,
+    successMessage: preview.successMessage.trim() || 'Check your inbox.',
+    collectName: preview.collectName,
+    consentText: previewBlock.consentText,
+    image: previewImage,
   };
 
   const categories = terms.filter((term) => term.kind === 'category');
@@ -450,7 +517,14 @@ export function CtaBuilder({
           >
             <div className="builder-stack">
               <div>
-                <span className="label">Layout</span>
+                <span className="label">
+                  Layout{' '}
+                  {placement === 'sidebar' ? (
+                    <span className="font-normal text-ink-muted">
+                      — post body only
+                    </span>
+                  ) : null}
+                </span>
                 <PillGroup
                   name="layout"
                   options={CTA_LAYOUTS}
@@ -746,7 +820,34 @@ export function CtaBuilder({
 
         {/* ---------------------------------------------------------------- */}
         <div className="builder-stage">
-          <div className="builder-stage-inner">
+          {/*
+            Which of the two places this block can turn up in. Not a device
+            switcher — see the note below on why there isn't one.
+          */}
+          <div className="builder-places" role="group" aria-label="Preview placement">
+            {([
+              ['body', 'In a post body'],
+              ['sidebar', 'In the sidebar'],
+            ] as const).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setPlacement(key)}
+                aria-pressed={placement === key}
+                className="builder-place"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div
+            className={
+              placement === 'sidebar'
+                ? 'builder-stage-inner builder-stage-aside'
+                : 'builder-stage-inner'
+            }
+          >
             {/*
               The width is the blog's own article column, not a round number:
               max-w-7xl minus the page gutter minus the aside and the frame
@@ -759,6 +860,25 @@ export function CtaBuilder({
               a real one means rendering into an iframe, or moving CtaBlock to
               container queries so it answers to its column instead.
             */}
+            {placement === 'sidebar' ? (
+              /*
+                THE REAL CARD, the same component the blog's sidebar renders —
+                which is the only reason this is worth showing at all. It moved
+                into @blog/ui for exactly this; before, the builder previewed
+                the in-body block for every offer, including the ones that only
+                ever appear here.
+
+                `onClose` and `onConverted` do nothing: both belong to the
+                wrapper on the blog, which also draws the orbiting gold edge
+                this cannot — that reads --color-gold, a blog palette value its
+                contrast test deliberately keeps out of shared code.
+              */
+              <LeadMagnetCard
+                offer={previewOffer}
+                onClose={() => {}}
+                onConverted={() => {}}
+              />
+            ) : (
             <CtaBlock
               block={previewBlock}
               action={
@@ -782,22 +902,37 @@ export function CtaBuilder({
                 )
               }
             />
+            )}
 
-            {previewBlock.layout === 'split' ? (
+            {placement === 'sidebar' ? (
+              <p className="builder-note">
+                The sidebar has one arrangement, so <strong>Layout</strong> and the
+                eyebrow do nothing here. Everything else — the background, the
+                image, the copy and the button — is what a reader sees. The blog
+                adds an orbiting gold edge this preview leaves off.
+              </p>
+            ) : null}
+            {placement === 'body' && previewBlock.layout === 'split' && !previewImage ? (
               <p className="builder-note">
                 Split needs an image. Without one it renders as Banner — here, and
                 on the site.
               </p>
             ) : null}
-            {previewBlock.layout === 'strip' ? (
+            {placement === 'body' && previewBlock.layout === 'strip' ? (
               <p className="builder-note">
                 Strip shows the headline and the button only. Body copy is not
                 rendered in this layout.
               </p>
             ) : null}
 
-            {records}
           </div>
+
+          {/*
+            Outside the preview's box, so the leads table and the delete notice
+            keep the full column when the preview narrows to the sidebar's
+            350px. They are about the block, not part of it.
+          */}
+          {records ? <div className="builder-stage-inner">{records}</div> : null}
         </div>
       </div>
     </div>

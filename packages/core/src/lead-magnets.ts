@@ -190,6 +190,26 @@ export function resolveLeadMagnet(
  */
 export interface LeadMagnetOffer {
   slug: string;
+  /**
+   * What the card DOES, which it used to have no opinion about.
+   *
+   * It was always an email form. The note on CtaBlockView below used to end
+   * "and the aside growing a `kind` it does not branch on" — which was true,
+   * and was the bug: a LINK block with targeting rules rendered in the sidebar
+   * as a capture form, and its destination was silently dropped. Nothing
+   * warned anyone, in the admin or on the page.
+   */
+  kind: CtaKind;
+  /** Non-null exactly when `kind` is 'link' — a check constraint, not a hope. */
+  href: string | null;
+  /**
+   * The background treatment, shared with the in-body block.
+   *
+   * The card used to be one fixed look, so the admin's Background control did
+   * nothing to a block that appears here while appearing to work.
+   */
+  theme: CtaTheme;
+  accentBorder: boolean;
   heading: string;
   body: string | null;
   buttonLabel: string;
@@ -222,6 +242,10 @@ export function toLeadMagnetOffer(
 
   return {
     slug: magnet.slug,
+    kind: magnet.kind,
+    href: magnet.href,
+    theme: magnet.theme,
+    accentBorder: magnet.accent_border,
     heading: magnet.heading,
     body: magnet.body,
     buttonLabel: magnet.button_label,
@@ -422,8 +446,13 @@ export const CTA_THEMES = [
  * They read the same row and share most of their fields, and they are still two
  * things: the aside is one collapsible beam chosen by targeting rules, and this
  * is one of four layouts dropped into the body by hand. Collapsing them would
- * mean a type carrying `layout` for a component that has no layouts, and the
- * aside growing a `kind` it does not branch on.
+ * mean a type carrying `layout` for a component that has no layouts.
+ *
+ * They have converged since: the aside now carries `kind`, `href`, `theme` and
+ * `accentBorder`, because every one of those was a control in the admin that
+ * did nothing to a block rendered there. What stays in-body only is `layout`,
+ * which a 22rem column has one of, and `eyebrow`, which the card has nowhere
+ * to put.
  *
  * `asset_url` is absent here for the same reason it is absent there: it would
  * put the download link in the page source of every article the block appears
