@@ -3,8 +3,7 @@ import { notFound } from 'next/navigation';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DataTable } from '@/components/ui/data-table';
 import { deleteLeadMagnet } from '@/app/actions/lead-magnets';
-import { LeadMagnetForm } from '@/components/lead-magnet-form';
-import { PageHeader } from '@/components/ui/page-header';
+import { CtaBuilder } from '@/components/cta-builder/cta-builder';
 import { requireCurrentSite } from '@/lib/current-site';
 import {
   getLeadMagnetForEdit,
@@ -45,41 +44,59 @@ export default async function EditLeadMagnetPage({
       .map((target) => target.term_id ?? target.post_id)
       .filter((value): value is string => Boolean(value));
 
+  /* No PageHeader: the builder takes the window and carries its own bar, with
+     the block's name where a page title would be. See components/admin-shell. */
   return (
-    <div className="space-y-6">
-      <PageHeader title={magnet.name} />
+    <CtaBuilder
+      terms={terms}
+      posts={posts}
+      media={media}
+      records={<LeadMagnetRecords magnet={magnet} leads={leads} locale={site.locale} />}
+      values={{
+        id: magnet.id,
+        name: magnet.name,
+        slug: magnet.slug,
+        heading: magnet.heading,
+        body: magnet.body ?? '',
+        buttonLabel: magnet.button_label,
+        successMessage: magnet.success_message,
+        collectName: magnet.collect_name,
+        imageId: magnet.image_id,
+        consentText: magnet.consent_text ?? '',
+        assetUrl: magnet.asset_url ?? '',
+        kind: magnet.kind,
+        href: magnet.href ?? '',
+        layout: magnet.layout,
+        theme: magnet.theme,
+        accentBorder: magnet.accent_border,
+        eyebrow: magnet.eyebrow ?? '',
+        active: magnet.active,
+        categoryIds: idsFor('category'),
+        tagIds: idsFor('tag'),
+        postIds: idsFor('post'),
+      siteWide: targets.some((target) => target.scope === 'site'),
+      }}
+    />
+  );
+}
 
-      <LeadMagnetForm
-        terms={terms}
-        posts={posts}
-        media={media}
-        values={{
-          id: magnet.id,
-          name: magnet.name,
-          slug: magnet.slug,
-          heading: magnet.heading,
-          body: magnet.body ?? '',
-          buttonLabel: magnet.button_label,
-          successMessage: magnet.success_message,
-          collectName: magnet.collect_name,
-          imageId: magnet.image_id,
-          consentText: magnet.consent_text ?? '',
-          assetUrl: magnet.asset_url ?? '',
-          kind: magnet.kind,
-          href: magnet.href ?? '',
-          layout: magnet.layout,
-          theme: magnet.theme,
-          accentBorder: magnet.accent_border,
-          eyebrow: magnet.eyebrow ?? '',
-          active: magnet.active,
-          categoryIds: idsFor('category'),
-          tagIds: idsFor('tag'),
-          postIds: idsFor('post'),
-          siteWide: targets.some((target) => target.scope === 'site'),
-        }}
-      />
-
-      <section className="mt-10 max-w-2xl border-t border-line pt-5">
+/**
+ * What this block has done, and the way to remove it — under the preview in
+ * the builder's stage rather than in its sidebar, because they are a record
+ * rather than a setting, and a three-column table does not fit in 24rem.
+ */
+function LeadMagnetRecords({
+  magnet,
+  leads,
+  locale,
+}: {
+  magnet: NonNullable<Awaited<ReturnType<typeof getLeadMagnetForEdit>>>;
+  leads: Awaited<ReturnType<typeof listRecentLeads>>;
+  locale: string;
+}) {
+  return (
+    <>
+      <section className="mt-12 border-t border-line pt-5">
         <h2 className="text-sm font-semibold">Recent leads</h2>
 
         {leads.length === 0 ? (
@@ -116,7 +133,7 @@ export default async function EditLeadMagnetPage({
                     </td>
                     <td className="text-ink-muted">{lead.source_path ?? '—'}</td>
                     <td className="whitespace-nowrap text-ink-muted">
-                      {new Date(lead.created_at).toLocaleDateString(site.locale)}
+                      {new Date(lead.created_at).toLocaleDateString(locale)}
                     </td>
                   </tr>
                 ))}
@@ -132,7 +149,7 @@ export default async function EditLeadMagnetPage({
         )}
       </section>
 
-      <section className="mt-10 max-w-2xl border-t border-line pt-5">
+      <section className="mt-10 border-t border-line pt-5">
         <form action={deleteLeadMagnet}>
           <input type="hidden" name="id" value={magnet.id} />
           <button type="submit" className="text-sm text-danger-ink underline">
@@ -145,6 +162,6 @@ export default async function EditLeadMagnetPage({
           instead if you might bring it back.
         </p>
       </section>
-    </div>
+    </>
   );
 }

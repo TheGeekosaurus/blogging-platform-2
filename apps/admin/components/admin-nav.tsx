@@ -238,11 +238,21 @@ function isChildActive(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function AdminNav() {
+export function AdminNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Admin" className="flex-1 overflow-y-auto px-3 pb-3">
+    /*
+     * `overflow-visible` while collapsed, because the tooltips are absolutely
+     * positioned OUTSIDE the rail and an `overflow-y-auto` ancestor clips
+     * them. The trade is that a collapsed rail cannot scroll — which is fine,
+     * since nine 44px rows and no headings fit in any viewport that can show
+     * the expanded rail at all.
+     */
+    <nav
+      aria-label="Admin"
+      className={`flex-1 px-3 pb-3 ${collapsed ? 'overflow-visible' : 'overflow-y-auto'}`}
+    >
       <ul className="flex flex-col gap-0.5">
         {SECTIONS.map((section) => {
           const active = isSectionActive(section, pathname);
@@ -256,21 +266,40 @@ export function AdminNav() {
                 item a screen reader counts and cannot go to.
               */}
               {section.group ? (
-                <p role="presentation" className="rail-heading">
-                  {section.group}
-                </p>
+                collapsed ? (
+                  /* A heading cannot be read in 72px, so the grouping survives
+                     as the rule it was always drawing. */
+                  <hr className="mx-2 my-2 border-0 border-t border-white/[0.07]" />
+                ) : (
+                  <p role="presentation" className="rail-heading">
+                    {section.group}
+                  </p>
+                )
               ) : null}
 
               <Link
                 href={section.href}
                 aria-current={active ? 'page' : undefined}
-                className={`rail-link ${active ? 'rail-link-active' : ''}`}
+                className={`rail-link ${active ? 'rail-link-active' : ''} ${
+                  collapsed ? 'rail-link-collapsed' : ''
+                }`}
               >
                 {section.icon}
-                {section.label}
+                {/*
+                  `sr-only`, NOT removed. The icon is aria-hidden, so dropping
+                  the text would leave the link with no accessible name at all
+                  — a row of nine links announced as "link, link, link". This
+                  is also what the tooltip reads from.
+                */}
+                <span className={collapsed ? 'sr-only' : ''}>{section.label}</span>
+                {collapsed ? (
+                  <span aria-hidden="true" className="rail-tip">
+                    {section.label}
+                  </span>
+                ) : null}
               </Link>
 
-              {active && section.children ? (
+              {!collapsed && active && section.children ? (
                 <ul className="mt-0.5 flex flex-col gap-0.5">
                   {section.children.map((child) => {
                     const childActive = isChildActive(child.href, pathname);

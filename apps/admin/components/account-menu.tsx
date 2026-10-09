@@ -37,10 +37,12 @@ export function AccountMenu({
   email,
   sites,
   currentSiteId,
+  collapsed = false,
 }: {
   email: string | null;
   sites: SiteRow[];
   currentSiteId: string;
+  collapsed?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const wrapper = useRef<HTMLDivElement>(null);
@@ -108,7 +110,10 @@ export function AccountMenu({
   }, [open]);
 
   return (
-    <div ref={wrapper} className="relative border-t border-white/[0.08] px-3 py-3">
+    <div
+      ref={wrapper}
+      className={`relative border-t border-white/[0.08] py-3 ${collapsed ? 'px-2' : 'px-3'}`}
+    >
       <button
         ref={trigger}
         type="button"
@@ -119,7 +124,7 @@ export function AccountMenu({
            is the control that page was opened from. The <a> inside the panel
            carries that, and does so only while the panel is open. */
         data-current={onSettings ? '' : undefined}
-        className="rail-account"
+        className={`rail-account ${collapsed ? 'rail-account-collapsed' : ''}`}
       >
         <span aria-hidden="true" className="rail-account-avatar">
           {/* The same mark the Authors section uses, at the same weight. */}
@@ -142,24 +147,31 @@ export function AccountMenu({
           showed. `title` carries it in full, because 16rem of rail truncates
           anything longer than about twenty characters.
         */}
-        <span className="min-w-0 flex-1 truncate text-left" title={email ?? ''}>
+        {/* Collapsed, the address is the button's accessible name and nothing
+            else — the avatar is aria-hidden and there is no room for a label. */}
+        <span
+          className={collapsed ? 'sr-only' : 'min-w-0 flex-1 truncate text-left'}
+          title={email ?? ''}
+        >
           {email ?? 'Account'}
         </span>
 
-        <svg
-          aria-hidden="true"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`h-[15px] w-[15px] shrink-0 transition-transform ${
-            open ? 'rotate-180' : ''
-          }`}
-        >
-          <path d="m18 15-6-6-6 6" />
-        </svg>
+        {collapsed ? null : (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`h-[15px] w-[15px] shrink-0 transition-transform ${
+              open ? 'rotate-180' : ''
+            }`}
+          >
+            <path d="m18 15-6-6-6 6" />
+          </svg>
+        )}
       </button>
 
       {/*
@@ -174,7 +186,9 @@ export function AccountMenu({
         <div
           id={panelId}
           aria-label="Account"
-          className="account-panel absolute left-3 right-3 top-full z-50 mt-2 lg:right-auto lg:bottom-full lg:top-auto lg:mt-0 lg:mb-2 lg:w-[17.5rem]"
+          className={`account-panel absolute top-full z-50 mt-2 lg:bottom-full lg:top-auto lg:mt-0 lg:mb-2 lg:w-[17.5rem] ${
+            collapsed ? 'left-2 w-[15rem]' : 'left-3 right-3 lg:right-auto'
+          }`}
         >
           <div className="px-3 pb-3 pt-3">
             <SiteSwitcher sites={sites} currentId={currentSiteId} />
