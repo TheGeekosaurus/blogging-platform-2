@@ -20,7 +20,7 @@ import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets
 import { CTA_LABELS, LAYOUT_HINTS } from '@/components/editor/cta-picker-labels';
 import { MediaPicker } from '@/components/editor/media-picker';
 import { Alert } from '@/components/ui/alert';
-import { BuilderSection } from '@/components/cta-builder/builder-section';
+import { BuilderSection } from '@/components/workspace/section';
 import type { MediaOptions, PostOption } from '@/lib/queries';
 
 const INITIAL: LeadMagnetState = {};

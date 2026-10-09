@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 
 import { deletePage } from '@/app/actions/pages';
 import { PageForm } from '@/components/page-form';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { getPageForEdit, listParentOptions } from '@/lib/queries';
 import { snippetsToText } from '@/lib/structured-data';
@@ -25,40 +24,37 @@ export default async function EditPagePage({
   if (!page) notFound();
 
   return (
-    <div className="space-y-6">
-      <PageHeader title="Edit page" />
-
-      <PageForm
-        site={site}
-        parents={parents}
-        values={{
-          id: page.id,
-          title: page.title,
-          slug: page.slug,
-          parent_id: page.parent_id ?? '',
-          template: page.template,
-          status: page.status,
-          // The unsanitised original is the better thing to edit: it is what the
-          // author actually wrote, and re-saving re-applies the current allowlist.
-          content_html: page.original_html ?? page.content_html,
-          seo_title: page.seo_title ?? '',
-          seo_description: page.seo_description ?? '',
-          noindex: page.noindex,
-          structuredData: snippetsToText(page.structured_data),
-          path: page.path,
-        }}
-      />
-
-      <form action={deletePage} className="mt-10 border-t border-line pt-5">
+    <PageForm
+    danger={
+      /* A SIBLING of the editor's form, never a child: HTML does not nest
+         forms, and the parser would turn this button into a second Save. */
+      <form action={deletePage} className="builder-danger">
         <input type="hidden" name="id" value={page.id} />
         <input type="hidden" name="path" value={page.path} />
         <button type="submit" className="text-sm text-danger-ink underline">
           Delete this page
         </button>
-        <p className="mt-1 text-xs text-ink-muted">
-          Any pages nested beneath it are deleted too.
-        </p>
+        <p className="hint mt-1">Any pages nested beneath it are deleted too.</p>
       </form>
-    </div>
+    }
+      site={site}
+      parents={parents}
+      values={{
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        parent_id: page.parent_id ?? '',
+        template: page.template,
+        status: page.status,
+        // The unsanitised original is the better thing to edit: it is what the
+        // author actually wrote, and re-saving re-applies the current allowlist.
+        content_html: page.original_html ?? page.content_html,
+        seo_title: page.seo_title ?? '',
+        seo_description: page.seo_description ?? '',
+        noindex: page.noindex,
+        structuredData: snippetsToText(page.structured_data),
+        path: page.path,
+      }}
+    />
   );
 }

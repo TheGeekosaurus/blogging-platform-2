@@ -32,11 +32,16 @@ const RAIL_COOKIE = 'admin_rail_collapsed';
  * toggle is gone: the builder owns the viewport, its own sidebar is where the
  * work happens, and the rail is only the way out.
  */
+const WORKSPACES = ['/lead-magnets', '/posts', '/pages'];
+
 function isWorkspace(pathname: string): boolean {
-  return (
-    /^\/lead-magnets\/(new|[^/]+)$/.test(pathname) &&
-    !pathname.endsWith('/lead-magnets')
-  );
+  return WORKSPACES.some((base) => {
+    if (!pathname.startsWith(`${base}/`)) return false;
+    const rest = pathname.slice(base.length + 1);
+    // One segment only: /posts/new and /posts/<id> are editors, /pages/coded
+    // is a list and keeps the rail.
+    return rest.length > 0 && !rest.includes('/') && rest !== 'coded';
+  });
 }
 
 export function AdminShell({

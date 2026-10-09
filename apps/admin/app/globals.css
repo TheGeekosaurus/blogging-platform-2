@@ -940,6 +940,16 @@
     color: var(--color-warning-ink);
   }
 
+  /* The way to remove the thing, at the foot of the column it belongs to.
+     Separated by a rule rather than coloured: it is not a warning, it is the
+     last item, and painting it red makes every visit to the sidebar end on an
+     alarm. */
+  .builder-danger {
+    margin-top: 0.5rem;
+    border-top: 1px solid var(--color-line);
+    padding: 0.85rem 0.25rem 0.5rem;
+  }
+
   .builder-stack {
     display: flex;
     flex-direction: column;
@@ -1061,6 +1071,34 @@
      card reads completely differently at 848. */
   .builder-stage-aside {
     max-width: 22rem;
+  }
+
+  /*
+   * A writing surface fills its stage.
+   *
+   * The body editor is a fixed 24rem box by default, which is right in a
+   * column of form fields and wrong here: on a stage the height of the window
+   * it reads as one more field floating on a field of grey, with the document
+   * ending a third of the way down. Every box in the chain grows instead, and
+   * the contenteditable at the end of it takes the rest.
+   */
+  .builder-write {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+  }
+
+  .builder-write > div,
+  .builder-write .tiptap,
+  .builder-write .editor-body {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+  }
+
+  .builder-write .prose-editor {
+    flex: 1;
   }
 
   .builder-note {

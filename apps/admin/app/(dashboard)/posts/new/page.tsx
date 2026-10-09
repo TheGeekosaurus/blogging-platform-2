@@ -1,5 +1,4 @@
 import { PostForm } from '@/components/editor/post-form';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { listAllTerms, listAuthorOptions, listCtaBlockViews, listMediaOptions } from '@/lib/queries';
 
@@ -14,31 +13,30 @@ export default async function NewPostPage() {
     listCtaBlockViews(site.id),
   ]);
 
+  /* No PageHeader: the editor takes the window and carries its own bar, with
+     the post's title where a page title would be. See components/workspace. */
   return (
-    <div className="space-y-6">
-      <PageHeader title="New post" />
-      <PostForm
-        site={site}
-        terms={terms}
-        media={media}
-        authors={authors}
-        ctaBlocks={ctaBlocks}
-        values={{
-          title: '',
-          slug: '',
-          excerpt: '',
-          content_html: '',
-          status: 'draft',
-          author_name: '',
-          bylineId: null,
-          seo_title: '',
-          seo_description: '',
-          noindex: false,
-          structuredData: [],
-          termIds: [],
-          featuredImageId: null,
-        }}
-      />
-    </div>
+    <PostForm
+      site={site}
+      terms={terms}
+      media={media}
+      authors={authors}
+      ctaBlocks={ctaBlocks}
+      values={{
+        title: '',
+        slug: '',
+        excerpt: '',
+        content_html: '',
+        status: 'draft',
+        author_name: '',
+        bylineId: null,
+        seo_title: '',
+        seo_description: '',
+        noindex: false,
+        structuredData: [],
+        termIds: [],
+        featuredImageId: null,
+      }}
+    />
   );
 }

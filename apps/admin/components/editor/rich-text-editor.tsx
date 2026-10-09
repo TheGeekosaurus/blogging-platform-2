@@ -102,12 +102,15 @@ export function RichTextEditor({
   defaultValue,
   media,
   ctaBlocks,
+  formId,
 }: {
   name: string;
   defaultValue: string;
   media: MediaOptions;
   /** Every active CTA block on the site, for the insert menu and node view. */
   ctaBlocks: CtaBlockView[];
+  /** The id of the <form> this body belongs to, when it is not an ancestor. */
+  formId?: string;
 }) {
   const [html, setHtml] = useState(defaultValue);
   const [picking, setPicking] = useState(false);
@@ -538,12 +541,26 @@ export function RichTextEditor({
         )}
       </BubbleMenu>
 
-      <div className="p-3">
-        <EditorContent editor={editor} />
+      <div className="editor-body p-3">
+        {/*
+          EditorContent renders a wrapper div of its own, between the padding
+          box and the contenteditable. It is `display: block` by default, which
+          breaks the chain that lets the writing surface fill a workspace stage
+          — see `.builder-write` in globals.css. Harmless in a normal column,
+          where nothing above it is a flex container.
+        */}
+        <EditorContent editor={editor} className="flex min-h-0 flex-1 flex-col" />
       </div>
 
-      {/* The form posts this, not the contenteditable itself. */}
-      <input type="hidden" name={name} value={html} />
+      {/*
+        The form posts this, not the contenteditable itself.
+
+        `form` is set explicitly because the editor no longer sits inside its
+        form: the post workspace's <form> IS the sidebar, so the body — which
+        has the whole stage to itself — reaches it by id, the way the bar's
+        Save button does. Without it the body would simply not be submitted.
+      */}
+      <input type="hidden" name={name} form={formId} value={html} />
     </div>
   );
 }
