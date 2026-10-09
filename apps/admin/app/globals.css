@@ -927,6 +927,19 @@
     background: var(--color-surface);
   }
 
+  /* Something is set that will not take effect. Loud enough to answer "is this
+     broken" before the question is asked, quiet enough not to look like a
+     failure — nothing is wrong, it just will not show. */
+  .builder-warn {
+    margin-bottom: 0.85rem;
+    border-radius: var(--radius-control);
+    border: 1px solid rgba(255, 159, 67, 0.32);
+    background: rgba(255, 159, 67, 0.12);
+    padding: 0.7rem 0.85rem;
+    font-size: 0.8125rem;
+    color: var(--color-warning-ink);
+  }
+
   .builder-stack {
     display: flex;
     flex-direction: column;

@@ -340,6 +340,21 @@ export function CtaBuilder({
     image: previewImage,
   };
 
+  /*
+   * WHERE A CHOSEN IMAGE ACTUALLY SHOWS UP.
+   *
+   * Only two things render one: the Split layout, and the sidebar card. Banner,
+   * Billboard and Strip ignore `image` entirely — see the switch in
+   * packages/ui/src/cta-block.tsx. So picking a picture on a Banner block did
+   * nothing visible anywhere, and the builder said nothing about it. Denis,
+   * 2026-10-09: "The image function doesn't seem to work... it doesn't seem to
+   * do anything when I select one." The picker was working; it had nowhere to
+   * put the result.
+   */
+  const imageShowsInBody = preview.layout === 'split';
+  const imageShowsSomewhere = imageShowsInBody || targeted;
+  const imageIgnored = Boolean(imageId) && !imageShowsSomewhere;
+
   const categories = terms.filter((term) => term.kind === 'category');
   const tags = terms.filter((term) => term.kind === 'tag');
   const dark = THEME_SKINS[previewBlock.theme].dark;
@@ -614,14 +629,52 @@ export function CtaBuilder({
           <BuilderSection
             id="image"
             title="Image"
-            summary={imageId ? 'Chosen' : 'None'}
+            summary={
+              imageId
+                ? imageIgnored
+                  ? 'Not shown — see inside'
+                  : (chosenImage?.name ?? 'Chosen')
+                : 'None'
+            }
             open={!!open.image}
             onToggle={toggle}
           >
+            {/*
+              Said before the grid rather than after it, because by the time
+              someone has picked an image and seen nothing happen the question
+              in their head is "is this broken", and the answer has to arrive
+              first.
+            */}
+            {imageIgnored ? (
+              <div className="builder-warn">
+                <p>
+                  Nothing will show this image.{' '}
+                  <strong>{CTA_LABELS.layout[preview.layout]}</strong> has no place
+                  for one — only <strong>Split</strong> does — and this block has
+                  no targeting rules, so it never appears in the sidebar either.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => set('layout', 'split')}
+                  className="btn btn-ghost btn-sm mt-2"
+                >
+                  Use the Split layout
+                </button>
+              </div>
+            ) : imageId && !imageShowsInBody ? (
+              <p className="hint mb-3">
+                Shown in the sidebar, where this block is targeted. The{' '}
+                <strong>{CTA_LABELS.layout[preview.layout]}</strong> layout has no
+                place for an image, so a copy dropped into a post body will not
+                show it — only <strong>Split</strong> does.
+              </p>
+            ) : null}
+
             <p className="hint">
-              Optional, and shown full width across the top of the card. It is
-              never cropped — the card grows to fit, so a tall image makes a tall
-              card. Around 700px wide is plenty.
+              Shown across the top of the sidebar card, and in the right-hand panel
+              of the <strong>Split</strong> layout. It is never cropped — the card
+              grows to fit, so a tall image makes a tall card. Around 700px wide is
+              plenty.
             </p>
             <div className="mt-3">
               <MediaPicker

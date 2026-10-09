@@ -416,16 +416,26 @@ export function RichTextEditor({
           </ToolbarButton>
         </div>
       ) : null}
-      </div>
 
       {/*
-        Mounted between the toolbar and the body so choosing an image does not
-        push the caret out of view. Not a modal: this component already sits
-        inside the post form, and a dialog would need focus management to stay
-        keyboard-usable for what is a two-click task.
+        BOTH PICKERS LIVE INSIDE THE STICKY BOX, with the toolbar and the table
+        row, for the reason the table row is here: a panel opened from a button
+        that stays on screen has to stay on screen too. Denis, 2026-10-09: "I
+        tried adding one to a post, I had to scroll all the way back up to
+        select which CTA i wanted" — the button was pinned, the grid it opened
+        was not, so pressing CTA halfway down an article opened a chooser a
+        thousand pixels above the viewport and nothing appeared to happen.
+
+        Still between the toolbar and the body rather than over it, so choosing
+        does not push the caret out of view. Not a modal: this component already
+        sits inside the post form, and a dialog would need focus management to
+        stay keyboard-usable for what is a two-click task.
+
+        `max-h` with its own scroll, because the media grid is tall and the
+        whole point is that the editor stays visible underneath.
       */}
       {picking ? (
-        <div className="border-b border-line bg-canvas p-3">
+        <div className="max-h-[60vh] overflow-y-auto border-b border-line bg-canvas p-3">
           <MediaPicker
             media={media}
             selectedId=""
@@ -439,7 +449,7 @@ export function RichTextEditor({
       ) : null}
 
       {pickingCta ? (
-        <div className="border-b border-line bg-canvas p-3">
+        <div className="max-h-[60vh] overflow-y-auto border-b border-line bg-canvas p-3">
           <CtaPicker
             blocks={ctaBlocks}
             onPick={(slug) => {
@@ -449,6 +459,8 @@ export function RichTextEditor({
           />
         </div>
       ) : null}
+      </div>
+
 
       {/*
         The bubble. Appears beside the selection, which is the whole point —
