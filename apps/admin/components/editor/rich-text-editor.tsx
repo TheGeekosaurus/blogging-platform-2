@@ -102,12 +102,15 @@ export function RichTextEditor({
   defaultValue,
   media,
   ctaBlocks,
+  formId,
 }: {
   name: string;
   defaultValue: string;
   media: MediaOptions;
   /** Every active CTA block on the site, for the insert menu and node view. */
   ctaBlocks: CtaBlockView[];
+  /** The id of the <form> this body belongs to, when it is not an ancestor. */
+  formId?: string;
 }) {
   const [html, setHtml] = useState(defaultValue);
   const [picking, setPicking] = useState(false);
@@ -416,16 +419,26 @@ export function RichTextEditor({
           </ToolbarButton>
         </div>
       ) : null}
-      </div>
 
       {/*
-        Mounted between the toolbar and the body so choosing an image does not
-        push the caret out of view. Not a modal: this component already sits
-        inside the post form, and a dialog would need focus management to stay
-        keyboard-usable for what is a two-click task.
+        BOTH PICKERS LIVE INSIDE THE STICKY BOX, with the toolbar and the table
+        row, for the reason the table row is here: a panel opened from a button
+        that stays on screen has to stay on screen too. Denis, 2026-10-09: "I
+        tried adding one to a post, I had to scroll all the way back up to
+        select which CTA i wanted" — the button was pinned, the grid it opened
+        was not, so pressing CTA halfway down an article opened a chooser a
+        thousand pixels above the viewport and nothing appeared to happen.
+
+        Still between the toolbar and the body rather than over it, so choosing
+        does not push the caret out of view. Not a modal: this component already
+        sits inside the post form, and a dialog would need focus management to
+        stay keyboard-usable for what is a two-click task.
+
+        `max-h` with its own scroll, because the media grid is tall and the
+        whole point is that the editor stays visible underneath.
       */}
       {picking ? (
-        <div className="border-b border-line bg-canvas p-3">
+        <div className="max-h-[60vh] overflow-y-auto border-b border-line bg-canvas p-3">
           <MediaPicker
             media={media}
             selectedId=""
@@ -439,7 +452,7 @@ export function RichTextEditor({
       ) : null}
 
       {pickingCta ? (
-        <div className="border-b border-line bg-canvas p-3">
+        <div className="max-h-[60vh] overflow-y-auto border-b border-line bg-canvas p-3">
           <CtaPicker
             blocks={ctaBlocks}
             onPick={(slug) => {
@@ -449,6 +462,8 @@ export function RichTextEditor({
           />
         </div>
       ) : null}
+      </div>
+
 
       {/*
         The bubble. Appears beside the selection, which is the whole point —
@@ -526,12 +541,26 @@ export function RichTextEditor({
         )}
       </BubbleMenu>
 
-      <div className="p-3">
-        <EditorContent editor={editor} />
+      <div className="editor-body p-3">
+        {/*
+          EditorContent renders a wrapper div of its own, between the padding
+          box and the contenteditable. It is `display: block` by default, which
+          breaks the chain that lets the writing surface fill a workspace stage
+          — see `.builder-write` in globals.css. Harmless in a normal column,
+          where nothing above it is a flex container.
+        */}
+        <EditorContent editor={editor} className="flex min-h-0 flex-1 flex-col" />
       </div>
 
-      {/* The form posts this, not the contenteditable itself. */}
-      <input type="hidden" name={name} value={html} />
+      {/*
+        The form posts this, not the contenteditable itself.
+
+        `form` is set explicitly because the editor no longer sits inside its
+        form: the post workspace's <form> IS the sidebar, so the body — which
+        has the whole stage to itself — reaches it by id, the way the bar's
+        Save button does. Without it the body would simply not be submitted.
+      */}
+      <input type="hidden" name={name} form={formId} value={html} />
     </div>
   );
 }

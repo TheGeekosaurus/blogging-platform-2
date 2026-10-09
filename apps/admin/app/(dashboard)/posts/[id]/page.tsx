@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 
 import { deletePost } from '@/app/actions/posts';
 import { PostForm } from '@/components/editor/post-form';
-import { PageHeader } from '@/components/ui/page-header';
 import { requireCurrentSite } from '@/lib/current-site';
 import { snippetsToText } from '@/lib/structured-data';
 import {
@@ -33,11 +32,28 @@ export default async function EditPostPage({
 
   if (!post) notFound();
 
+  /* No PageHeader: the editor takes the window and carries its own bar, with
+     the post's title where a page title would be. See components/workspace. */
   return (
-    <div className="space-y-6">
-      <PageHeader title="Edit post" />
-
-      <PostForm
+    <PostForm
+      danger={
+        /*
+          Rendered here and passed in, so it is a SIBLING of the editor's form
+          rather than a child — HTML does not nest forms, and the parser would
+          turn this button into a second Save.
+        */
+        <form action={deletePost} className="builder-danger">
+          <input type="hidden" name="id" value={post.id} />
+          <input type="hidden" name="slug" value={post.slug} />
+          <button type="submit" className="text-sm text-danger-ink underline">
+            Delete this post
+          </button>
+          <p className="hint mt-1">
+            Gone for good, along with its body. Set the status to{' '}
+            <strong>Archived</strong> instead to take it off the site and keep it.
+          </p>
+        </form>
+      }
         site={site}
         terms={terms}
         media={media}
@@ -59,18 +75,6 @@ export default async function EditPostPage({
           termIds: post.termIds,
           featuredImageId: post.featured_image_id,
         }}
-      />
-
-      <form
-        action={deletePost}
-        className="mt-10 border-t border-line pt-5"
-      >
-        <input type="hidden" name="id" value={post.id} />
-        <input type="hidden" name="slug" value={post.slug} />
-        <button type="submit" className="text-sm text-danger-ink underline">
-          Delete this post
-        </button>
-      </form>
-    </div>
+    />
   );
 }

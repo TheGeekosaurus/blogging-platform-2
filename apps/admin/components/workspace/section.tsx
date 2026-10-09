@@ -1,7 +1,11 @@
 'use client';
 
 /**
- * One group of controls in the builder's sidebar, as a card that opens.
+ * One group of controls in a workspace's sidebar, as a card that opens.
+ *
+ * SHARED by the CTA builder and the post and page editors. It started in the
+ * CTA builder's own folder; it moved here the first time a second screen
+ * wanted it, rather than being copied.
  *
  * CONTROLLED, not a <details>, and that is not a stylistic preference. The
  * builder has to be able to OPEN a section it did not open itself: a field
