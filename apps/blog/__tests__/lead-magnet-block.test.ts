@@ -26,6 +26,10 @@ import { LeadMagnetBlock } from '@/components/blog/lead-magnet-block';
  */
 
 const OFFER: LeadMagnetOffer = {
+  kind: 'email',
+  href: null,
+  theme: 'surface',
+  accentBorder: false,
   slug: 'equipment-financing-toolkit',
   heading: 'Get the Equipment Financing Toolkit',
   body: 'The 20 checks we run before calling a deal good.',

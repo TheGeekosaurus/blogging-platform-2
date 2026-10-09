@@ -2,10 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 
-import type { CtaBlockView } from '@blog/core';
+import { CAPTURE_ENDPOINT, readUtm, type CtaBlockView } from '@blog/core';
 import { buttonClass, THEME_SKINS } from '@blog/ui';
 
-import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
 
 /**
  * The capture form an in-content CTA shows when its kind is 'email'.

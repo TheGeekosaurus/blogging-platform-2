@@ -1000,11 +1000,54 @@
     padding: 2rem 1.5rem;
   }
 
+  /* Which of the two places the block can appear in. A segmented control, not
+     tabs: both are always true of the block, you are choosing a viewpoint. */
+  .builder-places {
+    display: flex;
+    width: fit-content;
+    margin: 0 auto 1.25rem;
+    gap: 0.15rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: var(--color-surface);
+    padding: 0.2rem;
+  }
+
+  .builder-place {
+    border-radius: 999px;
+    padding: 0.3rem 0.85rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      color 0.15s ease;
+  }
+
+  .builder-place:hover {
+    color: var(--color-ink);
+  }
+
+  .builder-place[aria-pressed='true'] {
+    background: var(--color-brand);
+    color: var(--color-brand-ink);
+    box-shadow: var(--shadow-brand);
+  }
+
   .builder-stage-inner {
     /* The blog's own article column: max-w-7xl less the page gutter, the
        aside and the frame gutter. See the comment at the call site. */
     margin: 0 auto;
     max-width: 53rem;
+  }
+
+  /* AFTER .builder-stage-inner, not before: same specificity, so source order
+     is what decides, and declared first this lost its max-width to the article
+     column it is meant to override. The blog's sidebar is about 350px, and the
+     card reads completely differently at 848. */
+  .builder-stage-aside {
+    max-width: 22rem;
   }
 
   .builder-note {

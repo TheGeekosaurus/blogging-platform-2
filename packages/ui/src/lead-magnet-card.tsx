@@ -1,11 +1,37 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useId, useRef, useState } from 'react';
 
-import type { LeadMagnetOffer } from '@blog/core';
+import { CAPTURE_ENDPOINT, readUtm, type LeadMagnetOffer } from '@blog/core';
 
-import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
+import { THEME_SKINS } from './cta-theme';
+
+/**
+ * How the offer's picture gets drawn.
+ *
+ * INJECTED, because the two callers need different renderers and neither
+ * should win. The blog passes a `next/image` one — the sidebar is about 350px
+ * wide and the source is usually a full-size upload, so it saves most of the
+ * bytes, and the admin's uploader records the dimensions it needs. The admin's
+ * builder has only a URL and an alt (MediaOption carries no width or height),
+ * and `next/image` on a remote URL would need remotePatterns configured in the
+ * admin for a picture nobody but the author ever sees.
+ *
+ * The default is a plain <img>, which is also the blog's own fallback for a
+ * row imported before the uploader recorded dimensions.
+ */
+/* One field treatment, used by both inputs, flipped for a dark ground. */
+const FIELD_CLASS = (dark: boolean) =>
+  `w-full rounded-md border px-3 py-2 text-sm ${
+    dark
+      ? 'border-white/25 bg-white/10 text-white placeholder:text-white/50'
+      : 'border-[var(--cta-line)] bg-[var(--cta-surface)] text-[var(--cta-ink)] placeholder:text-[var(--cta-ink-muted)]'
+  }`;
+
+export type ImageRenderer = (
+  image: NonNullable<LeadMagnetOffer['image']>,
+  className: string,
+) => React.ReactNode;
 
 /**
  * The lead capture card: an offer, an email field, and a way out of it.
@@ -28,18 +54,16 @@ import { CAPTURE_ENDPOINT, readUtm } from '@/lib/lead-magnet';
 type Status = 'idle' | 'sending' | 'done';
 
 /*
- * There is no `variant` prop, and that is a decision rather than an omission.
- *
- * A second placement — an inline block mid-article, say — differs from the rail
- * in width and margin and in nothing else, and `className` already carries
- * both. A variant enum would be a lookup table of one useful entry plus
- * whatever a future placement turns out to need, guessed in advance. Add it
- * when a second caller exists and its needs are known.
+ * Still no `variant` prop. The second caller arrived — the admin's builder
+ * renders this for its preview — and it wants the card to look exactly as it
+ * looks on the blog, which is the whole point of sharing the component. What
+ * it needs instead is `renderImage`, above, and a `theme` on the offer.
  */
 export function LeadMagnetCard({
   offer,
   onClose,
   onConverted,
+  renderImage,
   className = '',
 }: {
   offer: LeadMagnetOffer;
@@ -47,9 +71,12 @@ export function LeadMagnetCard({
   onClose: () => void;
   /** Fired once an address has been accepted, so the wrapper can remember it. */
   onConverted: () => void;
+  /** See ImageRenderer. Defaults to a plain <img>. */
+  renderImage?: ImageRenderer;
   className?: string;
 }) {
   const fieldId = useId();
+  const skin = THEME_SKINS[offer.theme];
 
   const [status, setStatus] = useState<Status>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -130,8 +157,24 @@ export function LeadMagnetCard({
   }
 
   return (
+    /*
+     * THE THEME REACHES THIS CARD NOW. It used to be one hard-coded treatment
+     * — a muted surface and a hairline — which meant the builder's Background
+     * control did nothing at all to a block that appears in the sidebar, while
+     * appearing to. Denis, 2026-10-09, on a block that looked nothing like its
+     * preview: "maybe add a new theme or style (sidebar) to render these 2
+     * existing properly".
+     *
+     * The skins are the same four the in-body block uses, drawn from --cta-*,
+     * so a block set to Dark is the same dark in both placements. The one
+     * visible change to blocks that already exist: `surface` is the column's
+     * own surface rather than the muted one it used to be pinned to, because
+     * that is what `surface` means everywhere else.
+     */
     <div
-      className={`relative overflow-hidden rounded-xl border border-[var(--color-line)] bg-[var(--color-surface-muted)] ${className}`}
+      className={`relative overflow-hidden rounded-xl ${skin.shell} ${
+        offer.accentBorder ? 'cta-accent-edge' : ''
+      } ${className}`}
     >
       {/*
         Pinned to the card's top-right corner rather than sitting in the heading
@@ -153,7 +196,11 @@ export function LeadMagnetCard({
         onClick={onClose}
         aria-label="Close this offer"
         title="Close"
-        className="absolute right-2 top-2 z-10 rounded-full bg-[var(--color-surface)]/80 p-1.5 text-[var(--color-ink-muted)] backdrop-blur-sm transition-colors hover:text-[var(--color-ink)]"
+        className={`absolute right-2 top-2 z-10 rounded-full p-1.5 backdrop-blur-sm transition-colors ${
+          skin.dark
+            ? 'bg-black/30 text-white/70 hover:text-white'
+            : 'bg-[var(--cta-surface)]/80 text-[var(--cta-ink-muted)] hover:text-[var(--cta-ink)]'
+        }`}
       >
         <svg
           viewBox="0 0 20 20"
@@ -178,12 +225,14 @@ export function LeadMagnetCard({
           rest fitted. See OfferImage for the cap.
         */
         <div className="px-5 pt-5">
-          <OfferImage image={offer.image} />
+          <OfferImage image={offer.image} render={renderImage} />
         </div>
       ) : null}
 
       <div className={offer.image ? 'px-5 pb-5 pt-4' : 'p-5'}>
-        <h2 className="pr-8 font-[family-name:var(--font-headline)] text-base leading-snug text-[var(--color-ink)]">
+        <h2
+          className={`pr-8 font-[family-name:var(--font-headline)] text-base leading-snug ${skin.heading}`}
+        >
           {offer.heading}
         </h2>
 
@@ -204,9 +253,42 @@ export function LeadMagnetCard({
           {status === 'done' ? offer.successMessage : ''}
         </p>
 
-        {status === 'done' ? (
+        {offer.kind === 'link' ? (
+          /*
+             A LINK BLOCK. It used to render the capture form anyway — the card
+             had no `kind` to branch on — so a block whose whole job was to send
+             someone to a calculator asked them for an email instead, and its
+             destination went nowhere. Now the two kinds mean the same thing in
+             both placements.
+
+             No live region and no status: nothing is submitted, so there is
+             nothing to announce.
+          */
+          <>
+            {offer.body ? (
+              <p className={`mt-2 text-sm leading-relaxed ${skin.body}`}>{offer.body}</p>
+            ) : null}
+
+            <a
+              href={offer.href ?? '#'}
+              className={`mt-4 inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium no-underline ${
+                skin.dark
+                  ? 'bg-white !text-[var(--cta-dark)]'
+                  : 'bg-[var(--cta-accent)] !text-[var(--cta-accent-ink)]'
+              }`}
+            >
+              {offer.buttonLabel}
+            </a>
+
+            {offer.consentText ? (
+              <p className={`mt-2 text-xs leading-relaxed ${skin.fine}`}>
+                {offer.consentText}
+              </p>
+            ) : null}
+          </>
+        ) : status === 'done' ? (
           <div className="mt-3">
-            <p className="text-sm leading-relaxed text-[var(--color-ink-muted)]">
+            <p className={`text-sm leading-relaxed ${skin.body}`}>
               {offer.successMessage}
             </p>
 
@@ -221,7 +303,11 @@ export function LeadMagnetCard({
                  */
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-4 inline-flex w-full items-center justify-center rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium !text-[var(--color-surface)] no-underline"
+                className={`mt-4 inline-flex w-full items-center justify-center rounded-md px-4 py-2.5 text-sm font-medium no-underline ${
+                  skin.dark
+                    ? 'bg-white !text-[var(--cta-dark)]'
+                    : 'bg-[var(--cta-accent)] !text-[var(--cta-accent-ink)]'
+                }`}
               >
                 Download it now
               </a>
@@ -230,7 +316,7 @@ export function LeadMagnetCard({
         ) : (
           <>
             {offer.body ? (
-              <p className="mt-2 text-sm leading-relaxed text-[var(--color-ink-muted)]">
+              <p className={`mt-2 text-sm leading-relaxed ${skin.body}`}>
                 {offer.body}
               </p>
             ) : null}
@@ -247,7 +333,7 @@ export function LeadMagnetCard({
                     type="text"
                     autoComplete="given-name"
                     placeholder="First name"
-                    className="w-full rounded-md border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
+                    className={FIELD_CLASS(skin.dark)}
                   />
                 </>
               ) : null}
@@ -264,7 +350,7 @@ export function LeadMagnetCard({
                 placeholder="you@company.com"
                 aria-describedby={error ? `${fieldId}-error` : undefined}
                 aria-invalid={error ? true : undefined}
-                className="w-full rounded-md border border-[var(--color-line)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-muted)]"
+                className={FIELD_CLASS(skin.dark)}
               />
 
               {/*
@@ -292,7 +378,11 @@ export function LeadMagnetCard({
               <button
                 type="submit"
                 disabled={status === 'sending'}
-                className="mt-1 w-full rounded-md bg-[var(--color-accent)] px-4 py-2.5 text-sm font-medium text-[var(--color-surface)] transition-opacity disabled:opacity-60"
+                className={`mt-1 w-full rounded-md px-4 py-2.5 text-sm font-medium transition-opacity disabled:opacity-60 ${
+                  skin.dark
+                    ? 'bg-white text-[var(--cta-dark)]'
+                    : 'bg-[var(--cta-accent)] text-[var(--cta-accent-ink)]'
+                }`}
               >
                 {status === 'sending' ? 'Sending…' : offer.buttonLabel}
               </button>
@@ -301,14 +391,14 @@ export function LeadMagnetCard({
                 <p
                   id={`${fieldId}-error`}
                   role="alert"
-                  className="text-sm font-medium text-[var(--color-ink)]"
+                  className={`text-sm font-medium ${skin.heading}`}
                 >
                   {error}
                 </p>
               ) : null}
 
               {offer.consentText ? (
-                <p className="mt-1 text-xs leading-relaxed text-[var(--color-ink-muted)]">
+                <p className={`mt-1 text-xs leading-relaxed ${skin.fine}`}>
                   {offer.consentText}
                 </p>
               ) : null}
@@ -348,14 +438,13 @@ export function LeadMagnetCard({
  * invented ones would reserve the wrong space and shift the page when the real
  * image landed, which is worse than not optimising.
  */
-function OfferImage({ image }: { image: NonNullable<LeadMagnetOffer['image']> }) {
-  /*
-   * Empty alt unless the author wrote one. The heading directly above says what
-   * the offer is, so describing the mockup as well announces the same thing
-   * twice to anyone listening rather than looking.
-   */
-  const alt = image.alt ?? '';
-
+function OfferImage({
+  image,
+  render,
+}: {
+  image: NonNullable<LeadMagnetOffer['image']>;
+  render?: ImageRenderer;
+}) {
   /*
    * `mx-auto` because a picture narrower than the card would otherwise sit
    * against its left edge. Most are wider than 160px tall and fill the width
@@ -364,21 +453,13 @@ function OfferImage({ image }: { image: NonNullable<LeadMagnetOffer['image']> })
    */
   const className = 'mx-auto h-auto max-h-40 w-auto max-w-full';
 
-  if (image.width && image.height) {
-    return (
-      <Image
-        src={image.url}
-        alt={alt}
-        width={image.width}
-        height={image.height}
-        className={className}
-        /* Its rendered width is the panel's, less the card's padding — fixed at
-           lg, and the full column in the stacked layout below it. */
-        sizes="(min-width: 1024px) 312px, 100vw"
-      />
-    );
-  }
+  if (render) return <>{render(image, className)}</>;
 
+  /*
+   * Empty alt unless the author wrote one. The heading directly above says what
+   * the offer is, so describing the mockup as well announces the same thing
+   * twice to anyone listening rather than looking.
+   */
   /* eslint-disable-next-line @next/next/no-img-element */
-  return <img src={image.url} alt={alt} className={className} />;
+  return <img src={image.url} alt={image.alt ?? ''} className={className} />;
 }

@@ -11,6 +11,7 @@ export * from './headings';
 export * from './content-blocks';
 export * from './links';
 export * from './breadcrumbs';
+export * from './lead-capture';
 export * from './lead-magnets';
 export * from './proof';
 export * from './proof-notifications';
