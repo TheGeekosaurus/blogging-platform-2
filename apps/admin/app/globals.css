@@ -756,6 +756,8 @@
      chrome: it carries what this ONE thing needs — what it is called, whether
      it is live, and the way out. */
   .builder-bar {
+    /* See the note on .builder-side: this holds an sr-only <h1> and label. */
+    position: relative;
     display: flex;
     flex-shrink: 0;
     align-items: center;
@@ -827,8 +829,22 @@
     color: var(--color-success-ink);
   }
 
-  /* The controls column. Its own scroll, so the preview beside it never moves. */
+  /*
+   * The controls column. Its own scroll, so the preview beside it never moves.
+   *
+   * `position: relative` is NOT decoration, and removing it brings back a bug
+   * that looks like nothing to do with this rule. Tailwind's `sr-only` is
+   * `position: absolute`, and an absolutely positioned box with no positioned
+   * ancestor is laid out against the INITIAL containing block — the document.
+   * `overflow` only clips descendants whose containing block is inside the
+   * scroller, so every sr-only radio in this sidebar escaped it and stretched
+   * the PAGE to wherever its row happened to fall. Denis, 2026-10-09: "I also
+   * have some weird dead white space at the bottom sometimes when opening the
+   * secondary left menu toggles" — that was a 645px tail of empty document
+   * below a workspace that is supposed not to scroll at all.
+   */
   .builder-side {
+    position: relative;
     display: flex;
     min-height: 0;
     flex-direction: column;
@@ -928,6 +944,9 @@
   /* A radio drawn as a pill. The input is sr-only, so the whole label is the
      hit target and the ring is the state. */
   .builder-pill {
+    /* Contains its own sr-only radio — see .builder-side. The focus ring below
+       wants a positioned box anyway. */
+    position: relative;
     display: block;
     border: 1px solid var(--color-line);
     border-radius: var(--radius-control);
@@ -973,6 +992,7 @@
      and judging a tinted treatment against white is how you ship one that
      disappears. */
   .builder-stage {
+    position: relative;
     min-height: 0;
     flex: 1;
     overflow-y: auto;
