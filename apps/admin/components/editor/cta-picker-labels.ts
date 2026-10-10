@@ -14,7 +14,10 @@ export const CTA_LABELS: {
 } = {
   layout: {
     banner: 'Banner',
-    split: 'Split',
+    /* Kept because rows still store it, and the insert picker and the CTA list
+       both name whatever a row holds. It is no longer offered as a choice —
+       see OFFERED_LAYOUTS below. */
+    split: 'Banner with image',
     billboard: 'Billboard',
     strip: 'Strip',
   },
@@ -32,8 +35,20 @@ export const CTA_LABELS: {
 
 /** What each layout is FOR, shown beside it in the builder. */
 export const LAYOUT_HINTS: Record<CtaLayout, string> = {
-  banner: 'Copy left, button right. The default, and the safest mid-article.',
-  split: 'Two columns with an image panel. Falls back to Banner without one.',
+  banner:
+    'Copy left, button right. Add an image and it becomes two columns with an image panel.',
+  split: 'Two columns with an image panel.',
   billboard: 'Centred and tall. For when the CTA is the point, not an aside.',
   strip: 'A compact bar. Heading and button only — body copy is not shown.',
 };
+
+/**
+ * The layouts the builder OFFERS, which is no longer all of them.
+ *
+ * `split` is gone from the list because it was never a separate decision: it
+ * is what a banner looks like once it has a picture, and CtaBlock now renders
+ * it that way from `banner` + an image. Rows that already store `split` still
+ * work and still render identically; they simply have one fewer pill to get
+ * lost among.
+ */
+export const OFFERED_LAYOUTS = ['banner', 'billboard', 'strip'] as const;

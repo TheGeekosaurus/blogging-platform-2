@@ -60,15 +60,51 @@ export function CtaBlock({
     </h3>
   );
 
+  /*
+   * `whitespace-pre-line`, so the line breaks the author typed survive.
+   *
+   * The field is a textarea and the hint under it says "plain text", which
+   * everyone reasonably reads as "what I type is what I get". HTML does not
+   * agree: a newline in a text node is whitespace, so four ticked lines came
+   * out as one run-on paragraph. Denis, 2026-10-09: "The CTA doesn't respect
+   * when I go to the line."
+   *
+   * `pre-line` rather than `pre-wrap`: it honours newlines and still collapses
+   * runs of spaces and wraps normally, which is what plain text pasted out of
+   * a document needs. `pre-wrap` would also preserve the accidental double
+   * spaces and the indentation that comes with a paste.
+   */
   const body = block.body ? (
-    <p className={`mt-2 text-base leading-relaxed ${skin.body}`}>{block.body}</p>
+    <p className={`mt-2 whitespace-pre-line text-base leading-relaxed ${skin.body}`}>
+      {block.body}
+    </p>
   ) : null;
 
   const fine = block.consentText ? (
     <p className={`mt-3 text-sm ${skin.fine}`}>{block.consentText}</p>
   ) : null;
 
-  switch (block.layout) {
+  /*
+   * BANNER AND SPLIT ARE ONE LAYOUT, and `split` is what a banner is called
+   * once it has a picture.
+   *
+   * They were two, and the difference between them was exactly the image —
+   * Denis, 2026-10-09: "what's the difference between banner and split? Isn't
+   * split just banner with an image?" Reading the two branches, yes: the only
+   * thing the split arrangement adds is the image panel, and the only reason
+   * its button sits under the copy rather than beside it is that the panel has
+   * taken the right half. That is one layout answering to whether there is a
+   * picture, not two layouts.
+   *
+   * So a banner WITH an image now draws the panel. Before this, choosing an
+   * image on a banner did nothing visible anywhere, which is the bug underneath
+   * the question. `split` stays a valid stored value and renders as it always
+   * did; it is simply no longer offered as a separate choice in the admin.
+   */
+  const layout =
+    block.layout === 'banner' && block.image ? 'split' : block.layout;
+
+  switch (layout) {
     /*
      * BILLBOARD — centred, the button as the whole point.
      *
@@ -110,11 +146,12 @@ export function CtaBlock({
       );
 
     /*
-     * SPLIT — two columns, the right one a panel for an image.
+     * SPLIT — the banner with its picture: two columns, the right one a panel
+     * for the image.
      *
-     * Falls back to BANNER when there is no image: an empty panel is a wide
-     * stripe of nothing, and a block should not look broken because somebody
-     * has not uploaded the picture yet.
+     * Falls back to the plain banner when there is no image: an empty panel is
+     * a wide stripe of nothing, and a block should not look broken because
+     * somebody has not uploaded the picture yet.
      */
     case 'split':
       if (!block.image) break;
@@ -152,6 +189,7 @@ export function CtaBlock({
 
   /*
    * BANNER — the default, and where `split` lands without an image.
+   * With one it is the split arrangement above.
    *
    * Copy left, action right, small print under the action rather than under the
    * copy: it qualifies the button, and in the references it sits with it.

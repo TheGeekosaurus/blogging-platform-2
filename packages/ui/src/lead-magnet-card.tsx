@@ -266,7 +266,7 @@ export function LeadMagnetCard({
           */
           <>
             {offer.body ? (
-              <p className={`mt-2 text-sm leading-relaxed ${skin.body}`}>{offer.body}</p>
+              <p className={`mt-2 whitespace-pre-line text-sm leading-relaxed ${skin.body}`}>{offer.body}</p>
             ) : null}
 
             <a
@@ -316,7 +316,7 @@ export function LeadMagnetCard({
         ) : (
           <>
             {offer.body ? (
-              <p className={`mt-2 text-sm leading-relaxed ${skin.body}`}>
+              <p className={`mt-2 whitespace-pre-line text-sm leading-relaxed ${skin.body}`}>
                 {offer.body}
               </p>
             ) : null}

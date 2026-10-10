@@ -5,7 +5,6 @@ import { useActionState, useRef, useState } from 'react';
 
 import {
   CTA_KINDS,
-  CTA_LAYOUTS,
   CTA_THEMES,
   type CtaBlockView,
   type CtaKind,
@@ -17,7 +16,11 @@ import type { LeadMagnetOffer } from '@blog/core';
 import { CtaBlock, CtaLinkButton, LeadMagnetCard, buttonClass, THEME_SKINS } from '@blog/ui';
 
 import { saveLeadMagnet, type LeadMagnetState } from '@/app/actions/lead-magnets';
-import { CTA_LABELS, LAYOUT_HINTS } from '@/components/editor/cta-picker-labels';
+import {
+  CTA_LABELS,
+  LAYOUT_HINTS,
+  OFFERED_LAYOUTS,
+} from '@/components/editor/cta-picker-labels';
 import { MediaPicker } from '@/components/editor/media-picker';
 import { Alert } from '@/components/ui/alert';
 import { BuilderSection } from '@/components/workspace/section';
@@ -262,7 +265,8 @@ export function CtaBuilder({
    * turned into a URL here — true of `mediaPublicUrl`, which needs the server's
    * SUPABASE_URL, but not of MediaOptions, which the server already built this
    * form with and which carries the URL for every thumbnail the picker shows.
-   * So Split previewed as Banner and the sidebar card previewed with no image
+   * So a banner with a picture previewed without it, and the sidebar card
+   * previewed with no image
    * at all, which is most of what the card IS.
    */
   const chosenImage = media.items.find((item) => item.id === imageId);
@@ -292,7 +296,7 @@ export function CtaBuilder({
     collectName: values.collectName,
     successMessage: values.successMessage,
     // The chosen image is not resolvable to a URL here — the picker deals in
-    // ids and `mediaPublicUrl` needs the server's SUPABASE_URL. The Split
+    // ids and `mediaPublicUrl` needs the server's SUPABASE_URL. The banner
     // layout therefore previews as Banner, which is also what it renders as
     // when a block genuinely has no image.
     image: previewImage,
@@ -351,7 +355,8 @@ export function CtaBuilder({
    * do anything when I select one." The picker was working; it had nowhere to
    * put the result.
    */
-  const imageShowsInBody = preview.layout === 'split';
+  const imageShowsInBody =
+    preview.layout === 'split' || preview.layout === 'banner';
   const imageShowsSomewhere = imageShowsInBody || targeted;
   const imageIgnored = Boolean(imageId) && !imageShowsSomewhere;
 
@@ -526,29 +531,98 @@ export function CtaBuilder({
           <BuilderSection
             id="style"
             title="Style"
-            summary={`${CTA_LABELS.layout[preview.layout]} · ${CTA_LABELS.theme[preview.theme]}`}
+            summary={
+              placement === 'sidebar'
+                ? `Sidebar card · ${CTA_LABELS.theme[preview.theme]}`
+                : `${CTA_LABELS.layout[preview.layout]} · ${CTA_LABELS.theme[preview.theme]}`
+            }
             open={!!open.style}
             onToggle={toggle}
           >
             <div className="builder-stack">
               <div>
-                <span className="label">
-                  Layout{' '}
-                  {placement === 'sidebar' ? (
-                    <span className="font-normal text-ink-muted">
-                      — post body only
+                <span className="label">Layout</span>
+
+                {/*
+                  THE SIDEBAR IS ONE OF THESE, which is where Denis put it:
+                  "I don't like the switch at the top for sidebar, it should be
+                  it's own layout option on the sidebar." It was a pair of tabs
+                  floating over the preview, which made it chrome for the
+                  preview rather than a property of the block.
+
+                  Three of the four write `layout`; the fourth does not, because
+                  the sidebar's arrangement is fixed and WHICH blocks appear
+                  there is decided by Where it appears, below. Choosing it
+                  changes what the preview shows and leaves the stored layout
+                  where it was, so switching back does not lose the choice.
+                */}
+                <div className="grid grid-cols-2 gap-2">
+                  {OFFERED_LAYOUTS.map((option) => (
+                    <label
+                      key={option}
+                      className={`builder-pill ${
+                        placement === 'body' && preview.layout === option ? 'is-on' : ''
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        name="layout"
+                        value={option}
+                        checked={preview.layout === option}
+                        onChange={() => set('layout', option)}
+                        /*
+                          `onClick` as well as `onChange`, and it is not
+                          belt-and-braces. A controlled radio that is already
+                          checked fires no change event, so with only onChange
+                          the pill for the layout this block ALREADY has could
+                          not bring the preview back from the sidebar card —
+                          you would be stuck there until you picked a different
+                          layout. Click fires either way.
+                        */
+                        onClick={() => setPlacement('body')}
+                        className="sr-only"
+                      />
+                      <span className="builder-pill-label">
+                        {CTA_LABELS.layout[option]}
+                      </span>
+                      <span className="builder-pill-hint">{LAYOUT_HINTS[option]}</span>
+                    </label>
+                  ))}
+
+                  {/*
+                    Not a radio and not in the `layout` group: it sets nothing.
+                    A radio here would either need a fifth enum value that means
+                    nothing to the renderer, or it would silently overwrite the
+                    in-body layout when you looked at the sidebar.
+                  */}
+                  <button
+                    type="button"
+                    onClick={() => setPlacement('sidebar')}
+                    aria-pressed={placement === 'sidebar'}
+                    className={`builder-pill text-left ${
+                      placement === 'sidebar' ? 'is-on' : ''
+                    }`}
+                  >
+                    <span className="builder-pill-label">Sidebar card</span>
+                    <span className="builder-pill-hint">
+                      {targeted
+                        ? 'How it looks where Where it appears sends it.'
+                        : 'Fixed arrangement. Set Where it appears to use it.'}
                     </span>
-                  ) : null}
-                </span>
-                <PillGroup
-                  name="layout"
-                  options={CTA_LAYOUTS}
-                  value={preview.layout}
-                  labels={CTA_LABELS.layout}
-                  hints={LAYOUT_HINTS}
-                  onPick={(option) => set('layout', option)}
-                  columns
-                />
+                  </button>
+                </div>
+
+                {/*
+                  The stored layout, said out loud, because the Sidebar pill
+                  does not change it and the radios are no longer lit while it
+                  is selected.
+                */}
+                {placement === 'sidebar' ? (
+                  <p className="hint mt-2">
+                    In a post body this block is still{' '}
+                    <strong>{CTA_LABELS.layout[preview.layout]}</strong>.
+                  </p>
+                ) : null}
               </div>
 
               <div>
@@ -650,15 +724,19 @@ export function CtaBuilder({
                 <p>
                   Nothing will show this image.{' '}
                   <strong>{CTA_LABELS.layout[preview.layout]}</strong> has no place
-                  for one — only <strong>Split</strong> does — and this block has
-                  no targeting rules, so it never appears in the sidebar either.
+                  for one — <strong>Banner</strong> and the sidebar card are what
+                  show a picture — and this block has no targeting rules, so it
+                  never appears in the sidebar either.
                 </p>
                 <button
                   type="button"
-                  onClick={() => set('layout', 'split')}
+                  onClick={() => {
+                    set('layout', 'banner');
+                    setPlacement('body');
+                  }}
                   className="btn btn-ghost btn-sm mt-2"
                 >
-                  Use the Split layout
+                  Use the Banner layout
                 </button>
               </div>
             ) : imageId && !imageShowsInBody ? (
@@ -666,13 +744,14 @@ export function CtaBuilder({
                 Shown in the sidebar, where this block is targeted. The{' '}
                 <strong>{CTA_LABELS.layout[preview.layout]}</strong> layout has no
                 place for an image, so a copy dropped into a post body will not
-                show it — only <strong>Split</strong> does.
+                show it — <strong>Banner</strong> does.
               </p>
             ) : null}
 
             <p className="hint">
               Shown across the top of the sidebar card, and in the right-hand panel
-              of the <strong>Split</strong> layout. It is never cropped — the card
+              of a <strong>Banner</strong> — which is what a banner becomes once it
+              has one. It is never cropped — the card
               grows to fit, so a tall image makes a tall card. Around 700px wide is
               plenty.
             </p>
@@ -873,27 +952,8 @@ export function CtaBuilder({
 
         {/* ---------------------------------------------------------------- */}
         <div className="builder-stage">
-          {/*
-            Which of the two places this block can turn up in. Not a device
-            switcher — see the note below on why there isn't one.
-          */}
-          <div className="builder-places" role="group" aria-label="Preview placement">
-            {([
-              ['body', 'In a post body'],
-              ['sidebar', 'In the sidebar'],
-            ] as const).map(([key, label]) => (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setPlacement(key)}
-                aria-pressed={placement === key}
-                className="builder-place"
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
+          {/* The placement lives in the Layout control now, not over the
+              preview — see the note there. */}
           <div
             className={
               placement === 'sidebar'
@@ -959,16 +1019,10 @@ export function CtaBuilder({
 
             {placement === 'sidebar' ? (
               <p className="builder-note">
-                The sidebar has one arrangement, so <strong>Layout</strong> and the
-                eyebrow do nothing here. Everything else — the background, the
-                image, the copy and the button — is what a reader sees. The blog
-                adds an orbiting gold edge this preview leaves off.
-              </p>
-            ) : null}
-            {placement === 'body' && previewBlock.layout === 'split' && !previewImage ? (
-              <p className="builder-note">
-                Split needs an image. Without one it renders as Banner — here, and
-                on the site.
+                The eyebrow is not shown here — the card has nowhere to put it.
+                Everything else — the background, the image, the copy and the
+                button — is what a reader sees. The blog adds an orbiting gold
+                edge this preview leaves off.
               </p>
             ) : null}
             {placement === 'body' && previewBlock.layout === 'strip' ? (
